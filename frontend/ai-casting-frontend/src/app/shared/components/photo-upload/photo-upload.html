@@ -1,0 +1,34 @@
+<div class="space-y-3">
+
+  <!-- Drop zone -->
+  <div
+    (drop)="onDrop($event)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave()"
+    [class.border-amber-500]="dragOver()"
+    [class.bg-amber-500\/5]="dragOver()"
+    class="border-2 border-dashed border-gray-700 rounded-xl p-8
+           text-center transition-all cursor-pointer hover:border-gray-500"
+    (click)="fileInput.click()">
+
+    @if (uploading()) {
+      <div class="text-gray-400 text-sm">Envoi en cours...</div>
+    } @else {
+      <div class="text-gray-500 text-sm">
+        <span class="block text-2xl mb-2">📷</span>
+        Glisse des photos ici ou
+        <span class="text-amber-400">clique pour sélectionner</span>
+      </div>
+      <div class="text-gray-600 text-xs mt-2">JPG, PNG — Max 10MB par fichier</div>
+    }
+  </div>
+
+  <!-- Hidden file input -->
+  <input #fileInput type="file" multiple accept="image/*"
+         class="hidden" (change)="onFileSelected($event)" />
+
+  @if (error()) {
+    <p class="text-red-400 text-xs">{{ error() }}</p>
+  }
+
+</div>

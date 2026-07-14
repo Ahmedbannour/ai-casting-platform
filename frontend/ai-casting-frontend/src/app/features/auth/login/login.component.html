@@ -1,0 +1,113 @@
+<div class="login-page">
+
+  <!-- Left panel -->
+  <div class="login-left">
+    <div class="brand">
+      <div class="brand-icon">🎬</div>
+      <span>AI Casting Platform</span>
+    </div>
+    <div class="left-content">
+      <h2>Trouvez l'acteur parfait en une phrase.</h2>
+      <p>L'intelligence artificielle au service du casting professionnel.</p>
+      <div class="features">
+        <div class="feature">
+          <span class="feature-icon">🔍</span>
+          <span>Recherche en langage naturel</span>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">⚡</span>
+          <span>Résultats en moins de 5 secondes</span>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">🎯</span>
+          <span>Score de pertinence IA</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="login-right">
+    <div class="login-card">
+
+      <div class="login-header">
+        <h1>Connexion</h1>
+        <p>Accédez à votre espace casting</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
+
+        <div class="field">
+          <label>Adresse email</label>
+          <div class="input-wrap" [class.focused]="emailFocused"
+               [class.error]="form.get('email')?.invalid && form.get('email')?.touched">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <input
+              type="email"
+              formControlName="email"
+              placeholder="vous@exemple.com"
+              (focus)="emailFocused=true"
+              (blur)="emailFocused=false"
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Mot de passe</label>
+          <div class="input-wrap" [class.focused]="pwFocused"
+               [class.error]="form.get('password')?.invalid && form.get('password')?.touched">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="••••••••"
+              (focus)="pwFocused=true"
+              (blur)="pwFocused=false"
+            />
+            <button type="button" class="toggle-pw" (click)="showPassword = !showPassword">
+              {{ showPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+        </div>
+
+        @if (error) {
+          <div class="error-banner">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {{ error }}
+          </div>
+        }
+
+        <button type="submit" class="submit-btn"
+                [disabled]="loading || form.invalid"
+                [class.loading]="loading">
+          @if (loading) {
+            <span class="spinner"></span>
+            Connexion en cours...
+          } @else {
+            Se connecter
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          }
+        </button>
+
+      </form>
+    </div>
+  </div>
+
+</div>

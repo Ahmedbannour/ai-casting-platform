@@ -1,0 +1,158 @@
+<div class="chat-container">
+
+  @if (isEmpty) {
+    <div class="chat-empty">
+      <div class="empty-icon">🎬</div>
+      <h1 class="empty-title">Quel acteur recherchez-vous ?</h1>
+      <p class="empty-subtitle">
+        Décrivez le profil en langage naturel — l'IA trouve les meilleurs candidats.
+      </p>
+      <div class="suggestions">
+        @for (s of suggestions; track s) {
+          <button class="suggestion-chip" (click)="send(s)">{{ s }}</button>
+        }
+      </div>
+    </div>
+  }
+
+  @if (!isEmpty) {
+    <div class="messages-list">
+      @for (msg of messages(); track $index) {
+
+        @if (msg.role === 'user') {
+          <div class="message user-message">
+            <div class="user-bubble">{{ msg.content }}</div>
+          </div>
+        }
+
+        @if (msg.role === 'assistant') {
+          <div class="message assistant-message">
+            <div class="assistant-avatar">AI</div>
+            <div class="assistant-content">
+
+              @if (msg.loading) {
+                <div class="loading-dots">
+                  <span></span><span></span><span></span>
+                </div>
+              }
+
+              @if (!msg.loading && msg.response) {
+
+                <div class="interpretation">
+                  <span class="interp-label">Recherche :</span>
+                  {{ msg.response.interpretation }}
+                  <span class="interp-count">
+                    {{ msg.response.totalResults }} résultat(s)
+                  </span>
+                </div>
+
+                @if (msg.response.results.length > 0) {
+                  <div class="results-grid">
+                    @for (actor of msg.response.results; track actor.id) {
+                      <div class="actor-result-card" (click)="openActor(actor.id)">
+
+                        <!-- Score badge -->
+                        <div class="score-badge"
+                             [style.color]="getScoreColor(actor.score)"
+                             [style.border-color]="getScoreColor(actor.score)">
+                          {{ getScorePercent(actor.score) }}%
+                        </div>
+
+                        <!-- Avatar -->
+                        <div class="actor-avatar">
+                          @if (actor.mainPhotoUrl) {
+                            <img [src]="actor.mainPhotoUrl" [alt]="actor.firstName" />
+                          } @else {
+                            {{ actor.firstName[0] }}{{ actor.lastName[0] }}
+                          }
+                        </div>
+
+                        <!-- Info -->
+                        <div class="actor-name">
+                          {{ actor.firstName }} {{ actor.lastName }}
+                        </div>
+                        <div class="actor-meta">
+                          @if (actor.age) { {{ actor.age }} ans · }
+                          {{ actor.city || '—' }}
+                        </div>
+
+                        <!-- Score bar -->
+                        <div class="score-bar-wrap">
+                          <div class="score-bar">
+                            <div class="score-fill"
+                                 [style.width.%]="getScorePercent(actor.score)"
+                                 [style.background]="getScoreColor(actor.score)">
+                            </div>
+                          </div>
+                          <span class="score-label"
+                                [style.color]="getScoreColor(actor.score)">
+                            {{ getScoreLabel(actor.score) }}
+                          </span>
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="actor-tags">
+                          @for (lang of actor.languages.slice(0, 2); track lang) {
+                            <span class="tag tag-lang">{{ lang }}</span>
+                          }
+                          @for (skill of actor.skills.slice(0, 1); track skill) {
+                            <span class="tag tag-skill">{{ skill }}</span>
+                          }
+                        </div>
+
+                        <!-- Reason -->
+                        <div class="actor-reason">{{ actor.reason }}</div>
+
+                        <!-- CTA -->
+                        <div class="card-cta">
+                          Voir le dossier →
+                        </div>
+
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="no-results">
+                    Aucun acteur ne correspond. Essayez des critères différents.
+                  </div>
+                }
+              }
+
+              @if (!msg.loading && msg.content) {
+                <p class="error-msg">{{ msg.content }}</p>
+              }
+
+            </div>
+          </div>
+        }
+      }
+      <div #messagesEnd></div>
+    </div>
+  }
+
+  <!-- Input -->
+  <div class="input-area">
+    <div class="input-container">
+      <textarea
+        [(ngModel)]="input"
+        (keydown)="onKeydown($event)"
+        placeholder="Décrivez l'acteur que vous recherchez..."
+        rows="1"
+        [disabled]="loading()"
+        class="chat-input"
+      ></textarea>
+      <button (click)="send()"
+              [disabled]="!input.trim() || loading()"
+              class="send-btn"
+              [class.active]="input.trim() && !loading()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+    <div class="input-hint">Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne</div>
+  </div>
+
+</div>

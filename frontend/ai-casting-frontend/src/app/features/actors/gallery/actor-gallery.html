@@ -1,0 +1,78 @@
+<div class="min-h-screen bg-gray-950 text-white">
+
+  <header class="border-b border-gray-800 px-8 py-5 flex items-center gap-4">
+    <button (click)="back()" class="text-gray-400 hover:text-white transition-colors">
+      ← Retour
+    </button>
+    <h1 class="text-xl font-semibold">Galerie photos</h1>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-8 py-8 space-y-8">
+
+    <!-- Upload zone -->
+    <section class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <h2 class="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-4">
+        Ajouter des photos
+      </h2>
+      <app-photo-upload
+        [actorId]="actorId()"
+        (uploaded)="onUploaded($event)"
+      />
+    </section>
+
+    <!-- Gallery grid -->
+    <section>
+      <h2 class="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-4">
+        Photos ({{ photos().length }})
+      </h2>
+
+      @if (loading()) {
+        <div class="text-gray-500 text-sm">Chargement...</div>
+      } @else if (photos().length === 0) {
+        <div class="text-center py-16 text-gray-600">
+          Aucune photo pour cet acteur
+        </div>
+      } @else {
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          @for (photo of photos(); track photo.id) {
+            <div class="relative group rounded-xl overflow-hidden bg-gray-900 aspect-square">
+
+              <!-- Image -->
+              <img [src]="photo.thumbnailUrl || photo.url"
+                   [alt]="photo.originalName"
+                   class="w-full h-full object-cover transition-transform
+                          group-hover:scale-105 duration-300" />
+
+              <!-- Main badge -->
+              @if (photo.isMain) {
+                <div class="absolute top-2 left-2 bg-amber-500 text-black
+                            text-xs font-bold px-2 py-0.5 rounded-full">
+                  Principale
+                </div>
+              }
+
+              <!-- Hover actions -->
+              <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100
+                          transition-opacity flex flex-col items-center justify-center gap-2">
+                @if (!photo.isMain) {
+                  <button (click)="setMain(photo.id)"
+                          class="text-xs bg-amber-500 hover:bg-amber-400 text-black
+                                 font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                    Définir principale
+                  </button>
+                }
+                <button (click)="delete(photo.id)"
+                        class="text-xs bg-red-600 hover:bg-red-500 text-white
+                               px-3 py-1.5 rounded-lg transition-colors">
+                  Supprimer
+                </button>
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+  </main>
+</div>

@@ -1,0 +1,227 @@
+<div class="form-page">
+
+  <!-- Header -->
+  <header class="form-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="cancel()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <div>
+        <div class="form-title">{{ isEdit() ? 'Modifier l\'acteur' : 'Nouvel acteur' }}</div>
+        <div class="form-subtitle">{{ isEdit() ? 'Mise à jour du dossier' : 'Création d\'un nouveau profil' }}</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn secondary" (click)="cancel()">Annuler</button>
+      <button type="button" class="btn primary"
+              [disabled]="form.invalid || loading()"
+              (click)="onSubmit()">
+        {{ loading() ? 'Enregistrement...' : (isEdit() ? 'Mettre à jour' : 'Créer l\'acteur') }}
+      </button>
+    </div>
+  </header>
+
+  <div class="form-layout" [formGroup]="form">
+
+    <!-- Sidebar nav -->
+    <nav class="form-nav">
+      <button class="nav-item active" (click)="scrollTo('info')">👤 Informations</button>
+      <button class="nav-item" (click)="scrollTo('skills')">⭐ Compétences</button>
+      <button class="nav-item" (click)="scrollTo('languages')">🌍 Langues</button>
+      <button class="nav-item" (click)="scrollTo('experiences')">🎬 Expériences</button>
+    </nav>
+
+    <!-- Content -->
+    <div class="form-content">
+
+      <!-- Error -->
+      @if (error()) {
+        <div class="form-error">{{ error() }}</div>
+      }
+
+      <!-- Section Informations -->
+      <div class="form-section" id="info">
+        <div class="section-header">
+          <span class="section-title">👤 Informations personnelles</span>
+        </div>
+        <div class="section-body">
+          <div class="fields-grid">
+            <div class="field">
+              <label>Prénom *</label>
+              <input formControlName="firstName" type="text" placeholder="Jean" />
+            </div>
+            <div class="field">
+              <label>Nom *</label>
+              <input formControlName="lastName" type="text" placeholder="Dupont" />
+            </div>
+            <div class="field">
+              <label>Date de naissance</label>
+              <input formControlName="birthDate" type="date" />
+            </div>
+            <div class="field">
+              <label>Genre</label>
+              <select formControlName="gender">
+                <option value="">— Sélectionner —</option>
+                <option value="Homme">Homme</option>
+                <option value="Femme">Femme</option>
+                <option value="Non-binaire">Non-binaire</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ville</label>
+              <input formControlName="city" type="text" placeholder="Paris" />
+            </div>
+            <div class="field">
+              <label>Pays</label>
+              <input formControlName="country" type="text" placeholder="France" />
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input formControlName="email" type="email" placeholder="acteur@email.com" />
+            </div>
+            <div class="field">
+              <label>Téléphone</label>
+              <input formControlName="phone" type="text" placeholder="+33 6 12 34 56 78" />
+            </div>
+          </div>
+
+          <div class="fields-grid cols-3" style="margin-top: 16px;">
+            <div class="field">
+              <label>Taille (cm)</label>
+              <input formControlName="height" type="number" placeholder="175" />
+            </div>
+            <div class="field">
+              <label>Poids (kg)</label>
+              <input formControlName="weight" type="number" placeholder="70" />
+            </div>
+            <div class="field">
+              <label>Couleur des yeux</label>
+              <input formControlName="eyeColor" type="text" placeholder="Bleu" />
+            </div>
+            <div class="field">
+              <label>Couleur des cheveux</label>
+              <input formControlName="hairColor" type="text" placeholder="Brun" />
+            </div>
+          </div>
+
+          <div class="field field-full" style="margin-top: 16px;">
+            <label>Biographie</label>
+            <textarea formControlName="bio" rows="4"
+                      placeholder="Courte présentation de l'acteur..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Compétences -->
+      <div class="form-section" id="skills">
+        <div class="section-header">
+          <span class="section-title">⭐ Compétences</span>
+          <button type="button" class="add-item-btn" (click)="addSkill()">
+            + Ajouter
+          </button>
+        </div>
+        <div class="section-body">
+          @if (skills.length === 0) {
+            <div class="empty-list">Aucune compétence — cliquez sur + Ajouter</div>
+          }
+          <div class="list-items" formArrayName="skills">
+            @for (skill of skills.controls; track $index) {
+              <div class="list-item" [formGroupName]="$index">
+                <input formControlName="name" type="text" placeholder="Danse, Chant, Sport..." />
+                <select formControlName="level">
+                  <option value="">Niveau</option>
+                  <option value="Débutant">Débutant</option>
+                  <option value="Intermédiaire">Intermédiaire</option>
+                  <option value="Avancé">Avancé</option>
+                  <option value="Expert">Expert</option>
+                </select>
+                <button type="button" class="remove-btn" (click)="removeSkill($index)">×</button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Langues -->
+      <div class="form-section" id="languages">
+        <div class="section-header">
+          <span class="section-title">🌍 Langues</span>
+          <button type="button" class="add-item-btn" (click)="addLanguage()">
+            + Ajouter
+          </button>
+        </div>
+        <div class="section-body">
+          @if (languages.length === 0) {
+            <div class="empty-list">Aucune langue — cliquez sur + Ajouter</div>
+          }
+          <div class="list-items" formArrayName="languages">
+            @for (lang of languages.controls; track $index) {
+              <div class="list-item" [formGroupName]="$index">
+                <input formControlName="name" type="text" placeholder="Français, Anglais, Arabe..." />
+                <select formControlName="level">
+                  <option value="">Niveau</option>
+                  <option value="Notions">Notions</option>
+                  <option value="Intermédiaire">Intermédiaire</option>
+                  <option value="Courant">Courant</option>
+                  <option value="Natif">Natif</option>
+                </select>
+                <button type="button" class="remove-btn" (click)="removeLanguage($index)">×</button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Expériences -->
+      <div class="form-section" id="experiences">
+        <div class="section-header">
+          <span class="section-title">🎬 Expériences</span>
+          <button type="button" class="add-item-btn" (click)="addExperience()">
+            + Ajouter
+          </button>
+        </div>
+        <div class="section-body">
+          @if (experiences.length === 0) {
+            <div class="empty-list">Aucune expérience — cliquez sur + Ajouter</div>
+          }
+          <div formArrayName="experiences">
+            @for (exp of experiences.controls; track $index) {
+              <div class="exp-item" [formGroupName]="$index">
+                <div class="exp-item-header">
+                  <span class="exp-item-label">Expérience {{ $index + 1 }}</span>
+                  <button type="button" class="remove-btn" (click)="removeExperience($index)">×</button>
+                </div>
+                <div class="fields-grid">
+                  <div class="field">
+                    <label>Titre du rôle *</label>
+                    <input formControlName="title" type="text" placeholder="Acteur principal" />
+                  </div>
+                  <div class="field">
+                    <label>Production / Film</label>
+                    <input formControlName="production" type="text" placeholder="Le Dernier Train" />
+                  </div>
+                  <div class="field">
+                    <label>Rôle joué</label>
+                    <input formControlName="role" type="text" placeholder="Thomas" />
+                  </div>
+                  <div class="field">
+                    <label>Année</label>
+                    <input formControlName="year" type="number" placeholder="2023" />
+                  </div>
+                  <div class="field field-full">
+                    <label>Description</label>
+                    <textarea formControlName="description" rows="2"
+                              placeholder="Courte description du rôle..."></textarea>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

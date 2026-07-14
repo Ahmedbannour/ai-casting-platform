@@ -1,0 +1,276 @@
+<div class="detail-container">
+
+  @if (loading()) {
+    <div class="loading-state">Chargement du dossier...</div>
+  }
+
+  @if (!loading() && error()) {
+    <div style="padding: 40px; color: var(--danger); text-align: center;">
+      <p>Erreur lors du chargement du dossier acteur.</p>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+        Vérifiez que le backend est démarré et que vous êtes connecté.
+      </p>
+      <button (click)="back()" style="margin-top: 16px; padding: 8px 16px;
+              background: var(--accent); color: white; border: none;
+              border-radius: 8px; cursor: pointer;">
+        Retour au dashboard
+      </button>
+    </div>
+  }
+
+  @if (!loading() && actor()) {
+    <!-- Header -->
+    <header class="detail-header">
+      <button class="back-btn" (click)="back()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Retour
+      </button>
+
+      <div class="header-actions">
+        <button class="action-btn secondary" (click)="gallery()">
+          📷 Photos
+        </button>
+        <button class="action-btn primary" (click)="edit()">
+          ✏️ Modifier
+        </button>
+      </div>
+    </header>
+
+    <!-- Profile -->
+    <div class="profile-section">
+      <div class="profile-avatar">
+        @if (actor()!.mainPhotoUrl) {
+          <img [src]="actor()!.mainPhotoUrl" [alt]="actor()!.firstName" />
+        } @else {
+          <span>{{ getInitials() }}</span>
+        }
+      </div>
+
+      <div class="profile-info">
+        <h1 class="profile-name">
+          {{ actor()!.firstName }} {{ actor()!.lastName }}
+        </h1>
+        <div class="profile-meta">
+          @if (actor()!.age) { <span>{{ actor()!.age }} ans</span> }
+          @if (actor()!.gender) { <span>{{ actor()!.gender }}</span> }
+          @if (actor()!.city) { <span>📍 {{ actor()!.city }}{{ actor()!.country ? ', ' + actor()!.country : '' }}</span> }
+        </div>
+
+        <div class="profile-tags">
+          @for (lang of actor()!.languages; track lang.name) {
+            <span class="tag tag-lang">{{ lang.name }}</span>
+          }
+          @for (skill of actor()!.skills; track skill.name) {
+            <span class="tag tag-skill">{{ skill.name }}</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-bar">
+      @for (tab of tabs; track tab.key) {
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === tab.key"
+          (click)="setTab(tab.key)">
+          {{ tab.icon }} {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+
+      <!-- INFO TAB -->
+      @if (activeTab() === 'info') {
+        <div class="info-grid">
+          <div class="info-card">
+            <h3 class="card-title">Contact</h3>
+            <div class="info-row">
+              <span class="info-label">Email</span>
+              <span class="info-val">{{ actor()!.email || '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Téléphone</span>
+              <span class="info-val">{{ actor()!.phone || '—' }}</span>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3 class="card-title">Physique</h3>
+            <div class="info-row">
+              <span class="info-label">Taille</span>
+              <span class="info-val">{{ actor()!.height ? actor()!.height + ' cm' : '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Poids</span>
+              <span class="info-val">{{ actor()!.weight ? actor()!.weight + ' kg' : '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Yeux</span>
+              <span class="info-val">{{ actor()!.eyeColor || '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Cheveux</span>
+              <span class="info-val">{{ actor()!.hairColor || '—' }}</span>
+            </div>
+          </div>
+
+          @if (actor()!.bio) {
+            <div class="info-card full-width">
+              <h3 class="card-title">Biographie</h3>
+              <p class="bio-text">{{ actor()!.bio }}</p>
+            </div>
+          }
+
+          @if (actor()!.availabilities.length > 0) {
+            <div class="info-card full-width">
+              <h3 class="card-title">Disponibilités</h3>
+              @for (avail of actor()!.availabilities; track $index) {
+                <div class="avail-row">
+                  <span class="avail-date">
+                    {{ avail.fromDate | date:'dd/MM/yyyy' }}
+                    → {{ avail.toDate | date:'dd/MM/yyyy' }}
+                  </span>
+                  @if (avail.note) {
+                    <span class="avail-note">{{ avail.note }}</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- GALLERY TAB -->
+      @if (activeTab() === 'gallery') {
+        @if (actor()!.photos.length === 0) {
+          <div class="empty-tab">
+            <p>Aucune photo</p>
+            <button class="action-btn primary" (click)="gallery()">Ajouter des photos</button>
+          </div>
+        } @else {
+          <div class="photo-grid">
+            @for (photo of actor()!.photos; track photo.id) {
+              <div class="photo-item" [class.main]="photo.isMain">
+                <img [src]="photo.thumbnailUrl || photo.url" [alt]="photo.originalName" />
+                @if (photo.isMain) {
+                  <span class="main-badge">Principale</span>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- EXPERIENCES TAB -->
+      @if (activeTab() === 'experiences') {
+        @if (actor()!.experiences.length === 0) {
+          <div class="empty-tab">Aucune expérience renseignée</div>
+        } @else {
+          <div class="exp-list">
+            @for (exp of actor()!.experiences; track $index) {
+              <div class="exp-card">
+                <div class="exp-header">
+                  <div>
+                    <div class="exp-title">{{ exp.title }}</div>
+                    @if (exp.production) {
+                      <div class="exp-production">{{ exp.production }}</div>
+                    }
+                  </div>
+                  @if (exp.year) {
+                    <span class="exp-year">{{ exp.year }}</span>
+                  }
+                </div>
+                @if (exp.role) {
+                  <div class="exp-role">Rôle : {{ exp.role }}</div>
+                }
+                @if (exp.description) {
+                  <p class="exp-desc">{{ exp.description }}</p>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- COMMENTS TAB -->
+      @if (activeTab() === 'comments') {
+        <div class="comments-section">
+          <div class="comment-input-area">
+            <textarea
+              [(ngModel)]="newComment"
+              placeholder="Ajouter une note interne..."
+              rows="3"
+              class="comment-input">
+            </textarea>
+            <button
+              (click)="addComment()"
+              [disabled]="!newComment.trim() || addingComment()"
+              class="action-btn primary">
+              {{ addingComment() ? 'Envoi...' : 'Ajouter' }}
+            </button>
+          </div>
+
+          @if (actor()!.comments.length === 0) {
+            <div class="empty-tab">Aucun commentaire</div>
+          } @else {
+            <div class="comments-list">
+              @for (comment of actor()!.comments; track comment.id) {
+                <div class="comment-card">
+                  <div class="comment-header">
+                    <span class="comment-author">{{ comment.authorName }}</span>
+                    <span class="comment-date">
+                      {{ comment.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                    </span>
+                    <button class="delete-btn" (click)="deleteComment(comment.id)">×</button>
+                  </div>
+                  <p class="comment-content">{{ comment.content }}</p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- DOCUMENTS TAB -->
+      @if (activeTab() === 'documents') {
+        <div class="documents-section">
+          <div class="doc-upload-area" (click)="docInput.click()">
+            <input #docInput type="file" class="hidden"
+                   (change)="onDocumentSelected($event)" />
+            <span>📎 Cliquer pour uploader un document</span>
+            <span class="doc-hint">PDF, Word, images...</span>
+          </div>
+
+          @if (actor()!.documents.length === 0) {
+            <div class="empty-tab">Aucun document</div>
+          } @else {
+            <div class="doc-list">
+              @for (doc of actor()!.documents; track doc.id) {
+                <div class="doc-item">
+                  <div class="doc-icon">
+                    {{ doc.type?.includes('pdf') ? '📕' : doc.type?.includes('image') ? '🖼️' : '📄' }}
+                  </div>
+                  <div class="doc-info">
+                    <div class="doc-name">{{ doc.originalName }}</div>
+                    <div class="doc-meta">{{ formatSize(doc.size) }}</div>
+                  </div>
+                  <div class="doc-actions">
+                    <a [href]="doc.url" target="_blank" class="doc-btn">Ouvrir</a>
+                    <button (click)="deleteDocument(doc.id)" class="doc-btn danger">×</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  }
+
+</div>

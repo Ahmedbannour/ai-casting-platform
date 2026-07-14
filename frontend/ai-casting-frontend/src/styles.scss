@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+/* ── CSS Variables — Dark Theme (default) ─────────── */
+:root {
+  --bg-primary:    #0D0D0D;
+  --bg-secondary:  #171717;
+  --bg-surface:    #1E1E1E;
+  --bg-hover:      #2A2A2A;
+  --border:        #2E2E2E;
+  --text-primary:  #ECECEC;
+  --text-muted:    #8E8EA0;
+  --text-subtle:   #555568;
+  --accent:        #10A37F;
+  --accent-hover:  #0D8F70;
+  --accent-dim:    rgba(16,163,127,0.12);
+  --danger:        #EF4444;
+  --shadow:        0 1px 3px rgba(0,0,0,0.4);
+}
+
+/* ── Light Theme ──────────────────────────────────── */
+:root.light {
+  --bg-primary:    #FFFFFF;
+  --bg-secondary:  #F7F7F8;
+  --bg-surface:    #ECECEC;
+  --bg-hover:      #E5E5E5;
+  --border:        #D9D9E3;
+  --text-primary:  #0D0D0D;
+  --text-muted:    #6E6E80;
+  --text-subtle:   #AEAEC0;
+  --accent:        #10A37F;
+  --accent-hover:  #0D8F70;
+  --accent-dim:    rgba(16,163,127,0.08);
+  --danger:        #DC2626;
+  --shadow:        0 1px 3px rgba(0,0,0,0.12);
+}
+
+/* ── Base ─────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* ── Scrollbar ────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Selection ────────────────────────────────────── */
+::selection { background: var(--accent); color: white; }

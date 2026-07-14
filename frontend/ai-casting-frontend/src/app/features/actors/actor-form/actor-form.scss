@@ -1,0 +1,284 @@
+:host { display: block; }
+
+.form-page {
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ── Header ───────────────────────────────────────── */
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s;
+  &:hover { color: var(--text-primary); }
+}
+
+.form-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.form-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.header-actions { display: flex; gap: 8px; }
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+
+  &.primary {
+    background: var(--accent);
+    color: white;
+    &:hover { background: var(--accent-hover); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &.secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    &:hover { border-color: var(--text-muted); color: var(--text-primary); }
+  }
+}
+
+/* ── Layout ───────────────────────────────────────── */
+.form-layout {
+  display: flex;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px;
+  gap: 24px;
+}
+
+/* ── Sidebar nav ──────────────────────────────────── */
+.form-nav {
+  width: 200px;
+  min-width: 200px;
+  position: sticky;
+  top: 80px;
+  height: fit-content;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s;
+
+  &:hover { background: var(--bg-surface); color: var(--text-primary); }
+  &.active { background: var(--accent-dim); color: var(--accent); font-weight: 500; }
+}
+
+/* ── Sections ─────────────────────────────────────── */
+.form-content { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+.form-section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.add-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  &:hover { background: var(--accent-dim); }
+}
+
+.section-body { padding: 20px; }
+
+/* ── Grid ─────────────────────────────────────────── */
+.fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  &.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 700px) { grid-template-columns: 1fr; }
+}
+
+.field-full { grid-column: 1 / -1; }
+
+/* ── Field ────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+}
+
+.field input, .field select, .field textarea {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+
+  &:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  &::placeholder { color: var(--text-subtle); }
+}
+
+.field textarea { resize: none; }
+.field select option { background: var(--bg-secondary); }
+
+/* ── List items (skills, languages) ──────────────── */
+.list-items { display: flex; flex-direction: column; gap: 10px; }
+
+.list-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.list-item input, .list-item select {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 6px 4px;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  flex: 1;
+  &:focus { border-bottom-color: var(--accent); box-shadow: none; }
+}
+
+.remove-btn {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  &:hover { border-color: var(--danger); color: var(--danger); }
+}
+
+/* ── Experience card ──────────────────────────────── */
+.exp-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.exp-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.exp-item-label { font-size: 12px; color: var(--text-subtle); font-weight: 500; }
+
+/* ── Error ────────────────────────────────────────── */
+.form-error {
+  padding: 12px 16px;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 8px;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.empty-list {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-subtle);
+  font-size: 13px;
+  font-style: italic;
+}

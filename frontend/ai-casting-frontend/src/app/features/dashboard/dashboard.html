@@ -1,0 +1,62 @@
+<div class="dash-container">
+
+  <!-- Header -->
+  <header class="dash-header">
+    <div>
+      <h1 class="dash-title">Dashboard</h1>
+      <p class="dash-subtitle">Vue d'ensemble de la plateforme</p>
+    </div>
+    <button (click)="goToCreate()" class="add-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Ajouter un acteur
+    </button>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <app-stat-card label="Acteurs" [value]="stats().totalActors" subtitle="au total" />
+    <app-stat-card label="Photos" [value]="stats().totalPhotos" subtitle="uploadées" />
+    <app-stat-card label="Recherches IA" [value]="stats().totalSearches" subtitle="effectuées" />
+    <app-stat-card label="Documents" [value]="stats().totalDocuments" subtitle="stockés" />
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/>
+      <path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input
+      [(ngModel)]="search"
+      (keyup.enter)="onSearch()"
+      placeholder="Rechercher par nom, ville..."
+    />
+  </div>
+
+  <!-- Grid -->
+  @if (loading()) {
+    <div class="loading-state">Chargement...</div>
+  } @else if (actors().length === 0) {
+    <div class="empty-state">
+      <p>Aucun acteur trouvé</p>
+      <button (click)="goToCreate()" class="add-btn">Ajouter le premier acteur</button>
+    </div>
+  } @else {
+    <div class="actors-grid">
+      @for (actor of actors(); track actor.id) {
+        <app-actor-card
+          [actor]="actor"
+          (view)="onView($event)"
+          (edit)="onEdit($event)"
+          (delete)="onDelete($event)"
+          (gallery)="onGallery($event)"
+        />
+      }
+    </div>
+  }
+
+</div>

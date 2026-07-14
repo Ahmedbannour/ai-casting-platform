@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: casting-postgres
+    environment:
+      POSTGRES_DB: casting_db
+      POSTGRES_USER: casting_user
+      POSTGRES_PASSWORD: casting_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: casting-redis
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: casting-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"   # interface web RabbitMQ
+
+  minio:
+    image: minio/minio
+    container_name: casting-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio_admin
+      MINIO_ROOT_PASSWORD: minio_password
+    ports:
+      - "9000:9000"
+      - "9001:9001"     # console web MinIO
+    volumes:
+      - minio_data:/data
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.0
+    container_name: casting-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+
+volumes:
+  postgres_data:
+  minio_data:

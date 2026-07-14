@@ -1,0 +1,24 @@
+package com.castingai.storage;
+
+import org.springframework.web.multipart.MultipartFile;
+
+/**
+ * Abstraction for file storage operations.
+ */
+public interface StorageService {
+
+    /**
+     * Uploads a file and returns its public URL.
+     */
+    String upload(MultipartFile file, String filename) throws Exception;
+
+    /**
+     * Uploads a byte array (thumbnail) and returns its public URL.
+     */
+    String uploadBytes(byte[] data, String filename, String contentType) throws Exception;
+
+    /**
+     * Deletes a file by its filename.
+     */
+    void delete(String filename) throws Exception;
+}
