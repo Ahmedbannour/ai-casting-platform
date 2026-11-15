@@ -3,10 +3,10 @@
   <!-- Header -->
   <header class="dash-header">
     <div>
-      <h1 class="dash-title">Dashboard</h1>
-      <p class="dash-subtitle">Vue d'ensemble de la plateforme</p>
+      <h1 class="dash-title">Acteurs</h1>
+      <p class="dash-sub">{{ totalElements }} acteur(s) au total</p>
     </div>
-    <button (click)="goToCreate()" class="add-btn">
+    <button class="btn-primary" (click)="goToCreate()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2.5">
         <path d="M12 5v14M5 12h14"/>
@@ -16,46 +16,230 @@
   </header>
 
   <!-- Stats -->
-  <div class="stats-grid">
-    <app-stat-card label="Acteurs" [value]="stats().totalActors" subtitle="au total" />
-    <app-stat-card label="Photos" [value]="stats().totalPhotos" subtitle="uploadées" />
-    <app-stat-card label="Recherches IA" [value]="stats().totalSearches" subtitle="effectuées" />
-    <app-stat-card label="Documents" [value]="stats().totalDocuments" subtitle="stockés" />
-  </div>
-
-  <!-- Search -->
-  <div class="search-bar">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="8"/>
-      <path d="m21 21-4.35-4.35"/>
-    </svg>
-    <input
-      [(ngModel)]="search"
-      (keyup.enter)="onSearch()"
-      placeholder="Rechercher par nom, ville..."
-    />
-  </div>
-
-  <!-- Grid -->
-  @if (loading()) {
-    <div class="loading-state">Chargement...</div>
-  } @else if (actors().length === 0) {
-    <div class="empty-state">
-      <p>Aucun acteur trouvé</p>
-      <button (click)="goToCreate()" class="add-btn">Ajouter le premier acteur</button>
+  <div class="stats-row">
+    <div class="stat-pill">
+      <span class="stat-num">{{ stats().totalActors }}</span>
+      <span class="stat-lbl">Acteurs</span>
     </div>
-  } @else {
-    <div class="actors-grid">
-      @for (actor of actors(); track actor.id) {
-        <app-actor-card
-          [actor]="actor"
-          (view)="onView($event)"
-          (edit)="onEdit($event)"
-          (delete)="onDelete($event)"
-          (gallery)="onGallery($event)"
-        />
-      }
+    <div class="stat-pill">
+      <span class="stat-num">{{ stats().totalPhotos }}</span>
+      <span class="stat-lbl">Photos</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-num">{{ stats().totalSearches }}</span>
+      <span class="stat-lbl">Recherches IA</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-num">{{ stats().totalDocuments }}</span>
+      <span class="stat-lbl">Documents</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="filter-search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input [(ngModel)]="search" (keyup.enter)="applyFilters()"
+             placeholder="Nom, ville..." />
+    </div>
+
+    <select [(ngModel)]="gender" (change)="applyFilters()" class="filter-select">
+      <option value="">Tous genres</option>
+      <option value="Femme">Femme</option>
+      <option value="Homme">Homme</option>
+    </select>
+
+    <div class="filter-age">
+      <input type="number" [(ngModel)]="minAge" (change)="applyFilters()"
+             placeholder="Âge min" class="filter-input-sm" />
+      <span class="age-sep">—</span>
+      <input type="number" [(ngModel)]="maxAge" (change)="applyFilters()"
+             placeholder="Âge max" class="filter-input-sm" />
+    </div>
+
+    <input [(ngModel)]="city" (keyup.enter)="applyFilters()"
+           placeholder="Ville..." class="filter-input" />
+
+    <select [(ngModel)]="size" (change)="applyFilters()" class="filter-select">
+      <option [value]="10">10 / page</option>
+      <option [value]="20">20 / page</option>
+      <option [value]="50">50 / page</option>
+      <option [value]="100">100 / page</option>
+    </select>
+
+    <button class="btn-filter" (click)="applyFilters()">Filtrer</button>
+    <button class="btn-reset" (click)="resetFilters()">Réinitialiser</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table class="actors-table">
+      <thead>
+        <tr>
+          <th class="col-photo">Photo</th>
+          <th class="sortable" (click)="sort('lastName')">
+            Nom {{ getSortIcon('lastName') }}
+          </th>
+          <th class="sortable" (click)="sort('age')">
+            Âge {{ getSortIcon('age') }}
+          </th>
+          <th class="sortable" (click)="sort('gender')">
+            Genre {{ getSortIcon('gender') }}
+          </th>
+          <th class="sortable" (click)="sort('city')">
+            Ville {{ getSortIcon('city') }}
+          </th>
+          <th class="sortable" (click)="sort('height')">
+            Taille {{ getSortIcon('height') }}
+          </th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr class="skeleton-row">
+              <td><div class="skel skel-avatar"></div></td>
+              <td><div class="skel skel-text"></div></td>
+              <td><div class="skel skel-sm"></div></td>
+              <td><div class="skel skel-sm"></div></td>
+              <td><div class="skel skel-text"></div></td>
+              <td><div class="skel skel-sm"></div></td>
+              <td><div class="skel skel-text"></div></td>
+            </tr>
+          }
+        } @else if (actors().length === 0) {
+          <tr>
+            <td colspan="7" class="empty-row">
+              <div class="empty-state">
+                <span class="empty-icon">🎭</span>
+                <p>Aucun acteur trouvé</p>
+                <button class="btn-primary" (click)="goToCreate()">
+                  Ajouter un acteur
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @else {
+          @for (actor of actors(); track actor.id) {
+            <tr class="actor-row" (click)="onView(actor.id)">
+
+              <!-- Photo -->
+              <td class="col-photo" (click)="$event.stopPropagation()">
+                <div class="avatar-wrap">
+                  @if (actor.mainPhotoUrl) {
+                    <img [src]="actor.mainPhotoUrl"
+                         [alt]="actor.firstName"
+                         class="avatar-img"
+                         (error)="actor.mainPhotoUrl = ''" />
+                  } @else {
+                    <div class="avatar-initials">
+                      {{ actor.firstName[0] }}{{ actor.lastName[0] }}
+                    </div>
+                  }
+                </div>
+              </td>
+
+              <!-- Nom -->
+              <td>
+                <div class="actor-name-cell">
+                  <span class="actor-full-name">
+                    {{ actor.firstName }} {{ actor.lastName }}
+                  </span>
+                  <span class="actor-email-hint">{{ actor.city }}</span>
+                </div>
+              </td>
+
+              <!-- Âge -->
+              <td>
+                <span class="badge badge-neutral">
+                  {{ actor.age ? actor.age + ' ans' : '—' }}
+                </span>
+              </td>
+
+              <!-- Genre -->
+              <td>
+                <span class="badge"
+                      [class.badge-female]="actor.gender === 'Femme'"
+                      [class.badge-male]="actor.gender === 'Homme'">
+                  {{ actor.gender || '—' }}
+                </span>
+              </td>
+
+              <!-- Ville -->
+              <td class="text-muted">{{ actor.city || '—' }}</td>
+
+              <!-- Taille -->
+              <td class="text-muted">
+                {{ actor.height ? actor.height + ' cm' : '—' }}
+              </td>
+
+              <!-- Actions -->
+              <td (click)="$event.stopPropagation()">
+                <div class="row-actions">
+                  <button class="row-btn" title="Voir"
+                          (click)="onView(actor.id)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                  <button class="row-btn" title="Photos"
+                          (click)="onGallery(actor.id)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                  </button>
+                  <button class="row-btn" title="Modifier"
+                          (click)="onEdit(actor.id)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button class="row-btn danger" title="Supprimer"
+                          (click)="onDelete(actor.id)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14H6L5 6"/>
+                      <path d="M10 11v6M14 11v6"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  @if (totalPages > 1) {
+    <div class="pagination">
+      <span class="page-info">
+        Page {{ page + 1 }} / {{ totalPages }}
+        ({{ totalElements }} acteurs)
+      </span>
+      <div class="page-controls">
+        <button class="page-btn" [disabled]="page === 0" (click)="prevPage()">←</button>
+        @for (p of pages; track p) {
+          <button class="page-btn" [class.active]="p === page" (click)="goToPage(p)">
+            {{ p + 1 }}
+          </button>
+        }
+        <button class="page-btn" [disabled]="page >= totalPages - 1" (click)="nextPage()">→</button>
+      </div>
     </div>
   }
 

@@ -41,6 +41,26 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
     @Query("SELECT a FROM Actor a WHERE a.id = :id")
     Optional<Actor> findByIdSimple(@Param("id") UUID id);
 
+    @Query("""
+    SELECT a FROM Actor a
+    WHERE (:search IS NULL OR
+           LOWER(CAST(a.firstName AS string)) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR
+           LOWER(CAST(a.lastName AS string)) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')))
+    AND (:gender IS NULL OR a.gender = :gender)
+    AND (:city IS NULL OR LOWER(CAST(a.city AS string)) LIKE LOWER(CONCAT('%', CAST(:city AS string), '%')))
+    AND (:minAge IS NULL OR
+         FUNCTION('date_part', 'year', FUNCTION('age', a.birthDate)) >= :minAge)
+    AND (:maxAge IS NULL OR
+         FUNCTION('date_part', 'year', FUNCTION('age', a.birthDate)) <= :maxAge)
+    """)
+    Page<Actor> searchAdvanced(
+            @Param("search") String search,
+            @Param("gender") String gender,
+            @Param("minAge") Integer minAge,
+            @Param("maxAge") Integer maxAge,
+            @Param("city") String city,
+            Pageable pageable);
+
 
 
     @Query("SELECT DISTINCT a FROM Actor a LEFT JOIN FETCH a.skills LEFT JOIN FETCH a.languages")

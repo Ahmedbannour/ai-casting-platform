@@ -22,5 +22,12 @@ public interface ActorService {
 
     ActorResponse update(UUID id, ActorUpdateRequest request);
 
+    Page<ActorSummaryResponse> searchAdvanced(
+            String search, String gender,
+            Integer minAge, Integer maxAge,
+            String city, Pageable pageable);
+
+
     void delete(UUID id);
+
 }

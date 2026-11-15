@@ -25,9 +25,17 @@ export interface ActorCreateRequest {
 }
 
 export interface ActorSummary {
-  id: string; firstName: string; lastName: string;
-  city: string; country: string; gender: string;
-  height: number; eyeColor: string; hairColor: string;
+  id: string;
+  firstName: string;
+  lastName: string;
+  city: string;
+  country: string;
+  gender: string;
+  height: number;
+  eyeColor: string;
+  hairColor: string;
+  age: number;           // ← ajoute
+  mainPhotoUrl: string;  // ← ajoute
 }
 
 export interface ActorResponse extends ActorCreateRequest {
@@ -75,5 +83,30 @@ export class ActorService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  searchAdvanced(
+    search?: string,
+    gender?: string,
+    minAge?: number,
+    maxAge?: number,
+    city?: string,
+    page = 0,
+    size = 20,
+    sortBy = 'lastName',
+    sortDir = 'asc'
+  ): Observable<PageResponse<ActorSummary>> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('sortBy', sortBy)
+      .set('sortDir', sortDir);
+    if (search) params = params.set('search', search);
+    if (gender) params = params.set('gender', gender);
+    if (minAge != null) params = params.set('minAge', minAge);
+    if (maxAge != null) params = params.set('maxAge', maxAge);
+    if (city) params = params.set('city', city);
+    return this.http.get<PageResponse<ActorSummary>>(
+      `${this.apiUrl}/search`, { params });
   }
 }

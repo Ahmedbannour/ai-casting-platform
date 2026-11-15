@@ -30,6 +30,16 @@
 		<java.version>21</java.version>
         <spring-ai.version>1.0.0</spring-ai.version>
 	</properties>
+    <!-- Dans <repositories> — ajoute si cette section n'existe pas -->
+
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-milestones</id>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots><enabled>false</enabled></snapshots>
+        </pluginRepository>
+    </pluginRepositories>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -39,6 +49,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 	<dependencies>
@@ -93,17 +104,7 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
-        <!-- RabbitMQ -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
-        </dependency>
-
-        <!-- Elasticsearch -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
-        </dependency>
+        <!-- (doublons RabbitMQ / Elasticsearch supprimés : déjà déclarés plus haut) -->
 
         <!-- Lombok -->
         <dependency>
@@ -126,11 +127,52 @@
             <version>0.4.20</version>
         </dependency>
 
+        <!-- ===== Ajouts Cellule IA (J1 - 15/11/2026) ===== -->
+
+        <!-- Spring AI : client Ollama (chat + embeddings), version gérée par spring-ai-bom -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-ollama</artifactId>
+        </dependency>
+
+        <!-- Spring AI : recherche sémantique PostgreSQL / pgvector -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
+        </dependency>
+
+        <!-- Documentation API (Swagger UI : /swagger-ui.html) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.9</version>
+        </dependency>
+
+        <!-- Tests d'intégration avec vraie base PostgreSQL (Docker) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+
 <!--        &lt;!&ndash; Spring AI OpenAI &ndash;&gt;-->
 <!--        <dependency>-->
 <!--            <groupId>org.springframework.ai</groupId>-->
 <!--            <artifactId>spring-ai-starter-model-openai</artifactId>-->
 <!--        </dependency>-->
+
+
+
 
 
 		<dependency>

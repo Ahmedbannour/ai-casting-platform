@@ -253,8 +253,7 @@
               @for (doc of actor()!.documents; track doc.id) {
                 <div class="doc-item">
                   <div class="doc-icon">
-                    {{ doc.type?.includes('pdf') ? '📕' : doc.type?.includes('image') ? '🖼️' : '📄' }}
-                  </div>
+                    {{ doc.type && doc.type.includes('pdf') ? '📕' : doc.type && doc.type.includes('image') ? '🖼️' : '📄' }}                  </div>
                   <div class="doc-info">
                     <div class="doc-name">{{ doc.originalName }}</div>
                     <div class="doc-meta">{{ formatSize(doc.size) }}</div>

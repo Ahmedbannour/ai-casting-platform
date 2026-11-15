@@ -8,6 +8,8 @@ import com.castingai.dto.skill.SkillDto;
 import com.castingai.entity.*;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 
 /**
@@ -110,6 +112,10 @@ public class ActorMapper {
     }
 
     public ActorSummaryResponse toSummary(Actor actor) {
+        int age = actor.getBirthDate() != null
+                ? Period.between(actor.getBirthDate(), LocalDate.now()).getYears()
+                : 0;
+
         return ActorSummaryResponse.builder()
                 .id(actor.getId())
                 .firstName(actor.getFirstName())
@@ -120,6 +126,7 @@ public class ActorMapper {
                 .height(actor.getHeight())
                 .eyeColor(actor.getEyeColor())
                 .hairColor(actor.getHairColor())
+                .age(age > 0 ? age : null)
                 .build();
     }
 

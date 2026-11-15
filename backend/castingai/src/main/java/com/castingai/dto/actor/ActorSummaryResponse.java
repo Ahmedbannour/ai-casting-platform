@@ -16,4 +16,6 @@ public class ActorSummaryResponse {
     private Integer height;
     private String eyeColor;
     private String hairColor;
+    private Integer age;           // ← nouveau
+    private String mainPhotoUrl;   // ← nouveau
 }

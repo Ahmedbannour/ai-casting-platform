@@ -121,4 +121,15 @@ public class ActorServiceImpl implements ActorService {
 
 
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ActorSummaryResponse> searchAdvanced(
+            String search, String gender,
+            Integer minAge, Integer maxAge,
+            String city, Pageable pageable) {
+        return actorRepository.searchAdvanced(search, gender, minAge, maxAge, city, pageable)
+                .map(actorMapper::toSummary);
+    }
+
+
 }

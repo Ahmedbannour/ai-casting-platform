@@ -41,6 +41,28 @@ public class ActorController {
     }
 
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<ActorSummaryResponse>> search(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String gender,
+            @RequestParam(required = false) Integer minAge,
+            @RequestParam(required = false) Integer maxAge,
+            @RequestParam(required = false) String city,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "lastName") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+        PageRequest pageable = PageRequest.of(page, size, sort);
+
+        return ResponseEntity.ok(actorService.searchAdvanced(
+                search, gender, minAge, maxAge, city, pageable));
+    }
+
+
     @GetMapping
     public ResponseEntity<Page<ActorSummaryResponse>> findAll(
             @RequestParam(required = false) String search,
