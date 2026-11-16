@@ -56,8 +56,8 @@ export class AiSearchAngularService {
   }
 
   /** Décision du client sur une proposition : RETENU, ECARTE ou ANNULE. */
-  feedback(query: string, actorId: string, decision: 'RETENU' | 'ECARTE' | 'ANNULE'): Observable<void> {
-    return this.http.post<void>(`${this.url}/feedback`, { query, actorId, decision });
+  feedback(query: string, actorId: string, decision: 'RETENU' | 'ECARTE' | 'ANNULE', roleId?: string | null): Observable<void> {
+    return this.http.post<void>(`${this.url}/feedback`, { query, actorId, decision, roleId: roleId ?? null });
   }
 
   getHistory(limit = 10): Observable<HistoryItem[]> {

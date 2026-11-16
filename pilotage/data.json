@@ -5,30 +5,30 @@
   "projet": "AI Casting Platform",
   "client": "Vous, porteur du projet (donneur d’ordre)",
   "debut": "2026-11-15",
-  "maj": "2026-11-16",
-  "jour": "J2",
-  "avancement": 65,
-  "avancement_veille": 57,
-  "phase_courante": "PH0"
+  "maj": "2026-11-17",
+  "jour": "J4",
+  "avancement": 86,
+  "avancement_veille": 71,
+  "phase_courante": "PH1"
  },
  "phases": [
   {
    "id": "PH0",
    "nom": "Phase 0 · Stabiliser",
    "semaines": "S1–S2",
-   "avancement": 60
+   "avancement": 90
   },
   {
    "id": "PH1",
    "nom": "Phase 1 · MVP métier",
    "semaines": "S3–S6",
-   "avancement": 0
+   "avancement": 70
   },
   {
    "id": "PH2",
    "nom": "Phase 2 · IA différenciante",
    "semaines": "S7–S9",
-   "avancement": 5
+   "avancement": 35
   },
   {
    "id": "PH3",
@@ -524,6 +524,40 @@
     "2 bugs supplémentaires corrigés"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-009",
+   "date": "2026-11-16",
+   "titre": "IA inspirée de l’apprentissage fédéré",
+   "original": "merci d’inspirer vos solution de la technique d’intelligence artificielle décentralisée (federated learning )",
+   "ameliore": "Adapter l’IA au principe de l’apprentissage fédéré : chaque agence garde ses données, un modèle de classement apprend localement, seules les mises à jour sont agrégées (FedAvg). Coût zéro, RGPD.",
+   "departements": [
+    "ia",
+    "back",
+    "devops",
+    "jur"
+   ],
+   "livrables": [
+    "Architecture fédérée",
+    "5 tâches"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-011",
+   "date": "2026-11-16",
+   "titre": "Documentation GitHub pour le client",
+   "original": "le travail doit etre documenter sur le git , avec un readme explique tous les fonctionnalités de projet , ainsi que les graphs , stats, (numero) de pour une meilleurs presentation pour le client",
+   "ameliore": "Écrire un README.md à la racine du dépôt, destiné au client : présentation, fonctionnalités, architecture et schémas Mermaid, statistiques réelles mesurées, état d’avancement, installation, feuille de route ; puis le pousser sur GitHub.",
+   "departements": [
+    "admin",
+    "dir",
+    "prod"
+   ],
+   "livrables": [
+    "README.md"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -721,7 +755,7 @@
    "resp": "Rami Saidi",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "en_cours",
+   "statut": "fait",
    "bloquant": null,
    "prompt": "P-002",
    "jour": "J2",
@@ -734,7 +768,7 @@
    "resp": "Nadia Ben Salem",
    "prio": "P1",
    "phase": "PH2",
-   "statut": "en_cours",
+   "statut": "fait",
    "bloquant": null,
    "prompt": "P-002",
    "jour": "J2",
@@ -846,7 +880,7 @@
    "resp": "Antoine Roux",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-001",
    "jour": "J3"
   },
@@ -869,9 +903,10 @@
    "resp": "Nadia Ben Salem",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-001",
-   "jour": "J3"
+   "jour": "J3",
+   "detail": "Test réel : plus de 3 min puis réponse tronquée. Le pré-filtre règle les deux."
   },
   {
    "id": "T-025",
@@ -904,9 +939,10 @@
    "resp": "Amel Kacem",
    "prio": "P1",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-002",
-   "jour": "J3"
+   "jour": "J3",
+   "detail": "20 tests réussis sur 20 (Testcontainers)."
   },
   {
    "id": "T-028",
@@ -1076,7 +1112,7 @@
    "resp": "Inès Garnier",
    "prio": "P1",
    "phase": "PH0",
-   "statut": "en_cours",
+   "statut": "fait",
    "prompt": "P-003",
    "jour": "J2"
   },
@@ -1202,9 +1238,302 @@
    "resp": "Hichem Jaziri",
    "prio": "P1",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-008",
    "jour": "J3"
+  },
+  {
+   "id": "T-054",
+   "titre": "Classeur rapide local : classe les 30 candidats, le LLM n’explique que les 5 meilleurs",
+   "dept": "ia",
+   "resp": "Nadia Ben Salem",
+   "prio": "P1",
+   "phase": "PH2",
+   "statut": "a_faire",
+   "prompt": "P-009",
+   "jour": "J8"
+  },
+  {
+   "id": "T-055",
+   "titre": "Enregistrer les signaux : acteur retenu ou refusé dans une shortlist",
+   "dept": "back",
+   "resp": "Claire Dubois",
+   "prio": "P1",
+   "phase": "PH1",
+   "statut": "fait",
+   "prompt": "P-009",
+   "jour": "J6"
+  },
+  {
+   "id": "T-056",
+   "titre": "Prototype fédéré avec Flower (FedAvg, 3 agences fictives)",
+   "dept": "ia",
+   "resp": "Nadia Ben Salem",
+   "prio": "P2",
+   "phase": "PH2",
+   "statut": "a_faire",
+   "prompt": "P-009",
+   "jour": "J9"
+  },
+  {
+   "id": "T-057",
+   "titre": "Confidentialité : agrégation sécurisée, bruit différentiel, RGPD",
+   "dept": "jur",
+   "resp": "Aurélie Fontaine",
+   "prio": "P2",
+   "phase": "PH3",
+   "statut": "a_faire",
+   "prompt": "P-009",
+   "jour": "J11"
+  },
+  {
+   "id": "T-058",
+   "titre": "Service Python « nœud fédéré » à côté du backend Java",
+   "dept": "devops",
+   "resp": "Rami Saidi",
+   "prio": "P2",
+   "phase": "PH3",
+   "statut": "a_faire",
+   "prompt": "P-009",
+   "jour": "J11"
+  },
+  {
+   "id": "T-059",
+   "titre": "Pousser les corrections J2 sur GitHub (commit e756b87)",
+   "dept": "devops",
+   "resp": "Rami Saidi",
+   "prio": "P0",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-010",
+   "jour": "J2"
+  },
+  {
+   "id": "T-060",
+   "titre": "README complet du projet avec schémas et statistiques",
+   "dept": "admin",
+   "resp": "Céline Robert",
+   "prio": "P1",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-011",
+   "jour": "J2"
+  },
+  {
+   "id": "T-061",
+   "titre": "Pré-filtre en base avant l’IA (recherche classée et paginée)",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J2",
+   "prompt": "P-012",
+   "statut": "fait",
+   "detail": "197 ms pour 17 résultats."
+  },
+  {
+   "id": "T-062",
+   "titre": "Explication par l’IA du top 5 en arrière-plan",
+   "dept": "ia",
+   "resp": "Nadia Ben Salem",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J2",
+   "prompt": "P-012",
+   "statut": "fait",
+   "detail": ""
+  },
+  {
+   "id": "T-063",
+   "titre": "Index de performance (migration V7)",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH0",
+   "prio": "P0",
+   "jour": "J2",
+   "prompt": "P-013",
+   "statut": "fait",
+   "detail": ""
+  },
+  {
+   "id": "T-064",
+   "titre": "Cartes de propositions à glisser (droite = retenir, gauche = écarter)",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH1",
+   "prio": "P0",
+   "jour": "J2",
+   "prompt": "P-014",
+   "statut": "fait",
+   "detail": "Décisions enregistrées vérifiées en base."
+  },
+  {
+   "id": "T-065",
+   "titre": "IA sur carte graphique + niveaux réglables (Éco, Standard, GPU)",
+   "dept": "ia",
+   "resp": "Nadia Ben Salem",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J3",
+   "prompt": "P-015",
+   "statut": "fait",
+   "detail": "6,5–7,3 s pour 5 explications au lieu de 43–59 s."
+  },
+  {
+   "id": "T-066",
+   "titre": "Identité visuelle « table lumineuse » : logo, couleurs, police",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH1",
+   "prio": "P1",
+   "jour": "J3",
+   "prompt": "P-016",
+   "statut": "fait",
+   "detail": "Commit dbc5cfc."
+  },
+  {
+   "id": "T-067",
+   "titre": "Fond animé en boucle, verre flouté, transitions de page",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH1",
+   "prio": "P1",
+   "jour": "J3",
+   "prompt": "P-016",
+   "statut": "fait",
+   "detail": "Commit da778f2."
+  },
+  {
+   "id": "T-068",
+   "titre": "Corriger la désynchronisation entre les écrans",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH1",
+   "prio": "P0",
+   "jour": "J3",
+   "prompt": "P-017",
+   "statut": "fait",
+   "detail": "Commit da778f2."
+  },
+  {
+   "id": "T-069",
+   "titre": "User stories du MVP : projets, rôles, shortlists (D-002)",
+   "dept": "prod",
+   "resp": "Élodie Martin",
+   "phase": "PH1",
+   "prio": "P0",
+   "jour": "J3",
+   "prompt": "P-019",
+   "statut": "fait",
+   "detail": "Commit 136aa33."
+  },
+  {
+   "id": "T-070",
+   "titre": "Refonte du tableau de bord : grille photo / liste, filtres instantanés",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH1",
+   "prio": "P0",
+   "jour": "J3",
+   "prompt": "P-018",
+   "statut": "fait",
+   "detail": "Commit da778f2."
+  },
+  {
+   "id": "T-071",
+   "titre": "Menu et historique : relance au clic, dédoublonnage, groupes par jour",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH1",
+   "prio": "P0",
+   "jour": "J3",
+   "prompt": "P-018",
+   "statut": "fait",
+   "detail": "Commit da778f2."
+  },
+  {
+   "id": "T-072",
+   "titre": "Sprint S3 : projets (US-01 à US-03) + migrations V9 à V11",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH1",
+   "prio": "P0",
+   "jour": "J3",
+   "prompt": "P-020",
+   "statut": "fait",
+   "detail": "Vérifié ; pas encore poussé."
+  },
+  {
+   "id": "T-073",
+   "titre": "Courbe temps de réponse / volume (mise à l’échelle théorique, D-004)",
+   "dept": "ia",
+   "resp": "Nadia Ben Salem",
+   "phase": "PH2",
+   "prio": "P1",
+   "jour": "J3",
+   "prompt": "D-004",
+   "statut": "fait",
+   "detail": "docs/performance.md ; pas encore poussé."
+  },
+  {
+   "id": "T-074",
+   "titre": "Sprint S4 : rôles et recherche pré-remplie (US-05, 06, 08)",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH1",
+   "prio": "P0",
+   "jour": "J3",
+   "prompt": "P-021",
+   "statut": "fait",
+   "detail": "Vérifié ; pas encore poussé."
+  },
+  {
+   "id": "T-075",
+   "titre": "Avant 1 M d’acteurs : statistiques pré-calculées, total approximatif, index composite",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P1",
+   "jour": "J3",
+   "prompt": "D-004",
+   "statut": "a_faire",
+   "detail": ""
+  },
+  {
+   "id": "T-076",
+   "titre": "Sprint S5 : shortlists (US-09 à US-12, US-14)",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH1",
+   "prio": "P0",
+   "jour": "J3",
+   "prompt": "P-021",
+   "statut": "fait",
+   "detail": "Vérifié ; pas encore poussé."
+  },
+  {
+   "id": "T-077",
+   "titre": "Sprint S6 : équipe, export PDF, journal d’activité, disponibilités",
+   "dept": "prod",
+   "resp": "Élodie Martin",
+   "phase": "PH1",
+   "prio": "P1",
+   "jour": "J3",
+   "prompt": "P-021",
+   "statut": "a_faire",
+   "detail": ""
+  },
+  {
+   "id": "T-078",
+   "titre": "Carte mentale en temps réel : pings de changement, liens animés, horloge",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH0",
+   "prio": "P0",
+   "jour": "J4",
+   "prompt": "P-022",
+   "statut": "en_cours",
+   "detail": ""
   }
  ],
  "journal": [
@@ -1245,119 +1574,58 @@
     "Le dépôt GitHub est public : les mots de passe de développement de application.yml sont visibles (T-019)"
    ],
    "attente_client": []
+  },
+  {
+   "date": "2026-11-16",
+   "jour": "J3",
+   "resume": "Cartes à glisser, IA sur carte graphique (7 s au lieu de 43–59 s), nouvelle identité visuelle, fond animé et transitions, refonte du tableau de bord, du menu et de l’historique, user stories du MVP, sprints S3 à S5 (projets, rôles, shortlists), rapport de performance par mise à l’échelle théorique. 20 tests sur 20.",
+   "decisions": [
+    "D-002 planifiée et livrée jusqu’au sprint S5",
+    "D-004 : courbe temps / volume par mise à l’échelle théorique"
+   ],
+   "risques": [
+    "Sans carte graphique, l’explication IA reste à 30–60 s",
+    "Au-delà d’1 M d’acteurs, filtres et statistiques passent à ≈ 0,2–0,3 s"
+   ],
+   "attente_client": [
+    "Accord pour pousser S3, S4, S5 et le rapport de performance"
+   ]
   }
  ],
  "maintenant": {
-  "etape": 5,
-  "titre": "P-007 · corrections P0 de la phase 0",
+  "etape": 4,
+  "titre": "P-022 · J4 · carte mentale en temps réel",
   "agents": [
    {
-    "nom": "Hichem Jaziri",
-    "court": "sécurise l’API",
-    "action": "Ferme l’API : jeton obligatoire, vraies erreurs 401 et 403"
-   },
-   {
-    "nom": "Claire Dubois",
-    "court": "expériences",
-    "action": "Enregistre expériences et disponibilités lors de la modification"
-   },
-   {
-    "nom": "Antoine Roux",
-    "court": "tri, stats",
-    "action": "Corrige le tri par âge et les statistiques"
-   },
-   {
     "nom": "Sarra Mansouri",
-    "court": "session Angular",
-    "action": "Rafraîchit le jeton avant le démarrage de l’app"
+    "action": "Rend la carte mentale vivante : pings, liens animés, horloge du direct",
+    "court": "carte en direct"
+   },
+   {
+    "nom": "Amel Kacem",
+    "action": "Vérifie la carte dans le navigateur",
+    "court": "recette"
    }
   ]
  },
  "activite": [
   {
-   "h": "J1 21:30",
-   "nom": "Yasmine Trabelsi",
-   "texte": "Prompt P-002 reformulé en 4 livrables, c’est parti !"
-  },
-  {
-   "h": "J1 21:45",
-   "nom": "Lucas Moreau",
-   "texte": "JDK 21 trouvé sur le PC, le backend compile avec les nouvelles bibliothèques."
-  },
-  {
-   "h": "J1 22:00",
-   "nom": "Céline Robert",
-   "texte": "Compte rendu J1 rédigé et rangé dans pilotage/journal."
-  },
-  {
-   "h": "J2",
-   "nom": "Rami Saidi",
-   "texte": "Docker Desktop démarré. Mauvaise surprise : l’image minio/minio n’existe plus."
-  },
-  {
-   "h": "J2",
-   "nom": "Rami Saidi",
-   "texte": "Remplacée par Silo, gratuit et compatible : aucun code à changer."
-  },
-  {
-   "h": "J2",
-   "nom": "Philippe Garnier",
-   "texte": "Règle coût zéro notée. Tout ce qu’on utilise est gratuit et tourne en local."
-  },
-  {
-   "h": "J2",
-   "nom": "Leila Bouaziz",
-   "texte": "Accord reçu : travail poussé sur GitHub (commit d414bcf)."
-  },
-  {
-   "h": "J2",
-   "nom": "Inès Garnier",
-   "texte": "La carte mentale est prête. Je rends le tableau de bord plus vivant."
-  },
-  {
-   "h": "J2",
-   "nom": "Inès Garnier",
-   "texte": "Le tableau de bord est maintenant en direct : il se met à jour tout seul."
-  },
-  {
-   "h": "J2",
-   "nom": "Rami Saidi",
-   "texte": "PostgreSQL et le stockage tournent. Vos 102 acteurs sont bien là."
-  },
-  {
-   "h": "J2",
+   "h": "J4",
+   "t": "2026-11-17T08:00:00Z",
    "nom": "Hichem Jaziri",
-   "texte": "Je lance le backend Spring Boot…"
+   "texte": "Sprints S4 et S5 livrés : rôles, recherche pré-remplie, shortlists ; 20 tests sur 20."
   },
   {
-   "h": "J2",
-   "nom": "Inès Garnier",
-   "texte": "Nouveau : un bouton « Résoudre » sur chaque blocage, avec nos offres."
-  },
-  {
-   "h": "J2",
+   "h": "J4",
+   "t": "2026-11-17T08:01:00Z",
    "nom": "Amel Kacem",
-   "texte": "12 tests API : 10 OK. Le tri par âge et la création sans jeton plantent, comme prévu."
+   "texte": "Parcours complet vérifié : rôle → recherche pré-remplie → cartes retenues → shortlist → rôle pourvu."
   },
   {
-   "h": "J2",
-   "nom": "Leila Bouaziz",
-   "texte": "Vous testez dans Opera : merci ! T-046 est débloquée."
-  },
-  {
-   "h": "J2",
-   "nom": "Élodie Martin",
-   "texte": "MVP validé : projets, rôles, shortlists. Je prépare les user stories (D-002)."
-  },
-  {
-   "h": "J2",
-   "nom": "Claire Dubois",
-   "texte": "Correction de l’audit : la création gardait déjà les expériences, seule la modification les perdait."
-  },
-  {
-   "h": "J2",
-   "nom": "Sonia Mercier",
-   "texte": "Affichage resynchronisé : chaque tâche montre maintenant son vrai statut."
+   "h": "J4",
+   "t": "2026-11-17T08:02:00Z",
+   "nom": "Sarra Mansouri",
+   "texte": "J4 : la carte mentale passe en temps réel (pings, liens animés, horloge du direct)."
   }
  ]
 }

@@ -1,0 +1,13 @@
+﻿acteurs,endpoint,utilisateurs,requetes,secondes,debit_req_s,latence_moy_ms
+100102,filtre_combine,1,48,2.809,17.09,58.5
+100102,filtre_combine,2,48,1.32,36.37,55
+100102,filtre_combine,4,48,0.792,60.64,66
+100102,filtre_combine,8,48,0.573,83.71,95.6
+100102,filtre_combine,16,64,0.696,91.9,174.1
+100102,filtre_combine,32,128,1.405,91.1,351.3
+100102,ia_classement,1,48,6.248,7.68,130.2
+100102,ia_classement,2,48,2.16,22.22,90
+100102,ia_classement,4,48,1.235,38.87,102.9
+100102,ia_classement,8,48,0.868,55.33,144.6
+100102,ia_classement,16,64,2.059,31.09,514.6
+100102,ia_classement,32,128,3.814,33.56,953.6

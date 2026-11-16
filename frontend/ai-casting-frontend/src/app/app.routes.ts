@@ -21,6 +21,24 @@ export const routes: Routes = [
             .then(m => m.ChatComponent)
       },
       {
+        path: 'projects',
+        loadComponent: () =>
+          import('./features/projects/projects')
+            .then(m => m.ProjectsComponent)
+      },
+      {
+        path: 'projects/:id',
+        loadComponent: () =>
+          import('./features/projects/project-detail')
+            .then(m => m.ProjectDetailComponent)
+      },
+      {
+        path: 'roles/:id',
+        loadComponent: () =>
+          import('./features/projects/role-detail')
+            .then(m => m.RoleDetailComponent)
+      },
+      {
         path: 'dashboard',
         loadComponent: () =>
           import('./features/dashboard/dashboard')

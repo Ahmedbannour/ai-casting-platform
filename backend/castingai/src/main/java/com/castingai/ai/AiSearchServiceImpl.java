@@ -43,6 +43,7 @@ public class AiSearchServiceImpl implements AiSearchService {
     private final SearchHistoryRepository searchHistoryRepository;
     private final UserRepository userRepository;
     private final com.castingai.repository.AiFeedbackRepository feedbackRepository;
+    private final com.castingai.service.ShortlistService shortlistService;
     private final ObjectMapper objectMapper;
 
     private static final int MAX_CANDIDATES = 12;
@@ -522,6 +523,12 @@ public class AiSearchServiceImpl implements AiSearchService {
     @Override
     @Transactional
     public void feedback(String userEmail, String query, UUID actorId, String decision) {
+        feedback(userEmail, query, actorId, decision, null);
+    }
+
+    @Override
+    @Transactional
+    public void feedback(String userEmail, String query, UUID actorId, String decision, UUID roleId) {
         if (!List.of("RETENU", "ECARTE", "ANNULE").contains(decision)) {
             throw new IllegalArgumentException("Décision inconnue : RETENU, ECARTE ou ANNULE");
         }
@@ -532,7 +539,12 @@ public class AiSearchServiceImpl implements AiSearchService {
                 .actor(actor)
                 .query(query == null ? "" : query)
                 .decision(decision)
+                .roleId(roleId)
                 .build());
+        if (roleId != null) {
+            if ("RETENU".equals(decision)) shortlistService.addFromSwipe(userEmail, roleId, actorId);
+            else if ("ANNULE".equals(decision)) shortlistService.undoSwipe(userEmail, roleId, actorId);
+        }
     }
 
     public record HistoryItem(String id, String query, int resultsCount,

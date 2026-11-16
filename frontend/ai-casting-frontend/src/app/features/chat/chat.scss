@@ -402,3 +402,19 @@
 .view-toggle button { border: none; background: transparent; color: var(--text-muted); padding: 5px 14px; border-radius: 999px; cursor: pointer; font-size: 12.5px; font-weight: 600; }
 .view-toggle button.on { background: var(--accent); color: #fff; }
 
+
+/* ── Bandeau « Pour : rôle · projet » ── */
+.role-banner {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 14px 24px 0; padding: 10px 14px; border-radius: var(--radius-m);
+  border: 1px solid var(--accent); background: var(--accent-dim);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); font-size: 14px; flex-shrink: 0;
+}
+.rb-label { color: var(--text-muted); }
+.rb-role { font-weight: 700; font-stretch: var(--narrow); font-size: 16px; color: var(--text-primary); text-decoration: none; }
+.rb-role:hover { text-decoration: underline; }
+.rb-project { color: var(--text-muted); }
+.rb-hint { color: var(--text-subtle); font-size: 12.5px; margin-left: 6px; }
+.rb-close { margin-left: auto; width: 28px; height: 28px; border: none; border-radius: 50%; background: transparent;
+  color: var(--text-muted); font-size: 18px; cursor: pointer; }
+.rb-close:hover { background: var(--bg-hover); color: var(--text-primary); }

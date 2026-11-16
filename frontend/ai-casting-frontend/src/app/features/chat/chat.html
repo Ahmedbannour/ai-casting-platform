@@ -1,5 +1,15 @@
 <div class="chat-container">
 
+  @if (roleCtx(); as r) {
+    <div class="role-banner" role="status">
+      <span class="rb-label">Pour</span>
+      <a class="rb-role" [routerLink]="['/roles', r.id]">{{ r.name }}</a>
+      <span class="rb-project">· {{ r.projectTitle }}</span>
+      <span class="rb-hint">Les cartes retenues rejoignent la shortlist du rôle.</span>
+      <button type="button" class="rb-close" (click)="leaveRole()" aria-label="Quitter le mode rôle">×</button>
+    </div>
+  }
+
   @if (isEmpty) {
     <div class="chat-empty">
       <span class="brand-mark big" aria-hidden="true"></span>

@@ -47,11 +47,11 @@ public class AiSearchController {
     @PostMapping("/feedback")
     public ResponseEntity<Void> feedback(@RequestBody FeedbackRequest request,
                                          @AuthenticationPrincipal UserDetails userDetails) {
-        aiSearchService.feedback(userDetails.getUsername(), request.query(), request.actorId(), request.decision());
+        aiSearchService.feedback(userDetails.getUsername(), request.query(), request.actorId(), request.decision(), request.roleId());
         return ResponseEntity.noContent().build();
     }
 
-    public record FeedbackRequest(String query, java.util.UUID actorId, String decision) {}
+    public record FeedbackRequest(String query, java.util.UUID actorId, String decision, java.util.UUID roleId) {}
 
     public record ExplainRequest(String query, java.util.List<java.util.UUID> actorIds) {}
 }

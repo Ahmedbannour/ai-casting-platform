@@ -1,0 +1,291 @@
+{
+  "volumes_mesures": [
+    102,
+    1102,
+    10102,
+    100102
+  ],
+  "etapes": {
+    "liste_page1": {
+      "libelle": "Liste, page 1 (tri par nom)",
+      "complexite": "O(n)",
+      "justification": "index sur le nom + LIMIT, mais le total de la page (count) parcourt la table",
+      "mesures_mediane_ms": {
+        "102": 28.2,
+        "1102": 25.8,
+        "10102": 19.4,
+        "100102": 23.1
+      },
+      "coefficients": [
+        22.749954054054058,
+        4.5045045045039707e-07
+      ],
+      "pente_ms_par_1000_acteurs": 0.0,
+      "erreur_residuelle_ms": 2.6,
+      "extrapolation": {
+        "1000000": {
+          "ms": 23.0,
+          "intervalle_90": [
+            22.0,
+            60.0
+          ]
+        },
+        "10000000": {
+          "ms": 27.0,
+          "intervalle_90": [
+            22.0,
+            407.0
+          ]
+        }
+      }
+    },
+    "filtre_combine": {
+      "libelle": "Filtres genre + âge + ville",
+      "complexite": "O(n)",
+      "justification": "count et filtrage sur une part de la table proportionnelle à n",
+      "mesures_mediane_ms": {
+        "102": 20.6,
+        "1102": 29.0,
+        "10102": 22.7,
+        "100102": 46.1
+      },
+      "coefficients": [
+        24.878772972972975,
+        0.0002081081081081081
+      ],
+      "pente_ms_par_1000_acteurs": 0.208,
+      "erreur_residuelle_ms": 3.3,
+      "extrapolation": {
+        "1000000": {
+          "ms": 233.0,
+          "intervalle_90": [
+            216.0,
+            269.0
+          ]
+        },
+        "10000000": {
+          "ms": 2106.0,
+          "intervalle_90": [
+            1929.0,
+            2471.0
+          ]
+        }
+      }
+    },
+    "recherche_nom": {
+      "libelle": "Recherche par nom",
+      "complexite": "O(log n)",
+      "justification": "index trigramme (pg_trgm) : coût quasi constant",
+      "mesures_mediane_ms": {
+        "102": 13.2,
+        "1102": 26.0,
+        "10102": 21.9,
+        "100102": 16.2
+      },
+      "coefficients": [
+        21.36666666666666,
+        0.0
+      ],
+      "pente_ms_par_1000_acteurs": null,
+      "erreur_residuelle_ms": 4.0,
+      "extrapolation": {
+        "1000000": {
+          "ms": 21.0,
+          "intervalle_90": [
+            20.0,
+            22.0
+          ]
+        },
+        "10000000": {
+          "ms": 21.0,
+          "intervalle_90": [
+            20.0,
+            22.0
+          ]
+        }
+      }
+    },
+    "statistiques": {
+      "libelle": "Statistiques (4 compteurs)",
+      "complexite": "O(n)",
+      "justification": "count(*) sur 4 tables : parcours complet",
+      "mesures_mediane_ms": {
+        "102": 21.2,
+        "1102": 19.9,
+        "10102": 16.1,
+        "100102": 34.4
+      },
+      "coefficients": [
+        17.177153453453457,
+        0.00016951951951951945
+      ],
+      "pente_ms_par_1000_acteurs": 0.17,
+      "erreur_residuelle_ms": 2.2,
+      "extrapolation": {
+        "1000000": {
+          "ms": 187.0,
+          "intervalle_90": [
+            165.0,
+            201.0
+          ]
+        },
+        "10000000": {
+          "ms": 1712.0,
+          "intervalle_90": [
+            1489.0,
+            1859.0
+          ]
+        }
+      }
+    },
+    "ia_classement": {
+      "libelle": "Recherche IA : classement",
+      "complexite": "O(n)",
+      "justification": "score calculé en base sur chaque acteur candidat, puis tri",
+      "mesures_mediane_ms": {
+        "102": 49.2,
+        "1102": 40.1,
+        "10102": 32.4,
+        "100102": 58.8
+      },
+      "coefficients": [
+        35.18752552552553,
+        0.00023123123123123114
+      ],
+      "pente_ms_par_1000_acteurs": 0.231,
+      "erreur_residuelle_ms": 4.0,
+      "extrapolation": {
+        "1000000": {
+          "ms": 266.0,
+          "intervalle_90": [
+            227.0,
+            575.0
+          ]
+        },
+        "10000000": {
+          "ms": 2347.0,
+          "intervalle_90": [
+            1953.0,
+            5446.0
+          ]
+        }
+      }
+    },
+    "ia_explication": {
+      "libelle": "Recherche IA : explication",
+      "complexite": "O(1)",
+      "justification": "le modèle ne lit que le top 5 : indépendant du volume",
+      "mesures_mediane_ms": {
+        "102": 10972.4,
+        "1102": 6727.6,
+        "10102": 6959.2,
+        "100102": 10007.9
+      },
+      "coefficients": [
+        7898.233333333334
+      ],
+      "pente_ms_par_1000_acteurs": null,
+      "erreur_residuelle_ms": 1494.8,
+      "extrapolation": {
+        "1000000": {
+          "ms": 7898.0,
+          "intervalle_90": [
+            7267.0,
+            10004.0
+          ]
+        },
+        "10000000": {
+          "ms": 7898.0,
+          "intervalle_90": [
+            7267.0,
+            10004.0
+          ]
+        }
+      }
+    }
+  },
+  "concurrence": {
+    "filtre_combine": {
+      "libelle": "Filtres genre + âge + ville",
+      "acteurs": 100102,
+      "mesures": [
+        {
+          "utilisateurs": 1,
+          "debit_req_s": 17.09,
+          "latence_ms": 58.5
+        },
+        {
+          "utilisateurs": 2,
+          "debit_req_s": 36.37,
+          "latence_ms": 55.0
+        },
+        {
+          "utilisateurs": 4,
+          "debit_req_s": 60.64,
+          "latence_ms": 66.0
+        },
+        {
+          "utilisateurs": 8,
+          "debit_req_s": 83.71,
+          "latence_ms": 95.6
+        },
+        {
+          "utilisateurs": 16,
+          "debit_req_s": 91.9,
+          "latence_ms": 174.1
+        },
+        {
+          "utilisateurs": 32,
+          "debit_req_s": 91.1,
+          "latence_ms": 351.3
+        }
+      ],
+      "lambda": 20.79,
+      "sigma_contention": 0.128,
+      "kappa_coherence": 0.00244,
+      "utilisateurs_optimum": 18.9,
+      "debit_max_req_s": 95.4
+    },
+    "ia_classement": {
+      "libelle": "Recherche IA : classement",
+      "acteurs": 100102,
+      "mesures": [
+        {
+          "utilisateurs": 1,
+          "debit_req_s": 7.68,
+          "latence_ms": 130.2
+        },
+        {
+          "utilisateurs": 2,
+          "debit_req_s": 22.22,
+          "latence_ms": 90.0
+        },
+        {
+          "utilisateurs": 4,
+          "debit_req_s": 38.87,
+          "latence_ms": 102.9
+        },
+        {
+          "utilisateurs": 8,
+          "debit_req_s": 55.33,
+          "latence_ms": 144.6
+        },
+        {
+          "utilisateurs": 16,
+          "debit_req_s": 31.09,
+          "latence_ms": 514.6
+        },
+        {
+          "utilisateurs": 32,
+          "debit_req_s": 33.56,
+          "latence_ms": 953.6
+        }
+      ],
+      "lambda": 11.65,
+      "sigma_contention": 0.0079,
+      "kappa_coherence": 0.01421,
+      "utilisateurs_optimum": 8.4,
+      "debit_max_req_s": 50.4
+    }
+  }
+}

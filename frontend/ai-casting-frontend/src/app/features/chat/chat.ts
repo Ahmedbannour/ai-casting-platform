@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AiSearchAngularService, SearchResponse } from '../../core/services/ai-search.service';
 import { SwipeDeckComponent, SwipeEvent } from '../../shared/components/swipe-deck/swipe-deck';
+import { CastingRole, CastingService } from '../../core/services/casting.service';
+import { RouterLink } from '@angular/router';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -19,7 +21,7 @@ export interface ChatMessage {
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, SwipeDeckComponent],
+  imports: [CommonModule, FormsModule, SwipeDeckComponent, RouterLink],
   templateUrl: './chat.html',
   styleUrl: './chat.scss'
 })
@@ -47,6 +49,12 @@ export class ChatComponent implements OnInit, AfterViewChecked {
 
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly casting = inject(CastingService);
+
+  /** Rôle pour lequel on cherche (lien « Trouver des acteurs ») : les cartes retenues vont dans sa shortlist. */
+  readonly roleCtx = signal<CastingRole | null>(null);
+  /** Acteurs déjà dans la shortlist du rôle : ils ne sont pas reproposés (US-06). */
+  private readonly inShortlist = new Set<string>();
 
   /**
    * Pilotage par l'URL :
@@ -56,9 +64,32 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   ngOnInit(): void {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const q = params.get('q');
+      const roleId = params.get('role');
+      if (roleId) { this.reset(); this.loadRole(roleId, q); return; }
+      this.roleCtx.set(null);
+      this.inShortlist.clear();
       if (q) { this.reset(); this.send(q); }
       else if (params.has('n')) { this.reset(); }
     });
+  }
+
+  /** Mode « rôle » : bandeau, phrase de recherche pré-remplie (modifiable avant envoi), shortlist exclue. */
+  private loadRole(roleId: string, q: string | null): void {
+    this.casting.role(roleId).subscribe({
+      next: r => {
+        this.roleCtx.set(r);
+        this.casting.shortlist(roleId).subscribe(list => {
+          this.inShortlist.clear();
+          list.forEach(e => this.inShortlist.add(e.actorId));
+          if (q) this.send(q); else this.input = r.searchPrompt;
+        });
+      },
+      error: () => { this.roleCtx.set(null); if (q) this.send(q); }
+    });
+  }
+
+  leaveRole(): void {
+    this.router.navigate(['/chat'], { queryParams: { n: Date.now() } });
   }
 
   private reset(): void {
@@ -89,12 +120,16 @@ export class ChatComponent implements OnInit, AfterViewChecked {
         this.loading.set(false);
         this.messages.update(msgs => {
           const updated = [...msgs];
+          const visible = this.roleCtx()
+            ? { ...response, results: response.results.filter(r => !this.inShortlist.has(r.id)) }
+            : response;
           updated[updated.length - 1] = {
-            role: 'assistant', response, loading: false, timestamp: new Date()
+            role: 'assistant', response: visible, loading: false, timestamp: new Date()
           };
           return updated;
         });
-        this.explain(this.messages().length - 1, text, response.results.slice(0, 5).map(r => r.id));
+        const shown = this.messages()[this.messages().length - 1].response?.results ?? [];
+        this.explain(this.messages().length - 1, text, shown.slice(0, 5).map(r => r.id));
         this.aiService.historyChanged.next();
       },
       error: () => {
@@ -163,7 +198,12 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   /** Enregistre la décision du client (signal d'apprentissage pour l'IA). */
   onDecide(index: number, e: SwipeEvent): void {
     const q = this.messages()[index]?.response?.query ?? '';
-    this.aiService.feedback(q, e.actor.id, e.decision).subscribe({ error: () => {} });
+    const role = this.roleCtx();
+    this.aiService.feedback(q, e.actor.id, e.decision, role?.id).subscribe({ error: () => {} });
+    if (role) {
+      if (e.decision === 'RETENU') this.inShortlist.add(e.actor.id);
+      if (e.decision === 'ANNULE') this.inShortlist.delete(e.actor.id);
+    }
   }
 
   isLastAssistant(index: number): boolean {

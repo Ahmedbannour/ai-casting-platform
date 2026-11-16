@@ -43,9 +43,9 @@ Mesurés sur le code, la base de données et le PC de développement le 16 novem
 | Lignes Java | **4 206** (+145 de tests) | Acteurs | **102** | Tâches réalisées | **46 / 62** |
 | Lignes TypeScript | **1 907** | Photos | **159** | Tâches bloquées | **0** |
 | Lignes HTML + SCSS | **3 485** | Compétences | **244** | Bugs corrigés | **15** (dont 6 trouvés en test) |
-| Points d'API REST | **27** | Langues | **198** | Prompts client traités | **11** |
-| Entités / tables | **13** | Expériences | **287** | Tests automatiques réussis | **9 / 9** |
-| Migrations de base | **8** | Recherches IA | **54** | Décisions de casting enregistrées | **13** |
+| Points d'API REST | **45** | Langues | **198** | Prompts client traités | **11** |
+| Entités / tables | **18** | Expériences | **287** | Tests automatiques réussis | **20 / 20** |
+| Migrations de base | **11** | Recherches IA | **54** | Décisions de casting enregistrées | **13** |
 | Composants Angular | **15** | Utilisateurs | **1** | Coût logiciel | **0 €** |
 
 ---
@@ -65,7 +65,9 @@ Mesurés sur le code, la base de données et le PC de développement le 16 novem
 | **Documents** | CV, contrats et autres fichiers attachés à un acteur. | Partiel |
 | **Commentaires internes** | Notes de l'équipe sur un acteur, avec auteur et date. | Opérationnel |
 | **Thème clair / sombre** | Choix mémorisé dans le navigateur. | Opérationnel |
-| **Projets, rôles, shortlists** | Un projet contient des rôles ; pour chaque rôle, une shortlist d'acteurs avec statuts (présélectionné, audition, retenu). | Prévu (MVP validé, phase 1) |
+| **Projets** | Créer, modifier, archiver ou terminer un projet (film, série, publicité…), avec onglets En cours / Terminés / Archivés et avancement des rôles. | Opérationnel (sprint S3) |
+| **Rôles** | Décrire le personnage (genre, âge, langues, compétences, ville, dates de tournage, importance), réordonner, modifier, supprimer. « Trouver des acteurs » ouvre la recherche IA pré-remplie à partir du rôle. | Opérationnel (sprint S4) |
+| **Shortlists** | Glisser une carte à droite depuis un rôle l'ajoute à sa shortlist ; tableau en colonnes (présélectionnés, audition, rappel, choisi, refusés), glisser-déposer, notes, un seul « choisi » par rôle (le rôle passe « pourvu »), retrait annulable, historique des changements. | Opérationnel (sprint S5) |
 | **Agences et équipes** | Chaque agence voit ses propres données et invite ses collègues. | Prévu (phase 1) |
 | **Portail acteur** | L'acteur met à jour lui-même son profil. | Prévu (phase 3) |
 
@@ -165,13 +167,13 @@ erDiagram
     }
 ```
 
-Les 8 migrations Flyway (`backend/castingai/src/main/resources/db/migration`) créent ces 13 tables (dont `ai_feedback` pour les décisions retenu / écarté) et les index de performance.
+Les 11 migrations Flyway (`backend/castingai/src/main/resources/db/migration`) créent ces 13 tables (dont `ai_feedback` pour les décisions retenu / écarté) et les index de performance.
 
 ---
 
 ## 6. API REST
 
-27 points d'entrée. Tous exigent un jeton JWT, sauf l'inscription, la connexion, le renouvellement et `/api/health`. Documentation interactive : **http://localhost:8080/swagger-ui.html**
+45 points d'entrée. Tous exigent un jeton JWT, sauf l'inscription, la connexion, le renouvellement et `/api/health`. Documentation interactive : **http://localhost:8080/swagger-ui.html**
 
 | Domaine | Méthode et chemin | Rôle |
 |---|---|---|
@@ -184,6 +186,9 @@ Les 8 migrations Flyway (`backend/castingai/src/main/resources/db/migration`) cr
 | Documents | `GET` / `POST /api/actors/{id}/documents` · `DELETE …/{documentId}` | Fichiers joints |
 | Recherche IA | `POST /api/ai/search` · `POST /api/ai/explain` · `GET /api/ai/history` | Recherche classée, explication par l'IA du top 5, historique |
 | Décisions | `POST /api/ai/feedback` | Enregistre retenu / écarté / annulé pour chaque carte |
+| Projets | `GET` / `POST /api/projects` · `GET` / `PUT` / `DELETE /api/projects/{id}` · `POST …/archive` · `…/restore` · `…/finish` | Projets de casting (suppression réservée à l'administrateur) |
+| Rôles | `GET` / `POST /api/projects/{id}/roles` · `PUT …/roles/order` · `GET` / `PUT` / `DELETE /api/roles/{id}` | Rôles d'un projet, phrase de recherche pré-remplie |
+| Shortlists | `GET` / `POST /api/roles/{id}/shortlist` · `PATCH` / `DELETE /api/shortlist/{entryId}` | Statuts, notes, un seul « choisi » (409 sinon) |
 | Tableau de bord | `GET /api/dashboard/stats` | Statistiques |
 | Santé | `GET /api/health` | Vérifier que le serveur répond |
 
@@ -249,6 +254,14 @@ pie showData title 62 tâches au 16/11/2026
 | Fonctions support (juridique, finance, RH, administratif, direction, relation client) | 6 / 12 |
 
 Le suivi jour par jour est dans [`pilotage/`](pilotage/) : journal, tâches, décisions et le tableau de bord [`pilotage/tableau-de-bord.html`](pilotage/tableau-de-bord.html) à ouvrir dans un navigateur.
+
+---
+
+### Performance selon le volume de données
+
+Mesurée de 102 à 100 102 acteurs, puis extrapolée par mise à l'échelle théorique jusqu'à 10 millions : toutes les pages restent sous 60 ms jusqu'à 100 000 acteurs et vers 0,2–0,3 s à 1 million. Détail, méthode et marges : [`docs/performance.md`](docs/performance.md).
+
+![Temps de réponse selon le volume](docs/perf/temps-volume.png)
 
 ---
 

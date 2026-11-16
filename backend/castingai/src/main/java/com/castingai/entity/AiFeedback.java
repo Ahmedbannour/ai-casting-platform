@@ -36,6 +36,10 @@ public class AiFeedback {
     @Column(nullable = false, length = 10)
     private String decision;
 
+    /** Rôle pour lequel la recherche a été lancée (facultatif). */
+    @Column(name = "role_id")
+    private UUID roleId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
