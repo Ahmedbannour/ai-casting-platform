@@ -7,7 +7,7 @@
   "debut": "2026-11-15",
   "maj": "2026-11-16",
   "jour": "J2",
-  "avancement": 58,
+  "avancement": 65,
   "avancement_veille": 57,
   "phase_courante": "PH0"
  },
@@ -16,7 +16,7 @@
    "id": "PH0",
    "nom": "Phase 0 · Stabiliser",
    "semaines": "S1–S2",
-   "avancement": 25
+   "avancement": 60
   },
   {
    "id": "PH1",
@@ -439,7 +439,7 @@
     "Backend et frontend lancés",
     "Carte mentale interactive"
    ],
-   "statut": "En cours"
+   "statut": "Livré"
   },
   {
    "id": "P-004",
@@ -487,6 +487,41 @@
    "livrables": [
     "Bouton Résoudre et offres",
     "Création de tâche depuis une offre"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-007",
+   "date": "2026-11-16",
+   "titre": "Reprise du travail, salle de pilotage en temps réel",
+   "original": "voila , c’est lancer sur oprea , tu peux reprendre ton travaille , mettre a jours la salle de pilotage ai casting , et le rendre reel time",
+   "ameliore": "Le client teste l’application dans Opera. Reprendre les corrections P0 de la phase 0 (sécurité, expériences, tri par âge, statistiques, fichiers, session Angular), vérifier par compilation et tests API, et pousser l’avancement en direct dans la salle de pilotage à chaque étape.",
+   "departements": [
+    "back",
+    "front",
+    "qa",
+    "devops"
+   ],
+   "livrables": [
+    "Corrections P0",
+    "Salle de pilotage synchronisée en direct"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-008",
+   "date": "2026-11-16",
+   "titre": "Tests visibles dans le navigateur de Claude",
+   "original": "merci de faire des teste pour que je puisse visualizer les modification sur ton navigateur",
+   "ameliore": "Démontrer chaque correction dans le navigateur intégré (connexion, recherche IA, tableau de bord, tri par âge, modification d’un acteur, fiche) et corriger immédiatement les bugs découverts.",
+   "departements": [
+    "qa",
+    "front",
+    "back"
+   ],
+   "livrables": [
+    "Démonstration navigateur",
+    "2 bugs supplémentaires corrigés"
    ],
    "statut": "Livré"
   }
@@ -699,8 +734,8 @@
    "resp": "Nadia Ben Salem",
    "prio": "P1",
    "phase": "PH2",
-   "statut": "bloque",
-   "bloquant": "Image Ollama (~3 Go) en cours de téléchargement",
+   "statut": "en_cours",
+   "bloquant": null,
    "prompt": "P-002",
    "jour": "J2",
    "solutions": [
@@ -729,7 +764,8 @@
      "dept": "devops",
      "resp": "Rami Saidi"
     }
-   ]
+   ],
+   "detail": "Repli par mots-clés actif (D-001) ; le modèle sera tiré dès la fin du téléchargement Ollama."
   },
   {
    "id": "T-016",
@@ -762,9 +798,10 @@
    "resp": "Hichem Jaziri",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-001",
-   "jour": "J2"
+   "jour": "J2",
+   "detail": "Vérifié : sans jeton, 401 au lieu de 500."
   },
   {
    "id": "T-019",
@@ -773,20 +810,22 @@
    "resp": "Laura Blanc",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-001",
-   "jour": "J2"
+   "jour": "J2",
+   "detail": "Secrets en variables d’environnement, 11 System.out retirés, logs en INFO."
   },
   {
    "id": "T-020",
-   "titre": "Enregistrer expériences et disponibilités (création et modification)",
+   "titre": "Enregistrer expériences et disponibilités lors de la modification",
    "dept": "back",
    "resp": "Claire Dubois",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-001",
-   "jour": "J2"
+   "jour": "J2",
+   "detail": "Vérifié au navigateur : expérience ajoutée par modification, conservée."
   },
   {
    "id": "T-021",
@@ -795,9 +834,10 @@
    "resp": "Antoine Roux",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-001",
-   "jour": "J2"
+   "jour": "J2",
+   "detail": "Vérifié au navigateur : tri par âge 18, 18, 19…"
   },
   {
    "id": "T-022",
@@ -817,9 +857,10 @@
    "resp": "Antoine Roux",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-001",
-   "jour": "J3"
+   "jour": "J3",
+   "detail": "Vérifié : 102 acteurs, 159 photos, 35 recherches, 1 document."
   },
   {
    "id": "T-024",
@@ -839,9 +880,10 @@
    "resp": "Sarra Mansouri",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-001",
-   "jour": "J2"
+   "jour": "J2",
+   "detail": "Vérifié : session restaurée après rechargement."
   },
   {
    "id": "T-026",
@@ -850,9 +892,10 @@
    "resp": "Julien Petit",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-001",
-   "jour": "J2"
+   "jour": "J2",
+   "detail": "Vérifié : un seul appel /detail."
   },
   {
    "id": "T-027",
@@ -960,8 +1003,8 @@
    "resp": "Leila Bouaziz",
    "prio": "P0",
    "phase": "PH1",
-   "statut": "a_faire",
-   "bloquant": "Attend votre décision",
+   "statut": "fait",
+   "bloquant": null,
    "prompt": "P-001",
    "jour": "J2",
    "solutions": [
@@ -990,7 +1033,8 @@
      "dept": "prod",
      "resp": "Élodie Martin"
     }
-   ]
+   ],
+   "detail": "Périmètre MVP validé par le client le 16/11 : projets, rôles, shortlists (offre recommandée, D-002)."
   },
   {
    "id": "T-037",
@@ -1043,10 +1087,11 @@
    "resp": "Hichem Jaziri",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "en_cours",
+   "statut": "fait",
    "bloquant": null,
    "prompt": "P-003",
-   "jour": "J2"
+   "jour": "J2",
+   "detail": "Démarré en 10 s avec run-backend.ps1 (contournement Windows « loopback connection »)."
   },
   {
    "id": "T-042",
@@ -1055,7 +1100,7 @@
    "resp": "Sarra Mansouri",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-003",
    "jour": "J2"
   },
@@ -1091,6 +1136,75 @@
    "statut": "fait",
    "prompt": "P-006",
    "jour": "J2"
+  },
+  {
+   "id": "T-046",
+   "dept": "qa",
+   "resp": "Amel Kacem",
+   "prio": "P0",
+   "phase": "PH0",
+   "prompt": "P-003",
+   "jour": "J2",
+   "titre": "Tester l’interface web dans le navigateur du client",
+   "statut": "fait",
+   "bloquant": null,
+   "detail": "Le client teste lui-même dans Opera sur http://localhost:4200."
+  },
+  {
+   "id": "T-047",
+   "titre": "Tests API automatiques sur le PC (12 vérifications)",
+   "dept": "qa",
+   "resp": "Amel Kacem",
+   "prio": "P0",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-003",
+   "jour": "J2",
+   "detail": "10 OK ; échecs attendus : tri par âge (T-021) et création sans jeton (T-018)."
+  },
+  {
+   "id": "T-049",
+   "titre": "Liste des acteurs vide sans filtre (PostgreSQL rejetait les filtres vides)",
+   "dept": "back",
+   "resp": "Antoine Roux",
+   "prio": "P0",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-008",
+   "jour": "J2"
+  },
+  {
+   "id": "T-051",
+   "titre": "Proxy Angular /api vers le backend",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "prio": "P1",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-008",
+   "jour": "J2"
+  },
+  {
+   "id": "T-052",
+   "titre": "Boucle infinie de 401 quand la session est invalide (page blanche)",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "prio": "P0",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-008",
+   "jour": "J2"
+  },
+  {
+   "id": "T-053",
+   "titre": "Autoriser plusieurs sessions par utilisateur",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "prio": "P1",
+   "phase": "PH0",
+   "statut": "a_faire",
+   "prompt": "P-008",
+   "jour": "J3"
   }
  ],
  "journal": [
@@ -1122,31 +1236,40 @@
     "Commit et push directement sur master (choix du client)",
     "Stockage S3 : Silo (fork MinIO gratuit) au lieu de minio/minio retiré",
     "Redis, RabbitMQ et Elasticsearch en profil optionnel « extras » (non utilisés, économie de ressources)",
-    "Règle coût zéro : aucun outil ni service payant"
+    "Règle coût zéro : aucun outil ni service payant",
+    "Périmètre MVP validé : projets, rôles, shortlists (D-002)"
    ],
    "risques": [
     "Connexion lente : l’image Ollama (~3 Go) retarde la recherche IA",
     "L’API reste ouverte tant que T-018 n’est pas livrée",
     "Le dépôt GitHub est public : les mots de passe de développement de application.yml sont visibles (T-019)"
    ],
-   "attente_client": [
-    "Valider le périmètre du MVP (T-036)"
-   ]
+   "attente_client": []
   }
  ],
  "maintenant": {
   "etape": 5,
-  "titre": "P-003 · base prête, démarrage du backend",
+  "titre": "P-007 · corrections P0 de la phase 0",
   "agents": [
    {
     "nom": "Hichem Jaziri",
-    "court": "démarre le backend",
-    "action": "Lance Spring Boot (JDK 21) et les migrations Flyway"
+    "court": "sécurise l’API",
+    "action": "Ferme l’API : jeton obligatoire, vraies erreurs 401 et 403"
    },
    {
-    "nom": "Rami Saidi",
-    "court": "image Ollama",
-    "action": "Télécharge l’image Ollama (~3 Go, connexion lente)"
+    "nom": "Claire Dubois",
+    "court": "expériences",
+    "action": "Enregistre expériences et disponibilités lors de la modification"
+   },
+   {
+    "nom": "Antoine Roux",
+    "court": "tri, stats",
+    "action": "Corrige le tri par âge et les statistiques"
+   },
+   {
+    "nom": "Sarra Mansouri",
+    "court": "session Angular",
+    "action": "Rafraîchit le jeton avant le démarrage de l’app"
    }
   ]
  },
@@ -1210,6 +1333,31 @@
    "h": "J2",
    "nom": "Inès Garnier",
    "texte": "Nouveau : un bouton « Résoudre » sur chaque blocage, avec nos offres."
+  },
+  {
+   "h": "J2",
+   "nom": "Amel Kacem",
+   "texte": "12 tests API : 10 OK. Le tri par âge et la création sans jeton plantent, comme prévu."
+  },
+  {
+   "h": "J2",
+   "nom": "Leila Bouaziz",
+   "texte": "Vous testez dans Opera : merci ! T-046 est débloquée."
+  },
+  {
+   "h": "J2",
+   "nom": "Élodie Martin",
+   "texte": "MVP validé : projets, rôles, shortlists. Je prépare les user stories (D-002)."
+  },
+  {
+   "h": "J2",
+   "nom": "Claire Dubois",
+   "texte": "Correction de l’audit : la création gardait déjà les expériences, seule la modification les perdait."
+  },
+  {
+   "h": "J2",
+   "nom": "Sonia Mercier",
+   "texte": "Affichage resynchronisé : chaque tâche montre maintenant son vrai statut."
   }
  ]
 }
