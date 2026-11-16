@@ -3,12 +3,15 @@
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   min-height: 100vh;
-  background: var(--bg-primary);
+  background: transparent;
+  view-transition-name: page;
 }
 
 /* ── Panneau gauche ─────────────────────────────── */
 .login-left {
-  background: var(--bg-secondary);
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
   border-right: 1px solid var(--border);
   padding: 40px 56px;
   display: flex;
@@ -110,7 +113,9 @@
   gap: 10px;
   padding: 0 12px;
   height: 44px;
-  background: var(--bg-surface);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
   border: 1px solid var(--border);
   border-radius: var(--radius-s);
   color: var(--text-muted);

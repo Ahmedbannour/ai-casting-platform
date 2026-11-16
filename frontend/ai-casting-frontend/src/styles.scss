@@ -30,6 +30,17 @@
   --radius-s:      6px;
   --radius-m:      10px;
   --radius-l:      16px;
+
+  /* Verre dépoli et lumières du fond animé */
+  --glass:         rgba(46, 48, 54, 0.52);
+  --glass-strong:  rgba(36, 37, 42, 0.70);
+  --blur:          blur(18px) saturate(140%);
+  --pool-warm:     rgba(242, 194, 48, 0.26);
+  --pool-cool:     rgba(110, 132, 190, 0.26);
+  --pool-red:      rgba(228, 104, 93, 0.16);
+  --lamp:          rgba(242, 194, 48, 0.12);
+  --mx: 50%;
+  --my: 35%;
 }
 
 /* ── Thème clair : la table lumineuse en plein jour ─────────── */
@@ -50,6 +61,12 @@
   --reject:        #C2453A;
   --danger:        #C2453A;
   --shadow:        0 1px 2px rgba(20,24,32,0.08), 0 8px 24px rgba(20,24,32,0.08);
+  --glass:         rgba(255, 255, 255, 0.58);
+  --glass-strong:  rgba(255, 255, 255, 0.72);
+  --pool-warm:     rgba(242, 194, 48, 0.22);
+  --pool-cool:     rgba(110, 140, 210, 0.20);
+  --pool-red:      rgba(228, 104, 93, 0.16);
+  --lamp:          rgba(214, 160, 20, 0.10);
 }
 
 /* ── Base ─────────────────────────────────────────── */
@@ -88,3 +105,69 @@ h1, h2, h3 { font-stretch: var(--narrow); font-weight: 700; letter-spacing: -0.0
 .brand-mark { display: inline-block; flex: none; width: 20px; height: 20px; border-radius: 50%;
   border: 3px solid var(--accent); transform: rotate(-8deg) scaleX(1.12); }
 .brand-mark.big { width: 46px; height: 46px; border-width: 5px; margin-bottom: 18px; }
+
+/* ── Fond animé : lumières de la table lumineuse qui dérivent sans fin ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -25%;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(34% 30% at 22% 28%, var(--pool-warm), transparent 70%),
+    radial-gradient(32% 30% at 78% 72%, var(--pool-cool), transparent 70%),
+    radial-gradient(26% 24% at 62% 18%, var(--pool-red), transparent 70%),
+    radial-gradient(30% 28% at 30% 82%, var(--pool-cool), transparent 70%);
+  animation: drift 42s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Lampe qui suit la souris (position mise à jour par AppComponent) */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(480px circle at var(--mx) var(--my), var(--lamp), transparent 65%);
+}
+
+@keyframes drift {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  33%  { transform: translate3d(7%, -5%, 0) rotate(9deg) scale(1.06); }
+  66%  { transform: translate3d(-4%, 6%, 0) rotate(-7deg) scale(0.97); }
+  100% { transform: translate3d(5%, 3%, 0) rotate(4deg) scale(1.04); }
+}
+
+/* ── Changement de page : l'ancienne page s'efface, puis la nouvelle se compose ──
+   Séquence : 0–200 ms l'ancienne page part ; à partir de 180 ms les blocs de la nouvelle montent
+   un par un. La classe .nav-enter n'est posée que pendant une navigation (AppComponent) :
+   la barre latérale et les mises à jour à l'intérieur d'une page ne sont jamais animées. */
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; }
+
+::view-transition-old(page) { animation: page-out 200ms cubic-bezier(.4, 0, 1, 1) both; }
+::view-transition-new(page) { animation: page-in 1ms 190ms both; }
+
+@keyframes page-out { to { opacity: 0; transform: scale(0.98) translateY(-6px); filter: blur(6px); } }
+@keyframes page-in  { from { opacity: 0; } to { opacity: 1; } }
+
+/* Blocs de la page (zone de contenu et page de connexion), pas la barre latérale.
+   fill-mode « backwards » : l'animation se termine vraiment et ne laisse aucun effet résiduel. */
+.nav-enter .content > router-outlet + * > * > *,
+.nav-enter .login-page > * {
+  animation: rise 460ms cubic-bezier(.2, .8, .2, 1) backwards;
+  animation-delay: 190ms;
+}
+.nav-enter .content > router-outlet + * > * > *:nth-child(2), .nav-enter .login-page > *:nth-child(2) { animation-delay: 250ms; }
+.nav-enter .content > router-outlet + * > * > *:nth-child(3) { animation-delay: 310ms; }
+.nav-enter .content > router-outlet + * > * > *:nth-child(4) { animation-delay: 370ms; }
+.nav-enter .content > router-outlet + * > * > *:nth-child(n+5) { animation-delay: 420ms; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Texte lu par les lecteurs d'écran uniquement */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

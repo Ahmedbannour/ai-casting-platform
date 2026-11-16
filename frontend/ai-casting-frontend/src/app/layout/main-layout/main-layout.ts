@@ -19,6 +19,7 @@ import { SidebarComponent } from '../sidebar/sidebar';
       overflow-y: auto;
       display: flex;
       flex-direction: column;
+      view-transition-name: page;  /* zone animée lors du changement de page */
     }
   `],
   template: `

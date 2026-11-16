@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface ActorSearchResult {
@@ -38,6 +38,9 @@ export interface HistoryItem {
 
 @Injectable({ providedIn: 'root' })
 export class AiSearchAngularService {
+
+  /** Émis après chaque nouvelle recherche : le menu recharge l'historique. */
+  readonly historyChanged = new Subject<void>();
 
   private readonly url = `${environment.apiUrl}/ai`;
 

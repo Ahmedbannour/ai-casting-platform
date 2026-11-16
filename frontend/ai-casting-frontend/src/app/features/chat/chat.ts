@@ -1,7 +1,8 @@
-import { Component, OnInit, signal, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, signal, ViewChild, ElementRef, AfterViewChecked, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AiSearchAngularService, SearchResponse } from '../../core/services/ai-search.service';
 import { SwipeDeckComponent, SwipeEvent } from '../../shared/components/swipe-deck/swipe-deck';
 
@@ -22,7 +23,7 @@ export interface ChatMessage {
   templateUrl: './chat.html',
   styleUrl: './chat.scss'
 })
-export class ChatComponent implements AfterViewChecked {
+export class ChatComponent implements OnInit, AfterViewChecked {
 
   @ViewChild('messagesEnd') messagesEnd!: ElementRef;
 
@@ -43,6 +44,28 @@ export class ChatComponent implements AfterViewChecked {
     private aiService: AiSearchAngularService,
     private router: Router
   ) {}
+
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+
+  /**
+   * Pilotage par l'URL :
+   *  - ?q=… (menu « Historique ») : nouvelle conversation qui relance cette recherche ;
+   *  - ?n=… (bouton « Nouvelle recherche ») : conversation vide, même si on est déjà sur la page.
+   */
+  ngOnInit(): void {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      const q = params.get('q');
+      if (q) { this.reset(); this.send(q); }
+      else if (params.has('n')) { this.reset(); }
+    });
+  }
+
+  private reset(): void {
+    this.messages.set([]);
+    this.input = '';
+    this.loading.set(false);
+  }
 
   ngAfterViewChecked(): void {
     this.scrollToBottom();
@@ -72,6 +95,7 @@ export class ChatComponent implements AfterViewChecked {
           return updated;
         });
         this.explain(this.messages().length - 1, text, response.results.slice(0, 5).map(r => r.id));
+        this.aiService.historyChanged.next();
       },
       error: () => {
         this.loading.set(false);

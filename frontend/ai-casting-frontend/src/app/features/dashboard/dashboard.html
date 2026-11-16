@@ -1,246 +1,207 @@
-<div class="dash-container">
+<div class="dash">
 
-  <!-- Header -->
-  <header class="dash-header">
+  <!-- En-tête -->
+  <header class="dash-head">
     <div>
       <h1 class="dash-title">Acteurs</h1>
-      <p class="dash-sub">{{ totalElements }} acteur(s) au total</p>
+      <p class="dash-sub">
+        <b>{{ stats().totalActors }}</b> profils
+        <span class="sep" aria-hidden="true"></span> {{ stats().totalPhotos }} photos
+        <span class="sep" aria-hidden="true"></span> {{ stats().totalSearches }} recherches IA
+        <span class="sep" aria-hidden="true"></span> {{ stats().totalDocuments }} document{{ stats().totalDocuments > 1 ? 's' : '' }}
+      </p>
     </div>
-    <button class="btn-primary" (click)="goToCreate()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.5">
-        <path d="M12 5v14M5 12h14"/>
-      </svg>
+    <button type="button" class="btn-primary" (click)="goToCreate()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
       Ajouter un acteur
     </button>
   </header>
 
-  <!-- Stats -->
-  <div class="stats-row">
-    <div class="stat-pill">
-      <span class="stat-num">{{ stats().totalActors }}</span>
-      <span class="stat-lbl">Acteurs</span>
-    </div>
-    <div class="stat-pill">
-      <span class="stat-num">{{ stats().totalPhotos }}</span>
-      <span class="stat-lbl">Photos</span>
-    </div>
-    <div class="stat-pill">
-      <span class="stat-num">{{ stats().totalSearches }}</span>
-      <span class="stat-lbl">Recherches IA</span>
-    </div>
-    <div class="stat-pill">
-      <span class="stat-num">{{ stats().totalDocuments }}</span>
-      <span class="stat-lbl">Documents</span>
-    </div>
-  </div>
+  <!-- Barre de filtres -->
+  <div class="toolbar">
+    <label class="field search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input [(ngModel)]="search" (ngModelChange)="onTyping()" placeholder="Rechercher un nom" aria-label="Rechercher un nom" />
+    </label>
 
-  <!-- Filters -->
-  <div class="filters-bar">
-    <div class="filter-search">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input [(ngModel)]="search" (keyup.enter)="applyFilters()"
-             placeholder="Nom, ville..." />
+    <div class="segmented" role="radiogroup" aria-label="Genre">
+      @for (g of genders; track g.value) {
+        <button type="button" role="radio" [attr.aria-checked]="gender === g.value"
+                [class.on]="gender === g.value" (click)="setGender(g.value)">{{ g.label }}</button>
+      }
     </div>
 
-    <select [(ngModel)]="gender" (change)="applyFilters()" class="filter-select">
-      <option value="">Tous genres</option>
-      <option value="Femme">Femme</option>
-      <option value="Homme">Homme</option>
-    </select>
-
-    <div class="filter-age">
-      <input type="number" [(ngModel)]="minAge" (change)="applyFilters()"
-             placeholder="Âge min" class="filter-input-sm" />
-      <span class="age-sep">—</span>
-      <input type="number" [(ngModel)]="maxAge" (change)="applyFilters()"
-             placeholder="Âge max" class="filter-input-sm" />
+    <div class="field age" aria-label="Tranche d'âge">
+      <span class="field-label">Âge</span>
+      <input type="number" min="0" max="120" [(ngModel)]="minAge" (ngModelChange)="onTyping()" placeholder="min" aria-label="Âge minimum" />
+      <span class="to">à</span>
+      <input type="number" min="0" max="120" [(ngModel)]="maxAge" (ngModelChange)="onTyping()" placeholder="max" aria-label="Âge maximum" />
     </div>
 
-    <input [(ngModel)]="city" (keyup.enter)="applyFilters()"
-           placeholder="Ville..." class="filter-input" />
+    <label class="field city">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      <input [(ngModel)]="city" (ngModelChange)="onTyping()" placeholder="Ville" aria-label="Ville" />
+    </label>
 
-    <select [(ngModel)]="size" (change)="applyFilters()" class="filter-select">
-      <option [value]="10">10 / page</option>
-      <option [value]="20">20 / page</option>
-      <option [value]="50">50 / page</option>
-      <option [value]="100">100 / page</option>
-    </select>
-
-    <button class="btn-filter" (click)="applyFilters()">Filtrer</button>
-    <button class="btn-reset" (click)="resetFilters()">Réinitialiser</button>
-  </div>
-
-  <!-- Table -->
-  <div class="table-wrap">
-    <table class="actors-table">
-      <thead>
-        <tr>
-          <th class="col-photo">Photo</th>
-          <th class="sortable" (click)="sort('lastName')">
-            Nom {{ getSortIcon('lastName') }}
-          </th>
-          <th class="sortable" (click)="sort('age')">
-            Âge {{ getSortIcon('age') }}
-          </th>
-          <th class="sortable" (click)="sort('gender')">
-            Genre {{ getSortIcon('gender') }}
-          </th>
-          <th class="sortable" (click)="sort('city')">
-            Ville {{ getSortIcon('city') }}
-          </th>
-          <th class="sortable" (click)="sort('height')">
-            Taille {{ getSortIcon('height') }}
-          </th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @if (loading()) {
-          @for (i of [1,2,3,4,5]; track i) {
-            <tr class="skeleton-row">
-              <td><div class="skel skel-avatar"></div></td>
-              <td><div class="skel skel-text"></div></td>
-              <td><div class="skel skel-sm"></div></td>
-              <td><div class="skel skel-sm"></div></td>
-              <td><div class="skel skel-text"></div></td>
-              <td><div class="skel skel-sm"></div></td>
-              <td><div class="skel skel-text"></div></td>
-            </tr>
-          }
-        } @else if (actors().length === 0) {
-          <tr>
-            <td colspan="7" class="empty-row">
-              <div class="empty-state">
-                <span class="empty-icon">🎭</span>
-                <p>Aucun acteur trouvé</p>
-                <button class="btn-primary" (click)="goToCreate()">
-                  Ajouter un acteur
-                </button>
-              </div>
-            </td>
-          </tr>
-        } @else {
-          @for (actor of actors(); track actor.id) {
-            <tr class="actor-row" (click)="onView(actor.id)">
-
-              <!-- Photo -->
-              <td class="col-photo" (click)="$event.stopPropagation()">
-                <div class="avatar-wrap">
-                  @if (actor.mainPhotoUrl) {
-                    <img [src]="actor.mainPhotoUrl"
-                         [alt]="actor.firstName"
-                         class="avatar-img" loading="lazy"
-                         (error)="actor.mainPhotoUrl = ''" />
-                  } @else {
-                    <div class="avatar-initials">
-                      {{ actor.firstName[0] }}{{ actor.lastName[0] }}
-                    </div>
-                  }
-                </div>
-              </td>
-
-              <!-- Nom -->
-              <td>
-                <div class="actor-name-cell">
-                  <span class="actor-full-name">
-                    {{ actor.firstName }} {{ actor.lastName }}
-                  </span>
-                  <span class="actor-email-hint">{{ actor.city }}</span>
-                </div>
-              </td>
-
-              <!-- Âge -->
-              <td>
-                <span class="badge-age">
-                  {{ actor.age ? actor.age + ' ans' : '—' }}
-                </span>
-              </td>
-
-              <!-- Genre -->
-              <td>
-                <span class="badge"
-                      [class.badge-female]="actor.gender === 'Femme'"
-                      [class.badge-male]="actor.gender === 'Homme'">
-                  {{ actor.gender || '—' }}
-                </span>
-              </td>
-
-              <!-- Ville -->
-              <td class="text-muted">{{ actor.city || '—' }}</td>
-
-              <!-- Taille -->
-              <td class="text-muted">
-                {{ actor.height ? actor.height + ' cm' : '—' }}
-              </td>
-
-              <!-- Actions -->
-              <td (click)="$event.stopPropagation()">
-                <div class="row-actions">
-                  <button class="row-btn" title="Voir"
-                          (click)="onView(actor.id)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                  </button>
-                  <button class="row-btn" title="Photos"
-                          (click)="onGallery(actor.id)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="3" width="18" height="18" rx="2"/>
-                      <circle cx="8.5" cy="8.5" r="1.5"/>
-                      <polyline points="21 15 16 10 5 21"/>
-                    </svg>
-                  </button>
-                  <button class="row-btn" title="Modifier"
-                          (click)="onEdit(actor.id)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                  </button>
-                  <button class="row-btn danger" title="Supprimer"
-                          (click)="onDelete(actor.id)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6l-1 14H6L5 6"/>
-                      <path d="M10 11v6M14 11v6"/>
-                    </svg>
-                  </button>
-                </div>
-              </td>
-
-            </tr>
-          }
-        }
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Pagination -->
-  @if (totalPages > 1) {
-    <div class="pagination">
-      <span class="page-info">
-        Page {{ page + 1 }} / {{ totalPages }}
-        ({{ totalElements }} acteurs)
-      </span>
-      <div class="page-controls">
-        <button class="page-btn" [disabled]="page === 0" (click)="prevPage()">←</button>
-        @for (p of pages; track p) {
-          <button class="page-btn" [class.active]="p === page" (click)="goToPage(p)">
-            {{ p + 1 }}
-          </button>
-        }
-        <button class="page-btn" [disabled]="page >= totalPages - 1" (click)="nextPage()">→</button>
+    <div class="toolbar-end">
+      <label class="field sort">
+        <span class="sr-only">Trier</span>
+        <select [(ngModel)]="sortKey" aria-label="Trier">
+          @for (s of sorts; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
+        </select>
+      </label>
+      <div class="segmented icons" role="radiogroup" aria-label="Affichage">
+        <button type="button" role="radio" [attr.aria-checked]="view() === 'grille'" [class.on]="view() === 'grille'"
+                (click)="setView('grille')" title="Grille de photos" aria-label="Grille de photos">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </button>
+        <button type="button" role="radio" [attr.aria-checked]="view() === 'liste'" [class.on]="view() === 'liste'"
+                (click)="setView('liste')" title="Liste" aria-label="Liste">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>
+        </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Filtres actifs -->
+  @if (hasFilters()) {
+    <div class="chips">
+      <span class="chips-count">{{ totalElements }} résultat{{ totalElements > 1 ? 's' : '' }}</span>
+      @for (c of chips(); track c.key) {
+        <button type="button" class="chip" (click)="removeChip(c.key)" [attr.aria-label]="'Retirer le filtre ' + c.label">
+          {{ c.label }} <span aria-hidden="true">×</span>
+        </button>
+      }
+      <button type="button" class="chip-clear" (click)="resetFilters()">Effacer les filtres</button>
     </div>
   }
 
+  <!-- Résultats -->
+  <section class="results" [class.is-loading]="loading()" aria-live="polite">
+
+    @if (loading() && !actors().length) {
+      <div class="grid">
+        @for (i of [1,2,3,4,5,6,7,8]; track i) { <div class="tile skel"></div> }
+      </div>
+    } @else if (!actors().length) {
+      <div class="empty">
+        <span class="brand-mark big" aria-hidden="true"></span>
+        @if (hasFilters()) {
+          <h2>Aucun acteur ne correspond à ces filtres</h2>
+          <p>Élargissez la tranche d'âge ou retirez un filtre.</p>
+          <button type="button" class="btn-ghost" (click)="resetFilters()">Effacer les filtres</button>
+        } @else {
+          <h2>Votre fichier d'acteurs est vide</h2>
+          <p>Ajoutez un premier profil pour commencer.</p>
+          <button type="button" class="btn-primary" (click)="goToCreate()">Ajouter un acteur</button>
+        }
+      </div>
+    } @else if (view() === 'grille') {
+
+      <!-- Grille façon planche contact -->
+      <div class="grid">
+        @for (a of actors(); track a.id) {
+          <article class="tile" tabindex="0" (click)="onView(a.id)" (keydown.enter)="onView(a.id)"
+                   [attr.aria-label]="a.firstName + ' ' + a.lastName">
+            <div class="tile-photo">
+              @if (photo(a); as src) {
+                <img [src]="src" alt="" loading="lazy" (error)="onPhotoError(src)" />
+              } @else {
+                <span class="tile-initials">{{ initials(a) }}</span>
+              }
+              <div class="tile-actions" (click)="$event.stopPropagation()">
+                <button type="button" title="Photos" aria-label="Photos" (click)="onGallery(a.id)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </button>
+                <button type="button" title="Modifier" aria-label="Modifier" (click)="onEdit(a.id)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+                </button>
+                <button type="button" class="danger" title="Supprimer" aria-label="Supprimer" (click)="onDelete(a)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="tile-info">
+              <div class="tile-name">{{ a.firstName }} {{ a.lastName }}</div>
+              <div class="tile-meta">
+                @if (a.age) { <span>{{ a.age }} ans</span> }
+                @if (a.city) { <span>{{ a.city }}</span> }
+                @if (a.height) { <span>{{ a.height }} cm</span> }
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+
+    } @else {
+
+      <!-- Liste -->
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="c-photo"><span class="sr-only">Photo</span></th>
+              <th><button type="button" class="th-sort" (click)="sort('lastName')">Nom <span>{{ sortMark('lastName') }}</span></button></th>
+              <th class="num"><button type="button" class="th-sort" (click)="sort('age')">Âge <span>{{ sortMark('age') }}</span></button></th>
+              <th><button type="button" class="th-sort" (click)="sort('gender')">Genre <span>{{ sortMark('gender') }}</span></button></th>
+              <th><button type="button" class="th-sort" (click)="sort('city')">Ville <span>{{ sortMark('city') }}</span></button></th>
+              <th class="num"><button type="button" class="th-sort" (click)="sort('height')">Taille <span>{{ sortMark('height') }}</span></button></th>
+              <th class="c-actions"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of actors(); track a.id) {
+              <tr (click)="onView(a.id)">
+                <td class="c-photo">
+                  <span class="avatar">
+                    @if (photo(a); as src) { <img [src]="src" alt="" loading="lazy" (error)="onPhotoError(src)" /> }
+                    @else { {{ initials(a) }} }
+                  </span>
+                </td>
+                <td class="name">{{ a.firstName }} {{ a.lastName }}</td>
+                <td class="num">{{ a.age ? a.age + ' ans' : '—' }}</td>
+                <td>{{ a.gender || '—' }}</td>
+                <td>{{ a.city || '—' }}</td>
+                <td class="num">{{ a.height ? a.height + ' cm' : '—' }}</td>
+                <td class="c-actions" (click)="$event.stopPropagation()">
+                  <button type="button" title="Photos" aria-label="Photos" (click)="onGallery(a.id)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  </button>
+                  <button type="button" title="Modifier" aria-label="Modifier" (click)="onEdit(a.id)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+                  </button>
+                  <button type="button" class="danger" title="Supprimer" aria-label="Supprimer" (click)="onDelete(a)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- Pagination -->
+  @if (totalElements > 0) {
+    <footer class="pager">
+      <span class="pager-range">{{ rangeLabel }}</span>
+      <div class="pager-pages">
+        <button type="button" class="pg" [disabled]="page === 0" (click)="goToPage(page - 1)" aria-label="Page précédente">‹</button>
+        @for (p of pages; track p) {
+          <button type="button" class="pg" [class.on]="p === page" (click)="goToPage(p)" [attr.aria-current]="p === page ? 'page' : null">{{ p + 1 }}</button>
+        }
+        <button type="button" class="pg" [disabled]="page >= totalPages - 1" (click)="goToPage(page + 1)" aria-label="Page suivante">›</button>
+      </div>
+      <label class="pager-size">
+        Afficher
+        <select [ngModel]="size" (ngModelChange)="changeSize($event)">
+          <option [ngValue]="12">12</option>
+          <option [ngValue]="24">24</option>
+          <option [ngValue]="48">48</option>
+          <option [ngValue]="96">96</option>
+        </select>
+      </label>
+    </footer>
+  }
 </div>
