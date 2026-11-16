@@ -39,11 +39,6 @@ export class ActorDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.detailService.getDetail(id).subscribe({
-      next: (data) => { this.actor.set(data); this.loading.set(false); },
-      error: () => this.loading.set(false)
-    });
-
-    this.detailService.getDetail(id).subscribe({
       next: (data) => {
         this.actor.set(data);
         this.loading.set(false);

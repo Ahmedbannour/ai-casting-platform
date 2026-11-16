@@ -12,6 +12,7 @@ Le client (le propriétaire de ce dépôt) envoie des prompts ; chaque prompt su
 
 Règles :
 - **Coût zéro (règle du client, 16/11/2026)** : aucun service, abonnement, API, hébergement, licence ou outil payant, externe ou interne. Uniquement du gratuit et open source exécuté en local (Ollama local, Docker, images publiques gratuites). Toute option payante doit être signalée et refusée par défaut ; le Département Finance vérifie ce point à chaque prompt. Travailler de façon économe (le moins d'étapes et de requêtes possible).
+- **Décisions du client depuis la salle de pilotage** : au début de chaque prompt, lire le document `live/decisions` de l'artifact « Salle de pilotage AI Casting » (offres choisies via le bouton « Résoudre ») et intégrer chaque tâche créée dans `pilotage/data.json`, puis la traiter. Pousser l'état en direct dans `live/state` à chaque étape importante.
 - Tout en français.
 - Aucun commit ni push sans l'accord explicite du client.
 - Ne marquer « fait » que ce qui a réellement été fait et vérifié.

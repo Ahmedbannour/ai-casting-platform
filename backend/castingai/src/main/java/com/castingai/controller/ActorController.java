@@ -33,9 +33,6 @@ public class ActorController {
             @Valid @RequestBody ActorCreateRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        System.out.println("Controller reached");
-        System.out.println("User = " + userDetails);
-
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(actorService.create(request, userDetails.getUsername()));
     }
@@ -53,9 +50,14 @@ public class ActorController {
             @RequestParam(defaultValue = "lastName") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir) {
 
-        Sort sort = sortDir.equalsIgnoreCase("desc")
-                ? Sort.by(sortBy).descending()
-                : Sort.by(sortBy).ascending();
+        // L'âge n'est pas une colonne : trier par date de naissance, dans l'ordre inverse
+        boolean desc = sortDir.equalsIgnoreCase("desc");
+        String field = switch (sortBy) {
+            case "age" -> { desc = !desc; yield "birthDate"; }
+            case "firstName", "lastName", "gender", "city", "country", "height", "createdAt" -> sortBy;
+            default -> "lastName";
+        };
+        Sort sort = desc ? Sort.by(field).descending() : Sort.by(field).ascending();
         PageRequest pageable = PageRequest.of(page, size, sort);
 
         return ResponseEntity.ok(actorService.searchAdvanced(

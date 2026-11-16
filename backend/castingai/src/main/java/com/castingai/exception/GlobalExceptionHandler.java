@@ -43,8 +43,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
-        System.out.println("Unexpected error: "+ ex);  // ← affiche le vrai stacktrace
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        log.error("Unexpected error", ex);
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur interne du serveur");
     }
     private ResponseEntity<Map<String, Object>> buildError(HttpStatus status, String message) {
         Map<String, Object> body = new HashMap<>();

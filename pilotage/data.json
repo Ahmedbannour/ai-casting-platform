@@ -5,17 +5,18 @@
   "projet": "AI Casting Platform",
   "client": "Vous, porteur du projet (donneur d’ordre)",
   "debut": "2026-11-15",
-  "maj": "2026-11-15",
-  "jour": "J1",
-  "avancement": 57,
-  "avancement_veille": 55
+  "maj": "2026-11-16",
+  "jour": "J2",
+  "avancement": 58,
+  "avancement_veille": 57,
+  "phase_courante": "PH0"
  },
  "phases": [
   {
    "id": "PH0",
    "nom": "Phase 0 · Stabiliser",
    "semaines": "S1–S2",
-   "avancement": 15
+   "avancement": 25
   },
   {
    "id": "PH1",
@@ -418,6 +419,76 @@
     "Backend compilé (mvnw test-compile) et build Angular réussis.",
     "Journal J1, dossier pilotage/ et ce tableau de bord publiés."
    ]
+  },
+  {
+   "id": "P-003",
+   "date": "2026-11-16",
+   "titre": "Infrastructure Docker, lancement et tableau plus interactif",
+   "original": "tu peux mettre l’infrastructure correctement sur docker , créer les contenaire , la bd , ... lancer le beckend et le front , et lancé les mises a jours nécessaires […] merci de rendre la presentation plus interractife , et me créer comme si une mind map qui represente ou il est le projet sur quel sous agent dans l’entreprise",
+   "ameliore": "1) Démarrer Docker Desktop, créer les conteneurs (PostgreSQL pgvector, stockage S3, Ollama) et la base via Flyway. 2) Télécharger les modèles IA locaux. 3) Lancer le backend (JDK 21) et le frontend Angular, vérifier qu’ils répondent. 4) Appliquer les mises à jour nécessaires au démarrage. 5) Rendre la salle de pilotage plus interactive : carte mentale projet → départements → agents, avec les agents actifs, et détails cliquables. Contraintes : coût zéro, mise à jour en temps réel des décisions attendues et des blocages.",
+   "departements": [
+    "ia",
+    "devops",
+    "back",
+    "front",
+    "prod",
+    "fin"
+   ],
+   "livrables": [
+    "Infrastructure Docker opérationnelle",
+    "Backend et frontend lancés",
+    "Carte mentale interactive"
+   ],
+   "statut": "En cours"
+  },
+  {
+   "id": "P-004",
+   "date": "2026-11-16",
+   "titre": "Règle permanente : coût zéro",
+   "original": "merci de prendre comme note sur cette conversation , ne fait aucune chose payante (externe ou interne) il faut que le cout de projet sois optimale le plus maximum",
+   "ameliore": "Règle permanente du client : aucun service, API, abonnement, hébergement ou licence payant, ni externe ni interne. Uniquement du gratuit et open source en local. Toute option payante est signalée et refusée par défaut ; la Finance contrôle ce point à chaque prompt. Travailler avec le moins d’étapes possible.",
+   "departements": [
+    "fin",
+    "dir",
+    "jur",
+    "ia"
+   ],
+   "livrables": [
+    "Règle ajoutée à CLAUDE.md",
+    "Contrôle coût à chaque prompt"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-005",
+   "date": "2026-11-16",
+   "titre": "Carte mentale en plein écran",
+   "original": "parfiat , just me donner la main pour mettre la carte mental en plain ecran",
+   "ameliore": "Ajouter un bouton plein écran à la carte mentale, avec sortie par Échap et un repli si le navigateur refuse.",
+   "departements": [
+    "prod"
+   ],
+   "livrables": [
+    "Bouton plein écran"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-006",
+   "date": "2026-11-16",
+   "titre": "Résoudre les blocages en un clic",
+   "original": "s’il y a des taches bloqué , merci d’ajouter l’option de solutionner le probleme , qui va nous proposer les meilleurs offre de ce probleme , on cliquant sur l’offre recommendé , on ajoute comme tache a faire , pour que tu ne reste pas bloqué a chaque fois",
+   "ameliore": "Pour chaque tâche bloquée ou en attente d’une décision : un bouton « Résoudre » propose 2 à 3 offres gratuites (coût, délai, responsable), dont une recommandée. Un clic sur une offre l’enregistre et crée une tâche « à faire » ; la Direction la prend en charge au prompt suivant sans attendre.",
+   "departements": [
+    "prod",
+    "dir",
+    "fin"
+   ],
+   "livrables": [
+    "Bouton Résoudre et offres",
+    "Création de tâche depuis une offre"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -610,15 +681,16 @@
   },
   {
    "id": "T-014",
-   "titre": "Démarrer l’application de bout en bout (Docker Desktop est arrêté)",
+   "titre": "Créer les conteneurs Docker (PostgreSQL pgvector, Silo, Ollama) et la base",
    "dept": "devops",
    "resp": "Rami Saidi",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "bloque",
-   "bloquant": "Docker Desktop n’est pas lancé sur votre ordinateur",
+   "statut": "en_cours",
+   "bloquant": null,
    "prompt": "P-002",
-   "jour": "J1"
+   "jour": "J2",
+   "detail": "PostgreSQL pgvector et Silo démarrés ; 102 acteurs retrouvés ; extension vector 0.8.7 activée ; Ollama en téléchargement."
   },
   {
    "id": "T-015",
@@ -628,9 +700,36 @@
    "prio": "P1",
    "phase": "PH2",
    "statut": "bloque",
-   "bloquant": "Dépend de Docker (T-014)",
+   "bloquant": "Image Ollama (~3 Go) en cours de téléchargement",
    "prompt": "P-002",
-   "jour": "J1"
+   "jour": "J2",
+   "solutions": [
+    {
+     "titre": "Utiliser le repli par mots-clés en attendant l’image",
+     "detail": "La recherche marche déjà sans Ollama grâce au repli local. Le téléchargement continue en arrière-plan ; le modèle sera tiré dès qu’il est fini.",
+     "cout": "Gratuit",
+     "delai": "Immédiat",
+     "dept": "ia",
+     "resp": "Nadia Ben Salem",
+     "recommande": true
+    },
+    {
+     "titre": "Installer Ollama directement sur Windows",
+     "detail": "Programme officiel gratuit (~1 Go), plus rapide à installer que l’image Docker et peut utiliser la carte graphique. Le backend pointe déjà sur localhost:11434.",
+     "cout": "Gratuit",
+     "delai": "≈ 20 min",
+     "dept": "devops",
+     "resp": "Rami Saidi"
+    },
+    {
+     "titre": "Attendre la fin du téléchargement Docker",
+     "detail": "Ne rien changer ; la recherche IA complète arrive quand l’image (~3 Go) est téléchargée.",
+     "cout": "Gratuit",
+     "delai": "Selon la connexion",
+     "dept": "devops",
+     "resp": "Rami Saidi"
+    }
+   ]
   },
   {
    "id": "T-016",
@@ -639,10 +738,11 @@
    "resp": "Rami Saidi",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
-   "bloquant": "Attend votre accord",
+   "statut": "fait",
+   "bloquant": null,
    "prompt": "P-001",
-   "jour": "J1"
+   "jour": "J2",
+   "detail": "Commit d414bcf poussé sur master (accord reçu le 16/11)."
   },
   {
    "id": "T-017",
@@ -863,6 +963,133 @@
    "statut": "a_faire",
    "bloquant": "Attend votre décision",
    "prompt": "P-001",
+   "jour": "J2",
+   "solutions": [
+    {
+     "titre": "MVP recommandé : projets, rôles, shortlists",
+     "detail": "Le cœur du métier de casting : un projet contient des rôles, on ajoute des acteurs à une shortlist par rôle avec des statuts. Portail acteur et abonnement en phase 3.",
+     "cout": "Gratuit",
+     "delai": "Semaines 3 à 6",
+     "dept": "prod",
+     "resp": "Élodie Martin",
+     "recommande": true
+    },
+    {
+     "titre": "MVP minimal : stabiliser + recherche IA",
+     "detail": "On livre seulement les corrections de la phase 0 et une recherche IA fiable. Plus rapide, mais moins vendable.",
+     "cout": "Gratuit",
+     "delai": "Semaines 3 à 4",
+     "dept": "prod",
+     "resp": "Élodie Martin"
+    },
+    {
+     "titre": "MVP étendu : ajouter le portail acteur",
+     "detail": "Recommandé + les acteurs gèrent eux-mêmes leur profil. Plus long d’environ 2 semaines.",
+     "cout": "Gratuit",
+     "delai": "Semaines 3 à 8",
+     "dept": "prod",
+     "resp": "Élodie Martin"
+    }
+   ]
+  },
+  {
+   "id": "T-037",
+   "titre": "Remplacer minio/minio (image retirée de Docker Hub) par Silo, fork gratuit compatible MinIO",
+   "dept": "devops",
+   "resp": "Rami Saidi",
+   "prio": "P0",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-003",
+   "jour": "J2"
+  },
+  {
+   "id": "T-038",
+   "titre": "Mettre Redis, RabbitMQ et Elasticsearch (non utilisés) en profil optionnel pour économiser les ressources",
+   "dept": "devops",
+   "resp": "Rami Saidi",
+   "prio": "P1",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-004",
+   "jour": "J2"
+  },
+  {
+   "id": "T-039",
+   "titre": "Enregistrer la règle coût zéro et contrôler les outils utilisés (tous gratuits)",
+   "dept": "fin",
+   "resp": "Philippe Garnier",
+   "prio": "P0",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-004",
+   "jour": "J2"
+  },
+  {
+   "id": "T-040",
+   "titre": "Carte mentale interactive et salle de pilotage plus interactive",
+   "dept": "prod",
+   "resp": "Inès Garnier",
+   "prio": "P1",
+   "phase": "PH0",
+   "statut": "en_cours",
+   "prompt": "P-003",
+   "jour": "J2"
+  },
+  {
+   "id": "T-041",
+   "titre": "Lancer le backend Spring Boot (JDK 21) et vérifier Flyway + API",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "prio": "P0",
+   "phase": "PH0",
+   "statut": "en_cours",
+   "bloquant": null,
+   "prompt": "P-003",
+   "jour": "J2"
+  },
+  {
+   "id": "T-042",
+   "titre": "Lancer le frontend Angular (ng serve) et vérifier la connexion",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "prio": "P0",
+   "phase": "PH0",
+   "statut": "a_faire",
+   "prompt": "P-003",
+   "jour": "J2"
+  },
+  {
+   "id": "T-043",
+   "titre": "Corriger l’avertissement de collation après le changement d’image PostgreSQL",
+   "dept": "devops",
+   "resp": "Rami Saidi",
+   "prio": "P1",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-003",
+   "jour": "J2"
+  },
+  {
+   "id": "T-044",
+   "titre": "Bouton plein écran pour la carte mentale",
+   "dept": "prod",
+   "resp": "Inès Garnier",
+   "prio": "P2",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-005",
+   "jour": "J2"
+  },
+  {
+   "id": "T-045",
+   "titre": "Bouton « Résoudre » sur les tâches bloquées, avec offres de solution qui créent une tâche",
+   "dept": "prod",
+   "resp": "Inès Garnier",
+   "prio": "P1",
+   "phase": "PH0",
+   "statut": "fait",
+   "prompt": "P-006",
    "jour": "J2"
   }
  ],
@@ -882,10 +1109,107 @@
     "L’API reste ouverte tant que T-018 n’est pas livrée"
    ],
    "attente_client": [
-    "Accord pour commiter et pousser sur GitHub (T-016)",
-    "Démarrer Docker Desktop (T-014)",
+    "✓ Accord pour commiter et pousser sur GitHub — fait le 16/11",
+    "✓ Démarrer Docker Desktop — fait le 16/11",
     "Valider le périmètre du MVP (T-036)"
    ]
+  },
+  {
+   "date": "2026-11-16",
+   "jour": "J2",
+   "resume": "Docker Desktop démarré, travail sauvegardé sur GitHub (commit d414bcf). L’image minio/minio n’existe plus : remplacée par Silo, gratuit et compatible. Règle coût zéro enregistrée. Téléchargement des images en cours.",
+   "decisions": [
+    "Commit et push directement sur master (choix du client)",
+    "Stockage S3 : Silo (fork MinIO gratuit) au lieu de minio/minio retiré",
+    "Redis, RabbitMQ et Elasticsearch en profil optionnel « extras » (non utilisés, économie de ressources)",
+    "Règle coût zéro : aucun outil ni service payant"
+   ],
+   "risques": [
+    "Connexion lente : l’image Ollama (~3 Go) retarde la recherche IA",
+    "L’API reste ouverte tant que T-018 n’est pas livrée",
+    "Le dépôt GitHub est public : les mots de passe de développement de application.yml sont visibles (T-019)"
+   ],
+   "attente_client": [
+    "Valider le périmètre du MVP (T-036)"
+   ]
+  }
+ ],
+ "maintenant": {
+  "etape": 5,
+  "titre": "P-003 · base prête, démarrage du backend",
+  "agents": [
+   {
+    "nom": "Hichem Jaziri",
+    "court": "démarre le backend",
+    "action": "Lance Spring Boot (JDK 21) et les migrations Flyway"
+   },
+   {
+    "nom": "Rami Saidi",
+    "court": "image Ollama",
+    "action": "Télécharge l’image Ollama (~3 Go, connexion lente)"
+   }
+  ]
+ },
+ "activite": [
+  {
+   "h": "J1 21:30",
+   "nom": "Yasmine Trabelsi",
+   "texte": "Prompt P-002 reformulé en 4 livrables, c’est parti !"
+  },
+  {
+   "h": "J1 21:45",
+   "nom": "Lucas Moreau",
+   "texte": "JDK 21 trouvé sur le PC, le backend compile avec les nouvelles bibliothèques."
+  },
+  {
+   "h": "J1 22:00",
+   "nom": "Céline Robert",
+   "texte": "Compte rendu J1 rédigé et rangé dans pilotage/journal."
+  },
+  {
+   "h": "J2",
+   "nom": "Rami Saidi",
+   "texte": "Docker Desktop démarré. Mauvaise surprise : l’image minio/minio n’existe plus."
+  },
+  {
+   "h": "J2",
+   "nom": "Rami Saidi",
+   "texte": "Remplacée par Silo, gratuit et compatible : aucun code à changer."
+  },
+  {
+   "h": "J2",
+   "nom": "Philippe Garnier",
+   "texte": "Règle coût zéro notée. Tout ce qu’on utilise est gratuit et tourne en local."
+  },
+  {
+   "h": "J2",
+   "nom": "Leila Bouaziz",
+   "texte": "Accord reçu : travail poussé sur GitHub (commit d414bcf)."
+  },
+  {
+   "h": "J2",
+   "nom": "Inès Garnier",
+   "texte": "La carte mentale est prête. Je rends le tableau de bord plus vivant."
+  },
+  {
+   "h": "J2",
+   "nom": "Inès Garnier",
+   "texte": "Le tableau de bord est maintenant en direct : il se met à jour tout seul."
+  },
+  {
+   "h": "J2",
+   "nom": "Rami Saidi",
+   "texte": "PostgreSQL et le stockage tournent. Vos 102 acteurs sont bien là."
+  },
+  {
+   "h": "J2",
+   "nom": "Hichem Jaziri",
+   "texte": "Je lance le backend Spring Boot…"
+  },
+  {
+   "h": "J2",
+   "nom": "Inès Garnier",
+   "texte": "Nouveau : un bouton « Résoudre » sur chaque blocage, avec nos offres."
   }
  ]
 }

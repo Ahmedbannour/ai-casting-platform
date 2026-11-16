@@ -30,24 +30,14 @@ public class ActorServiceImpl implements ActorService {
     @Transactional
     public ActorResponse create(ActorCreateRequest request, String createdByEmail) {
 
-        System.out.println("Create actor start");
-
         Actor actor = actorMapper.toEntity(request);
-
-        System.out.println("Mapper OK");
 
         User user = userRepository.findByEmail(createdByEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        System.out.println("User OK");
-
         actor.setCreatedBy(user);
 
-        Actor saved = actorRepository.saveAndFlush(actor);
-
-        System.out.println("Saved");
-
-        return actorMapper.toResponse(saved);
+        return actorMapper.toResponse(actorRepository.saveAndFlush(actor));
     }
 
 
@@ -107,6 +97,23 @@ public class ActorServiceImpl implements ActorService {
             });
         }
 
+        if (request.getExperiences() != null) {
+            actor.getExperiences().clear();
+            request.getExperiences().forEach(dto -> actor.getExperiences().add(
+                    com.castingai.entity.ActorExperience.builder()
+                            .title(dto.getTitle()).production(dto.getProduction())
+                            .role(dto.getRole()).year(dto.getYear())
+                            .description(dto.getDescription()).actor(actor).build()));
+        }
+
+        if (request.getAvailabilities() != null) {
+            actor.getAvailabilities().clear();
+            request.getAvailabilities().forEach(dto -> actor.getAvailabilities().add(
+                    com.castingai.entity.ActorAvailability.builder()
+                            .fromDate(dto.getFromDate()).toDate(dto.getToDate())
+                            .note(dto.getNote()).actor(actor).build()));
+        }
+
         return actorMapper.toResponse(actorRepository.save(actor));
     }
 
@@ -127,7 +134,13 @@ public class ActorServiceImpl implements ActorService {
             String search, String gender,
             Integer minAge, Integer maxAge,
             String city, Pageable pageable) {
-        return actorRepository.searchAdvanced(search, gender, minAge, maxAge, city, pageable)
+        return actorRepository.searchAdvanced(
+                        search == null ? "" : search.trim(),
+                        gender == null ? "" : gender,
+                        minAge == null ? 0 : minAge,
+                        maxAge == null ? 150 : maxAge,
+                        city == null ? "" : city.trim(),
+                        pageable)
                 .map(actorMapper::toSummary);
     }
 

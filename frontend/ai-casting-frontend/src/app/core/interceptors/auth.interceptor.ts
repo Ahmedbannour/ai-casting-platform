@@ -20,7 +20,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && tokenService.getRefreshToken()) {
+      // Jamais de renouvellement sur les appels /auth/ (évite une boucle infinie si le refresh token est invalide)
+      if (error.status === 401 && tokenService.getRefreshToken() && !req.url.includes('/auth/')) {
         return authService.refresh().pipe(
           switchMap(response => {
             const retryReq = req.clone({
@@ -29,6 +30,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             return next(retryReq);
           }),
           catchError(refreshError => {
+            tokenService.clearTokens();
             authService.logout();
             return throwError(() => refreshError);
           })

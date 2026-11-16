@@ -43,16 +43,16 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
 
     @Query("""
     SELECT a FROM Actor a
-    WHERE (:search IS NULL OR
-           LOWER(CAST(a.firstName AS string)) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR
-           LOWER(CAST(a.lastName AS string)) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')))
-    AND (:gender IS NULL OR a.gender = :gender)
-    AND (:city IS NULL OR LOWER(CAST(a.city AS string)) LIKE LOWER(CONCAT('%', CAST(:city AS string), '%')))
-    AND (:minAge IS NULL OR
-         FUNCTION('date_part', 'year', FUNCTION('age', a.birthDate)) >= :minAge)
-    AND (:maxAge IS NULL OR
-         FUNCTION('date_part', 'year', FUNCTION('age', a.birthDate)) <= :maxAge)
+    WHERE (:search = '' OR
+           LOWER(a.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR
+           LOWER(a.lastName) LIKE LOWER(CONCAT('%', :search, '%')))
+    AND (:gender = '' OR a.gender = :gender)
+    AND (:city = '' OR LOWER(a.city) LIKE LOWER(CONCAT('%', :city, '%')))
+    AND ((:minAge = 0 AND :maxAge = 150) OR
+         (FUNCTION('date_part', 'year', FUNCTION('age', a.birthDate)) >= :minAge AND
+          FUNCTION('date_part', 'year', FUNCTION('age', a.birthDate)) <= :maxAge))
     """)
+    // Jamais de paramètre null (PostgreSQL ne sait pas le typer) : valeurs neutres '' et 0..150
     Page<Actor> searchAdvanced(
             @Param("search") String search,
             @Param("gender") String gender,

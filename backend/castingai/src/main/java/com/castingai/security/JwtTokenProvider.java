@@ -29,12 +29,7 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date exp = new Date(System.currentTimeMillis() + jwtConfig.getAccessTokenExpiration());
 
-        System.out.println("NOW = " + now);
-        System.out.println("EXP = " + exp);
-        System.out.println("ACCESS TOKEN EXPIRATION = " + jwtConfig.getAccessTokenExpiration());
 
-        System.out.println("CONFIG = " + jwtConfig);
-        System.out.println("EXP = " + jwtConfig.getAccessTokenExpiration());
 
 
         return Jwts.builder()
