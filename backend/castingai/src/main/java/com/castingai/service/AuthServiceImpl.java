@@ -81,6 +81,8 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthException("Refresh token has expired");
         }
 
+        // Rotation : le jeton utilisé n'est plus valable
+        refreshTokenRepository.delete(refreshToken);
         return buildAuthResponse(refreshToken.getUser());
     }
 
@@ -99,13 +101,14 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtTokenProvider.generateAccessToken(user);
         String rawRefreshToken = UUID.randomUUID().toString();
 
-        refreshTokenRepository.deleteByUser(user);
+        // Plusieurs sessions possibles : on ne supprime que les jetons expirés de cet utilisateur
+        refreshTokenRepository.deleteByUserAndExpiresAtBefore(user, LocalDateTime.now());
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(rawRefreshToken)
                 .user(user)
                 .expiresAt(LocalDateTime.now().plusSeconds(
-                        jwtConfig.getAccessTokenExpiration() / 1000
+                        jwtConfig.getRefreshTokenExpiration() / 1000
                 ))
                 .build();
 

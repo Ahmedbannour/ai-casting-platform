@@ -95,4 +95,11 @@ public class StorageServiceImpl implements StorageService {
     private String buildUrl(String filename) {
         return minioConfig.getUrl() + "/" + minioConfig.getBucketName() + "/" + filename;
     }
+
+    @Override
+    public String keyFromUrl(String url) {
+        if (url == null) return null;
+        String prefix = minioConfig.getUrl() + "/" + minioConfig.getBucketName() + "/";
+        return url.startsWith(prefix) ? url.substring(prefix.length()) : null;
+    }
 }

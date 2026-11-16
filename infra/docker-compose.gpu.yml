@@ -1,0 +1,16 @@
+# Accélération GPU NVIDIA pour Ollama (optionnel, gratuit).
+# À utiliser seulement sur un PC équipé d'une carte NVIDIA (pilote récent + Docker Desktop WSL2) :
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d ollama
+# Sans carte NVIDIA, lancer docker-compose.yml seul : Ollama reste sur le processeur.
+services:
+  ollama:
+    environment:
+      - OLLAMA_KEEP_ALIVE=30m        # garde le modèle chargé 30 min (évite ~5 s de rechargement)
+      - OLLAMA_FLASH_ATTENTION=1     # lecture du prompt plus rapide sur GPU
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

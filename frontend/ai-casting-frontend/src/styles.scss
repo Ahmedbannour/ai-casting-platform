@@ -1,37 +1,55 @@
 @import "tailwindcss";
 
-/* ── CSS Variables — Dark Theme (default) ─────────── */
+/*
+ * Identité visuelle « table lumineuse » : un directeur de casting trie des photos
+ * comme un éditeur photo trie ses planches contact, au crayon gras.
+ * Graphite chaud pour le fond, jaune crayon gras pour les décisions et les actions.
+ */
+
+/* ── Thème sombre (par défaut) : la table lumineuse le soir ─────────── */
 :root {
-  --bg-primary:    #0D0D0D;
-  --bg-secondary:  #171717;
-  --bg-surface:    #1E1E1E;
-  --bg-hover:      #2A2A2A;
-  --border:        #2E2E2E;
-  --text-primary:  #ECECEC;
-  --text-muted:    #8E8EA0;
-  --text-subtle:   #555568;
-  --accent:        #10A37F;
-  --accent-hover:  #0D8F70;
-  --accent-dim:    rgba(16,163,127,0.12);
-  --danger:        #EF4444;
-  --shadow:        0 1px 3px rgba(0,0,0,0.4);
+  --bg-primary:    #1F2024;   /* graphite */
+  --bg-secondary:  #26272C;   /* panneau latéral */
+  --bg-surface:    #2E3036;   /* cartes, champs */
+  --bg-hover:      #383A41;
+  --border:        #3C3E46;
+  --text-primary:  #EEEEEA;
+  --text-muted:    #A4A6AD;
+  --text-subtle:   #6E717B;
+  --accent:        #F2C230;   /* crayon gras jaune */
+  --accent-hover:  #FFD45A;
+  --accent-dim:    rgba(242,194,48,0.14);
+  --on-accent:     #1F2024;   /* texte posé sur le jaune */
+  --keep:          #F2C230;   /* retenu */
+  --reject:        #E4685D;   /* écarté */
+  --danger:        #E4685D;
+  --shadow:        0 1px 2px rgba(0,0,0,0.35), 0 8px 24px rgba(0,0,0,0.18);
+
+  --font:          'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --narrow:        78%;       /* largeur « générique de film » pour les noms */
+  --radius-s:      6px;
+  --radius-m:      10px;
+  --radius-l:      16px;
 }
 
-/* ── Light Theme ──────────────────────────────────── */
+/* ── Thème clair : la table lumineuse en plein jour ─────────── */
 :root.light {
-  --bg-primary:    #FFFFFF;
-  --bg-secondary:  #F7F7F8;
-  --bg-surface:    #ECECEC;
-  --bg-hover:      #E5E5E5;
-  --border:        #D9D9E3;
-  --text-primary:  #0D0D0D;
-  --text-muted:    #6E6E80;
-  --text-subtle:   #AEAEC0;
-  --accent:        #10A37F;
-  --accent-hover:  #0D8F70;
-  --accent-dim:    rgba(16,163,127,0.08);
-  --danger:        #DC2626;
-  --shadow:        0 1px 3px rgba(0,0,0,0.12);
+  --bg-primary:    #F3F4F6;
+  --bg-secondary:  #E8EAEE;
+  --bg-surface:    #FFFFFF;
+  --bg-hover:      #DFE2E7;
+  --border:        #D0D4DB;
+  --text-primary:  #1B1C20;
+  --text-muted:    #575C66;
+  --text-subtle:   #8F95A0;
+  --accent:        #9A6B00;   /* jaune foncé : lisible sur fond clair */
+  --accent-hover:  #7E5700;
+  --accent-dim:    rgba(214,160,20,0.16);
+  --on-accent:     #FFFFFF;
+  --keep:          #C99400;
+  --reject:        #C2453A;
+  --danger:        #C2453A;
+  --shadow:        0 1px 2px rgba(20,24,32,0.08), 0 8px 24px rgba(20,24,32,0.08);
 }
 
 /* ── Base ─────────────────────────────────────────── */
@@ -40,17 +58,33 @@
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14px;
+  font-family: var(--font);
+  font-size: 14.5px;
   line-height: 1.5;
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   transition: background 0.2s, color 0.2s;
 }
 
-/* ── Scrollbar ────────────────────────────────────── */
+button, input, textarea, select { font-family: inherit; }
+
+h1, h2, h3 { font-stretch: var(--narrow); font-weight: 700; letter-spacing: -0.01em; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── Barre de défilement ────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-/* ── Selection ────────────────────────────────────── */
-::selection { background: var(--accent); color: white; }
+/* ── Sélection ────────────────────────────────────── */
+::selection { background: var(--accent); color: var(--on-accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* Marque : le cercle au crayon gras, repris partout (logo, accueil de la recherche) */
+.brand-mark { display: inline-block; flex: none; width: 20px; height: 20px; border-radius: 50%;
+  border: 3px solid var(--accent); transform: rotate(-8deg) scaleX(1.12); }
+.brand-mark.big { width: 46px; height: 46px; border-width: 5px; margin-bottom: 18px; }

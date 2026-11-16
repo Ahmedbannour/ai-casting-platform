@@ -133,7 +133,7 @@
                   @if (actor.mainPhotoUrl) {
                     <img [src]="actor.mainPhotoUrl"
                          [alt]="actor.firstName"
-                         class="avatar-img"
+                         class="avatar-img" loading="lazy"
                          (error)="actor.mainPhotoUrl = ''" />
                   } @else {
                     <div class="avatar-initials">
@@ -155,7 +155,7 @@
 
               <!-- Âge -->
               <td>
-                <span class="badge badge-neutral">
+                <span class="badge-age">
                   {{ actor.age ? actor.age + ' ans' : '—' }}
                 </span>
               </td>

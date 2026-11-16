@@ -20,6 +20,7 @@ public class ActorSearchResult {
     private String gender;
     private Integer age;
     private String mainPhotoUrl;
+    private List<String> photoUrls;
     private List<String> skills;
     private List<String> languages;
     private double score;

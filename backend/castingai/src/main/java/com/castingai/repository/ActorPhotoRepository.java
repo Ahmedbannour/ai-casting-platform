@@ -26,4 +26,9 @@ public interface ActorPhotoRepository extends JpaRepository<ActorPhoto, UUID> {
     void clearMainPhoto(@Param("actorId") UUID actorId);
 
     long countByActorId(UUID actorId);
+
+    /** Photos principales d'une page d'acteurs, en une seule requête. */
+    List<ActorPhoto> findByActorIdInAndIsMainTrue(java.util.Collection<UUID> actorIds);
+
+    List<ActorPhoto> findByActorIdInOrderByIsMainDescCreatedAtAsc(java.util.Collection<UUID> actorIds);
 }

@@ -10,6 +10,7 @@
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   redis:
     profiles: ["extras"]   # non utilisé par le code : démarrer avec --profile extras
@@ -39,6 +40,7 @@
       - "9001:9001"
     volumes:
       - minio_data:/data
+    restart: unless-stopped
 
   elasticsearch:
     profiles: ["extras"]   # non utilisé par le code : démarrer avec --profile extras

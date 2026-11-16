@@ -68,18 +68,22 @@ public class Actor {
     @JoinColumn(name = "created_by")
     private User createdBy;
 
+    @org.hibernate.annotations.BatchSize(size = 50)
     @OneToMany(mappedBy = "actor", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ActorSkill> skills = new ArrayList<>();
 
+    @org.hibernate.annotations.BatchSize(size = 50)
     @OneToMany(mappedBy = "actor", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ActorLanguage> languages = new ArrayList<>();
 
+    @org.hibernate.annotations.BatchSize(size = 50)
     @OneToMany(mappedBy = "actor", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ActorExperience> experiences = new ArrayList<>();
 
+    @org.hibernate.annotations.BatchSize(size = 50)
     @OneToMany(mappedBy = "actor", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ActorAvailability> availabilities = new ArrayList<>();

@@ -48,17 +48,22 @@ public class PhotoServiceImpl implements PhotoService {
         List<PhotoResponse> responses = new ArrayList<>();
 
         for (MultipartFile file : files) {
-            String extension = getExtension(file.getOriginalFilename());
+            String type = file.getContentType() == null ? "" : file.getContentType();
+            if (!type.equals("image/jpeg") && !type.equals("image/png") && !type.equals("image/webp")) {
+                throw new IllegalArgumentException("Type de fichier refusé : JPEG, PNG ou WebP uniquement");
+            }
+            // Extension déduite du type validé (et non du nom fourni par le client)
+            String extension = type.equals("image/png") ? "png" : type.equals("image/webp") ? "webp" : "jpg";
             String filename  = "actors/" + actorId + "/" + UUID.randomUUID() + "." + extension;
             String thumbName = "actors/" + actorId + "/thumb_" + UUID.randomUUID() + "." + extension;
 
             // Compress and upload main image
             byte[] compressed = compress(file, MAX_WIDTH, MAX_HEIGHT);
-            String url = storageService.uploadBytes(compressed, filename, file.getContentType());
+            String url = storageService.uploadBytes(compressed, filename, type);
 
             // Generate and upload thumbnail
             byte[] thumbnail = compress(file, THUMB_WIDTH, THUMB_HEIGHT);
-            String thumbUrl  = storageService.uploadBytes(thumbnail, thumbName, file.getContentType());
+            String thumbUrl  = storageService.uploadBytes(thumbnail, thumbName, type);
 
             ActorPhoto photo = ActorPhoto.builder()
                     .actor(actor)
@@ -97,11 +102,11 @@ public class PhotoServiceImpl implements PhotoService {
         ActorPhoto photo = photoRepository.findByIdAndActorId(photoId, actorId)
                 .orElseThrow(() -> new RuntimeException("Photo not found"));
 
-        storageService.delete(photo.getFilename());
-        if (photo.getThumbnailUrl() != null) {
-            storageService.delete("actors/" + actorId + "/thumb_" +
-                    photo.getFilename().substring(photo.getFilename().lastIndexOf('/') + 1));
-        }
+        // Supprime l'image et sa miniature du stockage (les photos de démo externes sont ignorées)
+        String mainKey = storageService.keyFromUrl(photo.getUrl());
+        if (mainKey != null) storageService.delete(mainKey);
+        String thumbKey = storageService.keyFromUrl(photo.getThumbnailUrl());
+        if (thumbKey != null) storageService.delete(thumbKey);
 
         photoRepository.delete(photo);
     }

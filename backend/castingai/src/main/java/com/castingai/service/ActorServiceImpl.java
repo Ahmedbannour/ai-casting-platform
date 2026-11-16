@@ -25,6 +25,7 @@ public class ActorServiceImpl implements ActorService {
     private final ActorRepository actorRepository;
     private final UserRepository userRepository;
     private final ActorMapper actorMapper;
+    private final com.castingai.repository.ActorPhotoRepository photoRepository;
 
     @Override
     @Transactional
@@ -55,8 +56,10 @@ public class ActorServiceImpl implements ActorService {
     @Override
     @Transactional(readOnly = true)
     public Page<ActorSummaryResponse> findAll(String search, Pageable pageable) {
-        return actorRepository.findBySearchTerm(search, pageable)
+        Page<ActorSummaryResponse> page = actorRepository.findBySearchTerm(search, pageable)
                 .map(actorMapper::toSummary);
+        attachMainPhotos(page.getContent());
+        return page;
     }
 
     @Override
@@ -134,7 +137,7 @@ public class ActorServiceImpl implements ActorService {
             String search, String gender,
             Integer minAge, Integer maxAge,
             String city, Pageable pageable) {
-        return actorRepository.searchAdvanced(
+        Page<ActorSummaryResponse> page = actorRepository.searchAdvanced(
                         search == null ? "" : search.trim(),
                         gender == null ? "" : gender,
                         minAge == null ? 0 : minAge,
@@ -142,6 +145,18 @@ public class ActorServiceImpl implements ActorService {
                         city == null ? "" : city.trim(),
                         pageable)
                 .map(actorMapper::toSummary);
+        attachMainPhotos(page.getContent());
+        return page;
+    }
+
+    /** Ajoute la miniature de la photo principale à une page d'acteurs, en une seule requête. */
+    private void attachMainPhotos(java.util.List<ActorSummaryResponse> actors) {
+        if (actors.isEmpty()) return;
+        var ids = actors.stream().map(ActorSummaryResponse::getId).toList();
+        var byActor = new java.util.HashMap<UUID, String>();
+        photoRepository.findByActorIdInAndIsMainTrue(ids).forEach(p -> byActor.put(p.getActor().getId(),
+                p.getThumbnailUrl() != null ? p.getThumbnailUrl() : p.getUrl()));
+        actors.forEach(a -> a.setMainPhotoUrl(byActor.get(a.getId())));
     }
 
 

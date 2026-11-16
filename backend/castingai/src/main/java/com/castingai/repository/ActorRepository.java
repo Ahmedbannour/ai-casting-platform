@@ -65,4 +65,38 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
 
     @Query("SELECT DISTINCT a FROM Actor a LEFT JOIN FETCH a.skills LEFT JOIN FETCH a.languages")
     List<Actor> findAllWithSkillsAndLanguages();
+
+    /**
+     * Recherche IA côté base : filtres stricts (genre, âge), puis classement par pertinence
+     * (langue, compétence, ville, cheveux) et pagination. Ne charge que les identifiants d'une page.
+     */
+    @Query(value = """
+        SELECT a.id FROM actors a
+        WHERE (:gender = '' OR a.gender = :gender)
+          AND (:minAge = 0 OR a.birth_date <= CURRENT_DATE - make_interval(years => CAST(:minAge AS int)))
+          AND (:maxAge = 150 OR a.birth_date > CURRENT_DATE - make_interval(years => CAST(:maxAge AS int) + 1))
+        ORDER BY (
+            (CASE WHEN :language <> '' AND EXISTS (SELECT 1 FROM actor_languages l WHERE l.actor_id = a.id
+                  AND lower(l.name) LIKE '%' || lower(:language) || '%') THEN 30 ELSE 0 END)
+          + (CASE WHEN :skill <> '' AND EXISTS (SELECT 1 FROM actor_skills s WHERE s.actor_id = a.id
+                  AND lower(s.name) LIKE '%' || lower(:skill) || '%') THEN 15 ELSE 0 END)
+          + (CASE WHEN :city <> '' AND lower(a.city) LIKE '%' || lower(:city) || '%' THEN 10 ELSE 0 END)
+          + (CASE WHEN :hair <> '' AND lower(a.hair_color) LIKE '%' || lower(:hair) || '%' THEN 5 ELSE 0 END)
+        ) DESC, a.last_name, a.id
+        """,
+        countQuery = """
+        SELECT count(*) FROM actors a
+        WHERE (:gender = '' OR a.gender = :gender)
+          AND (:minAge = 0 OR a.birth_date <= CURRENT_DATE - make_interval(years => CAST(:minAge AS int)))
+          AND (:maxAge = 150 OR a.birth_date > CURRENT_DATE - make_interval(years => CAST(:maxAge AS int) + 1))
+        """,
+        nativeQuery = true)
+    Page<UUID> rankedSearch(@Param("gender") String gender,
+                            @Param("minAge") int minAge,
+                            @Param("maxAge") int maxAge,
+                            @Param("language") String language,
+                            @Param("skill") String skill,
+                            @Param("city") String city,
+                            @Param("hair") String hair,
+                            Pageable pageable);
 }

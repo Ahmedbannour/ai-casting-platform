@@ -3,19 +3,22 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AiSearchAngularService, SearchResponse } from '../../core/services/ai-search.service';
+import { SwipeDeckComponent, SwipeEvent } from '../../shared/components/swipe-deck/swipe-deck';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content?: string;
   response?: SearchResponse;
   loading?: boolean;
+  explaining?: boolean;
+  loadingMore?: boolean;
   timestamp: Date;
 }
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SwipeDeckComponent],
   templateUrl: './chat.html',
   styleUrl: './chat.scss'
 })
@@ -25,6 +28,8 @@ export class ChatComponent implements AfterViewChecked {
 
   messages = signal<ChatMessage[]>([]);
   input = '';
+  /** Affichage des propositions : cartes à glisser (par défaut) ou liste. */
+  view = signal<'cartes' | 'liste'>('cartes');
   loading = signal(false);
 
   suggestions = [
@@ -66,6 +71,7 @@ export class ChatComponent implements AfterViewChecked {
           };
           return updated;
         });
+        this.explain(this.messages().length - 1, text, response.results.slice(0, 5).map(r => r.id));
       },
       error: () => {
         this.loading.set(false);
@@ -82,11 +88,64 @@ export class ChatComponent implements AfterViewChecked {
     });
   }
 
+  /** Demande à l'IA d'expliquer les 5 meilleurs profils, sans bloquer l'affichage. */
+  private explain(index: number, query: string, ids: string[]): void {
+    if (!ids.length) return;
+    this.patch(index, m => ({ ...m, explaining: true }));
+    this.aiService.explain(query, ids).subscribe({
+      next: (reasons) => this.patch(index, m => ({
+        ...m,
+        explaining: false,
+        response: m.response && {
+          ...m.response,
+          results: m.response.results.map(r => reasons[r.id] ? { ...r, reason: reasons[r.id] } : r)
+        }
+      })),
+      error: () => this.patch(index, m => ({ ...m, explaining: false }))
+    });
+  }
+
+  /** Charge la page suivante des résultats et l'ajoute à la suite. */
+  loadMore(index: number): void {
+    const msg = this.messages()[index];
+    if (!msg?.response || msg.loadingMore) return;
+    this.patch(index, m => ({ ...m, loadingMore: true }));
+    this.aiService.search(msg.response.query, msg.response.page + 1).subscribe({
+      next: (next) => this.patch(index, m => ({
+        ...m,
+        loadingMore: false,
+        response: m.response && {
+          ...m.response,
+          page: next.page,
+          hasMore: next.hasMore,
+          results: [...m.response.results, ...next.results]
+        }
+      })),
+      error: () => this.patch(index, m => ({ ...m, loadingMore: false }))
+    });
+  }
+
+  private patch(index: number, fn: (m: ChatMessage) => ChatMessage): void {
+    this.messages.update(list => list.map((m, i) => i === index ? fn(m) : m));
+  }
+
   onKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.send();
     }
+  }
+
+  /** Enregistre la décision du client (signal d'apprentissage pour l'IA). */
+  onDecide(index: number, e: SwipeEvent): void {
+    const q = this.messages()[index]?.response?.query ?? '';
+    this.aiService.feedback(q, e.actor.id, e.decision).subscribe({ error: () => {} });
+  }
+
+  isLastAssistant(index: number): boolean {
+    const msgs = this.messages();
+    for (let i = msgs.length - 1; i >= 0; i--) { if (msgs[i].role === 'assistant') return i === index; }
+    return false;
   }
 
   openActor(id: string): void {

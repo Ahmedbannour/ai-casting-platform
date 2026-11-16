@@ -21,4 +21,9 @@ public interface StorageService {
      * Deletes a file by its filename.
      */
     void delete(String filename) throws Exception;
+
+    /**
+     * Retrouve la clé de l'objet à partir de son URL publique ; null si l'URL n'est pas de ce stockage.
+     */
+    String keyFromUrl(String url);
 }

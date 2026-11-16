@@ -2,10 +2,10 @@
 
   @if (isEmpty) {
     <div class="chat-empty">
-      <div class="empty-icon">🎬</div>
+      <span class="brand-mark big" aria-hidden="true"></span>
       <h1 class="empty-title">Quel acteur recherchez-vous ?</h1>
       <p class="empty-subtitle">
-        Décrivez le profil en langage naturel — l'IA trouve les meilleurs candidats.
+        Décrivez le rôle en une phrase. L'IA vous propose des acteurs, vous gardez ou vous écartez.
       </p>
       <div class="suggestions">
         @for (s of suggestions; track s) {
@@ -47,6 +47,21 @@
                 </div>
 
                 @if (msg.response.results.length > 0) {
+                  <div class="view-toggle" role="group" aria-label="Affichage des propositions">
+                    <button type="button" [class.on]="view() === 'cartes'" (click)="view.set('cartes')">Cartes</button>
+                    <button type="button" [class.on]="view() === 'liste'" (click)="view.set('liste')">Liste</button>
+                  </div>
+                  @if (view() === 'cartes') {
+                    <app-swipe-deck
+                      [results]="msg.response.results"
+                      [explaining]="!!msg.explaining"
+                      [hasMore]="msg.response.hasMore"
+                      [loadingMore]="!!msg.loadingMore"
+                      [active]="isLastAssistant($index)"
+                      (decide)="onDecide($index, $event)"
+                      (more)="loadMore($index)"
+                      (open)="openActor($event)" />
+                  } @else {
                   <div class="results-grid">
                     @for (actor of msg.response.results; track actor.id) {
                       <div class="actor-result-card" (click)="openActor(actor.id)">
@@ -61,7 +76,7 @@
                         <!-- Avatar -->
                         <div class="actor-avatar">
                           @if (actor.mainPhotoUrl) {
-                            <img [src]="actor.mainPhotoUrl" [alt]="actor.firstName" />
+                            <img [src]="actor.mainPhotoUrl" [alt]="actor.firstName" loading="lazy" />
                           } @else {
                             {{ actor.firstName[0] }}{{ actor.lastName[0] }}
                           }
@@ -111,6 +126,15 @@
                       </div>
                     }
                   </div>
+                  }
+                  @if (msg.explaining) {
+                    <div class="interpretation">L’IA rédige l’analyse des 5 meilleurs profils…</div>
+                  }
+                  @if (msg.response.hasMore && view() === 'liste') {
+                    <button class="suggestion-chip" style="margin-top:12px" (click)="loadMore($index)" [disabled]="msg.loadingMore">
+                      {{ msg.loadingMore ? 'Chargement…' : 'Afficher plus de résultats (' + msg.response.results.length + ' / ' + msg.response.totalResults + ')' }}
+                    </button>
+                  }
                 } @else {
                   <div class="no-results">
                     Aucun acteur ne correspond. Essayez des critères différents.

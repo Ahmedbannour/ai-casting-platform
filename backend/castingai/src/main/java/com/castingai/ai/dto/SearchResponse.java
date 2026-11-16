@@ -14,5 +14,8 @@ public class SearchResponse {
     private String query;
     private String interpretation;
     private int totalResults;
+    private int page;
+    private int size;
+    private boolean hasMore;
     private List<ActorSearchResult> results;
 }

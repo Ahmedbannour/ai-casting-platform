@@ -37,4 +37,21 @@ public class AiSearchController {
                 aiSearchService.getHistory(userDetails.getUsername(), limit)
         );
     }
+
+    /** Explications de l'IA pour les meilleurs résultats (appel séparé, ne bloque pas l'affichage). */
+    @PostMapping("/explain")
+    public ResponseEntity<java.util.Map<String, String>> explain(@RequestBody ExplainRequest request) {
+        return ResponseEntity.ok(aiSearchService.explain(request.query(), request.actorIds()));
+    }
+
+    @PostMapping("/feedback")
+    public ResponseEntity<Void> feedback(@RequestBody FeedbackRequest request,
+                                         @AuthenticationPrincipal UserDetails userDetails) {
+        aiSearchService.feedback(userDetails.getUsername(), request.query(), request.actorId(), request.decision());
+        return ResponseEntity.noContent().build();
+    }
+
+    public record FeedbackRequest(String query, java.util.UUID actorId, String decision) {}
+
+    public record ExplainRequest(String query, java.util.List<java.util.UUID> actorIds) {}
 }

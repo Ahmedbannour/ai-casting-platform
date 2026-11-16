@@ -59,7 +59,8 @@ public class DocumentServiceImpl implements DocumentService {
     public void delete(UUID actorId, UUID documentId) throws Exception {
         var doc = documentRepository.findByIdAndActorId(documentId, actorId)
                 .orElseThrow(() -> new RuntimeException("Document not found"));
-        storageService.delete(doc.getUrl());
+        String key = storageService.keyFromUrl(doc.getUrl());
+        if (key != null) storageService.delete(key);
         documentRepository.delete(doc);
     }
 

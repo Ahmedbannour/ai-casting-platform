@@ -11,7 +11,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -40,17 +42,31 @@ public class AiSearchServiceImpl implements AiSearchService {
     private final ActorPhotoRepository photoRepository;
     private final SearchHistoryRepository searchHistoryRepository;
     private final UserRepository userRepository;
+    private final com.castingai.repository.AiFeedbackRepository feedbackRepository;
     private final ObjectMapper objectMapper;
 
+    private static final int MAX_CANDIDATES = 12;
+
+    /*
+     * Échelle de l'IA (réglable sans recompiler, voir casting.ai dans application.yml) :
+     * modèle utilisé, nombre de profils expliqués et longueur maximale de la réponse.
+     */
+    @Value("${casting.ai.model:llama3.2}")
+    private String aiModel;
+    @Value("${casting.ai.explain-count:5}")
+    private int explainCount;
+    @Value("${casting.ai.max-tokens:450}")
+    private int maxTokens;
+
     private static final String SYSTEM_PROMPT = """
-        Tu es un expert casting. Analyse les acteurs et retourne les 5 meilleurs.
-        
-        IMPORTANT : Ta réponse doit commencer DIRECTEMENT par [ et finir par ]
-        N'écris RIEN avant le [ et RIEN après le ]
-        Pas d'explication, pas de texte, UNIQUEMENT le tableau JSON.
-        
+        Tu es un expert casting. Classe les acteurs fournis pour la demande du recruteur.
+
+        IMPORTANT : ta réponse commence DIRECTEMENT par [ et finit par ]
+        Aucun texte avant ou après : UNIQUEMENT le tableau JSON.
+        Sois bref : "raison" en 15 mots maximum, "points_forts" en 8 mots maximum.
+
         FORMAT :
-        [{"id":"uuid-exact","score":85,"raison":"raison en français","points_forts":"points positifs","points_faibles":"points négatifs"}]
+        [{"id":"uuid-exact","score":85,"raison":"raison courte en français","points_forts":"atouts clés"}]
         """;
     // ─────────────────────────────────────────────────────────
     //  PUBLIC API
@@ -59,49 +75,86 @@ public class AiSearchServiceImpl implements AiSearchService {
     @Override
     @Transactional
     public SearchResponse search(SearchRequest request, String userEmail) {
-        log.info("AI Search — query: {}", request.getQuery());
+        long start = System.currentTimeMillis();
+        int size = Math.max(1, Math.min(request.getSize(), 50));
+        int page = Math.max(0, request.getPage());
+        ParsedCriteria c = parseQuery(request.getQuery());
 
-        List<Actor> actors = actorRepository.findAll();
+        // 1. Filtrer et classer dans la base : seuls les identifiants d'une page sont chargés
+        Page<UUID> ids = actorRepository.rankedSearch(
+                nz(c.getGender()),
+                c.getMinAge() == null ? 0 : c.getMinAge(),
+                c.getMaxAge() == null ? 150 : c.getMaxAge(),
+                nz(c.getLanguage()), nz(c.getSkill()), nz(c.getCity()), nz(c.getHairColor()),
+                PageRequest.of(page, size));
 
-        if (actors.isEmpty()) {
-            saveHistory(userEmail, request.getQuery(), 0);
-            return SearchResponse.builder()
-                    .query(request.getQuery())
-                    .interpretation("Aucun acteur dans la base de données")
-                    .totalResults(0)
-                    .results(List.of())
-                    .build();
+        // 2. Charger uniquement les acteurs de la page (sous-tables en lots) et leurs photos principales
+        Map<UUID, Actor> byId = new HashMap<>();
+        actorRepository.findAllById(ids.getContent()).forEach(a -> byId.put(a.getId(), a));
+        Map<UUID, List<String>> photos = new HashMap<>();
+        if (!ids.isEmpty()) {
+            photoRepository.findByActorIdInOrderByIsMainDescCreatedAtAsc(ids.getContent()).forEach(p ->
+                    photos.computeIfAbsent(p.getActor().getId(), k -> new ArrayList<>()).add(p.getUrl()));
         }
 
-        // Build profiles
-        List<ActorProfile> profiles = buildProfiles(actors);
+        // 3. Score et raisons immédiats (l'explication par l'IA arrive ensuite via /api/ai/explain)
+        List<ActorSearchResult> results = ids.getContent().stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .map(a -> {
+                    ActorSearchResult r = buildResultFromCriteria(a, computeScore(a, c), c);
+                    List<String> ph = photos.getOrDefault(a.getId(), List.of());
+                    r.setPhotoUrls(ph);
+                    r.setMainPhotoUrl(ph.isEmpty() ? null : ph.get(0));
+                    return r;
+                })
+                .toList();
 
-        // Try Ollama first, fallback to local NLP
-        List<ActorSearchResult> results;
-        if (isOllamaAvailable()) {
-            log.info("Using Ollama (llama3.2) for AI scoring");
-            results = searchWithOllama(request.getQuery(), actors, profiles);
-        } else {
-            log.warn("Ollama unavailable — using local NLP fallback");
-            results = searchWithFallback(request.getQuery(), actors);
-        }
-
-        saveHistory(userEmail, request.getQuery(), results.size());
-
-        // Paginate
-        int from = request.getPage() * request.getSize();
-        int to = Math.min(from + request.getSize(), results.size());
-        List<ActorSearchResult> paged = results.subList(
-                Math.min(from, results.size()), to
-        );
+        if (page == 0) saveHistory(userEmail, request.getQuery(), (int) ids.getTotalElements());
+        log.info("AI Search '{}' -> {} resultats (page {}) en {} ms",
+                request.getQuery(), ids.getTotalElements(), page, System.currentTimeMillis() - start);
 
         return SearchResponse.builder()
                 .query(request.getQuery())
-                .interpretation("Analyse IA : \"" + request.getQuery() + "\" — "
-                        + results.size() + " résultat(s)")
-                .totalResults(results.size())
-                .results(paged)
+                .interpretation(describe(c, ids.getTotalElements()))
+                .totalResults((int) ids.getTotalElements())
+                .page(page)
+                .size(size)
+                .hasMore(ids.hasNext())
+                .results(results)
                 .build();
+    }
+
+    private static String nz(String s) {
+        return s == null ? "" : s;
+    }
+
+    private String describe(ParsedCriteria c, long total) {
+        List<String> parts = new ArrayList<>();
+        if (c.getGender() != null) parts.add(c.getGender());
+        if (c.getMinAge() != null) parts.add(Math.max(0, c.getMinAge()) + "–" + c.getMaxAge() + " ans");
+        if (c.getLanguage() != null) parts.add("parle " + c.getLanguage());
+        if (c.getSkill() != null) parts.add(c.getSkill());
+        if (c.getCity() != null) parts.add(c.getCity());
+        if (c.getHairColor() != null) parts.add("cheveux " + c.getHairColor().toLowerCase());
+        String head = parts.isEmpty() ? "Tous les profils" : "Critères compris : " + String.join(" · ", parts);
+        return head + " — " + total + " profil(s) trouvé(s)";
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, String> explain(String query, List<UUID> actorIds) {
+        List<UUID> ids = actorIds == null ? List.of() : actorIds.stream().limit(Math.max(1, explainCount)).toList();
+        if (ids.isEmpty() || !isOllamaAvailable()) return Map.of();
+        List<AiAnalysisResult> ai = callOllama(query, buildProfiles(actorRepository.findAllById(ids)));
+        Map<String, String> out = new LinkedHashMap<>();
+        for (AiAnalysisResult r : ai) {
+            if (r.getId() == null) continue;
+            String reason = (r.getRaison() != null ? r.getRaison() : "")
+                    + (r.getPoints_forts() != null && !r.getPoints_forts().isBlank() ? ". Atouts : " + r.getPoints_forts() : "");
+            out.put(r.getId(), reason);
+        }
+        return out;
     }
 
     @Override
@@ -163,13 +216,13 @@ public class AiSearchServiceImpl implements AiSearchService {
             String fullPrompt = SYSTEM_PROMPT
                     + "\n\nACTEURS DISPONIBLES (JSON) :\n" + profilesJson
                     + "\n\nDEMANDE DU RECRUTEUR : \"" + query + "\""
-                    + "\n\nRetourne le tableau JSON des 5 meilleurs acteurs.";
+                    + "\n\nRetourne le tableau JSON des " + profiles.size() + " acteurs, du meilleur au moins bon.";
 
             Map<String, Object> body = new LinkedHashMap<>();
-            body.put("model", "llama3.2");
+            body.put("model", aiModel);
             body.put("prompt", fullPrompt);
             body.put("stream", false);
-            body.put("options", Map.of("temperature", 0.1, "num_predict", 1024));
+            body.put("options", Map.of("temperature", 0.1, "num_predict", maxTokens, "num_ctx", 4096));
 
             log.debug("Calling Ollama with {} actors...", profiles.size());
 
@@ -195,41 +248,30 @@ public class AiSearchServiceImpl implements AiSearchService {
         }
     }
 
+    /**
+     * Lit la réponse du modèle de façon tolérante : on récupère chaque objet {...} séparément,
+     * que le modèle ait écrit un seul tableau, plusieurs tableaux ou des objets ligne par ligne.
+     */
+    private static final Pattern JSON_OBJECT = Pattern.compile("\\{[^{}]*\\}");
+
     private List<AiAnalysisResult> parseJsonResponse(String raw) {
-        try {
-            if (raw == null || raw.isBlank()) return List.of();
-
-            String cleaned = raw.trim()
-                    .replaceAll("(?s)```json\\s*", "")
-                    .replaceAll("```", "")
-                    .replaceAll("(?s)^[^\\[]*", "")  // supprime tout avant [
-                    .trim();
-
-            int start = cleaned.indexOf('[');
-            int end   = cleaned.lastIndexOf(']');
-
-            if (start == -1 || end == -1 || end <= start) {
-                log.warn("No JSON array found. Raw: {}", raw.substring(0, Math.min(500, raw.length())));
-                return List.of();
+        if (raw == null || raw.isBlank()) return List.of();
+        Map<String, AiAnalysisResult> byId = new LinkedHashMap<>();
+        Matcher m = JSON_OBJECT.matcher(raw);
+        while (m.find()) {
+            try {
+                AiAnalysisResult r = objectMapper.readValue(m.group(), AiAnalysisResult.class);
+                if (r.getId() != null) byId.putIfAbsent(r.getId(), r);
+            } catch (Exception e) {
+                log.debug("Objet JSON ignoré : {}", e.getMessage());
             }
-
-            String jsonArray = cleaned.substring(start, end + 1);
-            log.debug("Parsed JSON array: {}", jsonArray.substring(0, Math.min(300, jsonArray.length())));
-
-            List<AiAnalysisResult> list = objectMapper.readValue(
-                    jsonArray, new TypeReference<List<AiAnalysisResult>>() {}
-            );
-
-            return list.stream()
-                    .sorted(Comparator.comparingInt(AiAnalysisResult::getScore).reversed())
-                    .limit(5)
-                    .toList();
-
-        } catch (Exception e) {
-            log.error("JSON parse error: {} | raw: >>{}<<", e.getMessage(),
-                    raw.substring(0, Math.min(1000, raw.length())));
-            return List.of();
         }
+        if (byId.isEmpty()) {
+            log.warn("Aucun profil lisible dans la réponse de l'IA : {}", raw.substring(0, Math.min(300, raw.length())));
+        }
+        return byId.values().stream()
+                .sorted(Comparator.comparingInt(AiAnalysisResult::getScore).reversed())
+                .toList();
     }
 
     private ActorSearchResult buildResultFromAi(Actor actor, AiAnalysisResult ai) {
@@ -449,7 +491,7 @@ public class AiSearchServiceImpl implements AiSearchService {
                     .gender(actor.getGender())
                     .city(actor.getCity())
                     .country(actor.getCountry())
-                    .bio(actor.getBio())
+                    .bio(actor.getBio() != null && actor.getBio().length() > 160 ? actor.getBio().substring(0, 160) : actor.getBio())
                     .height(actor.getHeight())
                     .eyeColor(actor.getEyeColor())
                     .hairColor(actor.getHairColor())
@@ -475,6 +517,22 @@ public class AiSearchServiceImpl implements AiSearchService {
                 searchHistoryRepository.save(SearchHistory.builder()
                         .user(user).query(query).resultsCount(count).build())
         );
+    }
+
+    @Override
+    @Transactional
+    public void feedback(String userEmail, String query, UUID actorId, String decision) {
+        if (!List.of("RETENU", "ECARTE", "ANNULE").contains(decision)) {
+            throw new IllegalArgumentException("Décision inconnue : RETENU, ECARTE ou ANNULE");
+        }
+        Actor actor = actorRepository.findById(actorId)
+                .orElseThrow(() -> new IllegalArgumentException("Acteur introuvable"));
+        feedbackRepository.save(com.castingai.entity.AiFeedback.builder()
+                .user(userRepository.findByEmail(userEmail).orElse(null))
+                .actor(actor)
+                .query(query == null ? "" : query)
+                .decision(decision)
+                .build());
     }
 
     public record HistoryItem(String id, String query, int resultsCount,
