@@ -48,8 +48,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
+                                              jakarta.servlet.http.HttpServletRequest http) {
+        // Adresse de la machine : celle vue par le serveur (un proxy de confiance devra transmettre l'adresse réelle).
+        return ResponseEntity.ok(authService.login(request, http.getRemoteAddr()));
     }
 
     @PostMapping("/refresh")

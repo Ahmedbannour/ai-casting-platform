@@ -14,6 +14,8 @@ public interface AuthService {
 
     AuthResponse login(LoginRequest request);
 
+    AuthResponse login(LoginRequest request, String clientIp);
+
     AuthResponse refresh(RefreshTokenRequest request);
 
     void logout(String email);

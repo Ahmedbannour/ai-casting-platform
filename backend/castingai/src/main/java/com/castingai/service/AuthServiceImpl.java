@@ -36,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtConfig jwtConfig;
     private final ActorAccountService actorAccounts;
+    private final LoginAttemptService loginAttempts;
 
     @Override
     @Transactional
@@ -63,9 +64,23 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        return login(request, null);
+    }
+
+    /** T-107 · Connexion avec limitation des essais en série (par adresse et par machine). */
+    @Override
+    @Transactional(noRollbackFor = org.springframework.security.core.AuthenticationException.class)
+    public AuthResponse login(LoginRequest request, String clientIp) {
+        loginAttempts.checkAllowed(request.getEmail(), clientIp);
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            loginAttempts.onFailure(request.getEmail(), clientIp);
+            throw e;
+        }
+        loginAttempts.onSuccess(request.getEmail());
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AuthException("User not found"));

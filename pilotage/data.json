@@ -1830,10 +1830,10 @@
    "resp": "Claire Dubois",
    "phase": "PH3",
    "prio": "P0",
-   "jour": "J6",
+   "jour": "J5",
    "prompt": "P-031",
-   "statut": "en_cours",
-   "detail": "Après 5 échecs en 15 minutes pour une adresse ou une machine : attente imposée, message clair, entrée dans le journal d'audit.",
+   "statut": "fait",
+   "detail": "5 échecs en 15 min par adresse e-mail, 20 par machine → refus HTTP 429 avec message clair (« réessayez dans N minutes ») ; réussite = compteur remis à zéro ; blocage inscrit au journal d'audit (filtre « Connexions bloquées »). 51/51 tests (3 nouveaux) ; vérifié sur le vrai serveur : essais 1-5 refusés (401), 6e bloqué (429), entrée d'audit présente.",
    "lot": "L1"
   },
   {
@@ -1845,7 +1845,7 @@
    "prio": "P1",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
+   "statut": "en_cours",
    "detail": "Content-Security-Policy, HSTS, X-Frame-Options ; Swagger réservé au développement ; origines autorisées limitées au site.",
    "lot": "L1"
   },
@@ -2412,33 +2412,22 @@
   }
  ],
  "maintenant": {
-  "titre": "P-031 · T-129 et T-130 faites ; T-107 en cours (essais de mot de passe en série)",
-  "etape": 30,
+  "titre": "P-031 · T-107 faite ; T-108 en cours (en-têtes de sécurité)",
+  "etape": 31,
   "agents": [
    {
+    "nom": "Rami Saidi",
+    "action": "En-têtes de sécurité (CSP, HSTS, anti-cadre), documentation API fermée en production, origines limitées",
+    "court": "T-108"
+   },
+   {
     "nom": "Claire Dubois",
-    "action": "Limite les essais de connexion : 5 échecs en 15 min → attente imposée, journal d'audit",
-    "court": "T-107"
-   },
-   {
-    "nom": "Sarra Mansouri",
-    "action": "T-130 livrée : panneau de notifications au-dessus de tout, barre d'enregistrement contextuelle",
-    "court": "T-130 fait"
-   },
-   {
-    "nom": "Marc Lefèvre",
-    "action": "T-129 livrée : Spring Boot 4, 0 faille connue côté serveur",
-    "court": "T-129 fait"
+    "action": "T-107 livrée : essais de mot de passe limités, blocages au journal",
+    "court": "T-107 fait"
    }
   ]
  },
  "activite": [
-  {
-   "h": "J5",
-   "nom": "Karim Haddad",
-   "t": "2026-11-17T09:40:00Z",
-   "texte": "Plan produit final v1 : 8 lots, 28 tâches, file d'exécution de 19 tâches ; 6 tâches bloquées avec 3 solutions gratuites chacune."
-  },
   {
    "h": "J5",
    "nom": "Sarra Mansouri",
@@ -2486,6 +2475,12 @@
    "nom": "Sarra Mansouri",
    "t": "2026-11-17T12:25:00Z",
    "texte": "T-130 (demande client) : panneau de notifications sorti du menu (overlay CDK), opaque, icônes par type ; barre d'enregistrement contextuelle. Vérifié bureau + mobile."
+  },
+  {
+   "h": "J5",
+   "nom": "Claire Dubois",
+   "t": "2026-11-17T13:10:00Z",
+   "texte": "T-107 faite : 5 échecs → connexion bloquée 15 min (429), journal d'audit. Vérifié sur le vrai serveur. 51/51 tests."
   }
  ],
  "plan": {
@@ -2603,7 +2598,7 @@
    "T-100",
    "T-127"
   ],
-  "courante": "T-107",
+  "courante": "T-108",
   "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages »."
  }
 }

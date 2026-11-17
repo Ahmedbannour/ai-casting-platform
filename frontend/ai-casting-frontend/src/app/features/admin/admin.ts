@@ -44,10 +44,10 @@ export class AdminComponent implements OnInit {
   readonly auditFilter = signal('');
   readonly auditOptions = [
     { value: '', label: 'Toutes les actions' }, { value: 'COMPTE_CREE', label: 'Comptes créés' }, { value: 'COMPTE_MODIFIE', label: 'Comptes modifiés' },
-    { value: 'AGENCE_CREEE', label: 'Agences ajoutées' }, { value: 'CONTRAT_MODIFIE', label: 'Contrats modifiés' }, { value: 'IMPORT', label: 'Imports' }
+    { value: 'AGENCE_CREEE', label: 'Agences ajoutées' }, { value: 'CONTRAT_MODIFIE', label: 'Contrats modifiés' }, { value: 'IMPORT', label: 'Imports' }, { value: 'CONNEXION_BLOQUEE', label: 'Connexions bloquées' }
   ];
   readonly auditLabel: Record<string, string> = {
-    COMPTE_CREE: 'Compte créé', COMPTE_MODIFIE: 'Compte modifié', AGENCE_CREEE: 'Agence ajoutée', CONTRAT_MODIFIE: 'Contrat modifié', IMPORT: 'Import d’acteurs'
+    COMPTE_CREE: 'Compte créé', COMPTE_MODIFIE: 'Compte modifié', AGENCE_CREEE: 'Agence ajoutée', CONTRAT_MODIFIE: 'Contrat modifié', IMPORT: 'Import d’acteurs', CONNEXION_BLOQUEE: 'Connexion bloquée'
   };
   private readonly auditFmt = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   auditWhen(ms: number): string { return this.auditFmt.format(new Date(ms)); }
