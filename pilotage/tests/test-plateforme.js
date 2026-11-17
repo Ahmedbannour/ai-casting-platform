@@ -199,6 +199,18 @@ async function audit(page, path, name, errors) {
     await p2.getByRole('button', { name: /Rôle d’enfant/ }).click(); await p2.waitForTimeout(3500);
     check('Vitrine : choisir un autre rôle rejoue la planche', /Garçon/.test(await p2.locator('.typed').textContent()));
     check('Vitrine : pas de débordement sur mobile', !(await p2.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)));
+    // Contact : erreurs claires, envoi, e-mail affiché à la demande, carte
+    await p2.locator('#contact').scrollIntoViewIfNeeded(); await p2.waitForTimeout(800);
+    await p2.getByRole('button', { name: 'Envoyer le message' }).click(); await p2.waitForTimeout(300);
+    check('Vitrine contact : erreurs sous les champs, focus sur le premier', await p2.locator('.f .err').count() === 3 && await p2.evaluate(() => document.activeElement?.id) === 'c-name');
+    await p2.fill('#c-name', 'Recette Vitrine'); await p2.fill('#c-email', 'recette.vitrine@exemple.tn');
+    await p2.fill('#c-message', 'Message de recette automatique, à ignorer (T-127).');
+    await p2.getByRole('button', { name: 'Envoyer le message' }).click(); await p2.waitForTimeout(1500);
+    check('Vitrine contact : message envoyé et confirmé', await p2.locator('.sent[role=status]').count() === 1);
+    await p2.getByRole('button', { name: 'Afficher notre e-mail' }).click();
+    check('Vitrine contact : e-mail affiché seulement au clic', /@gmail\.com$/.test(await p2.locator('.direct a').textContent()));
+    await p2.waitForTimeout(2500);
+    check('Vitrine : carte chargée avec le repère', await p2.locator('.pin').count() === 1 || await p2.locator('.map-fallback').count() === 1);
     await p2.locator('.burger').click(); await p2.getByRole('link', { name: /^Créer mon profil$/ }).first().click();
     await p2.waitForURL(u => u.pathname.startsWith('/auth/inscription'), { timeout: 8000 }).catch(() => {});
     check('Vitrine : menu mobile → inscription', p2.url().includes('/auth/inscription'), p2.url());
@@ -209,6 +221,9 @@ async function audit(page, path, name, errors) {
     await p3.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 15000 }).catch(() => {});
     await p3.goto(BASE + '/'); await p3.waitForTimeout(1200);
     check('Vitrine : un utilisateur connecté va directement à son espace', new URL(p3.url()).pathname !== '/', p3.url());
+    await p3.goto(BASE + '/admin'); await p3.waitForTimeout(1200);
+    await p3.getByRole('tab', { name: 'Messages' }).click(); await p3.waitForTimeout(900);
+    check('Administration : onglet Messages avec le message de la vitrine', await p3.locator('app-contact-inbox li').filter({ hasText: 'recette.vitrine@exemple.tn' }).count() >= 1);
     await c3.close(); }
   await browser.close();
 

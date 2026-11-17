@@ -561,4 +561,33 @@ class RolesImportApiTest {
         send("DELETE", "/api/actors/" + id3 + "/invitation", a, null).andExpect(status().isNoContent());
         send("GET", "/api/public/invitations/" + t4, null, null).andExpect(status().isNotFound());
     }
+
+    /** Vitrine · formulaire de contact : enregistré, lu par l'administrateur seulement, robots et abus filtrés. */
+    @Test
+    void formulaireDeContactDeLaVitrine() throws Exception {
+        String url = "/api/public/contact";
+        send("POST", url, null, Map.of("name", "A", "email", "x@y.tn", "profile", "AGENCE", "message", "Bonjour, nous sommes une agence.")).andExpect(status().isBadRequest());
+        send("POST", url, null, Map.of("name", "Agence Lumière", "email", "pas-un-mail", "profile", "AGENCE", "message", "Bonjour, nous sommes une agence.")).andExpect(status().isBadRequest());
+        send("POST", url, null, Map.of("name", "Agence Lumière", "email", "contact@lumiere.tn", "profile", "AGENCE", "message", "court")).andExpect(status().isBadRequest());
+        send("POST", url, null, Map.of("name", "Robot", "email", "r@spam.tn", "profile", "AUTRE", "message", "Achetez maintenant !!!", "website", "http://spam")).andExpect(status().isCreated());
+        send("POST", url, null, Map.of("name", "Agence Lumière", "email", "Contact@Lumiere.tn", "organisation", "Lumière Films",
+                "profile", "AGENCE", "message", "Bonjour, nous aimerions un accès pour trois agents.")).andExpect(status().isCreated());
+
+        String a = admin();
+        JsonNode list = read(send("GET", "/api/admin/contact-messages", a, null).andExpect(status().isOk()));
+        assertThat(list.get("items").size()).isEqualTo(1);           // le robot n'est pas enregistré
+        JsonNode m = list.get("items").get(0);
+        assertThat(m.get("email").asString()).isEqualTo("contact@lumiere.tn");
+        assertThat(list.get("unread").asInt()).isEqualTo(1);
+        send("POST", "/api/admin/contact-messages/" + m.get("id").asString() + "/read", a, null).andExpect(status().isNoContent());
+        send("GET", "/api/admin/contact-messages", a, null).andExpect(jsonPath("$.unread").value(0));
+
+        String g = agentOf("Agence Curieuse", "agent.curieux@test.local");
+        send("GET", "/api/admin/contact-messages", g, null).andExpect(status().isForbidden());
+        send("GET", "/api/admin/contact-messages", null, null).andExpect(status().isUnauthorized());
+
+        for (int i = 0; i < 4; i++) send("POST", url, null, Map.of("name", "Acteur " + i, "email", "a" + i + "@test.tn", "profile", "ACTEUR", "message", "Question sur mon profil numéro " + i));
+        send("POST", url, null, Map.of("name", "Acteur 9", "email", "a9@test.tn", "profile", "ACTEUR", "message", "Encore une question sur mon profil"))
+                .andExpect(status().isTooManyRequests());
+    }
 }

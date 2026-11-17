@@ -9,8 +9,9 @@ import { DateFieldComponent } from '../../shared/components/date-field/date-fiel
 import { AreaSparkComponent, ColumnSeries, HBar, HBarsComponent, StackedColumnsComponent, monthLabel } from '../../shared/components/charts/charts';
 import { EMAIL_RE } from '../../shared/forms/rules';
 import { frDate, todayIso } from '../../shared/forms/dates';
+import { ContactInboxComponent } from './contact-inbox';
 
-type Tab = 'tableau' | 'agences' | 'projets' | 'acteurs' | 'equipe' | 'import' | 'journal';
+type Tab = 'tableau' | 'agences' | 'projets' | 'acteurs' | 'equipe' | 'import' | 'journal' | 'messages';
 type RowFilter = 'tous' | 'OK' | 'ERREUR' | 'DOUBLON' | 'remarques';
 interface Kpi { label: string; value: number; sub: string; delta: Delta | null; ratio?: number; }
 
@@ -24,7 +25,7 @@ const STATUS_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, RouterLink, SelectFieldComponent, DateFieldComponent, StackedColumnsComponent, AreaSparkComponent, HBarsComponent],
+  imports: [FormsModule, RouterLink, SelectFieldComponent, DateFieldComponent, StackedColumnsComponent, AreaSparkComponent, HBarsComponent, ContactInboxComponent],
   templateUrl: './admin.html',
   styleUrl: './admin.scss'
 })
@@ -35,7 +36,7 @@ export class AdminComponent implements OnInit {
   readonly tabs: { id: Tab; label: string }[] = [
     { id: 'tableau', label: 'Tableau de bord' }, { id: 'agences', label: 'Agences' }, { id: 'projets', label: 'Projets' },
     { id: 'acteurs', label: 'Acteurs et freelancers' }, { id: 'equipe', label: 'Équipe et comptes' }, { id: 'import', label: "Import d'acteurs" },
-    { id: 'journal', label: 'Journal' }
+    { id: 'journal', label: 'Journal' }, { id: 'messages', label: 'Messages' }
   ];
 
   // ═════════ Journal d'audit (T-099) ═════════

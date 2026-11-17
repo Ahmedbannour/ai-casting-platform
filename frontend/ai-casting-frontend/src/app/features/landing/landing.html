@@ -1,24 +1,27 @@
 <div class="vitrine">
+  <a class="skip" href="#contenu" (click)="go('contenu', $event)">Aller au contenu</a>
   <header class="nav" [class.open]="menu()">
     <a class="logo" routerLink="/" aria-label="AI Casting, accueil"><span class="ring" aria-hidden="true"></span>AI Casting</a>
-    <nav aria-label="Sections">
-      <a href="#methode" (click)="go('methode', $event)">Comment ça marche</a>
-      <a href="#agences" (click)="go('agences', $event)">Agences</a>
-      <a href="#acteurs" (click)="go('acteurs', $event)">Acteurs</a>
-      <a href="#engagements" (click)="go('engagements', $event)">Vos données</a>
+    <nav id="menu-mobile" aria-label="Sections">
+      <a href="#methode" [class.on]="section() === 'methode'" (click)="go('methode', $event)">Comment ça marche</a>
+      <a href="#agences" [class.on]="section() === 'agences'" (click)="go('agences', $event)">Agences</a>
+      <a href="#acteurs" [class.on]="section() === 'acteurs'" (click)="go('acteurs', $event)">Acteurs</a>
+      <a href="#engagements" [class.on]="section() === 'engagements'" (click)="go('engagements', $event)">Vos données</a>
+      <a href="#contact" [class.on]="section() === 'contact'" (click)="go('contact', $event)">Contact</a>
     </nav>
     <div class="nav-cta">
       <a class="btn quiet" routerLink="/auth/login">Se connecter</a>
       <a class="btn solid" routerLink="/auth/inscription">Créer mon profil</a>
     </div>
-    <button type="button" class="burger" [attr.aria-expanded]="menu()" aria-label="Menu" (click)="menu.set(!menu())">
+    <button type="button" class="burger" [attr.aria-expanded]="menu()" aria-controls="menu-mobile" aria-label="Menu" (click)="menu.set(!menu())">
       <span></span><span></span></button>
   </header>
 
-  <!-- Planche contact interactive -->
-  <section class="hero">
+  <!-- Accueil : faisceau de projecteur (Three.js) sur la planche contact -->
+  <section class="hero" id="contenu">
+    <canvas #scene class="scene" aria-hidden="true"></canvas>
     <div class="hero-text">
-      <h1>Décrivez le rôle.<br>Nous préparons la planche.</h1>
+      <h1><span class="h1-line"><span>Décrivez le rôle.</span></span><span class="h1-line"><span>Nous préparons la planche.</span></span></h1>
       <p class="lead">AI Casting aide les agences de casting à trouver, comparer et proposer les bons acteurs en quelques minutes, et aide les acteurs à être trouvés pour les rôles qui leur ressemblent.</p>
       <div class="cta">
         <a class="btn solid big" routerLink="/auth/inscription">Créer mon profil d’acteur</a>
@@ -60,31 +63,28 @@
         <span class="ring" aria-hidden="true"></span>Profil {{ firstKeep() + 1 }} retenu : {{ briefs[active()].why }}</p>
       <figcaption>Démonstration. Chaque profil retenu vient avec la raison de son choix ; c’est toujours l’agence qui décide.</figcaption>
     </figure>
+    <a class="scroll-hint" href="#methode" (click)="go('methode', $event)" aria-label="Découvrir la méthode"><span></span></a>
   </section>
 
-  <!-- Méthode : trois étapes réelles -->
+  <!-- Bande de pellicule -->
+  <div class="strip" aria-hidden="true">
+    <div class="strip-track">
+      @for (k of [0, 1]; track k) { @for (w of strip; track w) { <span>{{ w }}</span><i></i> } }
+    </div>
+  </div>
+
   <section id="methode" class="block methode">
     <h2>De la description du rôle à la proposition, sans tableur.</h2>
     <ol class="steps">
-      <li>
-        <span class="n" aria-hidden="true">1</span>
-        <h3>Décrire</h3>
-        <p>Écrivez le rôle comme vous le diriez à un collègue : âge, ville, langues, physique, disponibilités. Pas de filtres à cocher.</p>
-      </li>
-      <li>
-        <span class="n" aria-hidden="true">2</span>
-        <h3>Comparer</h3>
-        <p>La plateforme propose des profils de votre fichier et du vivier, explique chaque choix et apprend de ceux que vous gardez ou écartez.</p>
-      </li>
-      <li>
-        <span class="n" aria-hidden="true">3</span>
-        <h3>Proposer</h3>
-        <p>Envoyez le rôle aux acteurs retenus, imprimez la planche ou partagez-la au réalisateur par un lien que vous pouvez retirer à tout moment.</p>
-      </li>
+      <li><span class="n" aria-hidden="true">1</span><h3>Décrire</h3>
+        <p>Écrivez le rôle comme vous le diriez à un collègue : âge, ville, langues, physique, disponibilités. Pas de filtres à cocher.</p></li>
+      <li><span class="n" aria-hidden="true">2</span><h3>Comparer</h3>
+        <p>La plateforme propose des profils de votre fichier et du vivier, explique chaque choix et apprend de ceux que vous gardez ou écartez.</p></li>
+      <li><span class="n" aria-hidden="true">3</span><h3>Proposer</h3>
+        <p>Envoyez le rôle aux acteurs retenus, imprimez la planche ou partagez-la au réalisateur par un lien que vous pouvez retirer à tout moment.</p></li>
     </ol>
   </section>
 
-  <!-- Deux publics -->
   <section class="block duo">
     <article id="agences" class="side">
       <h2>Pour les agences de casting</h2>
@@ -94,7 +94,10 @@
         <li><b>Travaillez en équipe.</b> Projets, rôles, présélections et historique partagés entre agents.</li>
         <li><b>Accédez au vivier.</b> Des acteurs inscrits d’eux-mêmes, avec leurs coordonnées sur demande.</li>
       </ul>
-      <a class="btn line" routerLink="/auth/login">Accéder à l’espace agence</a>
+      <div class="row">
+        <a class="btn solid" href="#contact" (click)="go('contact', $event)">Demander un accès</a>
+        <a class="btn line" routerLink="/auth/login">Espace agence</a>
+      </div>
       <p class="fine">Les comptes agence sont ouverts par contrat ; vos agents sont créés par votre administrateur.</p>
     </article>
     <article id="acteurs" class="side warm">
@@ -105,11 +108,10 @@
         <li><b>Vous gardez la main.</b> Mettez votre profil en pause d’un clic ; voyez quelle agence a consulté vos coordonnées.</li>
         <li><b>Gratuit.</b> Inscription en deux minutes, avec Google, Facebook ou votre e-mail.</li>
       </ul>
-      <a class="btn solid" routerLink="/auth/inscription">Créer mon profil</a>
+      <div class="row"><a class="btn solid" routerLink="/auth/inscription">Créer mon profil</a></div>
     </article>
   </section>
 
-  <!-- Engagements -->
   <section id="engagements" class="block promesses">
     <h2>Ce que nous faisons de vos données</h2>
     <div class="grid">
@@ -121,12 +123,80 @@
     <p class="fine"><a routerLink="/legal/confidentialite">Lire la politique de confidentialité</a></p>
   </section>
 
-  <!-- Dernier appel -->
+  <!-- Contact et carte -->
+  <section id="contact" class="block contact">
+    <h2>Parlons de votre prochain casting.</h2>
+    <div class="contact-grid">
+      <div class="contact-card">
+        @if (sent()) {
+          <div class="sent" role="status">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><path d="M104 18 C 52 16, 14 52, 16 104 C 18 156, 62 186, 108 184 C 156 182, 188 146, 186 98 C 184 52, 150 20, 96 24"/><path class="tick" d="M66 104 L 92 130 L 140 76"/></svg>
+            <h3>Message envoyé</h3>
+            <p>Merci {{ form.name.split(' ')[0] }}. Nous vous répondons à {{ form.email }}, en général sous deux jours ouvrés.</p>
+            <button type="button" class="btn line" (click)="again()">Écrire un autre message</button>
+          </div>
+        } @else {
+          <form (ngSubmit)="submit()" novalidate>
+            <div class="seg" role="radiogroup" aria-label="Vous êtes">
+              @for (p of [['AGENCE','Une agence'],['ACTEUR','Acteur ou actrice'],['AUTRE','Autre']]; track p[0]) {
+                <button type="button" role="radio" [attr.aria-checked]="profile() === p[0]" [class.on]="profile() === p[0]" (click)="profile.set($any(p[0]))">{{ p[1] }}</button>
+              }
+            </div>
+            <div class="two">
+              <div class="f"><label for="c-name">Nom</label>
+                <input id="c-name" name="name" [(ngModel)]="form.name" (ngModelChange)="clearErr('name')" autocomplete="name" maxlength="120"
+                       [attr.aria-invalid]="!!fieldErr('name')" [attr.aria-describedby]="fieldErr('name') ? 'e-name' : null" />
+                @if (fieldErr('name')) { <small id="e-name" class="err">{{ fieldErr('name') }}</small> }</div>
+              <div class="f"><label for="c-email">E-mail</label>
+                <input id="c-email" name="email" type="email" [(ngModel)]="form.email" (ngModelChange)="clearErr('email')" autocomplete="email" maxlength="160" placeholder="vous@exemple.tn"
+                       [attr.aria-invalid]="!!fieldErr('email')" [attr.aria-describedby]="fieldErr('email') ? 'e-email' : null" />
+                @if (fieldErr('email')) { <small id="e-email" class="err">{{ fieldErr('email') }}</small> }</div>
+            </div>
+            @if (profile() === 'AGENCE') {
+              <div class="f"><label for="c-org">Agence ou société <span class="opt">facultatif</span></label>
+                <input id="c-org" name="organisation" [(ngModel)]="form.organisation" autocomplete="organization" maxlength="160" /></div>
+            }
+            <div class="f"><label for="c-message">Message</label>
+              <textarea id="c-message" name="message" rows="4" [(ngModel)]="form.message" (ngModelChange)="clearErr('message')" maxlength="2000"
+                        [placeholder]="profile() === 'AGENCE' ? 'Combien d’agents, quels types de projets…' : 'Votre question…'"
+                        [attr.aria-invalid]="!!fieldErr('message')" [attr.aria-describedby]="fieldErr('message') ? 'e-message' : null"></textarea>
+              <small class="count">{{ form.message.length }} / 2000</small>
+              @if (fieldErr('message')) { <small id="e-message" class="err">{{ fieldErr('message') }}</small> }</div>
+            <input class="trap" name="website" [(ngModel)]="form.website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            @if (sendError()) { <p class="err big" role="alert">{{ sendError() }}</p> }
+            <div class="send">
+              <button type="submit" class="btn solid big" [disabled]="sending()">{{ sending() ? 'Envoi…' : 'Envoyer le message' }}</button>
+              <span class="fine">Votre message n’est lu que par notre équipe.</span>
+            </div>
+          </form>
+        }
+        <div class="direct">
+          @if (mail()) {
+            <a [href]="'mailto:' + mail()">{{ mail() }}</a>
+            <button type="button" class="mini" (click)="copyMail()">{{ copied() ? 'Copié' : 'Copier' }}</button>
+          } @else {
+            <button type="button" class="mini wide" (click)="showMail()">Afficher notre e-mail</button>
+          }
+        </div>
+      </div>
+
+      <div class="map-wrap">
+        <div #mapEl class="map" role="region" aria-label="Carte : {{ place.label }}"></div>
+        @if (mapState() === 'error') {
+          <div class="map-fallback"><span class="ring" aria-hidden="true"></span><b>{{ place.label }}</b><span>La carte ne peut pas s’afficher ici.</span></div>
+        }
+        <div class="map-card"><span class="ring" aria-hidden="true"></span><div><b>{{ place.label }}</b><span>{{ place.note }}</span></div></div>
+      </div>
+    </div>
+  </section>
+
   <section class="final">
-    <p class="big-line">Le bon visage pour le bon rôle.</p>
+    <p class="big-line">
+      @for (w of finalWords; track $index) { <span class="wm"><span class="w">{{ w }}</span></span>  }
+    </p>
     <div class="cta">
       <a class="btn dark big" routerLink="/auth/inscription">Créer mon profil d’acteur</a>
-      <a class="btn dark-line big" routerLink="/auth/login">Se connecter</a>
+      <a class="btn dark-line big" href="#contact" (click)="go('contact', $event)">Nous contacter</a>
     </div>
   </section>
 
@@ -135,7 +205,8 @@
     <nav aria-label="Informations légales">
       <a routerLink="/legal/conditions">Conditions d’utilisation</a>
       <a routerLink="/legal/confidentialite">Confidentialité</a>
+      <a href="#contact" (click)="go('contact', $event)">Contact</a>
     </nav>
-    <p>© {{ year }} AI Casting</p>
+    <p>© {{ year }} AI Casting · {{ place.label }}</p>
   </footer>
 </div>
