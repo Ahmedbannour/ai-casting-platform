@@ -57,6 +57,9 @@ public class TeamService {
         User u = userRepository.findByEmail(memberEmail.trim().toLowerCase())
                 .or(() -> userRepository.findByEmail(memberEmail.trim()))
                 .orElseThrow(() -> new ResourceNotFoundException("Aucun compte n'utilise cette adresse e-mail"));
+        if (u.getRole() == com.castingai.entity.Role.ACTEUR) {
+            throw new IllegalArgumentException("Ce compte est un compte acteur : seuls les agents de l'agence peuvent rejoindre un projet");
+        }
         if (u.getId().equals(p.getOwner().getId()) || memberRepository.existsByProjectIdAndUserId(projectId, u.getId())) {
             throw new ConflictException("Cette personne fait déjà partie de l'équipe");
         }

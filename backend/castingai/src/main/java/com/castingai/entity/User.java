@@ -46,6 +46,20 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private boolean enabled;
 
+    /** Agence cliente de l'agent (null : administrateur de la plateforme, ou acteur). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agency_id")
+    private Agency agency;
+
+    /** LOCAL, GOOGLE ou FACEBOOK. */
+    @Builder.Default
+    @Column(name = "auth_provider", nullable = false, length = 20)
+    private String authProvider = "LOCAL";
+
+    /** Identifiant du compte chez le fournisseur (Google « sub », Facebook « id »). */
+    @Column(name = "provider_id", length = 160)
+    private String providerId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -55,6 +69,7 @@ public class User implements UserDetails {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (authProvider == null) authProvider = "LOCAL";
         updatedAt = LocalDateTime.now();
     }
 

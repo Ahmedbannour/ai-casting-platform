@@ -1,7 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { NavStateService } from '../nav-state.service';
+import { MeService } from '../../core/services/me.service';
+import { AuthService } from '../../core/services/auth.service';
 
 /** Mise en page : menu latéral (tiroir sur mobile) + contenu animé + barre d'onglets en bas sur mobile. */
 @Component({
@@ -18,7 +20,7 @@ import { NavStateService } from '../nav-state.service';
     @media (max-width: 860px) {
       .content { padding-bottom: 76px; }
       .tabbar {
-        position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 20; display: grid; grid-template-columns: repeat(4, 1fr);
+        position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 20; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); grid-auto-flow: column;
         height: 62px; padding: 6px; border-radius: 20px; border: 1px solid var(--border);
         background: var(--glass-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
         box-shadow: 0 16px 40px rgba(0,0,0,.35);
@@ -42,6 +44,16 @@ import { NavStateService } from '../nav-state.service';
 
     <!-- Barre d'onglets (mobile uniquement) -->
     <nav class="tabbar" aria-label="Navigation">
+      @if (role() === 'ACTEUR') {
+      <a class="tab" routerLink="/mon-profil" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        Profil
+      </a>
+      <a class="tab" routerLink="/mon-profil/photos" routerLinkActive="active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 8"/></svg>
+        Photos
+      </a>
+      } @else {
       <a class="tab" routerLink="/chat" routerLinkActive="active">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         Recherche
@@ -54,6 +66,7 @@ import { NavStateService } from '../nav-state.service';
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1.5"/><rect width="7" height="5" x="14" y="3" rx="1.5"/><rect width="7" height="9" x="14" y="12" rx="1.5"/><rect width="7" height="5" x="3" y="16" rx="1.5"/></svg>
         Acteurs
       </a>
+      }
       <button type="button" class="tab" (click)="nav.openDrawer()" aria-label="Ouvrir le menu et l'historique">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
         Menu
@@ -63,4 +76,7 @@ import { NavStateService } from '../nav-state.service';
 })
 export class MainLayoutComponent {
   readonly nav = inject(NavStateService);
+  private readonly me = inject(MeService);
+  private readonly auth = inject(AuthService);
+  readonly role = computed(() => this.me.me()?.role ?? this.auth.role());
 }

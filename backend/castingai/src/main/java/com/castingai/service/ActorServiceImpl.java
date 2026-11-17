@@ -30,8 +30,15 @@ public class ActorServiceImpl implements ActorService {
     @Override
     @Transactional
     public ActorResponse create(ActorCreateRequest request, String createdByEmail) {
+        return create(request, createdByEmail, "AGENCE");
+    }
+
+    @Override
+    @Transactional
+    public ActorResponse create(ActorCreateRequest request, String createdByEmail, String source) {
 
         Actor actor = actorMapper.toEntity(request);
+        actor.setSource(source);
 
         User user = userRepository.findByEmail(createdByEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));

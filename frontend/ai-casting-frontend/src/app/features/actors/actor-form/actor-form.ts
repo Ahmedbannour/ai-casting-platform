@@ -4,6 +4,7 @@ import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActorService } from '../../../core/services/actor.service';
+import { MeService } from '../../../core/services/me.service';
 import { DateFieldComponent } from '../../../shared/components/date-field/date-field';
 import { SelectFieldComponent, SelectOption } from '../../../shared/components/select-field/select-field';
 import { ageAt, frDate, todayIso } from '../../../shared/forms/dates';
@@ -26,6 +27,11 @@ export class ActorFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly meService = inject(MeService);
+
+  /** Espace personnel de l'acteur freelance (« Mon profil ») : sa propre fiche, via /api/me. */
+  readonly self = !!this.route.snapshot.data['self'];
+  readonly saved = signal(false);
 
   form!: FormGroup;
   readonly isEdit = signal(false);
@@ -92,7 +98,10 @@ export class ActorFormComponent implements OnInit {
   ngOnInit(): void {
     this.buildForm();
     const id = this.route.snapshot.paramMap.get('id');
-    if (id && id !== 'new') {
+    if (this.self) {
+      this.isEdit.set(true);
+      this.loadActor('');
+    } else if (id && id !== 'new') {
       this.isEdit.set(true);
       this.actorId.set(id);
       this.loadActor(id);
@@ -192,7 +201,12 @@ export class ActorFormComponent implements OnInit {
 
   private loadActor(id: string): void {
     this.loaded.set(false);
-    this.actorService.findById(id).subscribe({
+    this.form.markAsPristine();
+    while (this.skills.length) this.skills.removeAt(0);
+    while (this.languages.length) this.languages.removeAt(0);
+    while (this.experiences.length) this.experiences.removeAt(0);
+    while (this.availabilities.length) this.availabilities.removeAt(0);
+    (this.self ? this.meService.actor() : this.actorService.findById(id)).subscribe({
       next: actor => {
         const { skills, languages, experiences, availabilities, ...rest } = actor as any;
         this.form.patchValue({ ...rest, birthDate: rest.birthDate ?? '' });
@@ -321,9 +335,21 @@ export class ActorFormComponent implements OnInit {
       experiences: v.experiences.map((e: any) => ({ ...e, title: trim(e.title), year: e.year === '' ? null : e.year })),
       availabilities: v.availabilities.map((a: any) => ({ ...a, note: trim(a.note) || null }))
     };
-    const req$ = this.isEdit() ? this.actorService.update(this.actorId()!, body) : this.actorService.create(body);
+    const req$ = this.self ? this.meService.updateActor(body)
+      : this.isEdit() ? this.actorService.update(this.actorId()!, body) : this.actorService.create(body);
     req$.subscribe({
-      next: (a: any) => this.router.navigate(['/actors', a?.id ?? this.actorId()]),
+      next: (a: any) => {
+        if (this.self) {
+          // Le freelance reste sur son profil : confirmation discrète.
+          this.loading.set(false);
+          this.submitted.set(false);
+          this.form.markAsPristine();
+          this.saved.set(true);
+          setTimeout(() => this.saved.set(false), 3500);
+          return;
+        }
+        this.router.navigate(['/actors', a?.id ?? this.actorId()]);
+      },
       error: (e: HttpErrorResponse) => {
         this.loading.set(false);
         const errs = e.error?.errors as Record<string, string> | undefined;
@@ -333,6 +359,7 @@ export class ActorFormComponent implements OnInit {
   }
 
   cancel(): void {
+    if (this.self) { this.error.set(''); this.submitted.set(false); this.loadActor(''); return; }   // annule les modifications
     this.router.navigate(this.isEdit() ? ['/actors', this.actorId()] : ['/dashboard']);
   }
 }

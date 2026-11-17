@@ -68,6 +68,16 @@ public class Actor {
     @JoinColumn(name = "created_by")
     private User createdBy;
 
+    /** Compte du freelance qui tient cette fiche à jour (null : fiche gérée par l'agence). */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true)
+    private User account;
+
+    /** AGENCE, INSCRIPTION ou IMPORT. */
+    @Builder.Default
+    @Column(name = "source", nullable = false, length = 20)
+    private String source = "AGENCE";
+
     @org.hibernate.annotations.BatchSize(size = 50)
     @OneToMany(mappedBy = "actor", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -96,6 +106,7 @@ public class Actor {
 
     @PrePersist
     protected void onCreate() {
+        if (source == null) source = "AGENCE";
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }

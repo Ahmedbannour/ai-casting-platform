@@ -164,3 +164,14 @@
   :host(.drawer) .drawer-backdrop { opacity: 1; pointer-events: auto; }
 }
 @media (prefers-reduced-motion: reduce) { .sidebar, .glider, .knob, .nav-link, .new-search { transition: none; } }
+
+/* ── Compte connecté ── */
+.who { display: flex; align-items: center; gap: 10px; padding: 6px 8px; margin-bottom: 4px; min-width: 0; }
+.who-avatar { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--accent-dim); color: var(--text-primary); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.who-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25;
+  b { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  small { font-size: 11.5px; color: var(--text-subtle); } }
+.collapsed .who { justify-content: center; padding: 6px 0; }
+.collapsed .who-text { display: none; }
+.actor-note .empty-history { line-height: 1.55; }

@@ -45,9 +45,20 @@ class TeamApiTest {
 
     private String admin() throws Exception { return token("ahmed@casting.com", "password123"); }
 
+    /** Agence cliente commune aux agents créés par ce test. */
+    private String agencyId() throws Exception {
+        String a = admin();
+        mvc.perform(post("/api/admin/agencies").header("Authorization", a).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Agence de test\",\"contractStart\":\"2026-01-01\"}"));
+        JsonNode list = json.readTree(mvc.perform(get("/api/admin/agencies").header("Authorization", a))
+                .andReturn().getResponse().getContentAsString());
+        for (JsonNode x : list) if (x.get("name").asText().equals("Agence de test")) return x.get("id").asText();
+        throw new IllegalStateException("Agence de test introuvable");
+    }
+
     private String user(String email) throws Exception {
-        mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"" + email + "\",\"password\":\"motdepasse123\",\"firstName\":\"Yanis\",\"lastName\":\"Equipe\"}"));
+        mvc.perform(post("/api/admin/agents").header("Authorization", admin()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"agencyId\":\"" + agencyId() + "\",\"email\":\"" + email + "\",\"password\":\"motdepasse123\",\"firstName\":\"Yanis\",\"lastName\":\"Equipe\"}"));
         return token(email, "motdepasse123");
     }
 

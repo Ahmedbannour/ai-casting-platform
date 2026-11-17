@@ -44,6 +44,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
+    @ExceptionHandler(org.springframework.security.authentication.DisabledException.class)
+    public ResponseEntity<Map<String, Object>> handleDisabled(Exception ex) {
+        return buildError(HttpStatus.FORBIDDEN, "Ce compte est désactivé. Contactez l'administrateur de l'agence.");
+    }
+
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> handleBadCredentials(Exception ex) {
+        return buildError(HttpStatus.UNAUTHORIZED, "E-mail ou mot de passe incorrect");
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(Exception ex) {
+        return buildError(HttpStatus.FORBIDDEN, "Accès refusé");
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleBadRequest(IllegalArgumentException ex) {
         return buildError(HttpStatus.BAD_REQUEST, ex.getMessage());

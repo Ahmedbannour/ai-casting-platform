@@ -15,6 +15,24 @@ import java.util.UUID;
 @Repository
 public interface ActorRepository extends JpaRepository<Actor, UUID> {
 
+    /** Fiche tenue par un compte freelance. */
+    Optional<Actor> findByAccount_Id(UUID userId);
+
+    /** Nombre de fiches par origine (AGENCE, INSCRIPTION, IMPORT). */
+    @Query("select a.source, count(a) from Actor a group by a.source")
+    List<Object[]> countBySource();
+
+    /** Fiche saisie par l'agence, sans compte, avec cette adresse e-mail. */
+    Optional<Actor> findFirstByAccountIsNullAndEmailIgnoreCase(String email);
+
+    /** Doublons à l'import : même e-mail. */
+    @Query("select lower(a.email) from Actor a where a.email is not null and lower(a.email) in :emails")
+    List<String> findExistingEmails(@Param("emails") java.util.Collection<String> emails);
+
+    /** Doublons à l'import : même prénom, nom et date de naissance. */
+    @Query("select count(a) > 0 from Actor a where lower(a.firstName) = lower(:first) and lower(a.lastName) = lower(:last) and a.birthDate = :birth")
+    boolean existsSamePerson(@Param("first") String first, @Param("last") String last, @Param("birth") java.time.LocalDate birth);
+
     @Query("SELECT a FROM Actor a WHERE " +
             "(:search IS NULL OR " +
             "LOWER(CAST(a.firstName AS string)) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR " +

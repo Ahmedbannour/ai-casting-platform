@@ -3,7 +3,7 @@
 <aside class="sidebar" [class.collapsed]="collapsedView()" [class.open]="nav.drawerOpen()" aria-label="Menu principal">
 
   <div class="top">
-    <a class="logo" routerLink="/chat" (click)="nav.closeDrawer()" aria-label="AI Casting, accueil">
+    <a class="logo" [routerLink]="isActor() ? '/mon-profil' : '/chat'" (click)="nav.closeDrawer()" aria-label="AI Casting, accueil">
       <span class="brand-mark" aria-hidden="true"></span>
       <span class="logo-text">AI Casting</span>
     </a>
@@ -17,17 +17,19 @@
     </button>
   </div>
 
+  @if (!isActor()) {
   <button type="button" class="new-search" (click)="newChat()" title="Nouvelle recherche (Alt+N)">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
     <span class="label">Nouvelle recherche</span>
   </button>
+  }
 
   <!-- Navigation principale, avec repère glissant -->
   <nav class="nav" #navEl aria-label="Navigation principale">
     <span class="glider" aria-hidden="true" [style.transform]="'translateY(' + gliderY() + 'px)'"
           [style.height.px]="gliderH()" [class.ready]="gliderH() > 0"></span>
-    @for (item of items; track item.path) {
-      <a [routerLink]="item.path" routerLinkActive="active" (isActiveChange)="$event && queueGlider()" class="nav-link" (click)="nav.closeDrawer()"
+    @for (item of items(); track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.path === '/mon-profil' }" (isActiveChange)="$event && queueGlider()" class="nav-link" (click)="nav.closeDrawer()"
          [attr.data-tip]="item.label" [title]="collapsedView() ? item.label + ' (' + item.key + ')' : ''">
         <span class="ico" [innerHTML]="item.icon"></span>
         <span class="label">{{ item.label }}</span>
@@ -37,7 +39,14 @@
     }
   </nav>
 
-  <!-- Historique des recherches, groupé par jour -->
+  <!-- Historique des recherches, groupé par jour (agence uniquement) -->
+  @if (isActor()) {
+    <section class="history actor-note" aria-label="Votre espace">
+      <h2 class="history-title">Votre espace</h2>
+      <p class="empty-history">Tenez votre fiche, vos photos et vos disponibilités à jour : les agents de casting voient
+        directement ce que vous renseignez ici.</p>
+    </section>
+  } @else {
   <section class="history" aria-label="Historique des recherches">
     <h2 class="history-title">Historique</h2>
     @if (loadingHistory() && !groups().length) {
@@ -64,9 +73,16 @@
       <p class="empty-history">Vos recherches apparaîtront ici.</p>
     }
   </section>
+  }
 
-  <!-- Bas du menu : thème et déconnexion -->
+  <!-- Bas du menu : compte connecté, thème et déconnexion -->
   <div class="bottom">
+    @if (meService.me(); as m) {
+      <div class="who" [title]="m.email">
+        <span class="who-avatar" aria-hidden="true">{{ (m.firstName || '?')[0] }}{{ (m.lastName || '')[0] }}</span>
+        <span class="label who-text"><b>{{ m.firstName }} {{ m.lastName }}</b><small>{{ roleLabel() }}</small></span>
+      </div>
+    }
     <button type="button" class="theme-switch" role="switch" [attr.aria-checked]="themeService.theme() === 'light'"
             (click)="themeService.toggle()" [title]="themeService.theme() === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'">
       <span class="track" aria-hidden="true">

@@ -43,20 +43,20 @@ export class AuthService {
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request).pipe(
-      tap(response => this.tokenService.setTokens(response.accessToken, response.refreshToken))
+      tap(response => this.tokenService.setTokens(response.accessToken, response.refreshToken, response.role))
     );
   }
 
   register(request: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, request).pipe(
-      tap(response => this.tokenService.setTokens(response.accessToken, response.refreshToken))
+      tap(response => this.tokenService.setTokens(response.accessToken, response.refreshToken, response.role))
     );
   }
 
   refresh(): Observable<AuthResponse> {
     const refreshToken = this.tokenService.getRefreshToken();
     return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, { refreshToken }).pipe(
-      tap(response => this.tokenService.setTokens(response.accessToken, response.refreshToken))
+      tap(response => this.tokenService.setTokens(response.accessToken, response.refreshToken, response.role))
     );
   }
 
@@ -68,5 +68,23 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return this.tokenService.hasTokens();
+  }
+
+  role(): string | null { return this.tokenService.getRole(); }
+
+  /** Page d'accueil selon le rôle : l'acteur freelance arrive sur son profil, l'agence sur la recherche. */
+  homeFor(role: string | null = this.role()): string {
+    return role === 'ACTEUR' ? '/mon-profil' : '/chat';
+  }
+
+  /** Fournisseurs de connexion configurés côté serveur (identifiants publics). */
+  providers(): Observable<{ google: string | null; facebook: string | null }> {
+    return this.http.get<{ google: string | null; facebook: string | null }>(`${this.apiUrl}/providers`);
+  }
+
+  loginWith(provider: 'google' | 'facebook', token: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/${provider}`, { token }).pipe(
+      tap(response => this.tokenService.setTokens(response.accessToken, response.refreshToken, response.role))
+    );
   }
 }

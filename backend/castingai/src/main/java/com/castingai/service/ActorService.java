@@ -16,6 +16,9 @@ public interface ActorService {
 
     ActorResponse create(ActorCreateRequest request, String createdByEmail);
 
+    /** Création avec l'origine de la fiche : AGENCE, INSCRIPTION ou IMPORT. */
+    ActorResponse create(ActorCreateRequest request, String createdByEmail, String source);
+
     ActorResponse findById(UUID id);
 
     Page<ActorSummaryResponse> findAll(String search, Pageable pageable);

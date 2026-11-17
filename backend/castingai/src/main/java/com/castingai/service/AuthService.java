@@ -17,4 +17,7 @@ public interface AuthService {
     AuthResponse refresh(RefreshTokenRequest request);
 
     void logout(String email);
+
+    /** Ouvre une session (jetons d'accès et de rafraîchissement) pour un compte déjà vérifié. */
+    AuthResponse buildAuthResponse(com.castingai.entity.User user);
 }

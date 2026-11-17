@@ -44,8 +44,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/health").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/health",
+                                "/api/auth/providers", "/api/auth/google", "/api/auth/facebook").permitAll()
                         .requestMatchers("/error").permitAll()
+                        // Administration : comptes des agents, import de fichiers
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // Espace personnel : tout compte connecté (l'acteur freelance n'a accès qu'à ceci)
+                        .requestMatchers("/api/me/**", "/api/auth/logout").authenticated()
+                        // Tout le reste (acteurs, projets, recherche IA…) : agence uniquement
+                        .requestMatchers("/api/**").hasAnyRole("ADMIN", "AGENT")
                         .anyRequest().authenticated()
                 )
                 // Réponses JSON claires : 401 sans jeton valide, 403 sans droit
@@ -74,6 +81,14 @@ public class SecurityConfig {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
+        // Mot de passe vérifié AVANT l'état du compte : sans le bon mot de passe,
+        // on ne révèle pas qu'un compte existe et qu'il est désactivé.
+        provider.setPreAuthenticationChecks(user -> {});
+        provider.setPostAuthenticationChecks(user -> {
+            if (!user.isEnabled()) {
+                throw new org.springframework.security.authentication.DisabledException("Compte désactivé");
+            }
+        });
         return provider;
     }
 

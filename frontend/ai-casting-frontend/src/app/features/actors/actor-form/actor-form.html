@@ -1,12 +1,20 @@
 <div class="page">
+  @if (!self) {
   <button type="button" class="back" (click)="cancel()">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
     {{ isEdit() ? 'Fiche acteur' : 'Acteurs' }}
   </button>
+  }
 
   <header class="head">
-    <h1>{{ isEdit() ? 'Modifier le dossier' : 'Nouvel acteur' }}</h1>
-    <p>Seuls le prénom et le nom sont obligatoires. Plus le dossier est complet, mieux la recherche le classe.</p>
+    @if (self) {
+      <h1>Mon profil</h1>
+      <p>Les agents de casting voient cette fiche telle que vous la remplissez. Vos disponibilités sont comparées
+        aux dates de tournage : gardez-les à jour pour être proposé au bon moment.</p>
+    } @else {
+      <h1>{{ isEdit() ? 'Modifier le dossier' : 'Nouvel acteur' }}</h1>
+      <p>Seuls le prénom et le nom sont obligatoires. Plus le dossier est complet, mieux la recherche le classe.</p>
+    }
   </header>
 
   @if (!loaded()) {
@@ -229,9 +237,10 @@
         <div class="bar-msg" role="status">
           @if (error()) { <span class="field-msg">{{ error() }}</span> }
           @else if (submitted() && totalErrors()) { <span class="field-msg">{{ totalErrors() }} champ{{ totalErrors() > 1 ? 's' : '' }} à corriger avant d'enregistrer.</span> }
+          @else if (saved()) { <span class="saved-msg">Profil enregistré.</span> }
           @else if (form.dirty) { <span class="field-hint">Modifications non enregistrées</span> }
         </div>
-        <button type="button" class="btn-ghost" (click)="cancel()">Annuler</button>
+        <button type="button" class="btn-ghost" (click)="cancel()" [disabled]="self && !form.dirty">{{ self ? 'Annuler les modifications' : 'Annuler' }}</button>
         <button type="submit" class="btn-primary" [disabled]="loading()">
           {{ loading() ? 'Enregistrement…' : (isEdit() ? 'Enregistrer' : "Créer l'acteur") }}
         </button>

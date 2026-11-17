@@ -127,6 +127,13 @@
             <version>0.4.20</version>
         </dependency>
 
+        <!-- Lecture des fichiers Excel (.xlsx) pour l'import d'acteurs -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.4.1</version>
+        </dependency>
+
         <!-- ===== Ajouts Cellule IA (J1 - 15/11/2026) ===== -->
 
         <!-- Spring AI : client Ollama (chat + embeddings), version gérée par spring-ai-bom -->

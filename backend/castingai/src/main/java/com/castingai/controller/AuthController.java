@@ -22,6 +22,25 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final com.castingai.service.SocialAuthService socialAuth;
+
+    public record TokenRequest(@jakarta.validation.constraints.NotBlank(message = "Jeton manquant") String token) {}
+
+    /** Fournisseurs de connexion configurés (identifiants publics uniquement). */
+    @GetMapping("/providers")
+    public com.castingai.service.SocialAuthService.Providers providers() {
+        return socialAuth.providers();
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> google(@Valid @RequestBody TokenRequest req) {
+        return ResponseEntity.ok(socialAuth.google(req.token()));
+    }
+
+    @PostMapping("/facebook")
+    public ResponseEntity<AuthResponse> facebook(@Valid @RequestBody TokenRequest req) {
+        return ResponseEntity.ok(socialAuth.facebook(req.token()));
+    }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {

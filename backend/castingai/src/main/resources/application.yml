@@ -72,6 +72,12 @@ spring:
 #   Niveau 2 · Standard (processeur récent)    : AI_MODEL=llama3.2    AI_EXPLAIN_COUNT=3 AI_MAX_TOKENS=300
 #   Niveau 3 · GPU      (carte NVIDIA >= 4 Go) : AI_MODEL=llama3.2    AI_EXPLAIN_COUNT=5 AI_MAX_TOKENS=450  (défaut)
 casting:
+  # Connexion avec Google / Facebook : identifiants à créer (gratuitement) par l'agence.
+  # Laissés vides, les boutons n'apparaissent pas. Le secret Facebook ne quitte jamais le serveur.
+  oauth:
+    google-client-id: ${GOOGLE_CLIENT_ID:}
+    facebook-app-id: ${FACEBOOK_APP_ID:}
+    facebook-app-secret: ${FACEBOOK_APP_SECRET:}
   ai:
     model: ${AI_MODEL:${OLLAMA_CHAT_MODEL:llama3.2}}
     explain-count: ${AI_EXPLAIN_COUNT:5}

@@ -35,24 +35,27 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final JwtConfig jwtConfig;
+    private final ActorAccountService actorAccounts;
 
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new AuthException("Email already in use");
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmail(email)) {
+            throw new com.castingai.exception.ConflictException("Un compte existe déjà avec cette adresse e-mail");
         }
 
+        // Inscription publique = acteur freelance : son compte et sa fiche sont créés ensemble.
         User user = User.builder()
-                .email(request.getEmail())
+                .email(email)
                 .password(passwordEncoder.encode(request.getPassword()))
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .role(Role.USER)
+                .firstName(request.getFirstName().trim())
+                .lastName(request.getLastName().trim())
+                .role(Role.ACTEUR)
                 .enabled(true)
                 .build();
-
         userRepository.save(user);
+        actorAccounts.createFicheFor(user, "INSCRIPTION");
 
         return buildAuthResponse(user);
     }
@@ -97,7 +100,8 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Builds auth response with new access and refresh tokens.
      */
-    private AuthResponse buildAuthResponse(User user) {
+    @Override
+    public AuthResponse buildAuthResponse(User user) {
         String accessToken = jwtTokenProvider.generateAccessToken(user);
         String rawRefreshToken = UUID.randomUUID().toString();
 

@@ -1,15 +1,23 @@
 <div class="page">
-  <a [routerLink]="['/actors', actorId()]" class="back">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
-    {{ actorName() || 'Fiche acteur' }}
-  </a>
+  @if (self) {
+    <a routerLink="/mon-profil" class="back">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+      Mon profil
+    </a>
+  } @else {
+    <a [routerLink]="['/actors', actorId()]" class="back">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+      {{ actorName() || 'Fiche acteur' }}
+    </a>
+  }
 
   <header class="head">
-    <h1>Photos</h1>
-    <p>La photo principale illustre la fiche, les cartes de recherche et la planche contact.</p>
+    <h1>{{ self ? 'Mes photos' : 'Photos' }}</h1>
+    <p>{{ self ? 'Votre photo principale est la première que voient les agents : un portrait net, de face, lumière douce.'
+               : 'La photo principale illustre la fiche, les cartes de recherche et la planche contact.' }}</p>
   </header>
 
-  <app-photo-upload [actorId]="actorId()" (uploaded)="onUploaded($event)" />
+  <app-photo-upload [actorId]="actorId()" [self]="self" (uploaded)="onUploaded($event)" />
   @if (error()) { <small class="field-msg" role="alert">{{ error() }}</small> }
 
   <section>

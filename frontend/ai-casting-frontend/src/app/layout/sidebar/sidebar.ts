@@ -9,6 +9,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { ProjectService } from '../../core/services/project.service';
 import { NavStateService } from '../nav-state.service';
+import { MeService } from '../../core/services/me.service';
 
 /** Une recherche de l'historique, dédoublonnée (même texte = une seule ligne). */
 interface HistoryEntry { id: string; query: string; resultsCount: number; when: string; times: number; }
@@ -18,6 +19,9 @@ interface NavItem { path: string; label: string; key: string; icon: SafeHtml; }
 const ICONS = {
   search: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
   projects: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-8l-2-3H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1z"/></svg>',
+  profile: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+  photos: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 8"/></svg>',
+  admin: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>',
   actors: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1.5"/><rect width="7" height="5" x="14" y="3" rx="1.5"/><rect width="7" height="9" x="14" y="12" rx="1.5"/><rect width="7" height="5" x="3" y="16" rx="1.5"/></svg>'
 };
 
@@ -43,11 +47,31 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 
   @ViewChild('navEl') navEl?: ElementRef<HTMLElement>;
 
-  readonly items: NavItem[] = [
-    { path: '/chat', label: 'Recherche IA', key: 'Alt+1', icon: this.sanitizer.bypassSecurityTrustHtml(ICONS.search) },
-    { path: '/projects', label: 'Projets', key: 'Alt+2', icon: this.sanitizer.bypassSecurityTrustHtml(ICONS.projects) },
-    { path: '/dashboard', label: 'Acteurs', key: 'Alt+3', icon: this.sanitizer.bypassSecurityTrustHtml(ICONS.actors) }
-  ];
+  readonly meService = inject(MeService);
+  /** Rôle connu tout de suite (mémorisé à la connexion), confirmé par /api/me. */
+  readonly role = computed(() => this.meService.me()?.role ?? this.authService.role());
+  readonly isActor = computed(() => this.role() === 'ACTEUR');
+
+  private icon(k: keyof typeof ICONS): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(ICONS[k]); }
+
+  /** Menu selon le rôle : l'acteur freelance ne voit que son espace ; l'administrateur a en plus l'administration. */
+  readonly items = computed<NavItem[]>(() => {
+    if (this.isActor()) {
+      return [
+        { path: '/mon-profil', label: 'Mon profil', key: 'Alt+1', icon: this.icon('profile') },
+        { path: '/mon-profil/photos', label: 'Mes photos', key: 'Alt+2', icon: this.icon('photos') }
+      ];
+    }
+    const items: NavItem[] = [
+      { path: '/chat', label: 'Recherche IA', key: 'Alt+1', icon: this.icon('search') },
+      { path: '/projects', label: 'Projets', key: 'Alt+2', icon: this.icon('projects') },
+      { path: '/dashboard', label: 'Acteurs', key: 'Alt+3', icon: this.icon('actors') }
+    ];
+    if (this.role() === 'ADMIN') items.push({ path: '/admin', label: 'Administration', key: 'Alt+4', icon: this.icon('admin') });
+    return items;
+  });
+
+  readonly roleLabel = computed(() => ({ ADMIN: 'Administrateur', AGENT: 'Agent de casting', ACTEUR: 'Acteur' } as Record<string, string>)[this.role() ?? ''] ?? '');
 
   private readonly history = signal<HistoryItem[]>([]);
   readonly loadingHistory = signal(true);
@@ -83,13 +107,16 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   });
 
   ngOnInit(): void {
-    this.loadHistory();
-    this.loadCounts();
+    this.meService.load().subscribe({ next: () => { this.queueGlider(); if (!this.isActor()) { this.loadHistory(); this.loadCounts(); } }, error: () => {} });
+    if (!this.isActor()) {
+      this.loadHistory();
+      this.loadCounts();
+    }
     this.aiService.historyChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.loadHistory());
     this.syncCurrent();
     this.router.events.pipe(filter(e => e instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.syncCurrent();
-      this.loadCounts();
+      if (!this.isActor()) this.loadCounts();
       this.queueGlider();
     });
   }
@@ -115,9 +142,9 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   onKey(e: KeyboardEvent): void {
     if (!e.altKey || e.ctrlKey || e.metaKey) return;
     const k = e.key.toLowerCase();
-    const target = k === '1' ? '/chat' : k === '2' ? '/projects' : k === '3' ? '/dashboard' : null;
+    const target = /^[1-4]$/.test(k) ? this.items()[+k - 1]?.path ?? null : null;
     if (target) { e.preventDefault(); this.router.navigate([target]); }
-    else if (k === 'n') { e.preventDefault(); this.newChat(); }
+    else if (k === 'n' && !this.isActor()) { e.preventDefault(); this.newChat(); }
   }
 
   count(path: string): number | null {

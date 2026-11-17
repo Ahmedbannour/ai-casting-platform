@@ -211,3 +211,7 @@ input:disabled, select:disabled, textarea:disabled { opacity: .55; cursor: not-a
    pour ne pas la recouvrir (la zone de contenu forme une couche séparée, à cause des transitions de page). */
 app-main-layout .tabbar { transition: transform .28s cubic-bezier(.2,.8,.2,1), opacity .2s; }
 body:has([aria-modal="true"]) app-main-layout .tabbar { transform: translateY(calc(100% + 24px)); opacity: 0; pointer-events: none; }
+
+/* ── Graphiques : palette catégorielle validée (contraste et daltonisme), une teinte par entité ── */
+:root { --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --chart-grid: rgba(255,255,255,.07); }
+:root.light { --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --chart-grid: rgba(20,24,32,.08); }

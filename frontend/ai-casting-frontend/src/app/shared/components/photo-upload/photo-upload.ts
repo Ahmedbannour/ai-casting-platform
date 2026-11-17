@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PhotoService, PhotoResponse } from '../../../core/services/photo.service';
+import { MeService } from '../../../core/services/me.service';
 
 const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE = 10 * 1024 * 1024;
@@ -48,6 +49,8 @@ const MAX_BATCH = 50 * 1024 * 1024;
 })
 export class PhotoUploadComponent {
   @Input() actorId!: string;
+  /** Espace « Mes photos » de l'acteur freelance : envoi sur sa propre fiche. */
+  @Input() self = false;
   @Output() uploaded = new EventEmitter<PhotoResponse[]>();
 
   readonly uploading = signal(false);
@@ -57,7 +60,7 @@ export class PhotoUploadComponent {
   readonly done = signal('');
   readonly pending = signal(0);
 
-  constructor(private photoService: PhotoService) {}
+  constructor(private photoService: PhotoService, private meService: MeService) {}
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -92,7 +95,7 @@ export class PhotoUploadComponent {
 
     this.uploading.set(true);
     this.pending.set(ok.length);
-    this.photoService.upload(this.actorId, ok).subscribe({
+    (this.self ? this.meService.upload(ok) : this.photoService.upload(this.actorId, ok)).subscribe({
       next: res => {
         this.uploading.set(false);
         this.done.set(`${res.photos.length} photo${res.photos.length > 1 ? 's ajoutées' : ' ajoutée'}.`);

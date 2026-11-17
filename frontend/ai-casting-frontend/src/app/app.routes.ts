@@ -1,5 +1,9 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { homeRedirect, roleGuard } from './core/guards/role.guard';
+
+/** Pages de l'agence (agents et administrateurs). */
+const agence = roleGuard('ADMIN', 'AGENT');
 import { MainLayoutComponent } from './layout/main-layout/main-layout';
 
 export const routes: Routes = [
@@ -10,8 +14,15 @@ export const routes: Routes = [
         .then(m => m.LoginComponent)
   },
   {
+    path: 'auth/inscription',
+    loadComponent: () =>
+      import('./features/auth/login/login.component')
+        .then(m => m.LoginComponent),
+    data: { mode: 'inscription' }
+  },
+  {
     path: 'roles/:id/planche',
-    canActivate: [authGuard],
+    canActivate: [authGuard, agence],
     loadComponent: () =>
       import('./features/projects/role-sheet')
         .then(m => m.RoleSheetComponent)
@@ -21,50 +32,84 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
+      // ── Espace de l'acteur freelance ──
+      {
+        path: 'mon-profil',
+        canActivate: [roleGuard('ACTEUR')],
+        loadComponent: () =>
+          import('./features/actors/actor-form/actor-form')
+            .then(m => m.ActorFormComponent),
+        data: { self: true }
+      },
+      {
+        path: 'mon-profil/photos',
+        canActivate: [roleGuard('ACTEUR')],
+        loadComponent: () =>
+          import('./features/actors/gallery/actor-gallery')
+            .then(m => m.ActorGalleryComponent),
+        data: { self: true }
+      },
+      // ── Administration ──
+      {
+        path: 'admin',
+        canActivate: [roleGuard('ADMIN')],
+        loadComponent: () =>
+          import('./features/admin/admin')
+            .then(m => m.AdminComponent)
+      },
+      // ── Agence ──
       {
         path: 'chat',
+        canActivate: [agence],
         loadComponent: () =>
           import('./features/chat/chat')
             .then(m => m.ChatComponent)
       },
       {
         path: 'projects',
+        canActivate: [agence],
         loadComponent: () =>
           import('./features/projects/projects')
             .then(m => m.ProjectsComponent)
       },
       {
         path: 'projects/:id',
+        canActivate: [agence],
         loadComponent: () =>
           import('./features/projects/project-detail')
             .then(m => m.ProjectDetailComponent)
       },
       {
         path: 'roles/:id',
+        canActivate: [agence],
         loadComponent: () =>
           import('./features/projects/role-detail')
             .then(m => m.RoleDetailComponent)
       },
       {
         path: 'dashboard',
+        canActivate: [agence],
         loadComponent: () =>
           import('./features/dashboard/dashboard')
             .then(m => m.DashboardComponent)
       },
       {
         path: 'actors/new',
+        canActivate: [agence],
         loadComponent: () =>
           import('./features/actors/actor-form/actor-form')
             .then(m => m.ActorFormComponent)
       },
       {
         path: 'actors/:id/edit',
+        canActivate: [agence],
         loadComponent: () =>
           import('./features/actors/actor-form/actor-form')
             .then(m => m.ActorFormComponent)
       },
       {
         path: 'actors/:id/gallery',
+        canActivate: [agence],
         loadComponent: () =>
           import('./features/actors/gallery/actor-gallery')
             .then(m => m.ActorGalleryComponent)
@@ -72,14 +117,16 @@ export const routes: Routes = [
       {
         // ⚠️ Cette route DOIT être en dernier parmi les /actors/*
         path: 'actors/:id',
+        canActivate: [agence],
         loadComponent: () =>
           import('./features/actors/detail/actor-detail')
             .then(m => m.ActorDetailComponent)
       },
       {
         path: '',
-        redirectTo: 'chat',
-        pathMatch: 'full'
+        pathMatch: 'full',
+        canActivate: [homeRedirect],
+        children: []
       }
     ]
   }

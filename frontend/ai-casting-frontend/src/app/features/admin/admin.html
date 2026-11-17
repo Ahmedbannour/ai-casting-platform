@@ -1,0 +1,449 @@
+<div class="page">
+  <header class="head">
+    <h1>Administration</h1>
+    <p>La plateforme d'un coup d'œil : agences sous contrat, projets, vivier d'acteurs et freelancers.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Sections de l'administration">
+    @for (t of tabs; track t.id) {
+      <button type="button" role="tab" [attr.aria-selected]="tab() === t.id" [class.on]="tab() === t.id" (click)="tab.set(t.id)">{{ t.label }}</button>
+    }
+  </div>
+
+  <!-- ═══════════════ Tableau de bord ═══════════════ -->
+  @if (tab() === 'tableau') {
+    <section class="pane dash">
+      @if (statsError()) { <p class="field-msg" role="alert">{{ statsError() }}</p> }
+      @if (stats(); as st) {
+        <div class="kpis">
+          @for (k of kpis(); track k.label; let i = $index) {
+            <div class="kpi" [style.animation-delay.ms]="i * 50">
+              <span class="kl">{{ k.label }}</span>
+              <b>{{ k.value.toLocaleString('fr-FR') }}</b>
+              @if (k.ratio !== undefined) {
+                <span class="ratio" aria-hidden="true"><i [style.width.%]="k.ratio * 100"></i></span>
+              }
+              <small>{{ k.sub }}</small>
+              @if (k.delta; as d) {
+                @let dt = deltaText(d);
+                <small class="delta" [class]="'delta ' + dt.dir">
+                  <span aria-hidden="true">{{ dt.dir === 'up' ? '↑' : dt.dir === 'down' ? '↓' : '→' }}</span> {{ dt.text }}
+                </small>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="panel big-chart">
+          <div class="panel-head">
+            <div><h2>Arrivée des acteurs dans le vivier</h2><p>Par mois et par origine de la fiche</p></div>
+            <div class="panel-tools">
+              <app-select class="period" [options]="monthOptions" [ngModel]="months()" (ngModelChange)="setMonths($event)" ariaLabel="Période" [compact]="true" />
+              <button type="button" class="btn-ghost sm" (click)="asTable.set(!asTable())">{{ asTable() ? 'Graphique' : 'Tableau' }}</button>
+            </div>
+          </div>
+          @if (asTable()) {
+            <div class="table-wrap flat">
+              <table>
+                <thead><tr><th>Mois</th><th class="r">Saisis par l’agence</th><th class="r">Inscrits eux-mêmes</th><th class="r">Importés</th><th class="r">Projets</th><th class="r">Recherches IA</th><th class="r">Shortlists</th></tr></thead>
+                <tbody>
+                  @for (m of st.monthly; track m.month) {
+                    <tr><td>{{ monthLong(m.month) }}</td><td class="r">{{ m.actorsAgence }}</td><td class="r">{{ m.actorsInscription }}</td><td class="r">{{ m.actorsImport }}</td>
+                      <td class="r">{{ m.projects }}</td><td class="r">{{ m.searches }}</td><td class="r">{{ m.shortlisted }}</td></tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <app-stacked-columns [labels]="monthLabels()" [series]="actorSeries()" ariaLabel="Nouveaux acteurs par mois et par origine" />
+          }
+        </div>
+
+        <div class="sparks">
+          @for (sp of sparks(); track sp.title) {
+            <div class="panel"><app-area-spark [title]="sp.title" [labels]="monthLabels()" [values]="sp.values" /></div>
+          }
+        </div>
+
+        <div class="duo">
+          <div class="panel">
+            <div class="panel-head"><div><h2>Entonnoir des castings</h2><p>Où en sont les {{ st.kpis.shortlisted }} candidats des shortlists</p></div></div>
+            <app-hbars [bars]="pipelineBars()" ariaLabel="Candidats par étape" />
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h2>Agences sous contrat</h2><p>Activité des 30 derniers jours</p></div>
+              <button type="button" class="link" (click)="tab.set('agences')">Toutes les agences</button></div>
+            @if (agencies().length) {
+              <ul class="mini-list">
+                @for (a of agencies().slice(0, 5); track a.id) {
+                  <li><span class="dot" [class]="'dot ' + a.status.toLowerCase()" aria-hidden="true"></span><b>{{ a.name }}</b>
+                    <small>{{ a.agents }} agent{{ a.agents > 1 ? 's' : '' }} · {{ a.activeProjects }} projet{{ a.activeProjects > 1 ? 's' : '' }} en cours · {{ a.searches30 }} recherches</small></li>
+                }
+              </ul>
+            } @else {
+              <p class="none">Aucune agence encore. <button type="button" class="link" (click)="tab.set('agences'); openAgency(null)">Ajouter la première</button></p>
+            }
+          </div>
+        </div>
+        <p class="computed">Calculé le {{ since(st.computedAt) }} à {{ st.computedAt.slice(11, 16) }}</p>
+      } @else if (!statsError()) {
+        <div class="kpis">@for (i of [1,2,3,4,5,6]; track i) { <div class="kpi skel-k"></div> }</div>
+        <div class="skel"></div>
+      }
+    </section>
+  }
+
+  <!-- ═══════════════ Agences ═══════════════ -->
+  @if (tab() === 'agences') {
+    <section class="pane">
+      <div class="toolbar">
+        <p class="intro">Chaque agence signe un contrat avec la plateforme : ses agents accèdent au vivier d'acteurs partagé pendant la durée du contrat.</p>
+        <button type="button" class="btn-primary" (click)="openAgency(null)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nouvelle agence</button>
+      </div>
+
+      @if (agencyForm()) {
+        <form class="create agency-form" (ngSubmit)="saveAgency()" novalidate>
+          <div class="f wide2"><label for="ag-name">Nom de l'agence</label>
+            <input id="ag-name" name="name" [(ngModel)]="agency.name" maxlength="160" [attr.aria-invalid]="!!agencyFieldError('name')" placeholder="Casting Méditerranée" />
+            @if (agencyFieldError('name'); as m) { <small class="field-msg">{{ m }}</small> }</div>
+          <div class="f"><label for="ag-city">Ville</label><input id="ag-city" name="city" [(ngModel)]="agency.city" maxlength="100" placeholder="Tunis" /></div>
+          <div class="f"><label for="ag-mail2">E-mail de contact</label>
+            <input id="ag-mail2" name="contact" type="email" [(ngModel)]="agency.contactEmail" placeholder="contact@agence.fr" [attr.aria-invalid]="!!agencyFieldError('contactEmail')" />
+            @if (agencyFieldError('contactEmail'); as m) { <small class="field-msg">{{ m }}</small> }</div>
+          <div class="f"><label for="ag-start">Début du contrat</label>
+            <app-date-field name="start" inputId="ag-start" [(ngModel)]="agency.contractStart" [max]="agency.contractEnd || null"
+                            [rangeStart]="agency.contractStart" [rangeEnd]="agency.contractEnd" maxMessage="Le début doit précéder la fin du contrat." />
+            @if (agencyFieldError('contractStart'); as m) { <small class="field-msg">{{ m }}</small> }</div>
+          <div class="f"><label for="ag-end">Fin du contrat <em>facultatif</em></label>
+            <app-date-field name="end" inputId="ag-end" [(ngModel)]="agency.contractEnd" [min]="agency.contractStart || null" [openAt]="agency.contractStart"
+                            [rangeStart]="agency.contractStart" [rangeEnd]="agency.contractEnd" minMessage="La fin ne peut pas précéder le début." /></div>
+          <div class="f"><label for="ag-max">Agents prévus <em>facultatif</em></label>
+            <input id="ag-max" name="max" type="number" min="1" max="1000" step="1" inputmode="numeric" [(ngModel)]="agency.maxAgents" placeholder="illimité"
+                   [attr.aria-invalid]="!!agencyFieldError('maxAgents')" />
+            @if (agencyFieldError('maxAgents'); as m) { <small class="field-msg">{{ m }}</small> }</div>
+          <div class="create-actions">
+            @if (agencyError()) { <small class="field-msg">{{ agencyError() }}</small> }
+            <button type="button" class="btn-ghost" (click)="agencyForm.set(null)">Annuler</button>
+            <button type="submit" class="btn-primary" [disabled]="agencyBusy()">{{ agencyBusy() ? 'Enregistrement…' : (agencyForm() === 'new' ? 'Ajouter l’agence' : 'Enregistrer') }}</button>
+          </div>
+        </form>
+      }
+
+      @if (!agenciesLoaded()) { <div class="skel"></div> }
+      @else if (!agencies().length) {
+        <div class="empty"><h3>Aucune agence sous contrat</h3><p>Ajoutez une agence, puis ses agents dans « Équipe et comptes » : ils pourront chercher dans le vivier partagé.</p></div>
+      } @else {
+        <div class="agency-grid">
+          @for (a of agencies(); track a.id; let i = $index) {
+            <article class="agency" [class]="'agency ' + a.status.toLowerCase()" [style.animation-delay.ms]="i * 40">
+              <header>
+                <div><h3>{{ a.name }}</h3><small>{{ a.city || 'Ville non précisée' }}@if (a.contactEmail) { · {{ a.contactEmail }} }</small></div>
+                <span class="status">{{ statusLabel(a.status) }}</span>
+              </header>
+              <p class="contract">Contrat du {{ frDate(a.contractStart) }} · {{ daysLeft(a) }}</p>
+              <dl>
+                <div><dt>Agents</dt><dd>{{ a.agents }}@if (a.maxAgents) {<em>/{{ a.maxAgents }}</em>}</dd></div>
+                <div><dt>Projets en cours</dt><dd>{{ a.activeProjects }}<em>/{{ a.projects }}</em></dd></div>
+                <div><dt>Rôles pourvus</dt><dd>{{ a.rolesFilled }}<em>/{{ a.roles }}</em></dd></div>
+                <div><dt>Candidats</dt><dd>{{ a.candidates }}</dd></div>
+                <div><dt>Recherches 30 j</dt><dd>{{ a.searches30 }}</dd></div>
+                <div><dt>Dernière activité</dt><dd class="sm">{{ ago(a.lastActivity) }}</dd></div>
+              </dl>
+              <button type="button" class="btn-ghost sm" (click)="openAgency(a)">Modifier le contrat</button>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- ═══════════════ Projets ═══════════════ -->
+  @if (tab() === 'projets') {
+    <section class="pane">
+      <div class="toolbar">
+        <div class="chips" role="radiogroup" aria-label="Filtrer par état">
+          @for (f of projectFilters; track f.value) {
+            <button type="button" role="radio" [attr.aria-checked]="projectFilter() === f.value" [class.on]="projectFilter() === f.value" (click)="setProjectFilter(f.value)">{{ f.label }}</button>
+          }
+        </div>
+        <span class="count">{{ projects().length }} projet{{ projects().length > 1 ? 's' : '' }}</span>
+      </div>
+      @if (!projectsLoaded()) { <div class="skel"></div> }
+      @else {
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Projet</th><th>Agence</th><th>État</th><th class="r">Rôles pourvus</th><th class="r">Candidats</th><th class="r">Auditions</th><th>Dernière activité</th></tr></thead>
+            <tbody>
+              @for (p of projects(); track p.id) {
+                <tr>
+                  <td><b>{{ p.title }}</b><small class="sub">{{ typeLabel(p.type) }} · par {{ p.owner }}</small></td>
+                  <td>{{ p.agency || '—' }}</td>
+                  <td><span class="pstat" [class]="'pstat ' + p.status.toLowerCase()">{{ label(p.status) }}</span></td>
+                  <td class="r"><span class="frac">{{ p.rolesFilled }}<em>/{{ p.roles }}</em></span>
+                    <span class="mini-bar" aria-hidden="true"><i [style.width.%]="p.roles ? 100 * p.rolesFilled / p.roles : 0"></i></span></td>
+                  <td class="r num">{{ p.candidates }}</td>
+                  <td class="r num">{{ p.auditions }}</td>
+                  <td class="num">{{ ago(p.lastActivity) }}</td>
+                </tr>
+              } @empty { <tr><td colspan="7" class="none">Aucun projet dans cette catégorie.</td></tr> }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- ═══════════════ Acteurs et freelancers ═══════════════ -->
+  @if (tab() === 'acteurs') {
+    <section class="pane">
+      @if (stats(); as st) {
+        <div class="panel">
+          <div class="panel-head"><div><h2>Freelancers inscrits</h2><p>Les acteurs qui tiennent eux-mêmes leur fiche à jour</p></div></div>
+          <div class="free">
+            <div class="free-big"><b>{{ st.freelancers.total }}</b><span>freelancer{{ st.freelancers.total > 1 ? 's' : '' }}</span></div>
+            @for (f of [
+              { l: 'ont au moins une photo', v: st.freelancers.withPhoto },
+              { l: 'ont des disponibilités à venir', v: st.freelancers.withAvailability },
+              { l: 'sont disponibles aujourd’hui', v: st.freelancers.availableNow },
+              { l: 'ont déjà été présélectionnés', v: st.freelancers.shortlistedOnce }
+            ]; track f.l) {
+              <div class="free-row"><span class="fl">{{ f.v }} <em>{{ f.l }}</em></span>
+                <span class="track" aria-hidden="true"><i [style.width.%]="pct(f.v, st.freelancers.total)"></i></span>
+                <b>{{ pct(f.v, st.freelancers.total) }} %</b></div>
+            }
+          </div>
+        </div>
+        <div class="trio">
+          <div class="panel"><div class="panel-head"><div><h2>Origine des fiches</h2><p>{{ st.kpis.actors }} acteurs</p></div></div>
+            <app-hbars [bars]="bars(st.sources, true)" ariaLabel="Acteurs par origine" /></div>
+          <div class="panel"><div class="panel-head"><div><h2>Âges</h2><p>Calculés depuis la date de naissance</p></div></div>
+            <app-hbars [bars]="bars(st.ages)" ariaLabel="Acteurs par tranche d'âge" /></div>
+          <div class="panel"><div class="panel-head"><div><h2>Genre</h2><p>Tel que déclaré sur la fiche</p></div></div>
+            <app-hbars [bars]="bars(st.genders)" ariaLabel="Acteurs par genre" /></div>
+        </div>
+        <div class="panel"><div class="panel-head"><div><h2>Villes les plus représentées</h2><p>Les 8 premières</p></div>
+          <a routerLink="/dashboard" class="link">Parcourir les acteurs</a></div>
+          <app-hbars [bars]="bars(st.cities)" ariaLabel="Acteurs par ville" /></div>
+      } @else { <div class="skel"></div> }
+    </section>
+  }
+
+  <!-- ═══════════════ Équipe ═══════════════ -->
+  @if (tab() === 'equipe') {
+    <section class="pane">
+      @if (created(); as c) {
+        <div class="created" role="status">
+          <div>
+            <b>{{ c.user.firstName }} {{ c.user.lastName }} peut se connecter.</b>
+            @if (c.password) {
+              <p>Mot de passe provisoire, affiché une seule fois : transmettez-le en main propre ou par téléphone.</p>
+              <div class="pw"><code>{{ c.password }}</code>
+                <button type="button" class="btn-ghost sm" (click)="copyPassword()">{{ copied() ? 'Copié' : 'Copier' }}</button></div>
+            }
+          </div>
+          <button type="button" class="icon" (click)="created.set(null)" aria-label="Fermer">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
+      }
+
+      <div class="toolbar">
+        <div class="chips" role="radiogroup" aria-label="Filtrer par rôle">
+          @for (f of filters; track f.value) {
+            <button type="button" role="radio" [attr.aria-checked]="roleFilter() === f.value" [class.on]="roleFilter() === f.value"
+                    (click)="roleFilter.set(f.value)">{{ f.label }}</button>
+          }
+        </div>
+        <label class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Nom ou e-mail" aria-label="Rechercher un compte" />
+        </label>
+        <button type="button" class="btn-primary" (click)="openCreate()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter un agent</button>
+      </div>
+
+      @if (creating) {
+        <form class="create" (ngSubmit)="submitAgent()" novalidate>
+          <div class="f"><label for="ag-first">Prénom</label>
+            <input id="ag-first" name="first" [(ngModel)]="newAgent.firstName" maxlength="80" [attr.aria-invalid]="!!agentError('firstName')" autofocus />
+            @if (agentError('firstName'); as m) { <small class="field-msg">{{ m }}</small> }</div>
+          <div class="f"><label for="ag-last">Nom</label>
+            <input id="ag-last" name="last" [(ngModel)]="newAgent.lastName" maxlength="80" [attr.aria-invalid]="!!agentError('lastName')" />
+            @if (agentError('lastName'); as m) { <small class="field-msg">{{ m }}</small> }</div>
+          <div class="f wide"><label for="ag-mail">E-mail professionnel</label>
+            <input id="ag-mail" name="mail" type="email" [(ngModel)]="newAgent.email" placeholder="prenom.nom@agence.fr" [attr.aria-invalid]="!!agentError('email')" />
+            @if (agentError('email'); as m) { <small class="field-msg">{{ m }}</small> }</div>
+          <div class="f"><label for="ag-role">Rôle</label>
+            <app-select inputId="ag-role" name="role" [(ngModel)]="newAgent.role" [options]="roleOptions" /></div>
+          @if (newAgent.role === 'AGENT') {
+            <div class="f wide"><label for="ag-agency">Agence cliente</label>
+              <app-select inputId="ag-agency" name="agency" [(ngModel)]="newAgent.agencyId" [options]="agencyOptions()" placeholder="Choisir l’agence" />
+              @if (agentError('agencyId'); as m) { <small class="field-msg">{{ m }}</small> }
+              @if (!agencies().length) { <small class="field-hint">Créez d’abord l’agence dans l’onglet « Agences ».</small> }</div>
+          }
+          <div class="create-actions">
+            @if (createError()) { <small class="field-msg">{{ createError() }}</small> }
+            <button type="button" class="btn-ghost" (click)="creating = false">Annuler</button>
+            <button type="submit" class="btn-primary" [disabled]="createBusy()">{{ createBusy() ? 'Création…' : 'Créer le compte' }}</button>
+          </div>
+        </form>
+      }
+
+      @if (userError()) { <p class="field-msg" role="alert">{{ userError() }}</p> }
+
+      @if (usersLoading()) {
+        <div class="skel"></div>
+      } @else {
+        <ul class="users">
+          @for (u of shownUsers(); track u.id) {
+            <li [class.off]="!u.enabled">
+              <span class="avatar" aria-hidden="true">{{ (u.firstName || '?')[0] }}{{ (u.lastName || '')[0] }}</span>
+              <div class="who">
+                <b>{{ u.firstName }} {{ u.lastName }}</b>
+                <small>{{ u.email }}@if (providerLabel(u.provider)) { · via {{ providerLabel(u.provider) }} } · depuis le {{ since(u.createdAt) }}</small>
+                @if (u.role === 'AGENT') {
+                  <app-select class="agency-pick" [options]="agencyOptions()" [ngModel]="u.agencyId" (ngModelChange)="setAgency(u, $event)"
+                              placeholder="Sans agence" [compact]="true" [ariaLabel]="'Agence de ' + u.firstName + ' ' + u.lastName" />
+                }
+              </div>
+              @if (u.role === 'ACTEUR') {
+                <span class="tag">Acteur</span>
+              } @else {
+                <app-select class="role" [options]="roleOptions" [ngModel]="u.role" (ngModelChange)="setRole(u, $event)"
+                            [compact]="true" [ariaLabel]="'Rôle de ' + u.firstName + ' ' + u.lastName" />
+              }
+              @if (confirming() === u.id) {
+                <span class="confirm">{{ u.enabled ? 'Désactiver ?' : 'Réactiver ?' }}
+                  <button type="button" [class.yes]="u.enabled" (click)="setEnabled(u, !u.enabled)">Oui</button>
+                  <button type="button" (click)="confirming.set(null)">Non</button></span>
+              } @else {
+                <button type="button" class="state" [class.on]="u.enabled" (click)="confirming.set(u.id)"
+                        [attr.aria-label]="(u.enabled ? 'Désactiver ' : 'Réactiver ') + u.firstName + ' ' + u.lastName">
+                  <i aria-hidden="true"></i>{{ u.enabled ? 'Actif' : 'Désactivé' }}</button>
+              }
+            </li>
+          } @empty {
+            <li class="none">Aucun compte ne correspond.</li>
+          }
+        </ul>
+      }
+    </section>
+  }
+
+  <!-- ═══════════════ Import ═══════════════ -->
+  @if (tab() === 'import') {
+    <section class="pane imp">
+      @if (result(); as r) {
+        <div class="done" role="status">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m8 12.5 2.7 2.7L16 9.8"/></svg>
+          <div>
+            <b>{{ r.created }} acteur{{ r.created > 1 ? 's' : '' }} ajouté{{ r.created > 1 ? 's' : '' }} à la base.</b>
+            @if (r.skipped.length) { <p>{{ r.skipped.length }} ligne{{ r.skipped.length > 1 ? 's' : '' }} écartée{{ r.skipped.length > 1 ? 's' : '' }} au dernier contrôle : {{ r.skipped[0].reason }}.</p> }
+            <div class="done-actions">
+              <a routerLink="/dashboard" class="btn-primary">Voir les acteurs</a>
+              <button type="button" class="btn-ghost" (click)="reset()">Importer un autre fichier</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (!preview() && !result()) {
+        <label class="drop" [class.over]="dragOver()" [class.busy]="previewing()"
+               (dragover)="$event.preventDefault(); dragOver.set(true)" (dragleave)="dragOver.set(false)" (drop)="onDrop($event)">
+          <input type="file" class="sr-only" accept=".xlsx,.xlsm,.csv,.txt" (change)="onFile($event)" [disabled]="previewing()" />
+          @if (previewing()) {
+            <span class="spin" aria-hidden="true"></span><b>Lecture et contrôle du fichier…</b>
+          } @else {
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
+            <b>Déposez un fichier Excel ou CSV, ou <u>parcourez</u></b>
+            <small>Une ligne par acteur, la première ligne pour les titres de colonnes. Rien n'est enregistré avant votre validation.</small>
+          }
+        </label>
+
+        <details class="help">
+          <summary>Colonnes reconnues</summary>
+          <p>Prénom, Nom (ou Nom complet), Date de naissance, Genre / Sexe, Ville, Pays, Téléphone, E-mail, Taille, Poids,
+             Yeux, Cheveux, Langues, Compétences, Biographie. Les titres peuvent être en français ou en anglais,
+             avec ou sans accents. Les autres colonnes sont ignorées.</p>
+          <p>Le nettoyage est automatique : majuscules des noms, « H / F » → Homme / Femme, « 1m75 » → 175 cm,
+             zéro des téléphones rétabli, dates jj/mm/aaaa ou dates Excel, langues séparées par des virgules,
+             niveau entre parenthèses (« Anglais (courant) »).</p>
+        </details>
+      }
+
+      @if (importError()) { <p class="field-msg big" role="alert">{{ importError() }}</p> }
+
+      @if (preview(); as p) {
+        <div class="summary">
+          <div class="file"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+            <b>{{ p.fileName }}</b><span>{{ p.totalRows }} ligne{{ p.totalRows > 1 ? 's' : '' }}</span>
+            <button type="button" class="link" (click)="reset()">Changer de fichier</button></div>
+          <div class="counts">
+            <span class="c ok"><b>{{ p.ok }}</b> prête{{ p.ok > 1 ? 's' : '' }}</span>
+            <span class="c err"><b>{{ p.errors }}</b> à corriger</span>
+            <span class="c dup"><b>{{ p.duplicates }}</b> doublon{{ p.duplicates > 1 ? 's' : '' }}</span>
+            <span class="c warn"><b>{{ p.warnings }}</b> corrigée{{ p.warnings > 1 ? 's' : '' }} automatiquement</span>
+          </div>
+        </div>
+
+        <div class="columns" aria-label="Colonnes du fichier">
+          @for (c of p.columns; track $index) {
+            <span class="col" [class.ignored]="!c.field" [title]="c.field ? 'Lue comme : ' + c.label : 'Colonne ignorée'">
+              {{ c.header || '(sans titre)' }}@if (c.field && c.label !== c.header) { <em>→ {{ c.label }}</em> }@if (!c.field) { <em>ignorée</em> }
+            </span>
+          }
+        </div>
+
+        <div class="row-tools">
+          <div class="chips" role="radiogroup" aria-label="Afficher">
+            <button type="button" role="radio" [attr.aria-checked]="rowFilter() === 'tous'" [class.on]="rowFilter() === 'tous'" (click)="rowFilter.set('tous')">Toutes</button>
+            <button type="button" role="radio" [attr.aria-checked]="rowFilter() === 'OK'" [class.on]="rowFilter() === 'OK'" (click)="rowFilter.set('OK')">Prêtes</button>
+            <button type="button" role="radio" [attr.aria-checked]="rowFilter() === 'ERREUR'" [class.on]="rowFilter() === 'ERREUR'" (click)="rowFilter.set('ERREUR')">À corriger</button>
+            <button type="button" role="radio" [attr.aria-checked]="rowFilter() === 'DOUBLON'" [class.on]="rowFilter() === 'DOUBLON'" (click)="rowFilter.set('DOUBLON')">Doublons</button>
+            <button type="button" role="radio" [attr.aria-checked]="rowFilter() === 'remarques'" [class.on]="rowFilter() === 'remarques'" (click)="rowFilter.set('remarques')">Corrigées</button>
+          </div>
+          <span class="sel">{{ selectedCount() }} sélectionnée{{ selectedCount() > 1 ? 's' : '' }}
+            <button type="button" class="link" (click)="toggleAll(true)">toutes les prêtes</button>
+            <button type="button" class="link" (click)="toggleAll(false)">aucune</button></span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th class="ck"><span class="sr-only">Importer</span></th><th>Ligne</th><th>Acteur</th><th>Naissance</th><th>Genre</th><th>Ville</th><th>Contact</th><th>Langues</th><th>Contrôle</th></tr></thead>
+            <tbody>
+              @for (r of shownRows(); track r.line) {
+                <tr [class]="r.status.toLowerCase()" [class.picked]="selected().has(indexOf(r))">
+                  <td class="ck"><input type="checkbox" [checked]="selected().has(indexOf(r))" [disabled]="r.status !== 'OK'" (change)="toggle(r)"
+                                        [attr.aria-label]="'Importer la ligne ' + r.line" /></td>
+                  <td class="num">{{ r.line }}</td>
+                  <td><b>{{ name(r) }}</b></td>
+                  <td class="num">{{ frDate(r.data.birthDate) || '—' }}</td>
+                  <td>{{ r.data.gender || '—' }}</td>
+                  <td>{{ r.data.city || '—' }}</td>
+                  <td class="contact">{{ r.data.email || '' }}@if (r.data.email && r.data.phone) {<br>}{{ r.data.phone || '' }}@if (!r.data.email && !r.data.phone) {—}</td>
+                  <td>{{ langs(r) || '—' }}</td>
+                  <td class="msgs">
+                    <span class="badge">{{ r.status === 'OK' ? 'Prête' : r.status === 'ERREUR' ? 'À corriger' : 'Doublon' }}</span>
+                    @for (m of r.errors; track $index) { <small class="e">{{ m }}</small> }
+                    @for (m of r.warnings; track $index) { <small class="w">{{ m }}</small> }
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="9" class="none">Aucune ligne dans cette catégorie.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="import-bar">
+          @if (p.errors + p.duplicates > 0) {
+            <span class="field-hint">Les lignes à corriger ou en doublon ne seront pas importées : corrigez-les dans le fichier, puis importez-le de nouveau.</span>
+          }
+          <button type="button" class="btn-primary" (click)="runImport()" [disabled]="!selectedCount() || importing()">
+            {{ importing() ? 'Import en cours…' : 'Importer ' + selectedCount() + ' acteur' + (selectedCount() > 1 ? 's' : '') }}
+          </button>
+        </div>
+      }
+    </section>
+  }
+</div>
