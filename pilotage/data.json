@@ -642,7 +642,7 @@
     "Roadmap",
     "Événements Google Calendar"
    ],
-   "statut": "En cours"
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -2476,12 +2476,6 @@
  "activite": [
   {
    "h": "J5",
-   "nom": "Laura Blanc",
-   "t": "2026-11-17T11:15:00Z",
-   "texte": "T-106 faite : démarrage en production refusé avec les secrets de développement (vérifié en vrai), plus de compte de démo en production. 48/48 tests."
-  },
-  {
-   "h": "J5",
    "nom": "Marc Lefèvre",
    "t": "2026-11-17T12:10:00Z",
    "texte": "T-129 faite : Spring Boot 4.0.9 + Spring AI 2.0.2 (OpenRewrite). OSV-Scanner : 0 faille côté serveur. 48/48 tests."
@@ -2527,6 +2521,12 @@
    "nom": "Sarra Mansouri",
    "t": "2026-11-17T15:30:00Z",
    "texte": "Messagerie type WhatsApp : clic sur un agent dans la carte mentale = conversation ; onglet Roadmap (Gantt interactif, plein écran). 24/24 tests automatiques (Playwright + Edge)."
+  },
+  {
+   "h": "J5",
+   "nom": "Sonia Mercier",
+   "t": "2026-11-17T15:50:00Z",
+   "texte": "Roadmap publiée dans Google Agenda (ahmed@d-service.sa) : 8 événements, un par lot, du 17/11/2026 au 08/01/2027, marqués « disponible »."
   }
  ],
  "plan": {
@@ -2809,6 +2809,20 @@
     "reel": false
    }
   },
-  "calendrier_note": "Dates prévisionnelles en jours ouvrés (lundi-vendredi), une tâche à la fois dans l'ordre de la file ; recalculées quand le plan avance. Tâches faites : date réelle."
+  "calendrier_note": "Dates prévisionnelles en jours ouvrés (lundi-vendredi), une tâche à la fois dans l'ordre de la file ; recalculées quand le plan avance. Tâches faites : date réelle.",
+  "calendrier_google": {
+   "calendrier": "ahmed@d-service.sa",
+   "evenements": {
+    "L1": "gciqqas2p3n8hmbmkhv28tisi8",
+    "L2": "9u8as2ut8s9q75luoatt2h36qk",
+    "L3": "pfl8dp5o794rnrnn9h0t3l4kqg",
+    "L4": "v6sijqfhml9bp0mt7gtfe34khs",
+    "L5": "konkl6ps0nn1rrenr001qt9f04",
+    "L6": "tobeumr0tb68kfl3u32ntoj5p8",
+    "L7": "eisu64vsqt9q1f6o8j8c0fvct4",
+    "L8": "27640mh3tio1lddn5ds5902f1k"
+   },
+   "maj": "2026-11-17"
+  }
  }
 }
