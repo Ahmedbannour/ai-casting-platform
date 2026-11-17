@@ -1,0 +1,108 @@
+:host { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+
+svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* --- Champ --- */
+.df {
+  position: relative; display: flex; align-items: center; gap: 2px;
+  height: var(--field-h, 42px); padding: 0 4px 0 11px;
+  border: 1px solid var(--border); border-radius: var(--radius-s);
+  background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  color: var(--text-primary); cursor: text;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.df:hover { border-color: color-mix(in srgb, var(--border) 50%, var(--text-subtle)); }
+.df:focus-within, .df.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+.df.invalid { border-color: var(--danger); box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 16%, transparent); }
+.df.disabled { opacity: .55; cursor: default; }
+
+.ico { flex: none; color: var(--text-subtle); margin-right: 6px; }
+.df:focus-within .ico, .df.open .ico { color: var(--accent); }
+.df.invalid .ico { color: var(--danger); }
+
+input {
+  flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; padding: 0;
+  color: inherit; font: inherit; font-size: 14.5px; font-variant-numeric: tabular-nums; letter-spacing: .02em;
+}
+input::placeholder { color: var(--text-subtle); letter-spacing: .04em; }
+
+.x, .cal-btn {
+  flex: none; display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--text-subtle); cursor: pointer; transition: background .15s, color .15s, transform .2s;
+}
+.x:hover, .cal-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.x svg { width: 13px; height: 13px; }
+.df.open .cal-btn svg { transform: rotate(180deg); }
+.cal-btn svg { transition: transform .2s; }
+.x:focus-visible, .cal-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.df-msg { color: var(--danger); font-size: 12.5px; line-height: 1.35; animation: msg .18s ease-out both; }
+
+/* --- Calendrier (déplacé dans <body>) --- */
+.df-cal {
+  position: fixed; z-index: 1000; width: 300px; padding: 12px;
+  border: 1px solid var(--border); border-radius: var(--radius-m);
+  background: var(--glass-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, .38), 0 2px 6px rgba(0, 0, 0, .18);
+  color: var(--text-primary); font-family: var(--font);
+  transform-origin: top left; animation: cal-in .18s cubic-bezier(.2, .8, .2, 1) both;
+}
+.df-cal.up { transform-origin: bottom left; }
+
+.head { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; }
+.title { flex: 1; display: flex; justify-content: center; gap: 2px; }
+.title select {
+  appearance: none; -webkit-appearance: none; height: 32px; padding: 0 8px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--text-primary); font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer;
+  text-transform: capitalize;
+}
+.title select:hover { background: var(--bg-hover); }
+.title select:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.title option { background: var(--bg-secondary); color: var(--text-primary); text-transform: none; }
+
+.nav {
+  display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--text-muted); cursor: pointer;
+}
+.nav:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav[aria-disabled="true"] { opacity: .3; pointer-events: none; }
+.nav:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.dow, .grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.dow span { height: 26px; display: grid; place-items: center; font-size: 11.5px; font-weight: 600; color: var(--text-subtle); }
+
+.day {
+  position: relative; height: 36px; border: 0; background: transparent; color: var(--text-primary);
+  font: inherit; font-size: 13.5px; font-variant-numeric: tabular-nums; cursor: pointer; border-radius: 8px;
+  transition: background .12s, color .12s;
+}
+.day:hover { background: var(--bg-hover); }
+.day.out { color: var(--text-subtle); }
+.day.range { background: var(--accent-dim); border-radius: 0; }
+.day.range.edge { border-radius: 8px; }
+.day.today::after {
+  content: ''; position: absolute; left: 50%; bottom: 5px; width: 4px; height: 4px; margin-left: -2px;
+  border-radius: 50%; background: var(--accent);
+}
+.day.sel { background: var(--accent); color: var(--on-accent); font-weight: 700; border-radius: 8px; }
+.day.sel.today::after { background: var(--on-accent); }
+.day.off { color: var(--text-subtle); opacity: .38; cursor: not-allowed; text-decoration: line-through; text-decoration-thickness: 1px; }
+.day.off:hover { background: transparent; }
+.day:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
+
+.foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.hint { flex: 1; text-align: center; font-size: 12px; color: var(--text-subtle); }
+.link {
+  height: 30px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent;
+  color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.link:hover { background: var(--accent-dim); }
+.link:disabled { color: var(--text-subtle); background: transparent; cursor: default; }
+.link:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+@keyframes cal-in { from { opacity: 0; transform: translateY(-4px) scale(.97); } }
+@keyframes msg { from { opacity: 0; transform: translateY(-3px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .df-cal, .df-msg { animation: none; }
+}

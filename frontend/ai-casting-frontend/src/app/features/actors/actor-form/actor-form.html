@@ -1,227 +1,256 @@
-<div class="form-page">
+<div class="page">
+  <button type="button" class="back" (click)="cancel()">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+    {{ isEdit() ? 'Fiche acteur' : 'Acteurs' }}
+  </button>
 
-  <!-- Header -->
-  <header class="form-header">
-    <div class="header-left">
-      <button class="back-btn" (click)="cancel()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
-        </svg>
-      </button>
-      <div>
-        <div class="form-title">{{ isEdit() ? 'Modifier l\'acteur' : 'Nouvel acteur' }}</div>
-        <div class="form-subtitle">{{ isEdit() ? 'Mise à jour du dossier' : 'Création d\'un nouveau profil' }}</div>
-      </div>
-    </div>
-    <div class="header-actions">
-      <button type="button" class="btn secondary" (click)="cancel()">Annuler</button>
-      <button type="button" class="btn primary"
-              [disabled]="form.invalid || loading()"
-              (click)="onSubmit()">
-        {{ loading() ? 'Enregistrement...' : (isEdit() ? 'Mettre à jour' : 'Créer l\'acteur') }}
-      </button>
-    </div>
+  <header class="head">
+    <h1>{{ isEdit() ? 'Modifier le dossier' : 'Nouvel acteur' }}</h1>
+    <p>Seuls le prénom et le nom sont obligatoires. Plus le dossier est complet, mieux la recherche le classe.</p>
   </header>
 
-  <div class="form-layout" [formGroup]="form">
-
-    <!-- Sidebar nav -->
-    <nav class="form-nav">
-      <button class="nav-item active" (click)="scrollTo('info')">👤 Informations</button>
-      <button class="nav-item" (click)="scrollTo('skills')">⭐ Compétences</button>
-      <button class="nav-item" (click)="scrollTo('languages')">🌍 Langues</button>
-      <button class="nav-item" (click)="scrollTo('experiences')">🎬 Expériences</button>
+  @if (!loaded()) {
+    <div class="skel"></div>
+  } @else {
+  <div class="layout">
+    <nav class="toc" aria-label="Sections du formulaire">
+      <span class="ind" aria-hidden="true"></span>
+      @for (s of sections; track s.id) {
+        <button type="button" [class.on]="active() === s.id" (click)="scrollTo(s.id)" [attr.aria-current]="active() === s.id ? 'true' : null">
+          {{ s.label }}
+          @if (sectionErrors()[s.id]; as n) { <span class="bad" [attr.aria-label]="n + ' erreur' + (n > 1 ? 's' : '')">{{ n }}</span> }
+        </button>
+      }
     </nav>
 
-    <!-- Content -->
-    <div class="form-content">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="sections">
 
-      <!-- Error -->
-      @if (error()) {
-        <div class="form-error">{{ error() }}</div>
-      }
-
-      <!-- Section Informations -->
-      <div class="form-section" id="info">
-        <div class="section-header">
-          <span class="section-title">👤 Informations personnelles</span>
-        </div>
-        <div class="section-body">
-          <div class="fields-grid">
-            <div class="field">
-              <label>Prénom *</label>
-              <input formControlName="firstName" type="text" placeholder="Jean" />
-            </div>
-            <div class="field">
-              <label>Nom *</label>
-              <input formControlName="lastName" type="text" placeholder="Dupont" />
-            </div>
-            <div class="field">
-              <label>Date de naissance</label>
-              <input formControlName="birthDate" type="date" />
-            </div>
-            <div class="field">
-              <label>Genre</label>
-              <select formControlName="gender">
-                <option value="">— Sélectionner —</option>
-                <option value="Homme">Homme</option>
-                <option value="Femme">Femme</option>
-                <option value="Non-binaire">Non-binaire</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Ville</label>
-              <input formControlName="city" type="text" placeholder="Paris" />
-            </div>
-            <div class="field">
-              <label>Pays</label>
-              <input formControlName="country" type="text" placeholder="France" />
-            </div>
-            <div class="field">
-              <label>Email</label>
-              <input formControlName="email" type="email" placeholder="acteur@email.com" />
-            </div>
-            <div class="field">
-              <label>Téléphone</label>
-              <input formControlName="phone" type="text" placeholder="+33 6 12 34 56 78" />
+      <!-- Identité -->
+      <section id="identite" class="card">
+        <h2>Identité</h2>
+        <div class="grid g2">
+          <div class="f" [class.invalid]="show(form.get('firstName'))">
+            <label for="a-first">Prénom <i aria-hidden="true">*</i></label>
+            <input id="a-first" formControlName="firstName" autocomplete="given-name" placeholder="Léa" [attr.maxlength]="R.nameMax"
+                   [attr.aria-invalid]="show(form.get('firstName'))" />
+            @if (msg('firstName', 'Le prénom'); as m) { <small class="field-msg">{{ m }}</small> }
+          </div>
+          <div class="f" [class.invalid]="show(form.get('lastName'))">
+            <label for="a-last">Nom <i aria-hidden="true">*</i></label>
+            <input id="a-last" formControlName="lastName" autocomplete="family-name" placeholder="Martin" [attr.maxlength]="R.nameMax"
+                   [attr.aria-invalid]="show(form.get('lastName'))" />
+            @if (msg('lastName', 'Le nom'); as m) { <small class="field-msg">{{ m }}</small> }
+          </div>
+          <div class="f">
+            <label for="a-birth">Date de naissance</label>
+            <app-date-field formControlName="birthDate" inputId="a-birth" [min]="R.birthMin" [max]="today" openAt="1995-01-01"
+                            maxMessage="La date de naissance ne peut pas être dans le futur."
+                            minMessage="Date trop ancienne : vérifiez l'année." />
+            @if (age() !== null) { <small class="field-hint">{{ age() }} ans aujourd'hui</small> }
+          </div>
+          <div class="f">
+            <span class="lbl" id="a-gender">Genre</span>
+            <div class="seg" role="radiogroup" aria-labelledby="a-gender">
+              @for (g of genders; track g) {
+                <button type="button" role="radio" [attr.aria-checked]="form.value.gender === g" [class.on]="form.value.gender === g"
+                        (click)="form.patchValue({ gender: form.value.gender === g ? '' : g }); form.get('gender')?.markAsDirty()">{{ g }}</button>
+              }
             </div>
           </div>
-
-          <div class="fields-grid cols-3" style="margin-top: 16px;">
-            <div class="field">
-              <label>Taille (cm)</label>
-              <input formControlName="height" type="number" placeholder="175" />
-            </div>
-            <div class="field">
-              <label>Poids (kg)</label>
-              <input formControlName="weight" type="number" placeholder="70" />
-            </div>
-            <div class="field">
-              <label>Couleur des yeux</label>
-              <input formControlName="eyeColor" type="text" placeholder="Bleu" />
-            </div>
-            <div class="field">
-              <label>Couleur des cheveux</label>
-              <input formControlName="hairColor" type="text" placeholder="Brun" />
-            </div>
+          <div class="f" [class.invalid]="show(form.get('city'))">
+            <label for="a-city">Ville</label>
+            <input id="a-city" formControlName="city" autocomplete="address-level2" placeholder="Paris" />
+            @if (msg('city'); as m) { <small class="field-msg">{{ m }}</small> }
           </div>
-
-          <div class="field field-full" style="margin-top: 16px;">
-            <label>Biographie</label>
-            <textarea formControlName="bio" rows="4"
-                      placeholder="Courte présentation de l'acteur..."></textarea>
+          <div class="f" [class.invalid]="show(form.get('country'))">
+            <label for="a-country">Pays</label>
+            <input id="a-country" formControlName="country" autocomplete="country-name" placeholder="France" />
+            @if (msg('country'); as m) { <small class="field-msg">{{ m }}</small> }
+          </div>
+          <div class="f" [class.invalid]="show(form.get('email'))">
+            <label for="a-mail">E-mail</label>
+            <input id="a-mail" type="email" formControlName="email" autocomplete="email" placeholder="lea.martin@agence.fr" inputmode="email"
+                   [attr.aria-invalid]="show(form.get('email'))" />
+            @if (msg('email'); as m) { <small class="field-msg">{{ m }}</small> }
+          </div>
+          <div class="f" [class.invalid]="show(form.get('phone'))">
+            <label for="a-phone">Téléphone</label>
+            <input id="a-phone" type="tel" formControlName="phone" autocomplete="tel" placeholder="+33 6 12 34 56 78" inputmode="tel"
+                   [attr.aria-invalid]="show(form.get('phone'))" />
+            @if (msg('phone'); as m) { <small class="field-msg">{{ m }}</small> }
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Section Compétences -->
-      <div class="form-section" id="skills">
-        <div class="section-header">
-          <span class="section-title">⭐ Compétences</span>
-          <button type="button" class="add-item-btn" (click)="addSkill()">
-            + Ajouter
-          </button>
+      <!-- Physique -->
+      <section id="physique" class="card">
+        <h2>Physique</h2>
+        <div class="grid g4">
+          <div class="f" [class.invalid]="show(form.get('height'))">
+            <label for="a-h">Taille</label>
+            <div class="unit"><input id="a-h" type="number" formControlName="height" placeholder="175" inputmode="numeric" step="1"
+                   [attr.min]="R.height.min" [attr.max]="R.height.max" [attr.aria-invalid]="show(form.get('height'))" /><span>cm</span></div>
+            @if (msg('height'); as m) { <small class="field-msg">{{ m }}</small> }
+          </div>
+          <div class="f" [class.invalid]="show(form.get('weight'))">
+            <label for="a-w">Poids</label>
+            <div class="unit"><input id="a-w" type="number" formControlName="weight" placeholder="68" inputmode="numeric" step="1"
+                   [attr.min]="R.weight.min" [attr.max]="R.weight.max" [attr.aria-invalid]="show(form.get('weight'))" /><span>kg</span></div>
+            @if (msg('weight'); as m) { <small class="field-msg">{{ m }}</small> }
+          </div>
+          <div class="f">
+            <label for="a-eyes">Yeux</label>
+            <select id="a-eyes" formControlName="eyeColor">
+              <option value="">Non précisé</option>
+              @for (c of eyeColors; track c) { <option [value]="c">{{ c }}</option> }
+              @if (form.value.eyeColor && !eyeColors.includes(form.value.eyeColor)) { <option [value]="form.value.eyeColor">{{ form.value.eyeColor }}</option> }
+            </select>
+          </div>
+          <div class="f">
+            <label for="a-hair">Cheveux</label>
+            <select id="a-hair" formControlName="hairColor">
+              <option value="">Non précisé</option>
+              @for (c of hairColors; track c) { <option [value]="c">{{ c }}</option> }
+              @if (form.value.hairColor && !hairColors.includes(form.value.hairColor)) { <option [value]="form.value.hairColor">{{ form.value.hairColor }}</option> }
+            </select>
+          </div>
         </div>
-        <div class="section-body">
-          @if (skills.length === 0) {
-            <div class="empty-list">Aucune compétence — cliquez sur + Ajouter</div>
-          }
-          <div class="list-items" formArrayName="skills">
-            @for (skill of skills.controls; track $index) {
-              <div class="list-item" [formGroupName]="$index">
-                <input formControlName="name" type="text" placeholder="Danse, Chant, Sport..." />
-                <select formControlName="level">
+        <div class="f" [class.invalid]="show(form.get('bio'))">
+          <label for="a-bio">Biographie</label>
+          <textarea id="a-bio" formControlName="bio" rows="4" [attr.maxlength]="R.bioMax"
+                    placeholder="Formation, registres de jeu, ce qui le distingue en audition…"></textarea>
+          <small class="field-hint count">{{ (form.value.bio || '').length }} / {{ R.bioMax }}</small>
+        </div>
+      </section>
+
+      <!-- Langues et talents -->
+      <section id="talents" class="card">
+        <h2>Langues et talents</h2>
+        <div class="grid g2 top">
+          <div class="list langs" formArrayName="languages">
+            <div class="list-head"><span class="lbl">Langues</span>
+              <button type="button" class="add" (click)="addLanguage()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Langue</button></div>
+            @for (l of languages.controls; track l; let i = $index) {
+              <div class="pair" [formGroupName]="i" [class.invalid]="show(ctl(languages, i, 'name')) || isDuplicate(languages, i)">
+                <input formControlName="name" list="dl-langs" placeholder="Anglais" aria-label="Langue"
+                       [attr.aria-invalid]="show(ctl(languages, i, 'name')) || isDuplicate(languages, i)" />
+                <select formControlName="level" aria-label="Niveau">
                   <option value="">Niveau</option>
-                  <option value="Débutant">Débutant</option>
-                  <option value="Intermédiaire">Intermédiaire</option>
-                  <option value="Avancé">Avancé</option>
-                  <option value="Expert">Expert</option>
+                  @for (n of languageLevels; track n) { <option [value]="n">{{ n }}</option> }
                 </select>
-                <button type="button" class="remove-btn" (click)="removeSkill($index)">×</button>
+                <button type="button" class="rm" (click)="remove(languages, i)" aria-label="Retirer cette langue">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+                @if (isDuplicate(languages, i)) { <small class="field-msg">Langue déjà ajoutée.</small> }
+                @else if (msg(ctl(languages, i, 'name'), 'La langue'); as m) { <small class="field-msg">{{ m }}</small> }
               </div>
-            }
+            } @empty { <p class="none">Aucune langue.</p> }
           </div>
-        </div>
-      </div>
 
-      <!-- Section Langues -->
-      <div class="form-section" id="languages">
-        <div class="section-header">
-          <span class="section-title">🌍 Langues</span>
-          <button type="button" class="add-item-btn" (click)="addLanguage()">
-            + Ajouter
-          </button>
-        </div>
-        <div class="section-body">
-          @if (languages.length === 0) {
-            <div class="empty-list">Aucune langue — cliquez sur + Ajouter</div>
-          }
-          <div class="list-items" formArrayName="languages">
-            @for (lang of languages.controls; track $index) {
-              <div class="list-item" [formGroupName]="$index">
-                <input formControlName="name" type="text" placeholder="Français, Anglais, Arabe..." />
-                <select formControlName="level">
+          <div class="list skills" formArrayName="skills">
+            <div class="list-head"><span class="lbl">Compétences</span>
+              <button type="button" class="add" (click)="addSkill()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Compétence</button></div>
+            @for (s of skills.controls; track s; let i = $index) {
+              <div class="pair" [formGroupName]="i" [class.invalid]="show(ctl(skills, i, 'name')) || isDuplicate(skills, i)">
+                <input formControlName="name" list="dl-skills" placeholder="Danse" aria-label="Compétence"
+                       [attr.aria-invalid]="show(ctl(skills, i, 'name')) || isDuplicate(skills, i)" />
+                <select formControlName="level" aria-label="Niveau">
                   <option value="">Niveau</option>
-                  <option value="Notions">Notions</option>
-                  <option value="Intermédiaire">Intermédiaire</option>
-                  <option value="Courant">Courant</option>
-                  <option value="Natif">Natif</option>
+                  @for (n of skillLevels; track n) { <option [value]="n">{{ n }}</option> }
                 </select>
-                <button type="button" class="remove-btn" (click)="removeLanguage($index)">×</button>
+                <button type="button" class="rm" (click)="remove(skills, i)" aria-label="Retirer cette compétence">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+                @if (isDuplicate(skills, i)) { <small class="field-msg">Compétence déjà ajoutée.</small> }
+                @else if (msg(ctl(skills, i, 'name'), 'La compétence'); as m) { <small class="field-msg">{{ m }}</small> }
               </div>
-            }
+            } @empty { <p class="none">Aucune compétence.</p> }
           </div>
         </div>
-      </div>
+        <datalist id="dl-langs">@for (x of languageSuggestions; track x) { <option [value]="x"></option> }</datalist>
+        <datalist id="dl-skills">@for (x of skillSuggestions; track x) { <option [value]="x"></option> }</datalist>
+      </section>
 
-      <!-- Section Expériences -->
-      <div class="form-section" id="experiences">
-        <div class="section-header">
-          <span class="section-title">🎬 Expériences</span>
-          <button type="button" class="add-item-btn" (click)="addExperience()">
-            + Ajouter
-          </button>
-        </div>
-        <div class="section-body">
-          @if (experiences.length === 0) {
-            <div class="empty-list">Aucune expérience — cliquez sur + Ajouter</div>
-          }
-          <div formArrayName="experiences">
-            @for (exp of experiences.controls; track $index) {
-              <div class="exp-item" [formGroupName]="$index">
-                <div class="exp-item-header">
-                  <span class="exp-item-label">Expérience {{ $index + 1 }}</span>
-                  <button type="button" class="remove-btn" (click)="removeExperience($index)">×</button>
-                </div>
-                <div class="fields-grid">
-                  <div class="field">
-                    <label>Titre du rôle *</label>
-                    <input formControlName="title" type="text" placeholder="Acteur principal" />
-                  </div>
-                  <div class="field">
-                    <label>Production / Film</label>
-                    <input formControlName="production" type="text" placeholder="Le Dernier Train" />
-                  </div>
-                  <div class="field">
-                    <label>Rôle joué</label>
-                    <input formControlName="role" type="text" placeholder="Thomas" />
-                  </div>
-                  <div class="field">
-                    <label>Année</label>
-                    <input formControlName="year" type="number" placeholder="2023" />
-                  </div>
-                  <div class="field field-full">
-                    <label>Description</label>
-                    <textarea formControlName="description" rows="2"
-                              placeholder="Courte description du rôle..."></textarea>
-                  </div>
-                </div>
+      <!-- Parcours -->
+      <section id="parcours" class="card" formArrayName="experiences">
+        <div class="list-head"><h2>Parcours</h2>
+          <button type="button" class="add" (click)="addExperience()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Expérience</button></div>
+        @for (e of experiences.controls; track e; let i = $index) {
+          <div class="row-card" [formGroupName]="i">
+            <div class="row-head"><span>Expérience {{ i + 1 }}</span>
+              <button type="button" class="rm" (click)="remove(experiences, i)" [attr.aria-label]="'Retirer l\'expérience ' + (i + 1)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+            <div class="grid g-exp">
+              <div class="f" [class.invalid]="show(ctl(experiences, i, 'production'))">
+                <label [for]="'x-prod-' + i">Production</label>
+                <input [id]="'x-prod-' + i" formControlName="production" placeholder="Le Dernier Train" />
               </div>
-            }
+              <div class="f" [class.invalid]="show(ctl(experiences, i, 'title'))">
+                <label [for]="'x-title-' + i">Type de rôle <i aria-hidden="true">*</i></label>
+                <input [id]="'x-title-' + i" formControlName="title" placeholder="Second rôle" [attr.aria-invalid]="show(ctl(experiences, i, 'title'))" />
+                @if (msg(ctl(experiences, i, 'title'), 'Le type de rôle'); as m) { <small class="field-msg">{{ m }}</small> }
+              </div>
+              <div class="f">
+                <label [for]="'x-role-' + i">Personnage</label>
+                <input [id]="'x-role-' + i" formControlName="role" placeholder="Thomas" />
+              </div>
+              <div class="f" [class.invalid]="!!yearError(i)">
+                <label [for]="'x-year-' + i">Année</label>
+                <input [id]="'x-year-' + i" type="number" formControlName="year" placeholder="2023" inputmode="numeric" step="1"
+                       [attr.min]="R.yearMin" [attr.max]="maxYear" [attr.aria-invalid]="!!yearError(i)" />
+                @if (yearError(i); as m) { <small class="field-msg">{{ m }}</small> }
+              </div>
+            </div>
+            <div class="f">
+              <label [for]="'x-desc-' + i">Description</label>
+              <textarea [id]="'x-desc-' + i" formControlName="description" rows="2" maxlength="1000" placeholder="Ce que le rôle demandait…"></textarea>
+            </div>
           </div>
-        </div>
-      </div>
+        } @empty { <p class="none">Aucune expérience. Films, séries, pièces, publicités : tout compte.</p> }
+      </section>
 
-    </div>
+      <!-- Disponibilités -->
+      <section id="dispos" class="card" formArrayName="availabilities">
+        <div class="list-head"><h2>Disponibilités</h2>
+          <button type="button" class="add" (click)="addAvailability()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Période</button></div>
+        <p class="field-hint intro">Comparées aux dates de tournage des rôles : un acteur sans période couvrant le tournage apparaît « à vérifier ».</p>
+        @for (p of availabilities.controls; track p; let i = $index) {
+          <div class="row-card period" [formGroupName]="i" [class.invalid]="!!periodError(i)">
+            <div class="row-head"><span>Période {{ i + 1 }}@if (periodDays(i); as d) { <em> · {{ d }} jour{{ d > 1 ? 's' : '' }}</em> }</span>
+              <button type="button" class="rm" (click)="remove(availabilities, i)" [attr.aria-label]="'Retirer la période ' + (i + 1)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+            <div class="grid g3">
+              <div class="f">
+                <label [for]="'p-from-' + i">Du <i aria-hidden="true">*</i></label>
+                <app-date-field formControlName="fromDate" [inputId]="'p-from-' + i" [max]="p.value.toDate || null"
+                                [rangeStart]="p.value.fromDate" [rangeEnd]="p.value.toDate" [showMessage]="false" />
+              </div>
+              <div class="f">
+                <label [for]="'p-to-' + i">Au <i aria-hidden="true">*</i></label>
+                <app-date-field formControlName="toDate" [inputId]="'p-to-' + i" [min]="periodMin(i)" [openAt]="p.value.fromDate"
+                                [rangeStart]="p.value.fromDate" [rangeEnd]="p.value.toDate" [showMessage]="false" />
+              </div>
+              <div class="f">
+                <label [for]="'p-note-' + i">Note</label>
+                <input [id]="'p-note-' + i" formControlName="note" maxlength="160" placeholder="Hors week-ends" />
+              </div>
+            </div>
+            @if (periodError(i); as m) { <small class="field-msg">{{ m }}</small> }
+          </div>
+        } @empty { <p class="none">Aucune période déclarée.</p> }
+      </section>
+
+      <!-- Barre d'enregistrement -->
+      <div class="bar"><div class="bar-in">
+        <div class="bar-msg" role="status">
+          @if (error()) { <span class="field-msg">{{ error() }}</span> }
+          @else if (submitted() && totalErrors()) { <span class="field-msg">{{ totalErrors() }} champ{{ totalErrors() > 1 ? 's' : '' }} à corriger avant d'enregistrer.</span> }
+          @else if (form.dirty) { <span class="field-hint">Modifications non enregistrées</span> }
+        </div>
+        <button type="button" class="btn-ghost" (click)="cancel()">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="loading()">
+          {{ loading() ? 'Enregistrement…' : (isEdit() ? 'Enregistrer' : "Créer l'acteur") }}
+        </button>
+      </div></div>
+    </form>
   </div>
+  }
 </div>

@@ -1,78 +1,61 @@
-<div class="min-h-screen bg-gray-950 text-white">
+<div class="page">
+  <a [routerLink]="['/actors', actorId()]" class="back">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+    {{ actorName() || 'Fiche acteur' }}
+  </a>
 
-  <header class="border-b border-gray-800 px-8 py-5 flex items-center gap-4">
-    <button (click)="back()" class="text-gray-400 hover:text-white transition-colors">
-      ← Retour
-    </button>
-    <h1 class="text-xl font-semibold">Galerie photos</h1>
+  <header class="head">
+    <h1>Photos</h1>
+    <p>La photo principale illustre la fiche, les cartes de recherche et la planche contact.</p>
   </header>
 
-  <main class="max-w-5xl mx-auto px-8 py-8 space-y-8">
+  <app-photo-upload [actorId]="actorId()" (uploaded)="onUploaded($event)" />
+  @if (error()) { <small class="field-msg" role="alert">{{ error() }}</small> }
 
-    <!-- Upload zone -->
-    <section class="bg-gray-900 border border-gray-800 rounded-xl p-6">
-      <h2 class="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-4">
-        Ajouter des photos
-      </h2>
-      <app-photo-upload
-        [actorId]="actorId()"
-        (uploaded)="onUploaded($event)"
-      />
-    </section>
+  <section>
+    <h2>{{ photos().length }} photo{{ photos().length > 1 ? 's' : '' }}</h2>
 
-    <!-- Gallery grid -->
-    <section>
-      <h2 class="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-4">
-        Photos ({{ photos().length }})
-      </h2>
+    @if (loading()) {
+      <div class="grid">@for (i of [1, 2, 3, 4]; track i) { <div class="ph skel"></div> }</div>
+    } @else if (!photos().length) {
+      <div class="empty">
+        <h3>Aucune photo pour l'instant</h3>
+        <p>Commencez par un portrait de face, lumière douce, fond neutre : c'est celui qui sert le plus en casting.</p>
+      </div>
+    } @else {
+      <div class="grid">
+        @for (p of photos(); track p.id; let i = $index) {
+          <figure class="ph" [class.main]="p.isMain" [class.busy]="busy() === p.id">
+            <img [src]="p.url || p.thumbnailUrl" [alt]="p.originalName || 'Photo ' + (i + 1)" loading="lazy" />
+            @if (p.isMain) { <span class="badge">Principale</span> }
 
-      @if (loading()) {
-        <div class="text-gray-500 text-sm">Chargement...</div>
-      } @else if (photos().length === 0) {
-        <div class="text-center py-16 text-gray-600">
-          Aucune photo pour cet acteur
-        </div>
-      } @else {
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          @for (photo of photos(); track photo.id) {
-            <div class="relative group rounded-xl overflow-hidden bg-gray-900 aspect-square">
-
-              <!-- Image -->
-              <img [src]="photo.thumbnailUrl || photo.url"
-                   [alt]="photo.originalName"
-                   class="w-full h-full object-cover transition-transform
-                          group-hover:scale-105 duration-300" />
-
-              <!-- Main badge -->
-              @if (photo.isMain) {
-                <div class="absolute top-2 left-2 bg-amber-500 text-black
-                            text-xs font-bold px-2 py-0.5 rounded-full">
-                  Principale
+            @if (confirming() === p.id) {
+              <div class="confirm" role="alertdialog" [attr.aria-label]="'Supprimer la photo ' + (i + 1)">
+                <b>Supprimer cette photo ?</b>
+                @if (p.isMain && photos().length > 1) { <small>Choisissez ensuite une autre photo principale.</small> }
+                <div>
+                  <button type="button" (click)="confirming.set(null)">Annuler</button>
+                  <button type="button" class="danger" (click)="remove(p)">Supprimer</button>
                 </div>
-              }
-
-              <!-- Hover actions -->
-              <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100
-                          transition-opacity flex flex-col items-center justify-center gap-2">
-                @if (!photo.isMain) {
-                  <button (click)="setMain(photo.id)"
-                          class="text-xs bg-amber-500 hover:bg-amber-400 text-black
-                                 font-semibold px-3 py-1.5 rounded-lg transition-colors">
-                    Définir principale
-                  </button>
-                }
-                <button (click)="delete(photo.id)"
-                        class="text-xs bg-red-600 hover:bg-red-500 text-white
-                               px-3 py-1.5 rounded-lg transition-colors">
-                  Supprimer
-                </button>
               </div>
-
-            </div>
-          }
-        </div>
-      }
-    </section>
-
-  </main>
+            } @else {
+              <figcaption>
+                <span class="name">{{ p.originalName }}<small>{{ size(p.size) }}</small></span>
+                <span class="acts">
+                  <button type="button" (click)="setMain(p)" [disabled]="p.isMain"
+                          [attr.aria-label]="p.isMain ? 'Photo principale' : 'Définir comme photo principale'"
+                          [attr.title]="p.isMain ? 'Photo principale' : 'Définir comme principale'">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg>
+                  </button>
+                  <button type="button" class="del" (click)="confirming.set(p.id)" aria-label="Supprimer la photo" title="Supprimer">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+                  </button>
+                </span>
+              </figcaption>
+            }
+          </figure>
+        }
+      </div>
+    }
+  </section>
 </div>

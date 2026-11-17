@@ -1,65 +1,71 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PhotoService, PhotoResponse } from '../../../core/services/photo.service';
+import { ActorService } from '../../../core/services/actor.service';
 import { PhotoUploadComponent } from '../../../shared/components/photo-upload/photo-upload';
 
+/** Galerie d'un acteur : ajout, photo principale, suppression confirmée dans la carte. */
 @Component({
   selector: 'app-actor-gallery',
   standalone: true,
-  imports: [CommonModule, PhotoUploadComponent],
+  imports: [RouterLink, PhotoUploadComponent],
   templateUrl: './actor-gallery.html',
   styleUrl: './actor-gallery.scss'
 })
 export class ActorGalleryComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly photoService = inject(PhotoService);
+  private readonly actors = inject(ActorService);
 
-  actorId = signal('');
-  photos = signal<PhotoResponse[]>([]);
-  loading = signal(true);
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private photoService: PhotoService
-  ) {}
+  readonly actorId = signal('');
+  readonly actorName = signal('');
+  readonly photos = signal<PhotoResponse[]>([]);
+  readonly loading = signal(true);
+  readonly confirming = signal<string | null>(null);
+  readonly busy = signal<string | null>(null);
+  readonly error = signal('');
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.actorId.set(id);
-    this.loadPhotos();
-  }
-
-  loadPhotos(): void {
-    this.loading.set(true);
-    this.photoService.findAll(this.actorId()).subscribe({
-      next: (photos) => {
-        this.photos.set(photos);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false)
+    this.actors.findById(id).subscribe({ next: a => this.actorName.set(`${a.firstName} ${a.lastName}`), error: () => {} });
+    this.photoService.findAll(id).subscribe({
+      next: p => { this.photos.set(p); this.loading.set(false); },
+      error: () => { this.loading.set(false); this.error.set('Impossible de charger les photos.'); }
     });
   }
 
   onUploaded(newPhotos: PhotoResponse[]): void {
-    this.photos.update(current => [...newPhotos, ...current]);
-  }
-
-  setMain(photoId: string): void {
-    this.photoService.setMain(this.actorId(), photoId).subscribe(() => {
-      this.photos.update(photos =>
-        photos.map(p => ({ ...p, isMain: p.id === photoId }))
-      );
+    this.photos.update(cur => {
+      const all = [...newPhotos, ...cur];
+      // Première photo d'un dossier vide : le serveur la marque principale ; on reflète l'état.
+      return all;
     });
   }
 
-  delete(photoId: string): void {
-    if (!confirm('Supprimer cette photo ?')) return;
-    this.photoService.delete(this.actorId(), photoId).subscribe(() => {
-      this.photos.update(photos => photos.filter(p => p.id !== photoId));
+  setMain(p: PhotoResponse): void {
+    if (p.isMain || this.busy()) return;
+    this.busy.set(p.id);
+    this.photoService.setMain(this.actorId(), p.id).subscribe({
+      next: () => { this.photos.update(list => list.map(x => ({ ...x, isMain: x.id === p.id }))); this.busy.set(null); },
+      error: () => { this.busy.set(null); this.error.set("La photo principale n'a pas pu être changée."); }
     });
   }
 
-  back(): void {
-    this.router.navigate(['/dashboard']);
+  remove(p: PhotoResponse): void {
+    this.confirming.set(null);
+    this.busy.set(p.id);
+    this.photoService.delete(this.actorId(), p.id).subscribe({
+      next: () => { this.photos.update(list => list.filter(x => x.id !== p.id)); this.busy.set(null); },
+      error: () => { this.busy.set(null); this.error.set("La photo n'a pas pu être supprimée."); }
+    });
   }
+
+  size(bytes: number): string {
+    if (!bytes) return '';
+    return bytes < 1048576 ? `${Math.round(bytes / 1024)} Ko` : `${(bytes / 1048576).toFixed(1).replace('.', ',')} Mo`;
+  }
+
+  @HostListener('document:keydown.escape')
+  cancelConfirm(): void { this.confirming.set(null); }
 }

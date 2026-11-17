@@ -4,12 +4,14 @@ import { Project, ProjectService, typeLabel } from '../../core/services/project.
 import { CastingRole, CastingService, criteria, importanceLabel } from '../../core/services/casting.service';
 import { ProjectFormComponent } from './project-form';
 import { RoleFormComponent } from './role-form';
+import { ProjectTeamComponent } from './project-team';
+import { ProjectActivityComponent } from './project-activity';
 
 /** Page d'un projet : en-tête, état, puis ses rôles (US-05 à US-08). */
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [RouterLink, ProjectFormComponent, RoleFormComponent],
+  imports: [RouterLink, ProjectFormComponent, RoleFormComponent, ProjectTeamComponent, ProjectActivityComponent],
   template: `
   <div class="page">
     <a routerLink="/projects" class="back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg> Projets</a>
@@ -42,7 +44,22 @@ import { RoleFormComponent } from './role-form';
         </div>
       </header>
 
-      <section class="roles">
+      <div class="tabs" role="tablist" aria-label="Sections du projet">
+        @for (t of tabs; track t.id) {
+          <button type="button" role="tab" [attr.aria-selected]="tab() === t.id" [class.on]="tab() === t.id" (click)="tab.set(t.id)">
+            {{ t.label }}@if (t.id === 'roles') { <span class="n">{{ roles().length }}</span> }
+          </button>
+        }
+      </div>
+
+      @if (tab() === 'equipe') {
+        <section class="pane"><app-project-team [projectId]="p.id" [canManage]="p.owner" /></section>
+      }
+      @if (tab() === 'journal') {
+        <section class="pane"><app-project-activity [projectId]="p.id" /></section>
+      }
+
+      <section class="roles" [hidden]="tab() !== 'roles'">
         <div class="roles-head">
           <h2>Rôles</h2>
           @if (roles().length) {
@@ -110,7 +127,7 @@ import { RoleFormComponent } from './role-form';
     <app-project-form [project]="project()" (saved)="project.set($event); editOpen.set(false)" (cancel)="editOpen.set(false)" />
   }
   @if (roleFormOpen() && project()) {
-    <app-role-form [projectId]="project()!.id" [role]="editingRole()" (saved)="onRoleSaved($event)" (cancel)="roleFormOpen.set(false)" />
+    <app-role-form [projectId]="project()!.id" [role]="editingRole()" [projectStart]="project()!.startDate" [projectEnd]="project()!.endDate" (saved)="onRoleSaved($event)" (cancel)="roleFormOpen.set(false)" />
   }
   `,
   styles: [`
@@ -136,6 +153,14 @@ import { RoleFormComponent } from './role-form';
   .btn-ghost { border: 1px solid var(--border); background: var(--glass); color: var(--text-primary); font-weight: 500; &:hover { background: var(--bg-hover); } }
   .btn-primary { border: none; background: var(--accent); color: var(--on-accent); &:hover { background: var(--accent-hover); } }
   .btn-find { border: 1px solid var(--accent); background: var(--accent-dim); color: var(--text-primary); &:hover { background: var(--accent); color: var(--on-accent); } }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); }
+  .tabs button { position: relative; height: 42px; padding: 0 14px; border: none; background: none; color: var(--text-muted);
+    font-size: 14.5px; font-weight: 500; cursor: pointer; transition: color .15s;
+    &:hover { color: var(--text-primary); } &.on { color: var(--text-primary); font-weight: 600; }
+    &.on::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--accent); }
+    .n { margin-left: 4px; color: var(--text-subtle); } }
+  .pane { animation: paneIn .25s ease both; }
+  @keyframes paneIn { from { opacity: 0; transform: translateY(6px); } }
   .roles-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .roles h2 { font-size: 24px; }
   .role-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
@@ -174,6 +199,8 @@ export class ProjectDetailComponent implements OnInit {
   readonly editOpen = signal(false);
   readonly roleFormOpen = signal(false);
   readonly editingRole = signal<CastingRole | null>(null);
+  readonly tabs = [{ id: 'roles', label: 'Rôles' }, { id: 'equipe', label: 'Équipe' }, { id: 'journal', label: 'Journal' }] as const;
+  readonly tab = signal<'roles' | 'equipe' | 'journal'>('roles');
   typeLabel = typeLabel;
   importanceLabel = importanceLabel;
   criteria = criteria;

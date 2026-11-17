@@ -144,8 +144,28 @@ public class ShortlistService {
     private static EntryResponse toResponse(ShortlistEntry e, Map<UUID, String> photos) {
         Actor a = e.getActor();
         Integer age = a.getBirthDate() == null ? null : Period.between(a.getBirthDate(), LocalDate.now()).getYears();
+        String[] avail = availability(e.getRole(), a);
         return new EntryResponse(e.getId(), e.getRole().getId(), a.getId(), a.getFirstName(), a.getLastName(), age,
                 a.getCity(), a.getGender(), photos.get(a.getId()), e.getStatus(), e.getNote(), e.getAuditionDate(),
-                e.getCreatedAt(), e.getUpdatedAt());
+                e.getCreatedAt(), e.getUpdatedAt(), avail[0], avail[1]);
+    }
+
+    /**
+     * Les « disponibilités » d'un acteur sont des périodes où il est libre. Si le rôle a des dates de tournage
+     * et que l'acteur a déclaré des périodes, on vérifie qu'une période couvre tout le tournage (US-07).
+     */
+    static String[] availability(CastingRole role, Actor a) {
+        LocalDate start = role.getShootStart() != null ? role.getShootStart() : role.getShootEnd();
+        LocalDate end = role.getShootEnd() != null ? role.getShootEnd() : role.getShootStart();
+        if (start == null || a.getAvailabilities() == null || a.getAvailabilities().isEmpty()) return new String[]{null, null};
+        boolean covered = a.getAvailabilities().stream()
+                .anyMatch(p -> p.getFromDate() != null && p.getToDate() != null && !p.getFromDate().isAfter(start) && !p.getToDate().isBefore(end));
+        if (covered) return new String[]{"OK", "Disponible pendant tout le tournage"};
+        java.time.format.DateTimeFormatter f = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String periods = a.getAvailabilities().stream()
+                .filter(p -> p.getFromDate() != null && p.getToDate() != null)
+                .map(p -> p.getFromDate().format(f) + " au " + p.getToDate().format(f))
+                .collect(java.util.stream.Collectors.joining(", "));
+        return new String[]{"A_VERIFIER", "Disponible seulement du " + periods};
     }
 }

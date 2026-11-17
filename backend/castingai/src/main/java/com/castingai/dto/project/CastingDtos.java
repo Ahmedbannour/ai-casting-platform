@@ -75,5 +75,8 @@ public final class CastingDtos {
             String note,
             LocalDate auditionDate,
             LocalDateTime createdAt,
-            LocalDateTime updatedAt) {}
+            LocalDateTime updatedAt,
+            /** Disponibilité pour les dates de tournage du rôle : OK, A_VERIFIER, ou null si inconnue (US-07). */
+            String availability,
+            String availabilityNote) {}
 }

@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
+import { DateFieldComponent } from '../../shared/components/date-field/date-field';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PROJECT_TYPES, Project, ProjectRequest, ProjectService, ProjectType } from '../../core/services/project.service';
 
@@ -7,17 +8,20 @@ import { PROJECT_TYPES, Project, ProjectRequest, ProjectService, ProjectType } f
 @Component({
   selector: 'app-project-form',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DateFieldComponent],
   template: `
   <div class="backdrop" (click)="cancel.emit()"></div>
-  <form class="panel" (ngSubmit)="submit()" role="dialog" aria-modal="true"
+  <form class="panel" #f="ngForm" novalidate (ngSubmit)="submit(f)" role="dialog" aria-modal="true"
         [attr.aria-label]="project ? 'Modifier le projet' : 'Nouveau projet'" (keydown.escape)="cancel.emit()">
     <h2>{{ project ? 'Modifier le projet' : 'Nouveau projet' }}</h2>
 
-    <label class="f">
-      <span>Titre</span>
-      <input name="title" [(ngModel)]="title" required maxlength="160" placeholder="Les Passagers" autofocus />
-    </label>
+    <div class="f">
+      <label for="p-title">Titre</label>
+      <input id="p-title" name="title" [(ngModel)]="title" #t="ngModel" required maxlength="160" placeholder="Les Passagers" autofocus
+             [attr.aria-invalid]="t.touched && !title.trim()" />
+      @if (t.touched && !title.trim()) { <small class="field-msg" role="alert">Donnez un titre au projet.</small> }
+      @else if (title.length > 140) { <small class="field-hint">{{ 160 - title.length }} caractères restants</small> }
+    </div>
 
     <div class="f">
       <span>Type</span>
@@ -30,14 +34,26 @@ import { PROJECT_TYPES, Project, ProjectRequest, ProjectService, ProjectType } f
     </div>
 
     <div class="row">
-      <label class="f"><span>Début</span><input type="date" name="start" [(ngModel)]="startDate" /></label>
-      <label class="f"><span>Fin</span><input type="date" name="end" [(ngModel)]="endDate" [min]="startDate || null" /></label>
+      <div class="f">
+        <label for="p-start">Début</label>
+        <app-date-field name="start" inputId="p-start" [(ngModel)]="startDate"
+                        [max]="endDate || null" [rangeStart]="startDate" [rangeEnd]="endDate"
+                        maxMessage="Le début doit précéder la fin du projet." />
+      </div>
+      <div class="f">
+        <label for="p-end">Fin</label>
+        <app-date-field name="end" inputId="p-end" [(ngModel)]="endDate"
+                        [min]="startDate || null" [rangeStart]="startDate" [rangeEnd]="endDate" [openAt]="startDate"
+                        minMessage="La fin ne peut pas précéder le début." />
+      </div>
     </div>
 
-    <label class="f">
-      <span>Description <em>facultatif</em></span>
-      <textarea name="desc" rows="3" [(ngModel)]="description" placeholder="Drame, tournage à Marseille au printemps."></textarea>
-    </label>
+    @if (duration(); as d) { <p class="field-hint dur">Durée : {{ d }}</p> }
+
+    <div class="f">
+      <label for="p-desc">Description <em>facultatif</em></label>
+      <textarea id="p-desc" name="desc" rows="3" maxlength="2000" [(ngModel)]="description" placeholder="Drame, tournage à Marseille au printemps."></textarea>
+    </div>
 
     @if (error()) { <p class="err" role="alert">{{ error() }}</p> }
 
@@ -58,7 +74,8 @@ import { PROJECT_TYPES, Project, ProjectRequest, ProjectService, ProjectType } f
     box-shadow: 0 30px 80px rgba(0,0,0,.4); animation: pop .32s cubic-bezier(.2,.8,.2,1) both; }
   h2 { font-size: 26px; }
   .f { display: flex; flex-direction: column; gap: 6px; flex: 1; }
-  .f > span { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .f > span, .f > label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .dur { margin-top: -8px; }
   .f em { font-style: normal; font-weight: 400; color: var(--text-subtle); }
   input, textarea { height: 42px; padding: 0 12px; border-radius: var(--radius-s); border: 1px solid var(--border);
     background: var(--glass); color: var(--text-primary); font-size: 14.5px; outline: none; color-scheme: dark; }
@@ -109,10 +126,20 @@ export class ProjectFormComponent implements OnInit {
     }
   }
 
-  submit(): void {
+  /** Durée lisible quand les deux dates sont posées et cohérentes. */
+  duration(): string {
+    if (!this.startDate || !this.endDate || this.endDate < this.startDate) return '';
+    const days = Math.round((Date.parse(this.endDate) - Date.parse(this.startDate)) / 86400000) + 1;
+    if (days < 14) return `${days} jour${days > 1 ? 's' : ''}`;
+    if (days < 70) return `${Math.round(days / 7)} semaines`;
+    return `${Math.round(days / 30.44)} mois`;
+  }
+
+  submit(f: NgForm): void {
+    f.control.markAllAsTouched();
     if (!this.title.trim()) { this.error.set('Donnez un titre au projet.'); return; }
-    if (this.startDate && this.endDate && this.endDate < this.startDate) {
-      this.error.set('La date de fin ne peut pas précéder la date de début.'); return;
+    if (f.invalid || (this.startDate && this.endDate && this.endDate < this.startDate)) {
+      this.error.set('Corrigez les champs signalés en rouge.'); return;
     }
     const req: ProjectRequest = {
       title: this.title.trim(), type: this.type, description: this.description.trim() || null,

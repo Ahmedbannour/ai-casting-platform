@@ -30,6 +30,7 @@ import { RoleFormComponent } from './role-form';
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
             Trouver des acteurs
           </button>
+          <a class="btn-ghost" [routerLink]="['/roles', r.id, 'planche']">Planche PDF</a>
           <button type="button" class="btn-ghost" (click)="editOpen.set(true)">Modifier le rôle</button>
         </div>
       </header>
@@ -60,6 +61,14 @@ import { RoleFormComponent } from './role-form';
                     <span class="sub">{{ e.age ? e.age + ' ans' : '' }}{{ e.age && e.city ? ' · ' : '' }}{{ e.city || '' }}</span>
                   </div>
                 </div>
+                @if (e.availability === 'A_VERIFIER') {
+                  <p class="avail warn" [title]="e.availabilityNote || ''">⚠ {{ e.availabilityNote }}</p>
+                } @else if (e.availability === 'OK') {
+                  <p class="avail ok">✓ Disponible pendant le tournage</p>
+                }
+                <label class="aud">Audition
+                  <input type="date" [value]="e.auditionDate || ''" (change)="setAudition(e, $any($event.target).value)" aria-label="Date d'audition" />
+                </label>
                 @if (editingNote() === e.id) {
                   <textarea [(ngModel)]="noteDraft" rows="2" (keydown.enter)="$event.preventDefault(); saveNote(e)"
                             (keydown.escape)="editingNote.set(null)" aria-label="Note" autofocus></textarea>
@@ -147,6 +156,13 @@ import { RoleFormComponent } from './role-form';
   .name { font-weight: 700; font-stretch: var(--narrow); font-size: 15.5px; color: var(--text-primary); text-decoration: none;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; &:hover { text-decoration: underline; } }
   .sub { font-size: 12px; color: var(--text-muted); }
+  .avail { font-size: 12px; line-height: 1.35; padding: 4px 6px; border-radius: 4px; }
+  .avail.warn { background: color-mix(in srgb, var(--reject) 16%, transparent); color: var(--text-primary); }
+  .avail.ok { color: var(--text-muted); }
+  .aud { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 12px; color: var(--text-muted);
+    input { height: 26px; padding: 0 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--glass); color: var(--text-primary);
+      font-size: 12px; color-scheme: dark; } }
+  :host-context(.light) .aud input { color-scheme: light; }
   .note { text-align: left; border: none; background: none; padding: 0; font-size: 12.5px; color: var(--text-muted); cursor: text; line-height: 1.4;
     &:hover { color: var(--text-primary); } }
   textarea { width: 100%; padding: 6px 8px; border-radius: 4px; border: 1px solid var(--accent); background: var(--glass); color: var(--text-primary);
@@ -234,6 +250,11 @@ export class RoleDetailComponent implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  /** Date d'audition (US-13). */
+  setAudition(e: ShortlistEntry, value: string): void {
+    this.casting.updateEntry(e.id, { auditionDate: value || null }).subscribe(u => this.entries.update(list => list.map(x => x.id === u.id ? u : x)));
   }
 
   editNote(e: ShortlistEntry): void { this.noteDraft = e.note ?? ''; this.editingNote.set(e.id); }

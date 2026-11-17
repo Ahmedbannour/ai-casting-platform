@@ -57,6 +57,16 @@ export interface ShortlistEntry {
   auditionDate: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Disponibilité pour les dates de tournage : OK, A_VERIFIER, ou null si inconnue. */
+  availability: 'OK' | 'A_VERIFIER' | null;
+  availabilityNote: string | null;
+}
+
+export interface Member { userId: string; name: string; email: string; owner: boolean; addedAt: string; }
+
+export interface ActivityItem {
+  at: string; userName: string; actorId: string; actorName: string;
+  roleId: string; roleName: string; fromStatus: string | null; toStatus: string;
 }
 
 export const STATUSES: { value: EntryStatus; label: string }[] = [
@@ -109,4 +119,9 @@ export class CastingService {
     return this.http.patch<ShortlistEntry>(`${this.api}/shortlist/${id}`, patch);
   }
   removeEntry(id: string): Observable<void> { return this.http.delete<void>(`${this.api}/shortlist/${id}`); }
+
+  members(projectId: string): Observable<Member[]> { return this.http.get<Member[]>(`${this.api}/projects/${projectId}/members`); }
+  addMember(projectId: string, email: string): Observable<Member> { return this.http.post<Member>(`${this.api}/projects/${projectId}/members`, { email }); }
+  removeMember(projectId: string, userId: string): Observable<void> { return this.http.delete<void>(`${this.api}/projects/${projectId}/members/${userId}`); }
+  activity(projectId: string, limit = 50): Observable<ActivityItem[]> { return this.http.get<ActivityItem[]>(`${this.api}/projects/${projectId}/activity?limit=${limit}`); }
 }

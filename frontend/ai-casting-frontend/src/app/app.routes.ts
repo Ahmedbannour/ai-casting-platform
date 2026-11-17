@@ -10,6 +10,13 @@ export const routes: Routes = [
         .then(m => m.LoginComponent)
   },
   {
+    path: 'roles/:id/planche',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/projects/role-sheet')
+        .then(m => m.RoleSheetComponent)
+  },
+  {
     path: '',
     component: MainLayoutComponent,
     canActivate: [authGuard],
