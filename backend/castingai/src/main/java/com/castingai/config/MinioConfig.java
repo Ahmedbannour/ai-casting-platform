@@ -20,6 +20,11 @@ public class MinioConfig {
     private String accessKey;
     private String secretKey;
     private String bucketName;
+    /**
+     * Début des adresses de fichiers données au navigateur. Vide = adresse relative (/casting-media/...),
+     * servie par la même origine que l'application (proxy en développement, serveur web en production).
+     */
+    private String publicBase = "";
 
     @Bean
     public MinioClient minioClient() {

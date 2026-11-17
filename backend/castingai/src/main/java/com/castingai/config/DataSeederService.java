@@ -17,10 +17,11 @@ import java.util.Random;
 
 /**
  * Seeds the database with 100 realistic actors for testing.
- * Runs once at startup if no actors exist.
+ * Runs once at startup if no actors exist. Jamais en production (profil « prod »).
  */
 @Slf4j
 @Component
+@org.springframework.context.annotation.Profile("!prod")   // T-106 : données et compte de démonstration hors production seulement
 @RequiredArgsConstructor
 public class DataSeederService implements ApplicationRunner {
 

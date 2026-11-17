@@ -34,4 +34,6 @@ public class ActorResponse {
     private List<AvailabilityDto> availabilities;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    /** T-094 : téléphone et e-mail masqués ; à demander via POST /api/actors/{id}/contact (consultation tracée). */
+    private boolean contactHidden;
 }

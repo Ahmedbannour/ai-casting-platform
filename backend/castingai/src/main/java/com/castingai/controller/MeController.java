@@ -41,14 +41,44 @@ public class MeController {
     private final PhotoService photoService;
 
     public record MeResponse(UUID id, String email, String firstName, String lastName, String role,
-                             String provider, UUID actorId) {}
+                             String provider, UUID actorId, String agencyName, String contractStatus,
+                             java.time.LocalDate contractEnd) {}
 
     @GetMapping
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public MeResponse me(@AuthenticationPrincipal UserDetails principal) {
         User u = user(principal);
         UUID actorId = actors.findByAccount_Id(u.getId()).map(Actor::getId).orElse(null);
+        var ag = u.getAgency();
+        String contract = u.getRole() != Role.AGENT ? null : ag == null ? "SANS_AGENCE" : ag.contractStatus();
         return new MeResponse(u.getId(), u.getEmail(), u.getFirstName(), u.getLastName(), u.getRole().name(),
-                u.getAuthProvider(), actorId);
+                u.getAuthProvider(), actorId, ag == null ? null : ag.getName(), contract, ag == null ? null : ag.getContractEnd());
+    }
+
+    public record VisibilityResponse(String visibility, java.time.LocalDateTime changedAt) {}
+    public record VisibilityRequest(@jakarta.validation.constraints.NotNull(message = "Choisissez VISIBLE ou PAUSE")
+                                    @jakarta.validation.constraints.Pattern(regexp = "VISIBLE|PAUSE", message = "Choisissez VISIBLE ou PAUSE")
+                                    String visibility) {}
+
+    /** Consentement de l'acteur : visible des agences sous contrat, ou en pause (T-093). */
+    @GetMapping("/visibility")
+    @org.springframework.transaction.annotation.Transactional
+    public VisibilityResponse myVisibility(@AuthenticationPrincipal UserDetails principal) {
+        Actor a = actors.findById(myActorId(principal)).orElseThrow();
+        return new VisibilityResponse(a.getVisibility(), a.getVisibilityChangedAt());
+    }
+
+    @PutMapping("/visibility")
+    @org.springframework.transaction.annotation.Transactional
+    public VisibilityResponse setMyVisibility(@AuthenticationPrincipal UserDetails principal,
+                                              @Valid @RequestBody VisibilityRequest request) {
+        Actor a = actors.findById(myActorId(principal)).orElseThrow();
+        if (!request.visibility().equals(a.getVisibility())) {
+            a.setVisibility(request.visibility());
+            a.setVisibilityChangedAt(java.time.LocalDateTime.now());
+            actors.save(a);
+        }
+        return new VisibilityResponse(a.getVisibility(), a.getVisibilityChangedAt());
     }
 
     @GetMapping("/actor")

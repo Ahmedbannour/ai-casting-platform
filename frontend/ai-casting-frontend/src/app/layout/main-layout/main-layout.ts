@@ -1,3 +1,4 @@
+import { NotificationBellComponent } from '../notification-bell/notification-bell';
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar';
@@ -9,16 +10,27 @@ import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, SidebarComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, SidebarComponent, NotificationBellComponent],
   styles: [`
     :host { display: flex; height: 100vh; width: 100%; overflow: hidden; }
     .content {
       flex: 1; min-width: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column;
       view-transition-name: page;  /* zone animée lors du changement de page */
+      /* Les pages s'adaptent à la place réellement disponible (menu ouvert ou replié), pas à la fenêtre. */
+      container-type: inline-size; container-name: page;
     }
     .tabbar { display: none; }
+    .m-bell { display: none !important; }
+    .contract-banner { display: flex; align-items: flex-start; gap: 10px; margin: 16px 32px 0; padding: 12px 16px; border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--danger) 55%, var(--border)); background: color-mix(in srgb, var(--danger) 14%, var(--glass));
+      color: var(--text-primary); font-size: 14px; line-height: 1.45; animation: bannerIn .3s ease-out both; }
+    .contract-banner.warn { border-color: var(--accent); background: var(--accent-dim); }
+    .contract-banner svg { flex: none; width: 18px; height: 18px; margin-top: 1px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    @keyframes bannerIn { from { opacity: 0; transform: translateY(-6px); } }
+    @media (max-width: 860px) { .contract-banner { margin: 12px 14px 0; } }
     @media (max-width: 860px) {
       .content { padding-bottom: 76px; }
+      .m-bell { display: inline-flex !important; position: fixed; top: 12px; right: 12px; z-index: 25; }
       .tabbar {
         position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 20; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); grid-auto-flow: column;
         height: 62px; padding: 6px; border-radius: 20px; border: 1px solid var(--border);
@@ -39,8 +51,17 @@ import { AuthService } from '../../core/services/auth.service';
   template: `
     <app-sidebar />
     <div class="content">
+      @if (contract(); as c) {
+        <div class="contract-banner" [class.warn]="c.level === 'warn'" role="status">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <span>{{ c.text }}</span>
+        </div>
+      }
       <router-outlet />
     </div>
+
+    <!-- Cloche toujours accessible sur mobile et tablette (le menu latéral y est replié) -->
+    <app-notification-bell class="m-bell" />
 
     <!-- Barre d'onglets (mobile uniquement) -->
     <nav class="tabbar" aria-label="Navigation">
@@ -52,6 +73,10 @@ import { AuthService } from '../../core/services/auth.service';
       <a class="tab" routerLink="/mon-profil/photos" routerLinkActive="active">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 8"/></svg>
         Photos
+      </a>
+      <a class="tab" routerLink="/mes-propositions" routerLinkActive="active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
+        Propositions
       </a>
       } @else {
       <a class="tab" routerLink="/chat" routerLinkActive="active">
@@ -79,4 +104,19 @@ export class MainLayoutComponent {
   private readonly me = inject(MeService);
   private readonly auth = inject(AuthService);
   readonly role = computed(() => this.me.me()?.role ?? this.auth.role());
+
+  /** Bandeau de l'agent : contrat inactif (lecture seule) ou qui se termine bientôt. */
+  readonly contract = computed(() => {
+    const m = this.me.me();
+    if (!m || m.role !== 'AGENT' || !m.contractStatus) return null;
+    const agence = m.agencyName ?? 'votre agence';
+    if (m.contractStatus === 'EXPIRE') return { level: 'stop', text: `Le contrat de ${agence} a pris fin : vous pouvez consulter vos projets, mais plus les modifier ni lancer de recherche. Contactez la plateforme pour le renouveler.` };
+    if (m.contractStatus === 'A_VENIR') return { level: 'stop', text: `Le contrat de ${agence} n'a pas encore commencé : accès en lecture seule jusqu'à son ouverture.` };
+    if (m.contractStatus === 'SANS_AGENCE') return { level: 'stop', text: 'Votre compte n’est rattaché à aucune agence sous contrat : accès en lecture seule. Contactez l’administrateur.' };
+    if (m.contractEnd) {
+      const days = Math.round((Date.parse(m.contractEnd) - Date.now()) / 86400000);
+      if (days >= 0 && days <= 30) return { level: 'warn', text: `Le contrat de ${agence} se termine dans ${days} jour${days > 1 ? 's' : ''}, le ${new Date(m.contractEnd).toLocaleDateString('fr-FR')}.` };
+    }
+    return null;
+  });
 }

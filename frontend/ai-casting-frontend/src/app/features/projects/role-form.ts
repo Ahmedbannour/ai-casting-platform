@@ -128,7 +128,7 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
   .primary:disabled { opacity: .6; cursor: default; }
   @keyframes fade { from { opacity: 0; } }
   @keyframes pop { from { opacity: 0; transform: translateY(16px) scale(.97); } }
-  @media (max-width: 560px) { .row { flex-direction: column; } }
+  @container page (max-width: 560px) { .row { flex-direction: column; } }
   `]
 })
 export class RoleFormComponent implements OnInit {

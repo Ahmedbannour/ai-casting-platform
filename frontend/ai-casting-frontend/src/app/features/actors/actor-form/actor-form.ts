@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, OnInit, afterRenderEffect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild, afterRenderEffect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -8,6 +8,8 @@ import { MeService } from '../../../core/services/me.service';
 import { DateFieldComponent } from '../../../shared/components/date-field/date-field';
 import { SelectFieldComponent, SelectOption } from '../../../shared/components/select-field/select-field';
 import { ageAt, frDate, todayIso } from '../../../shared/forms/dates';
+import { VisibilitySwitchComponent } from './visibility-switch';
+import { ProfileScoreComponent } from './profile-score';
 import { RULES, email, errorMessage, intBetween, noOverlap, notBlank, periodOrder, personName, phone, uniqueNames } from '../../../shared/forms/rules';
 
 type SectionId = 'identite' | 'physique' | 'talents' | 'parcours' | 'dispos';
@@ -16,7 +18,7 @@ type SectionId = 'identite' | 'physique' | 'talents' | 'parcours' | 'dispos';
 @Component({
   selector: 'app-actor-form',
   standalone: true,
-  imports: [ReactiveFormsModule, DateFieldComponent, SelectFieldComponent],
+  imports: [ReactiveFormsModule, DateFieldComponent, SelectFieldComponent, VisibilitySwitchComponent, ProfileScoreComponent],
   templateUrl: './actor-form.html',
   styleUrl: './actor-form.scss'
 })
@@ -31,6 +33,8 @@ export class ActorFormComponent implements OnInit {
 
   /** Espace personnel de l'acteur freelance (« Mon profil ») : sa propre fiche, via /api/me. */
   readonly self = !!this.route.snapshot.data['self'];
+  readonly contactHidden = signal(false);
+  @ViewChild('score') private score?: ProfileScoreComponent;
   readonly saved = signal(false);
 
   form!: FormGroup;
@@ -210,6 +214,9 @@ export class ActorFormComponent implements OnInit {
       next: actor => {
         const { skills, languages, experiences, availabilities, ...rest } = actor as any;
         this.form.patchValue({ ...rest, birthDate: rest.birthDate ?? '' });
+        // T-094 : coordonnées du vivier masquées, donc non modifiables ici
+        this.contactHidden.set(!!rest.contactHidden);
+        for (const k of ['phone', 'email']) rest.contactHidden ? this.form.get(k)?.disable() : this.form.get(k)?.enable();
         (skills ?? []).forEach((s: any) => this.skills.push(this.nameRow(s)));
         (languages ?? []).forEach((l: any) => this.languages.push(this.nameRow(l)));
         (experiences ?? []).forEach((e: any) => this.experiences.push(this.expRow(e)));
@@ -345,6 +352,7 @@ export class ActorFormComponent implements OnInit {
           this.submitted.set(false);
           this.form.markAsPristine();
           this.saved.set(true);
+          this.score?.refresh();   // T-097 : le score suit la fiche enregistrée
           setTimeout(() => this.saved.set(false), 3500);
           return;
         }

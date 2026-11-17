@@ -3,15 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import {
-  AdminService, AgencyRequest, AgencyStats, Bucket, Delta, ImportPreview, ImportResult, ImportRow, PlatformStats, ProjectStats, UserRow
-} from '../../core/services/admin.service';
+  AdminService, AgencyRequest, AgencyStats, Bucket, Delta, ImportPreview, ImportResult, ImportRow, PlatformStats, ProjectStats, UserRow, AuditEntry } from '../../core/services/admin.service';
 import { SelectFieldComponent } from '../../shared/components/select-field/select-field';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field';
 import { AreaSparkComponent, ColumnSeries, HBar, HBarsComponent, StackedColumnsComponent, monthLabel } from '../../shared/components/charts/charts';
 import { EMAIL_RE } from '../../shared/forms/rules';
 import { frDate, todayIso } from '../../shared/forms/dates';
 
-type Tab = 'tableau' | 'agences' | 'projets' | 'acteurs' | 'equipe' | 'import';
+type Tab = 'tableau' | 'agences' | 'projets' | 'acteurs' | 'equipe' | 'import' | 'journal';
 type RowFilter = 'tous' | 'OK' | 'ERREUR' | 'DOUBLON' | 'remarques';
 interface Kpi { label: string; value: number; sub: string; delta: Delta | null; ratio?: number; }
 
@@ -35,8 +34,30 @@ export class AdminComponent implements OnInit {
   readonly tab = signal<Tab>('tableau');
   readonly tabs: { id: Tab; label: string }[] = [
     { id: 'tableau', label: 'Tableau de bord' }, { id: 'agences', label: 'Agences' }, { id: 'projets', label: 'Projets' },
-    { id: 'acteurs', label: 'Acteurs et freelancers' }, { id: 'equipe', label: 'Équipe et comptes' }, { id: 'import', label: "Import d'acteurs" }
+    { id: 'acteurs', label: 'Acteurs et freelancers' }, { id: 'equipe', label: 'Équipe et comptes' }, { id: 'import', label: "Import d'acteurs" },
+    { id: 'journal', label: 'Journal' }
   ];
+
+  // ═════════ Journal d'audit (T-099) ═════════
+  readonly auditEntries = signal<AuditEntry[]>([]);
+  readonly auditLoaded = signal(false);
+  readonly auditFilter = signal('');
+  readonly auditOptions = [
+    { value: '', label: 'Toutes les actions' }, { value: 'COMPTE_CREE', label: 'Comptes créés' }, { value: 'COMPTE_MODIFIE', label: 'Comptes modifiés' },
+    { value: 'AGENCE_CREEE', label: 'Agences ajoutées' }, { value: 'CONTRAT_MODIFIE', label: 'Contrats modifiés' }, { value: 'IMPORT', label: 'Imports' }
+  ];
+  readonly auditLabel: Record<string, string> = {
+    COMPTE_CREE: 'Compte créé', COMPTE_MODIFIE: 'Compte modifié', AGENCE_CREEE: 'Agence ajoutée', CONTRAT_MODIFIE: 'Contrat modifié', IMPORT: 'Import d’acteurs'
+  };
+  private readonly auditFmt = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  auditWhen(ms: number): string { return this.auditFmt.format(new Date(ms)); }
+  loadAudit(action = this.auditFilter()): void {
+    this.auditFilter.set(action);
+    this.admin.audit(action || undefined).subscribe({
+      next: e => { this.auditEntries.set(e); this.auditLoaded.set(true); },
+      error: () => this.auditLoaded.set(true)
+    });
+  }
   readonly frDate = frDate;
   label = (k: string) => STATUS_LABELS[k] ?? k;
 
@@ -112,8 +133,20 @@ export class AdminComponent implements OnInit {
   readonly agencyBusy = signal(false);
   readonly agencyOptions = computed(() => this.agencies().map(a => ({ value: a.id, label: a.name + (a.status === 'EXPIRE' ? ' (contrat échu)' : '') })));
 
+  // T-098 · offre commerciale
+  readonly planOptions = [
+    { value: '', label: 'Non défini' }, { value: 'ESSENTIEL', label: 'Essentiel' }, { value: 'PRO', label: 'Pro' },
+    { value: 'STUDIO', label: 'Studio' }, { value: 'SUR_MESURE', label: 'Sur mesure' }
+  ];
+  readonly currencyOptions = [{ value: 'TND', label: 'TND' }, { value: 'EUR', label: 'EUR' }, { value: 'USD', label: 'USD' }];
+  planLabel(p: string | null): string { return this.planOptions.find(o => o.value === (p ?? ''))?.label ?? ''; }
+  money(amount: number | null, currency: string): string {
+    if (amount == null) return '';
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency, maximumFractionDigits: amount % 1 ? 2 : 0 }).format(amount);
+  }
+
   private emptyAgency(): AgencyRequest {
-    return { name: '', city: null, contactEmail: null, contractStart: todayIso(), contractEnd: null, maxAgents: null, notes: null };
+    return { name: '', city: null, contactEmail: null, contractStart: todayIso(), contractEnd: null, maxAgents: null, notes: null, plan: '', monthlyAmount: null, currency: 'TND' };
   }
   statusLabel(s: string): string { return s === 'ACTIF' ? 'Sous contrat' : s === 'A_VENIR' ? 'Contrat à venir' : 'Contrat échu'; }
   daysLeft(a: AgencyStats): string {
@@ -130,27 +163,31 @@ export class AdminComponent implements OnInit {
     this.agencyTried.set(false);
     this.agencyError.set('');
     this.agency = a
-      ? { name: a.name, city: a.city, contactEmail: a.contactEmail, contractStart: a.contractStart, contractEnd: a.contractEnd, maxAgents: a.maxAgents, notes: null }
+      ? { name: a.name, city: a.city, contactEmail: a.contactEmail, contractStart: a.contractStart, contractEnd: a.contractEnd, maxAgents: a.maxAgents, notes: null,
+          plan: a.plan ?? '', monthlyAmount: a.monthlyAmount, currency: a.currency || 'TND' }
       : this.emptyAgency();
     this.agencyForm.set(a ? a.id : 'new');
   }
-  agencyFieldError(f: 'name' | 'contactEmail' | 'contractStart' | 'maxAgents'): string {
+  agencyFieldError(f: 'name' | 'contactEmail' | 'contractStart' | 'maxAgents' | 'monthlyAmount'): string {
     if (!this.agencyTried()) return '';
     const a = this.agency;
     if (f === 'name' && !a.name.trim()) return 'Donnez le nom de l’agence.';
     if (f === 'contactEmail' && a.contactEmail && !EMAIL_RE.test(a.contactEmail.trim())) return 'Adresse e-mail incomplète.';
     if (f === 'contractStart' && !a.contractStart) return 'Date de début obligatoire.';
+    if (f === 'monthlyAmount' && a.monthlyAmount != null && (a.monthlyAmount as any) !== '' && (isNaN(+a.monthlyAmount) || +a.monthlyAmount < 0 || +a.monthlyAmount > 1_000_000)) return 'Montant entre 0 et 1 000 000.';
     if (f === 'maxAgents' && a.maxAgents != null && (a.maxAgents as any) !== '' && (!Number.isInteger(+a.maxAgents) || +a.maxAgents < 1 || +a.maxAgents > 1000)) return 'Entre 1 et 1000.';
     return '';
   }
   saveAgency(): void {
     this.agencyTried.set(true);
-    if (['name', 'contactEmail', 'contractStart', 'maxAgents'].some(f => this.agencyFieldError(f as any))) return;
+    if (['name', 'contactEmail', 'contractStart', 'maxAgents', 'monthlyAmount'].some(f => this.agencyFieldError(f as any))) return;
     if (this.agency.contractEnd && this.agency.contractEnd < this.agency.contractStart) return;
     const body: AgencyRequest = {
       ...this.agency, name: this.agency.name.trim(), city: this.agency.city?.trim() || null,
       contactEmail: this.agency.contactEmail?.trim() || null, contractEnd: this.agency.contractEnd || null,
-      maxAgents: this.agency.maxAgents == null || (this.agency.maxAgents as any) === '' ? null : +this.agency.maxAgents
+      maxAgents: this.agency.maxAgents == null || (this.agency.maxAgents as any) === '' ? null : +this.agency.maxAgents,
+      plan: this.agency.plan || null,
+      monthlyAmount: this.agency.monthlyAmount == null || (this.agency.monthlyAmount as any) === '' ? null : +this.agency.monthlyAmount
     };
     const id = this.agencyForm();
     this.agencyBusy.set(true);

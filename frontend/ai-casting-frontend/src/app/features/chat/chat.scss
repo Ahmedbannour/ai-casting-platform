@@ -1,7 +1,12 @@
+/* Occupe la hauteur restante de la zone de contenu : bandeau de contrat au-dessus,
+   barre d'onglets en dessous sur mobile et tablette. */
+:host { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   background: transparent;
   position: relative;
@@ -15,7 +20,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px 120px;
+  padding: 32px 20px 24px;
+  min-height: 0;
+  overflow-y: auto;  /* le champ de saisie reste toujours visible en dessous */
   text-align: center;
   width: 100%;
 }
@@ -70,6 +77,7 @@
 .messages-list {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
   padding: 24px 24px 16px;
 }
 

@@ -241,4 +241,251 @@ class RolesImportApiTest {
                 "password", "motdepasse123", "firstName", "Stat", "lastName", "Acteur"))).get("accessToken").asText();
         send("GET", "/api/admin/stats", nina, null).andExpect(status().isForbidden());
     }
+
+    @Test
+    void contratEchuLectureSeule() throws Exception {
+        String a = admin();
+        String agency = read(send("POST", "/api/admin/agencies", a, Map.of("name", "Agence échue", "contractStart", "2024-01-01",
+                "contractEnd", "2024-12-31")).andExpect(status().isCreated())).get("id").asText();
+        assertThat(read(send("GET", "/api/admin/agencies", a, null)).toString()).contains("EXPIRE");
+        send("POST", "/api/admin/agents", a, Map.of("email", "agent.echu@test.local", "firstName", "Eric", "lastName", "Echu",
+                "password", "motdepasse123", "agencyId", agency)).andExpect(status().isCreated());
+        String agent = token("agent.echu@test.local", "motdepasse123");
+
+        send("GET", "/api/me", agent, null).andExpect(jsonPath("$.contractStatus").value("EXPIRE"))
+                .andExpect(jsonPath("$.agencyName").value("Agence échue"));
+        send("GET", "/api/projects", agent, null).andExpect(status().isOk());                       // lecture : oui
+        send("POST", "/api/projects", agent, Map.of("title", "Interdit", "type", "SERIE"))           // écriture : non
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("CONTRAT_INACTIF"));
+
+        // Contrat prolongé par l'administrateur : l'agent retravaille aussitôt
+        send("PUT", "/api/admin/agencies/" + agency, a, Map.of("name", "Agence échue", "contractStart", "2024-01-01",
+                "contractEnd", "2099-12-31")).andExpect(jsonPath("$.status").value("ACTIF"));
+        send("POST", "/api/projects", agent, Map.of("title", "Autorisé", "type", "SERIE")).andExpect(status().isCreated());
+    }
+
+    @Test
+    void acteurEnPauseSortDesRecherches() throws Exception {
+        String z = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "zelie.pause@test.local",
+                "password", "motdepasse123", "firstName", "Zélie", "lastName", "Pausemaker")).andExpect(status().isCreated()))
+                .get("accessToken").asText();
+        String a = admin();
+        send("GET", "/api/me/visibility", z, null).andExpect(jsonPath("$.visibility").value("VISIBLE"));
+        send("GET", "/api/actors/search?search=Pausemaker", a, null).andExpect(jsonPath("$.totalElements").value(1));
+
+        send("PUT", "/api/me/visibility", z, Map.of("visibility", "PAUSE"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.visibility").value("PAUSE"))
+                .andExpect(jsonPath("$.changedAt").isNotEmpty());
+        send("GET", "/api/actors/search?search=Pausemaker", a, null).andExpect(jsonPath("$.totalElements").value(0));
+        send("GET", "/api/actors?search=Pausemaker", a, null).andExpect(jsonPath("$.totalElements").value(0));
+
+        send("PUT", "/api/me/visibility", z, Map.of("visibility", "CACHE")).andExpect(status().isBadRequest());
+        send("PUT", "/api/me/visibility", a, Map.of("visibility", "PAUSE")).andExpect(status().isForbidden());
+
+        send("PUT", "/api/me/visibility", z, Map.of("visibility", "VISIBLE")).andExpect(status().isOk());
+        send("GET", "/api/actors/search?search=Pausemaker", a, null).andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    private String agentOf(String agencyName, String email) throws Exception {
+        String ag = read(send("POST", "/api/admin/agencies", admin(), Map.of("name", agencyName, "contractStart", "2026-01-01",
+                "contractEnd", "2030-12-31", "maxAgents", 5)).andExpect(status().isCreated())).get("id").asText();
+        send("POST", "/api/admin/agents", admin(), Map.of("email", email, "firstName", "Agent", "lastName", agencyName,
+                "password", "motdepasse123", "agencyId", ag)).andExpect(status().isCreated());
+        return token(email, "motdepasse123");
+    }
+
+    @Test
+    void chaqueAgenceGardeSesActeursEtSonEquipe() throws Exception {
+        String a = agentOf("Agence Alpha", "agent.alpha@test.local");
+        String b = agentOf("Agence Beta", "agent.beta@test.local");
+
+        // Alpha apporte une fiche : elle lui reste privée
+        String id = read(send("POST", "/api/actors", a, Map.of("firstName", "Ines", "lastName", "Privatalpha"))
+                .andExpect(status().isCreated())).get("id").asText();
+        send("GET", "/api/actors/search?search=Privatalpha", a, null).andExpect(jsonPath("$.totalElements").value(1));
+        send("GET", "/api/actors/" + id, a, null).andExpect(status().isOk());
+
+        send("GET", "/api/actors/search?search=Privatalpha", b, null).andExpect(jsonPath("$.totalElements").value(0));
+        send("GET", "/api/actors?search=Privatalpha", b, null).andExpect(jsonPath("$.totalElements").value(0));
+        send("GET", "/api/actors/" + id, b, null).andExpect(status().isNotFound());
+        send("GET", "/api/actors/" + id + "/photos", b, null).andExpect(status().isNotFound());
+        send("GET", "/api/actors/" + id + "/detail", b, null).andExpect(status().isNotFound());
+
+        // L'administrateur voit tout ; le vivier (freelances) reste visible de tous
+        send("GET", "/api/actors/" + id, admin(), null).andExpect(status().isOk());
+        send("POST", "/api/auth/register", null, Map.of("email", "vivier.libre@test.local", "password", "motdepasse123",
+                "firstName", "Vivier", "lastName", "Partagelibre")).andExpect(status().isCreated());
+        send("GET", "/api/actors/search?search=Partagelibre", b, null).andExpect(jsonPath("$.totalElements").value(1));
+
+        // Beta ne peut pas glisser la fiche d'Alpha dans sa shortlist
+        String pb = read(send("POST", "/api/projects", b, Map.of("title", "Projet Beta", "type", "SERIE"))).get("id").asText();
+        String rb = read(send("POST", "/api/projects/" + pb + "/roles", b, Map.of("name", "Rôle Beta"))).get("id").asText();
+        send("POST", "/api/roles/" + rb + "/shortlist", b, Map.of("actorId", id)).andExpect(status().isNotFound());
+
+        // L'équipe d'un projet reste dans l'agence
+        String pa = read(send("POST", "/api/projects", a, Map.of("title", "Projet Alpha", "type", "SERIE"))).get("id").asText();
+        send("POST", "/api/projects/" + pa + "/members", a, Map.of("email", "agent.beta@test.local"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void coordonneesProtegeesEtConsultationsTracees() throws Exception {
+        String g = agentOf("Agence Gamma", "agent.gamma@test.local");
+        String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "lina.contact@test.local",
+                "password", "motdepasse123", "firstName", "Lina", "lastName", "Contactable")).andExpect(status().isCreated()))
+                .get("accessToken").asText();
+        String id = read(send("GET", "/api/me", f, null)).get("actorId").asText();
+        send("PUT", "/api/me/actor", f, Map.of("firstName", "Lina", "lastName", "Contactable", "phone", "+33612345678"))
+                .andExpect(jsonPath("$.phone").value("+33612345678"));
+
+        // Fiche du vivier : coordonnées masquées pour l'agent
+        send("GET", "/api/actors/" + id, g, null).andExpect(jsonPath("$.contactHidden").value(true))
+                .andExpect(jsonPath("$.phone").doesNotExist());
+        send("GET", "/api/actors/" + id + "/detail", g, null).andExpect(jsonPath("$.contactHidden").value(true));
+        // Un agent qui modifie la fiche ne peut pas écraser ce qu'il ne voit pas
+        send("PUT", "/api/actors/" + id, g, Map.of("phone", "", "city", "Sousse")).andExpect(status().isOk());
+
+        // Il les demande : consultation tracée, visible de l'acteur
+        send("POST", "/api/actors/" + id + "/contact", g, null).andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value("+33612345678")).andExpect(jsonPath("$.email").value("lina.contact@test.local"));
+        send("GET", "/api/me/contact-views", f, null).andExpect(jsonPath("$[0].who").value("Agence Gamma"));
+        send("GET", "/api/me/contact-views", g, null).andExpect(status().isForbidden());
+
+        // L'administrateur voit tout ; l'agence voit les fiches qu'elle a apportées
+        send("GET", "/api/actors/" + id, admin(), null).andExpect(jsonPath("$.contactHidden").value(false))
+                .andExpect(jsonPath("$.phone").value("+33612345678"));
+        String own = read(send("POST", "/api/actors", g, Map.of("firstName", "Omar", "lastName", "Maison", "phone", "+21698765432"))).get("id").asText();
+        send("GET", "/api/actors/" + own, g, null).andExpect(jsonPath("$.contactHidden").value(false))
+                .andExpect(jsonPath("$.phone").value("+21698765432"));
+    }
+
+    @Test
+    void propositionEtConvocationAcceptees() throws Exception {
+        String d = agentOf("Agence Delta", "agent.delta@test.local");
+        String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "sami.offre@test.local",
+                "password", "motdepasse123", "firstName", "Sami", "lastName", "Offrable")).andExpect(status().isCreated()))
+                .get("accessToken").asText();
+        String actorId = read(send("GET", "/api/me", f, null)).get("actorId").asText();
+
+        String p = read(send("POST", "/api/projects", d, Map.of("title", "Les Phares", "type", "SERIE"))).get("id").asText();
+        String r = read(send("POST", "/api/projects/" + p + "/roles", d, Map.of("name", "Yanis, gardien de phare",
+                "shootStart", "2027-05-01", "shootEnd", "2027-06-30"))).get("id").asText();
+        String e = read(send("POST", "/api/roles/" + r + "/shortlist", d, Map.of("actorId", actorId)).andExpect(status().isCreated())).get("id").asText();
+
+        // Convocation : date obligatoire, avant la fin du tournage
+        send("POST", "/api/shortlist/" + e + "/offers", d, Map.of("kind", "AUDITION")).andExpect(status().isBadRequest());
+        send("POST", "/api/shortlist/" + e + "/offers", d, Map.of("kind", "AUDITION", "auditionDate", "2027-08-01")).andExpect(status().isBadRequest());
+        send("POST", "/api/shortlist/" + e + "/offers", d, Map.of("kind", "AUDITION", "auditionDate", "2027-04-12",
+                "message", "Scène 4, texte joint par e-mail")).andExpect(status().isCreated()).andExpect(jsonPath("$.status").value("ENVOYEE"));
+        send("POST", "/api/shortlist/" + e + "/offers", d, Map.of("kind", "PROPOSITION")).andExpect(status().isConflict());
+
+        // L'acteur la voit dans son espace, avec le rôle et l'agence, et l'accepte
+        JsonNode mine = read(send("GET", "/api/me/offers", f, null).andExpect(status().isOk()));
+        assertThat(mine.get(0).get("roleName").asText()).isEqualTo("Yanis, gardien de phare");
+        assertThat(mine.get(0).get("agencyName").asText()).isEqualTo("Agence Delta");
+        String offer = mine.get(0).get("id").asText();
+        send("PUT", "/api/me/offers/" + offer, f, Map.of("answer", "ACCEPTEE", "note", "Avec plaisir")).andExpect(status().isNoContent());
+        send("PUT", "/api/me/offers/" + offer, f, Map.of("answer", "DECLINEE")).andExpect(status().isConflict());
+        send("GET", "/api/me/offers", d, null).andExpect(status().isForbidden());
+
+        // L'agent voit la réponse ; le candidat est passé en audition à la date prévue
+        send("GET", "/api/roles/" + r + "/offers", d, null).andExpect(jsonPath("$[0].status").value("ACCEPTEE"))
+                .andExpect(jsonPath("$[0].answerNote").value("Avec plaisir"));
+        JsonNode list = read(send("GET", "/api/roles/" + r + "/shortlist", d, null));
+        assertThat(list.get(0).get("status").asText()).isEqualTo("AUDITION");
+        assertThat(list.get(0).get("auditionDate").asText()).isEqualTo("2027-04-12");
+
+        // Fiche sans compte : pas de proposition possible, l'agent contacte l'acteur directement
+        String own = read(send("POST", "/api/actors", d, Map.of("firstName", "Sans", "lastName", "Compte"))).get("id").asText();
+        String e2 = read(send("POST", "/api/roles/" + r + "/shortlist", d, Map.of("actorId", own))).get("id").asText();
+        send("POST", "/api/shortlist/" + e2 + "/offers", d, Map.of("kind", "PROPOSITION")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void notificationsDeLaCloche() throws Exception {
+        String d = agentOf("Agence Epsilon", "agent.epsilon@test.local");
+        String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "rita.notif@test.local",
+                "password", "motdepasse123", "firstName", "Rita", "lastName", "Notifiee")).andExpect(status().isCreated()))
+                .get("accessToken").asText();
+        String actorId = read(send("GET", "/api/me", f, null)).get("actorId").asText();
+        send("GET", "/api/me/notifications", f, null).andExpect(jsonPath("$.unread").value(0));
+
+        String p = read(send("POST", "/api/projects", d, Map.of("title", "Projet cloche", "type", "SERIE"))).get("id").asText();
+        String r = read(send("POST", "/api/projects/" + p + "/roles", d, Map.of("name", "Rôle cloche"))).get("id").asText();
+        String e = read(send("POST", "/api/roles/" + r + "/shortlist", d, Map.of("actorId", actorId))).get("id").asText();
+
+        // Proposition → l'acteur est prévenu
+        send("POST", "/api/shortlist/" + e + "/offers", d, Map.of("kind", "PROPOSITION")).andExpect(status().isCreated());
+        send("GET", "/api/me/notifications", f, null).andExpect(jsonPath("$.unread").value(1))
+                .andExpect(jsonPath("$.items[0].title").value("Proposition de rôle : Rôle cloche"))
+                .andExpect(jsonPath("$.items[0].link").value("/mes-propositions"));
+
+        // Réponse → l'agent est prévenu ; consultation des coordonnées → l'acteur aussi
+        String offer = read(send("GET", "/api/me/offers", f, null)).get(0).get("id").asText();
+        send("PUT", "/api/me/offers/" + offer, f, Map.of("answer", "DECLINEE")).andExpect(status().isNoContent());
+        send("GET", "/api/me/notifications", d, null).andExpect(jsonPath("$.items[0].title").value("Rita Notifiee a décliné votre demande"));
+        send("POST", "/api/actors/" + actorId + "/contact", d, null).andExpect(status().isOk());
+        send("GET", "/api/me/notifications", f, null).andExpect(jsonPath("$.unread").value(2))
+                .andExpect(jsonPath("$.items[0].title").value("Agence Epsilon a consulté vos coordonnées"));
+
+        // Avis du réalisateur → le propriétaire du projet est prévenu
+        String token = read(send("POST", "/api/roles/" + r + "/shares", d, Map.of("days", 7))).get("token").asText();
+        mvc.perform(put("/api/public/shares/" + token + "/votes/" + e).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"vote\":\"OUI\",\"voterName\":\"Claire\"}")).andExpect(status().isNoContent());
+        send("GET", "/api/me/notifications", d, null).andExpect(jsonPath("$.items[0].title").value("Claire a répondu « oui » pour Rita Notifiee"));
+
+        // Tout marquer comme lu
+        send("POST", "/api/me/notifications/read", f, null).andExpect(status().isNoContent());
+        send("GET", "/api/me/notifications", f, null).andExpect(jsonPath("$.unread").value(0));
+    }
+
+    @Test
+    void offreCommercialeEtRevenuMensuel() throws Exception {
+        String a = admin();
+        String end = java.time.LocalDate.now().plusDays(10).toString();
+        send("POST", "/api/admin/agencies", a, Map.of("name", "Agence Zeta", "contractStart", "2026-01-01", "contractEnd", end,
+                "plan", "PRO", "monthlyAmount", 450, "currency", "EUR")).andExpect(status().isCreated())
+                .andExpect(jsonPath("$.plan").value("PRO")).andExpect(jsonPath("$.monthlyAmount").value(450))
+                .andExpect(jsonPath("$.currency").value("EUR"));
+        send("POST", "/api/admin/agencies", a, Map.of("name", "Agence Eta", "contractStart", "2026-01-01", "plan", "GRATUIT"))
+                .andExpect(status().isBadRequest());
+        send("POST", "/api/admin/agencies", a, Map.of("name", "Agence Theta", "contractStart", "2026-01-01", "monthlyAmount", -5))
+                .andExpect(status().isBadRequest());
+
+        JsonNode rev = read(send("GET", "/api/admin/stats", a, null).andExpect(status().isOk())).get("revenue");
+        boolean eur = false;
+        for (JsonNode m : rev.get("mrr")) if (m.get("currency").asText().equals("EUR")) { eur = true; assertThat(m.get("amount").asDouble()).isEqualTo(450.0); }
+        assertThat(eur).isTrue();
+        boolean found = false;
+        for (JsonNode r : rev.get("renewals")) if (r.get("name").asText().equals("Agence Zeta")) { found = true; assertThat(r.get("daysLeft").asLong()).isEqualTo(10); }
+        assertThat(found).isTrue();
+
+        // La cloche de l'administrateur rappelle le renouvellement
+        String feed = send("GET", "/api/me/notifications", a, null).andReturn().getResponse().getContentAsString();
+        assertThat(feed).contains("Contrat de Agence Zeta : fin dans 10 jours");
+    }
+
+    @Test
+    void journalAuditDeLAdministration() throws Exception {
+        String a = admin();
+        String ag = read(send("POST", "/api/admin/agencies", a, Map.of("name", "Agence Iota", "contractStart", "2026-01-01"))
+                .andExpect(status().isCreated())).get("id").asText();
+        send("PUT", "/api/admin/agencies/" + ag, a, Map.of("name", "Agence Iota", "contractStart", "2026-01-01",
+                "contractEnd", "2027-06-30", "plan", "STUDIO", "monthlyAmount", 900, "currency", "TND")).andExpect(status().isOk());
+        String uid = read(send("POST", "/api/admin/agents", a, Map.of("email", "agent.iota@test.local", "firstName", "Ines",
+                "lastName", "Iota", "password", "motdepasse123", "agencyId", ag)).andExpect(status().isCreated())).get("user").get("id").asText();
+        send("PATCH", "/api/admin/users/" + uid, a, Map.of("enabled", false)).andExpect(status().isOk());
+
+        JsonNode log = read(send("GET", "/api/admin/audit", a, null).andExpect(status().isOk()));
+        String all = log.toString();
+        assertThat(all).contains("AGENCE_CREEE").contains("Agence Iota")
+                .contains("CONTRAT_MODIFIE").contains("au 30/06/2027, STUDIO, 900 TND/mois")
+                .contains("COMPTE_CREE").contains("agent.iota@test.local")
+                .contains("COMPTE_MODIFIE").contains("désactivé");
+        assertThat(log.get(0).get("actor").asText()).contains("ahmed@casting.com");
+        send("GET", "/api/admin/audit?action=COMPTE_MODIFIE", a, null).andExpect(jsonPath("$[0].action").value("COMPTE_MODIFIE"));
+
+        // Réservé à l'administrateur
+        send("GET", "/api/admin/audit", agentOf("Agence Kappa", "agent.kappa@test.local"), null).andExpect(status().isForbidden());
+    }
 }

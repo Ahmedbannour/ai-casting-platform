@@ -31,7 +31,7 @@ svg { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; s
   background: var(--danger); color: #fff; font-size: 11.5px; font-weight: 700; }
 
 /* ── Sommaire, tablette et mobile : carrousel horizontal, rubrique active au centre exact ── */
-@media (max-width: 1000px) {
+@container page (max-width: 1000px) {
   .layout { display: flex; flex-direction: column; gap: 16px; min-width: 0; width: 100%; }
   .layout .card { scroll-margin-top: 76px; } /* sous la bande collée en haut */
   /* contain : la largeur de la bande ne dépend jamais de son contenu (sinon les marges de centrage l'élargissent). */
@@ -135,11 +135,11 @@ textarea { height: auto; padding: 10px 12px; resize: vertical; line-height: 1.55
   .bar-msg { flex: 1 0 100%; }
   .bar-in .btn-ghost, .bar-in .btn-primary { flex: 1; }
 } /* au-dessus de la barre d'onglets mobile */
-@media (max-width: 1000px) {
+@container page (max-width: 1000px) {
   .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .g-exp { grid-template-columns: 1fr 1fr; }
 }
-@media (max-width: 620px) {
+@container page (max-width: 620px) {
   .page { padding: 18px 14px 0; }
   .head h1 { font-size: 30px; }
   .card { padding: 16px; }
@@ -151,3 +151,6 @@ textarea { height: auto; padding: 10px 12px; resize: vertical; line-height: 1.55
 .saved-msg { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-primary);
   &::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); } animation: rowIn .2s ease-out both; }
 .btn-ghost:disabled { opacity: .45; cursor: default; }
+
+/* T-094 · coordonnées masquées */
+.contact-lock { grid-column: 1 / -1; margin: 0; }

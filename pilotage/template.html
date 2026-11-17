@@ -262,19 +262,102 @@ td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 @media (prefers-reduced-motion:no-preference){.mm-live.flash{animation:fl 1.2s ease-out}@keyframes fl{from{background:var(--ok-soft)}to{background:var(--surface)}}}
 footer{color:var(--muted);font-size:13px;padding:24px 0}
 @media (prefers-reduced-motion:no-preference){.view.on{animation:in .25s ease-out}@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+
+/* ===== Plan produit final & blocages (P-031) ===== */
+.plan-top{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+.plan-top .obj{font-size:17px;line-height:1.55}
+.plan-top .rule{color:var(--muted);font-size:14px;margin-top:10px}
+.pnum{font-family:var(--f-display);font-size:44px;font-weight:700;line-height:1}
+.pnum small{font-size:16px;color:var(--muted);font-weight:500;margin-left:6px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.stack{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--todo-soft);margin-top:14px}
+.stack i{display:block;height:100%;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.cur{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;border:1px solid var(--line);border-left:5px solid var(--run);border-radius:14px;background:var(--surface);padding:14px 18px}
+.cur .tag{font-family:var(--f-mono);font-size:12px;color:var(--run);text-transform:uppercase;letter-spacing:.06em}
+.cur h3{font-size:18px;margin-top:2px}
+.cur p{color:var(--muted);font-size:14px;margin-top:4px}
+.queue{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x proximity}
+.qi{flex:0 0 190px;scroll-snap-align:start;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface2);cursor:pointer;text-align:left;font:inherit;color:inherit;display:flex;flex-direction:column;gap:4px;position:relative}
+.qi .n{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.qi b{font-size:14px;font-weight:600;line-height:1.35}
+.qi.fait{opacity:.62}.qi.fait .n::after{content:" · fait";color:var(--ok)}
+.qi.en_cours{border-color:var(--run);box-shadow:0 0 0 3px var(--run-soft)}
+.qi.en_cours .n::after{content:" · en cours";color:var(--run)}
+.qi.bloque{border-color:var(--ko)}.qi.bloque .n::after{content:" · bloqué";color:var(--ko)}
+.lots{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px}
+.lot{display:flex;flex-direction:column;gap:10px}
+.lot .lh{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.lot .lid{font-family:var(--f-mono);font-size:12px;color:var(--accent)}
+.lot .but{color:var(--muted);font-size:14px}
+.lot ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.lot li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;font-size:14px;padding:6px 8px;border-radius:8px;cursor:pointer}
+.lot li:hover{background:var(--surface2)}
+.lot li .id{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot.fait{background:var(--ok)}.dot.en_cours{background:var(--run)}.dot.a_faire{background:var(--todo)}.dot.bloque{background:var(--ko)}
+.blks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:16px;align-items:start}
+.blk{border-left:5px solid var(--ko)}
+.blk.decided{border-left-color:var(--ok)}
+.blk .reason{color:var(--ko);font-size:14px;margin-top:6px}
+.blk .chosen{color:var(--ok);font-size:14px;margin-top:6px;font-weight:600}
+.blk .offer .choose{align-self:flex-start}
+.tabs .cnt{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:999px;background:var(--ko);color:#fff;font-size:12px;font-family:var(--f-mono);text-align:center;line-height:20px}
+.tabs .cnt:empty{display:none}
+.flash{animation:flash 1.6s ease-out}
+@keyframes flash{from{background:var(--ok-soft);box-shadow:0 0 0 3px var(--ok)}to{}}
+.chip.tick{border-color:var(--ok);color:var(--ok)}
+@media (prefers-reduced-motion:no-preference){.qi.en_cours::before{content:"";position:absolute;inset:-4px;border-radius:14px;border:2px solid var(--run);animation:qpl 1.8s ease-out infinite;pointer-events:none}@keyframes qpl{from{opacity:.9}to{opacity:0;transform:scale(1.04)}}}
+@media (prefers-reduced-motion:reduce){.flash{animation:none}.stack i{transition:none}}
+/* ===== Écrans étroits ===== */
+@media (max-width:900px){.plan-top{grid-template-columns:1fr}}
+@media (max-width:700px){
+ .wrap{padding:0 14px}
+ main{padding:16px 0 56px}
+ .top .wrap{padding-top:12px;padding-bottom:12px;gap:10px}
+ .logo{width:34px;height:34px;font-size:17px}
+ h1{font-size:18px} h2{font-size:17px}
+ .brand p{font-size:13px}
+ .top .right{margin-left:0;width:100%}
+ .chip{font-size:12px;padding:4px 8px}
+ nav.tabs a{padding:11px 10px 9px;font-size:14px}
+ .panel{padding:14px;border-radius:12px}
+ .now{padding:10px 12px;gap:8px}
+ .now .ag{font-size:13px}
+ .cur{grid-template-columns:1fr;gap:8px}
+ .pnum{font-size:36px}
+ .qi{flex-basis:160px}
+ .modal{padding:0;align-items:flex-end}
+ .modal .box{max-width:none;border-radius:16px 16px 0 0;max-height:92vh;padding:16px}
+ .toast{left:14px;right:14px;transform:none;bottom:14px}
+}
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap">
   <div class="logo" aria-hidden="true">P</div>
   <div class="brand"><h1 id="h-name"></h1><p id="h-sub"></p></div>
-  <div class="right"><span class="chip" id="h-day"></span><span class="chip" id="h-maj"></span></div>
+  <div class="right"><span class="chip" id="h-day"></span><span class="chip" id="h-maj"></span><span class="chip" id="h-live" hidden></span></div>
 </div></header>
 <nav class="tabs" aria-label="Sections"><div class="wrap">
-  <a href="#synthese">Synthèse</a><a href="#carte">Carte mentale</a><a href="#cycle">Cycle des prompts</a><a href="#organisation">Organisation</a><a href="#journal">Journal quotidien</a><a href="#taches">Tâches</a><a href="#prompts">Prompts &amp; outils</a>
+  <a href="#plan">Plan produit final</a><a href="#blocages">Blocages<span class="cnt" id="blk-cnt"></span></a><a href="#synthese">Synthèse</a><a href="#carte">Carte mentale</a><a href="#cycle">Cycle des prompts</a><a href="#organisation">Organisation</a><a href="#journal">Journal quotidien</a><a href="#taches">Tâches</a><a href="#prompts">Prompts &amp; outils</a>
 </div></nav>
 <main><div class="wrap">
 <div class="now" id="now"></div>
+
+<section class="view" id="v-plan">
+  <div class="plan-top">
+    <div class="panel"><div class="phead"><h2>Objectif</h2><span class="sub" id="pl-ver"></span></div><p class="obj" id="pl-obj"></p><p class="rule" id="pl-rule"></p></div>
+    <div class="panel"><div class="phead"><h2>Avancement du plan</h2><span class="sub" id="pl-count"></span></div><div class="pnum" id="pl-pct"></div><div class="stack" id="pl-stack"></div><div class="legend" id="pl-legend"></div></div>
+  </div>
+  <div class="cur" id="pl-cur"></div>
+  <div class="panel"><div class="phead"><h2>File d'exécution</h2><span class="sub">une tâche à la fois, dans cet ordre</span></div><div class="queue" id="pl-queue"></div></div>
+  <div class="lots" id="pl-lots"></div>
+</section>
+<section class="view" id="v-blocages">
+  <div class="panel"><div class="phead"><h2>Tâches bloquées et solutions proposées</h2><span class="sub" id="bl-sub"></span></div><p class="small">Choisissez une solution : l'entreprise l'applique au prochain passage et la tâche reprend sa place dans la file.</p></div>
+  <div class="blks" id="bl-list"></div>
+</section>
 
 <section class="view" id="v-synthese">
   <div class="hero">
@@ -618,24 +701,55 @@ function detectChanges(){
     if(PREV.av!==snap.av)PING.set('__centre',until);}
   PREV=snap;const now=Date.now();for(const [k,v] of PING)if(v<now)PING.delete(k);}
 setInterval(()=>{const n=Date.now();let gone=false;for(const [k,v] of PING)if(v<n){PING.delete(k);gone=true;}if(gone&&location.hash==='#carte')renderMM();},2000);
+
+// ===== Plan produit final (P-031) =====
+let PREVST=null;
+function changedIds(){const cur=Object.fromEntries(T.map(t=>[t.id,t.statut]));const ch=new Set();if(PREVST)for(const k in cur)if(PREVST[k]!==cur[k])ch.add(k);PREVST=cur;return ch;}
+function renderPlan(){const P=D.plan;if(!P){$('#pl-obj').textContent='Plan en cours de rédaction.';return}
+  const ch=changedIds();const byId=Object.fromEntries(T.map(t=>[t.id,t]));
+  const ids=P.lots.flatMap(l=>l.taches);const ts=ids.map(i=>byId[i]).filter(Boolean);
+  const c=s=>ts.filter(t=>t.statut===s).length;const done=c('fait');
+  $('#pl-ver').textContent=P.version||'';$('#pl-obj').textContent=P.objectif||'';$('#pl-rule').textContent=P.regle||'';
+  $('#pl-pct').innerHTML=`${ts.length?Math.round(done/ts.length*100):0}<small>%</small>`;
+  $('#pl-count').textContent=`${done} sur ${ts.length} tâches faites`;
+  const col={fait:'var(--ok)',en_cours:'var(--run)',bloque:'var(--ko)',a_faire:'var(--todo)'};
+  $('#pl-stack').innerHTML=ORDER.map(s=>`<i style="width:${ts.length?c(s)/ts.length*100:0}%;background:${col[s]}" title="${ST[s]} : ${c(s)}"></i>`).join('');
+  $('#pl-legend').innerHTML=ORDER.map(s=>`<span><i style="background:${col[s]}"></i>${ST[s]} ${c(s)}</span>`).join('');
+  const cur=byId[P.courante];
+  $('#pl-cur').innerHTML=cur?`<span class="av pulse" style="background:${(memberOf(cur.resp)[0]||{}).couleur||'#888'}">${initials(cur.resp||'?')}</span><div><span class="tag">Tâche en cours · ${esc(cur.id)}</span><h3>${esc(cur.titre)}</h3><p>${esc(cur.resp||'')} · ${esc(cur.detail||'')}</p></div><button class="btn" type="button" data-task="${cur.id}">Détail</button>`:'<div></div><div><span class="tag">File terminée</span></div><div></div>';
+  $('#pl-cur').classList.toggle('flash',!!cur&&ch.has(cur.id));
+  $('#pl-queue').innerHTML=(P.file||[]).map((id,i)=>{const t=byId[id];if(!t)return'';return `<button type="button" class="qi ${t.statut}${ch.has(id)?' flash':''}" data-task="${id}" ${id===P.courante?'aria-current="step"':''}><span class="n">${i+1} · ${id}</span><b>${esc(t.titre)}</b></button>`}).join('');
+  const qc=$('#pl-queue').querySelector('[aria-current]');if(qc&&!renderPlan.scrolled){renderPlan.scrolled=true;setTimeout(()=>qc.scrollIntoView({block:'nearest',inline:'center'}),60)}
+  $('#pl-lots').innerHTML=P.lots.map(l=>{const lt=l.taches.map(i=>byId[i]).filter(Boolean);const d=lt.filter(t=>t.statut==='fait').length;const pct=lt.length?Math.round(d/lt.length*100):0;
+    return `<div class="panel lot"><div class="lh"><h3><span class="lid">${l.id}</span> ${esc(l.titre)}</h3><span class="small mono">${d}/${lt.length}</span></div><p class="but">${esc(l.but||'')}</p><div class="bar" style="margin:0"><i style="width:${pct}%;background:${pct===100?'var(--ok)':'var(--accent)'}"></i></div><ul>${lt.map(t=>`<li data-task="${t.id}" class="${ch.has(t.id)?'flash':''}" title="${ST[t.statut]}"><span class="dot ${t.statut}"></span><span><span class="id">${t.id}</span> ${esc(t.titre)}</span>${t.statut==='bloque'&&needsFix(t)?fixBtn(t):`<span class="prio ${t.prio}">${t.prio}</span>`}</li>`).join('')}</ul></div>`}).join('');
+}
+function renderBlk(){const B=T.filter(t=>t.statut!=='fait'&&(t.statut==='bloque'||t.bloquant||DECS.some(x=>x.source===t.id&&x.statut!=='fait'))&&(t.solutions||t.bloquant||t.statut==='bloque'));
+  const pend=B.filter(t=>needsFix(t));$('#blk-cnt').textContent=pend.length||'';
+  $('#bl-sub').textContent=pend.length?`${pend.length} en attente de votre choix`:'Aucune décision en attente';
+  $('#bl-list').innerHTML=B.length?B.sort((a,b)=>needsFix(b)-needsFix(a)).map(t=>{const dec=DECS.find(x=>x.source===t.id);const offers=(t.solutions&&t.solutions.length)?t.solutions:defaultOffers(t);
+    return `<div class="panel blk ${dec?'decided':''}"><div class="phead" style="margin-bottom:4px"><h3><span class="mono" style="color:var(--accent)">${t.id}</span> ${esc(t.titre)}</h3><span class="prio ${t.prio}">${t.prio}</span></div>${dec?`<p class="chosen">Votre choix : ${esc(dec.offre)} → ${esc(dec.id)}</p>`:`<p class="reason">${esc(t.bloquant||'Tâche bloquée')}</p><div class="offers">${offers.map((o,i)=>`<div class="offer ${o.recommande?'rec':''}">${o.recommande?'<span class="badge">Recommandée</span>':''}<h3>${esc(o.titre)}</h3><p class="small">${esc(o.detail)}</p><div class="tags"><span class="badge free">${esc(o.cout||'Gratuit')}</span><span>Délai : ${esc(o.delai||'—')}</span>${o.dept&&DEP[o.dept]?dept(o.dept):''}<span>${esc(o.resp||'')}</span></div><button type="button" class="btn choose" data-pick="${t.id}|${i}">Choisir cette solution</button></div>`).join('')}</div>`}</div>`}).join(''):'<div class="panel"><p>Aucune tâche bloquée.</p></div>';
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b)return;e.stopPropagation();const [id,i]=b.dataset.pick.split('|');const t=T.find(x=>x.id===id);if(!t)return;const offers=(t.solutions&&t.solutions.length)?t.solutions:defaultOffers(t);
+  const box=b.closest('.offers');box.querySelectorAll('.choose').forEach(x=>x.classList.add('scope'));choose(t,offers[+i],b);},true);
 function renderAll(){
   DEP=Object.fromEntries(D.departements.map(x=>[x.id,x]));T=D.taches;applyDecs();members=D.departements.reduce((a,x)=>a+x.membres.length,0);
   NOW=D.maintenant||{agents:[]};activeNames=new Set(NOW.agents.map(a=>a.nom));detectChanges();
   D.departements.forEach(x=>{if(x.membres.some(m=>activeNames.has(m.nom)))mmOpen.add(x.id)});
-  renderTop();renderNow();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();
+  renderTop();renderNow();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();renderPlan();renderBlk();
   if(location.hash==='#carte'){renderMM();const info=$('#mm-info');if(info&&info.innerHTML){if(mmFocus)showAgent(mmFocus);else if(infoKind==='projet')showProject();else if(infoKind&&infoKind.startsWith('dept:'))showDept(infoKind.slice(5));}}
   setLive();
 }
 let liveState='static',liveAt=null;
-function setLive(){const el=$('#live');if(!el)return;
+function setLive(){const hl=$('#h-live');if(hl){if(liveState==='on'){const s=Math.max(0,Math.round((Date.now()-liveAt)/1000));hl.hidden=false;hl.className='chip tick';hl.textContent=`● En direct · mis à jour il y a ${s<60?s+' s':Math.round(s/60)+' min'}`;}else hl.hidden=true;}
+  const el=$('#live');if(!el)return;
   if(liveState==='on'){const sec=Math.max(0,Math.round((Date.now()-liveAt)/1000));el.className='live on';el.title='Synchronisé en direct';el.textContent=`En direct · ${sec<60?sec+' s':Math.round(sec/60)+' min'} · `;}
   else{el.className='live';el.textContent='';}}
-setInterval(setLive,5000);
+setInterval(setLive,1000);
 (async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');if(!db)return;
   dbRef=db.doc('live/decisions');dbRef.onSnapshot(s=>{const v=val(s);DECS=(v&&v.items)||[];renderAll();},()=>{});
   const applyState=snap=>{const v=snap&&(snap.data?snap.data():snap);const p=v&&v.payload;if(!p)return;
     try{const u=typeof p==='string'?JSON.parse(p):p;if(!u)return;
-      if(u.meta)Object.assign(D.meta,u.meta);if(u.maintenant)D.maintenant=u.maintenant;if(u.activite)D.activite=u.activite;
+      if(u.meta)Object.assign(D.meta,u.meta);if(u.plan)D.plan=u.plan;if(u.maintenant)D.maintenant=u.maintenant;if(u.activite)D.activite=u.activite;
       const up=(arr,items,k)=>(items||[]).forEach(it=>{const i=arr.findIndex(z=>z[k]===it[k]);if(i>=0)Object.assign(arr[i],it);else arr.push(it)});
       up(D.taches,u.taches,'id');up(D.prompts,u.prompts,'id');up(D.journal,u.journal,'jour');up(D.phases,u.phases,'id');
       liveState='on';liveAt=Date.now();renderAll();}catch(e){}};
@@ -655,14 +769,14 @@ setInterval(setLive,5000);
  addEventListener('keydown',e=>{if(e.key==='Escape'&&w.classList.contains('fs'))exit()});})();
 
 // routing
-const VIEWS=['synthese','carte','cycle','organisation','journal','taches','prompts'];
+const VIEWS=['plan','blocages','synthese','carte','cycle','organisation','journal','taches','prompts'];
 function route(){
-  const h=location.hash.slice(1); const v=VIEWS.includes(h)?h:'synthese';
+  const h=location.hash.slice(1); const v=VIEWS.includes(h)?h:'plan';
   VIEWS.forEach(x=>$('#v-'+x).classList.toggle('on',x===v));
   document.querySelectorAll('nav.tabs a').forEach(a=>a.setAttribute('aria-current',a.getAttribute('href')==='#'+v?'page':'false'));
   if(v==='organisation')renderOrg();if(v==='carte'){renderMM();if(mmFocus)showAgent(mmFocus);else if(!$('#mm-info').innerHTML)showProject();}
 }
-renderTop();renderNow();initFilters();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();
+renderTop();renderNow();initFilters();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();renderPlan();renderBlk();
 addEventListener('hashchange',route);route();
 </script>
 </body>

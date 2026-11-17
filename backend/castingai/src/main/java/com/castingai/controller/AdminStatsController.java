@@ -23,6 +23,7 @@ import java.util.UUID;
 public class AdminStatsController {
 
     private final PlatformStatsService stats;
+    private final com.castingai.service.AuditService audit;
     private final AgencyRepository agencies;
 
     public record AgencyRequest(
@@ -32,7 +33,11 @@ public class AdminStatsController {
             @NotNull(message = "La date de début du contrat est obligatoire") LocalDate contractStart,
             LocalDate contractEnd,
             @Min(value = 1, message = "Au moins 1 agent") @Max(value = 1000, message = "1000 agents au plus") Integer maxAgents,
-            @Size(max = 2000) String notes) {}
+            @Size(max = 2000) String notes,
+            @jakarta.validation.constraints.Pattern(regexp = "^$|ESSENTIEL|PRO|STUDIO|SUR_MESURE", message = "Forfait inconnu") String plan,
+            @jakarta.validation.constraints.DecimalMin(value = "0", message = "Le montant mensuel ne peut pas être négatif")
+            @jakarta.validation.constraints.DecimalMax(value = "1000000", message = "Montant mensuel trop élevé") java.math.BigDecimal monthlyAmount,
+            @jakarta.validation.constraints.Pattern(regexp = "^$|TND|EUR|USD", message = "Devise attendue : TND, EUR ou USD") String currency) {}
 
     @GetMapping("/stats")
     public PlatformStatsService.Overview overview(@RequestParam(defaultValue = "12") int months) {
@@ -53,6 +58,7 @@ public class AdminStatsController {
         Agency a = new Agency();
         apply(a, req);
         UUID id = agencies.saveAndFlush(a).getId();
+        audit.log("AGENCE_CREEE", a.getName(), contract(a));
         return find(id);
     }
 
@@ -64,8 +70,11 @@ public class AdminStatsController {
         if (!a.getName().equalsIgnoreCase(req.name().trim()) && agencies.existsByNameIgnoreCase(req.name().trim())) {
             throw new ConflictException("Une agence porte déjà ce nom");
         }
+        String before = contract(a);
         apply(a, req);
         agencies.saveAndFlush(a);
+        String after = contract(a);
+        if (!before.equals(after)) audit.log("CONTRAT_MODIFIE", a.getName(), before + "  →  " + after);
         return find(id);
     }
 
@@ -75,6 +84,21 @@ public class AdminStatsController {
     }
 
     // ── outils ──
+
+    /** Résumé lisible du contrat, pour le journal d'audit. */
+    private static String contract(Agency a) {
+        java.time.format.DateTimeFormatter f = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return "du " + a.getContractStart().format(f) + (a.getContractEnd() == null ? " sans fin" : " au " + a.getContractEnd().format(f))
+                + (a.getPlan() == null ? "" : ", " + a.getPlan())
+                + (a.getMonthlyAmount() == null ? "" : ", " + a.getMonthlyAmount().stripTrailingZeros().toPlainString() + " " + a.getCurrency() + "/mois")
+                + (a.getMaxAgents() == null ? "" : ", " + a.getMaxAgents() + " agents max");
+    }
+
+    @GetMapping("/audit")
+    public List<com.castingai.service.AuditService.Entry> audit(@RequestParam(required = false) String action,
+                                                                @RequestParam(defaultValue = "200") int limit) {
+        return audit.recent(action, limit);
+    }
 
     private static void check(AgencyRequest req) {
         if (req.contractEnd() != null && req.contractEnd().isBefore(req.contractStart())) {
@@ -90,6 +114,9 @@ public class AdminStatsController {
         a.setContractEnd(req.contractEnd());
         a.setMaxAgents(req.maxAgents());
         a.setNotes(blank(req.notes()));
+        a.setPlan(blank(req.plan()));
+        a.setMonthlyAmount(req.monthlyAmount());
+        a.setCurrency(blank(req.currency()) == null ? "TND" : req.currency());
     }
 
     private static String blank(String s) { return s == null || s.isBlank() ? null : s.trim(); }

@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Réglages locaux (identifiants OAuth)
+local-env.ps1

@@ -28,7 +28,16 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
-        <spring-ai.version>1.0.0</spring-ai.version>
+        <spring-ai.version>1.0.9</spring-ai.version>
+        <!-- T-128 · Versions corrigées (OSV-Scanner, 17/11/2026), compatibles Spring Boot 3.5 -->
+        <tomcat.version>10.1.59</tomcat.version>
+        <jackson-bom.version>2.21.7</jackson-bom.version>
+        <netty.version>4.1.137.Final</netty.version>
+        <postgresql.version>42.7.12</postgresql.version>
+        <log4j2.version>2.25.5</log4j2.version>
+        <commons-lang3.version>3.18.0</commons-lang3.version>
+        <!-- MinIO 8.6 utilise OkHttp 5, compilé avec Kotlin 2.2 (aucun code Kotlin dans le projet) -->
+        <kotlin.version>2.2.0</kotlin.version>
 	</properties>
     <!-- Dans <repositories> — ajoute si cette section n'existe pas -->
 
@@ -42,6 +51,11 @@
     </pluginRepositories>
     <dependencyManagement>
         <dependencies>
+            <!-- T-128 · Dépendances transitives de MinIO, épinglées sur des versions corrigées -->
+            <dependency><groupId>com.google.guava</groupId><artifactId>guava</artifactId><version>33.7.2-jre</version></dependency>
+            <dependency><groupId>org.bouncycastle</groupId><artifactId>bcprov-jdk18on</artifactId><version>1.87</version></dependency>
+            <dependency><groupId>com.squareup.okhttp3</groupId><artifactId>okhttp</artifactId><version>5.1.0</version></dependency>
+            <dependency><groupId>org.xerial.snappy</groupId><artifactId>snappy-java</artifactId><version>1.1.10.12</version></dependency>
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
@@ -56,14 +70,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-amqp</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -98,13 +104,7 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
-        <!-- Redis -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
 
-        <!-- (doublons RabbitMQ / Elasticsearch supprimés : déjà déclarés plus haut) -->
 
         <!-- Lombok -->
         <dependency>
@@ -117,7 +117,13 @@
         <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
-            <version>8.5.9</version>
+            <version>8.6.0</version>
+        </dependency>
+        <!-- Classes Java d'OkHttp 5 (l'artefact « okhttp » ne contient que les métadonnées Kotlin) -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp-jvm</artifactId>
+            <version>5.1.0</version>
         </dependency>
 
         <!-- Image compression -->
@@ -185,11 +191,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.amqp</groupId>
-			<artifactId>spring-rabbit-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

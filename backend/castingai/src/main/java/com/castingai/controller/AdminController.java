@@ -34,6 +34,7 @@ import java.util.*;
 public class AdminController {
 
     private final UserRepository users;
+    private final com.castingai.service.AuditService audit;
     private final ActorRepository actors;
     private final PasswordEncoder passwordEncoder;
     private final ActorImportService importService;
@@ -110,7 +111,9 @@ public class AdminController {
                 .email(email).firstName(req.firstName().trim()).lastName(req.lastName().trim())
                 .password(passwordEncoder.encode(temp != null ? temp : req.password()))
                 .role(role).enabled(true).agency(agency).build();
-        return new CreatedAgent(row(users.save(u)), temp);
+        User saved = users.save(u);
+        audit.log("COMPTE_CREE", email, (role == Role.ADMIN ? "Administrateur" : "Agent") + (agency == null ? "" : " · " + agency.getName()));
+        return new CreatedAgent(row(saved), temp);
     }
 
     @PatchMapping("/users/{id}")
@@ -120,6 +123,10 @@ public class AdminController {
         if (u.getEmail().equalsIgnoreCase(me.getUsername())) {
             throw new IllegalArgumentException("Vous ne pouvez pas modifier votre propre compte depuis l'administration");
         }
+        java.util.List<String> changes = new java.util.ArrayList<>();
+        if (req.enabled() != null && req.enabled() != u.isEnabled()) changes.add(req.enabled() ? "réactivé" : "désactivé");
+        if (req.role() != null && req.role() != u.getRole()) changes.add("rôle " + u.getRole() + " → " + req.role());
+        String agencyBefore = u.getAgency() == null ? null : u.getAgency().getName();
         if (req.enabled() != null) u.setEnabled(req.enabled());
         if (req.role() != null && req.role() != u.getRole()) {
             if (u.getRole() == Role.ACTEUR || req.role() == Role.ACTEUR) {
@@ -129,7 +136,11 @@ public class AdminController {
             if (req.role() == Role.ADMIN) u.setAgency(null);
         }
         if (req.agencyId() != null && u.getRole() == Role.AGENT) u.setAgency(agencyFor(Role.AGENT, req.agencyId(), u.getId()));
-        return row(users.save(u));
+        String agencyAfter = u.getAgency() == null ? null : u.getAgency().getName();
+        if (!java.util.Objects.equals(agencyBefore, agencyAfter)) changes.add("agence " + (agencyBefore == null ? "aucune" : agencyBefore) + " → " + (agencyAfter == null ? "aucune" : agencyAfter));
+        User saved = users.save(u);
+        if (!changes.isEmpty()) audit.log("COMPTE_MODIFIE", u.getEmail(), String.join(" ; ", changes));
+        return row(saved);
     }
 
     // ── Import d'acteurs ──
@@ -144,7 +155,10 @@ public class AdminController {
     public ActorImportService.CommitResult importActors(@Valid @RequestBody ImportRequest req, @AuthenticationPrincipal UserDetails me) {
         if (req.rows().isEmpty()) throw new IllegalArgumentException("Aucune ligne à importer");
         if (req.rows().size() > ActorImportService.MAX_ROWS) throw new IllegalArgumentException("Trop de lignes en une fois");
-        return importService.commit(req.rows(), me.getUsername());
+        ActorImportService.CommitResult r = importService.commit(req.rows(), me.getUsername());
+        audit.log("IMPORT", r.created() + " fiche" + (r.created() > 1 ? "s" : "") + " importée" + (r.created() > 1 ? "s" : ""),
+                r.skipped().isEmpty() ? "Aucune ligne écartée" : r.skipped().size() + " ligne(s) écartée(s)");
+        return r;
     }
 
     // ── outils ──

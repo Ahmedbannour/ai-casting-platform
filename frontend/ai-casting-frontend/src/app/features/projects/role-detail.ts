@@ -8,12 +8,16 @@ import { ProjectService } from '../../core/services/project.service';
 import { frDate } from '../../shared/forms/dates';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field';
 import { SelectFieldComponent } from '../../shared/components/select-field/select-field';
+import { SharePanelComponent } from './share-panel';
+import { OfferDialogComponent } from './offer-dialog';
+import { OFFER_KIND, OFFER_STATUS, OfferRow, OfferService } from '../../core/services/offer.service';
+import { ShareService, VOTE_LABEL, VoteRow } from '../../core/services/share.service';
 
 /** Page d'un rôle : critères, recherche pré-remplie et shortlist en colonnes par statut (US-11 à US-14). */
 @Component({
   selector: 'app-role-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, RoleFormComponent, DateFieldComponent, SelectFieldComponent],
+  imports: [RouterLink, FormsModule, RoleFormComponent, DateFieldComponent, SelectFieldComponent, SharePanelComponent, OfferDialogComponent],
   template: `
   <div class="page">
     @if (role(); as r) {
@@ -33,6 +37,10 @@ import { SelectFieldComponent } from '../../shared/components/select-field/selec
           <button type="button" class="btn-primary" (click)="find()">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
             Trouver des acteurs
+          </button>
+          <button type="button" class="btn-ghost" (click)="shareOpen.set(true)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/></svg>
+            Envoyer au réalisateur
           </button>
           <a class="btn-ghost" [routerLink]="['/roles', r.id, 'planche']">Planche PDF</a>
           <button type="button" class="btn-ghost" (click)="editOpen.set(true)">Modifier le rôle</button>
@@ -65,10 +73,26 @@ import { SelectFieldComponent } from '../../shared/components/select-field/selec
                     <span class="sub">{{ e.age ? e.age + ' ans' : '' }}{{ e.age && e.city ? ' · ' : '' }}{{ e.city || '' }}</span>
                   </div>
                 </div>
+                @if (e.paused) {
+                  <p class="paused" title="L'acteur a mis son profil en pause : il n'apparaît plus aux réalisateurs.">Profil en pause</p>
+                }
                 @if (e.availability === 'A_VERIFIER') {
                   <p class="avail warn" [title]="e.availabilityNote || ''">⚠ {{ e.availabilityNote }}</p>
                 } @else if (e.availability === 'OK') {
                   <p class="avail ok">✓ Disponible pendant le tournage</p>
+                }
+                @for (v of votesFor(e.id); track v.voterName + v.updatedAt) {
+                  <p class="vote" [attr.data-v]="v.vote">
+                    <b>{{ voteLabel[v.vote] }}</b> · {{ v.voterName }}
+                    @if (v.comment) { <span class="vote-c">« {{ v.comment }} »</span> }
+                  </p>
+                }
+                @if (offerFor(e.id); as o) {
+                  <p class="offer" [attr.data-s]="o.status">
+                    <b>{{ offerKind[o.kind] }}</b> · {{ offerStatus[o.status] }}
+                    @if (o.answerNote) { <span class="vote-c">« {{ o.answerNote }} »</span> }
+                    @if (o.status === 'ENVOYEE') { <button type="button" class="offer-cancel" (click)="cancelOffer(o)">Retirer</button> }
+                  </p>
                 }
                 <div class="aud">
                   <span>Audition</span>
@@ -89,6 +113,11 @@ import { SelectFieldComponent } from '../../shared/components/select-field/selec
                   <button type="button" class="note" (click)="editNote(e)">{{ e.note || 'Ajouter une note' }}</button>
                 }
                 <div class="card-foot">
+                  @if (e.hasAccount && !e.paused && offerFor(e.id)?.status !== 'ENVOYEE') {
+                    <button type="button" class="propose" (click)="offerTo.set(e)" [attr.aria-label]="'Proposer le rôle ou convoquer ' + e.firstName" title="Proposer le rôle ou convoquer à une audition">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
+                    </button>
+                  }
                   <app-select class="status" [options]="cardStatuses" [ngModel]="e.status" (ngModelChange)="move(e, $event)" ariaLabel="Statut" [compact]="true" />
                   <button type="button" class="remove" (click)="remove(e)" [attr.aria-label]="'Retirer ' + e.firstName + ' ' + e.lastName + ' de la shortlist'" title="Retirer de la shortlist">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
@@ -116,6 +145,15 @@ import { SelectFieldComponent } from '../../shared/components/select-field/selec
       {{ u.entry.firstName }} {{ u.entry.lastName }} retiré de la shortlist
       <button type="button" (click)="cancelRemove()">Annuler</button>
     </div>
+  }
+
+  @if (offerTo(); as t) {
+    <app-offer-dialog [entryId]="t.id" [actorName]="t.firstName + ' ' + t.lastName" [shootStart]="role()?.shootStart ?? null" [shootEnd]="role()?.shootEnd ?? null"
+                      (close)="offerTo.set(null)" (sent)="offerTo.set(null); loadOffers()" />
+  }
+
+  @if (shareOpen() && role()) {
+    <app-share-panel [roleId]="role()!.id" [roleName]="role()!.name" (close)="shareOpen.set(false); loadVotes()" />
   }
 
   @if (editOpen() && role()) {
@@ -168,6 +206,21 @@ import { SelectFieldComponent } from '../../shared/components/select-field/selec
   .avail { font-size: 12px; line-height: 1.35; padding: 4px 6px; border-radius: 4px; }
   .avail.warn { background: color-mix(in srgb, var(--reject) 16%, transparent); color: var(--text-primary); }
   .avail.ok { color: var(--text-muted); }
+  .paused { font-size: 12px; padding: 4px 7px; border-radius: 4px; border: 1px dashed var(--text-subtle); color: var(--text-muted); }
+  .offer { font-size: 12px; line-height: 1.4; padding: 5px 7px; border-radius: 4px; background: var(--accent-dim); color: var(--text-muted);
+    b { color: var(--text-primary); } }
+  .offer[data-s="ACCEPTEE"] { background: color-mix(in srgb, var(--series-3) 18%, transparent); }
+  .offer[data-s="DECLINEE"], .offer[data-s="ANNULEE"] { background: var(--bg-hover); }
+  .offer-cancel { border: none; background: none; padding: 0; margin-left: 4px; color: var(--accent); font-size: 12px; font-weight: 600; cursor: pointer; }
+  /* Enveloppe en haut à droite, à côté de la corbeille : le statut garde toute la largeur */
+  .card-foot .propose { position: absolute; top: 3px; right: 29px; width: 24px; height: 24px; display: grid; place-items: center; border: none; border-radius: 6px;
+    background: none; color: var(--text-subtle); cursor: pointer; opacity: .7; &:hover { color: var(--accent); background: var(--bg-hover); opacity: 1; } }
+  .card:has(.propose) .who { padding-right: 40px; }
+  .vote { font-size: 12px; line-height: 1.4; padding: 5px 7px; border-radius: 4px; border-left: 3px solid var(--text-subtle); background: var(--bg-hover); color: var(--text-muted);
+    b { color: var(--text-primary); } }
+  .vote[data-v="OUI"] { border-left-color: var(--series-3); }
+  .vote[data-v="PEUT_ETRE"] { border-left-color: var(--series-2); }
+  .vote-c { display: block; margin-top: 2px; font-style: italic; }
   .aud { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-muted);
     app-date-field { min-width: 0; } }
   .note { text-align: left; border: none; background: none; padding: 0; font-size: 12.5px; color: var(--text-muted); cursor: text; line-height: 1.4;
@@ -196,7 +249,7 @@ import { SelectFieldComponent } from '../../shared/components/select-field/selec
   .skel { height: 180px; border-radius: var(--radius-l); background: linear-gradient(90deg, var(--bg-hover) 25%, var(--bg-surface) 50%, var(--bg-hover) 75%);
     background-size: 200% 100%; animation: skel 1.4s linear infinite; }
   @keyframes skel { to { background-position: -200% 0; } }
-  @media (max-width: 760px) { .page { padding: 20px 16px; } h1 { font-size: 30px; } }
+  @container page (max-width: 760px) { .page { padding: 20px 16px; } h1 { font-size: 30px; } }
   `]
 })
 export class RoleDetailComponent implements OnInit, OnDestroy {
@@ -216,6 +269,16 @@ export class RoleDetailComponent implements OnInit, OnDestroy {
   readonly notFound = signal(false);
   readonly error = signal('');
   readonly editOpen = signal(false);
+  readonly shareOpen = signal(false);
+  private readonly offerApi = inject(OfferService);
+  readonly offerKind = OFFER_KIND;
+  readonly offerStatus = OFFER_STATUS;
+  readonly offerTo = signal<ShortlistEntry | null>(null);
+  readonly offers = signal<Map<string, OfferRow>>(new Map());
+  private readonly shareApi = inject(ShareService);
+  readonly voteLabel = VOTE_LABEL;
+  /** Avis du réalisateur, par candidat (le plus récent d'abord). */
+  readonly votes = signal<Map<string, VoteRow[]>>(new Map());
   readonly dragOver = signal<EntryStatus | null>(null);
   readonly editingNote = signal<string | null>(null);
   readonly broken = signal<Set<string>>(new Set());
@@ -242,6 +305,31 @@ export class RoleDetailComponent implements OnInit, OnDestroy {
       error: () => this.notFound.set(true)
     });
     this.casting.shortlist(id).subscribe({ next: e => this.entries.set(e) });
+    this.loadVotes(id);
+    this.loadOffers(id);
+  }
+
+  offerFor(entryId: string): OfferRow | undefined { return this.offers().get(entryId); }
+
+  loadOffers(id = this.role()?.id): void {
+    if (!id) return;
+    this.offerApi.forRole(id).subscribe({ next: list => this.offers.set(new Map(list.map(o => [o.entryId, o]))) });
+    this.casting.shortlist(id).subscribe({ next: e => this.entries.set(e) });
+  }
+
+  cancelOffer(o: OfferRow): void {
+    this.offerApi.cancel(o.id).subscribe({ next: () => this.loadOffers(), error: () => this.error.set('Retrait impossible. Réessayez.') });
+  }
+
+  votesFor(entryId: string): VoteRow[] { return this.votes().get(entryId) ?? []; }
+
+  loadVotes(id = this.role()?.id): void {
+    if (!id) return;
+    this.shareApi.votes(id).subscribe({ next: list => {
+      const m = new Map<string, VoteRow[]>();
+      for (const v of list) m.set(v.entryId, [...(m.get(v.entryId) ?? []), v]);
+      this.votes.set(m);
+    } });
   }
 
   ngOnDestroy(): void { this.flushRemove(); }

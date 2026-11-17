@@ -220,7 +220,7 @@ export interface SwipeEvent {
   .pill.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
   .pill.primary:hover { background: var(--accent-hover); }
   @media (prefers-reduced-motion: reduce) { .card, .act { transition: none; } .shimmer { animation: none; color: var(--text-muted); } }
-  @media (max-width: 480px) { .deck { height: 440px; } }
+  @container page (max-width: 480px) { .deck { height: 440px; } }
   `]
 })
 export class SwipeDeckComponent {

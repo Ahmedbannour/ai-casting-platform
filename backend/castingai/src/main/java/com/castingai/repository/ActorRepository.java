@@ -33,12 +33,13 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
     @Query("select count(a) > 0 from Actor a where lower(a.firstName) = lower(:first) and lower(a.lastName) = lower(:last) and a.birthDate = :birth")
     boolean existsSamePerson(@Param("first") String first, @Param("last") String last, @Param("birth") java.time.LocalDate birth);
 
-    @Query("SELECT a FROM Actor a WHERE " +
+    @Query("SELECT a FROM Actor a WHERE a.visibility = 'VISIBLE' AND (:all = true OR a.agencyId IS NULL OR a.agencyId = :agency) AND " +
             "(:search IS NULL OR " +
             "LOWER(CAST(a.firstName AS string)) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR " +
             "LOWER(CAST(a.lastName AS string)) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR " +
             "LOWER(CAST(a.city AS string)) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')))")
-    Page<Actor> findBySearchTerm(@Param("search") String search, Pageable pageable);
+    Page<Actor> findBySearchTerm(@Param("search") String search, @Param("all") boolean all,
+                                 @Param("agency") UUID agency, Pageable pageable);
 
     @Query("SELECT DISTINCT a FROM Actor a " +
             "LEFT JOIN FETCH a.skills " +
@@ -61,7 +62,9 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
 
     @Query("""
     SELECT a FROM Actor a
-    WHERE (:search = '' OR
+    WHERE a.visibility = 'VISIBLE'
+    AND (:all = true OR a.agencyId IS NULL OR a.agencyId = :agency)
+    AND (:search = '' OR
            LOWER(a.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR
            LOWER(a.lastName) LIKE LOWER(CONCAT('%', :search, '%')))
     AND (:gender = '' OR a.gender = :gender)
@@ -77,6 +80,8 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
             @Param("minAge") Integer minAge,
             @Param("maxAge") Integer maxAge,
             @Param("city") String city,
+            @Param("all") boolean all,
+            @Param("agency") UUID agency,
             Pageable pageable);
 
 
@@ -90,7 +95,9 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
      */
     @Query(value = """
         SELECT a.id FROM actors a
-        WHERE (:gender = '' OR a.gender = :gender)
+        WHERE a.visibility = 'VISIBLE'
+          AND (:all OR a.agency_id IS NULL OR a.agency_id = :agency)
+          AND (:gender = '' OR a.gender = :gender)
           AND (:minAge = 0 OR a.birth_date <= CURRENT_DATE - make_interval(years => CAST(:minAge AS int)))
           AND (:maxAge = 150 OR a.birth_date > CURRENT_DATE - make_interval(years => CAST(:maxAge AS int) + 1))
         ORDER BY (
@@ -104,7 +111,9 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
         """,
         countQuery = """
         SELECT count(*) FROM actors a
-        WHERE (:gender = '' OR a.gender = :gender)
+        WHERE a.visibility = 'VISIBLE'
+          AND (:all OR a.agency_id IS NULL OR a.agency_id = :agency)
+          AND (:gender = '' OR a.gender = :gender)
           AND (:minAge = 0 OR a.birth_date <= CURRENT_DATE - make_interval(years => CAST(:minAge AS int)))
           AND (:maxAge = 150 OR a.birth_date > CURRENT_DATE - make_interval(years => CAST(:maxAge AS int) + 1))
         """,
@@ -116,5 +125,7 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
                             @Param("skill") String skill,
                             @Param("city") String city,
                             @Param("hair") String hair,
+                            @Param("all") boolean all,
+                            @Param("agency") UUID agency,
                             Pageable pageable);
 }

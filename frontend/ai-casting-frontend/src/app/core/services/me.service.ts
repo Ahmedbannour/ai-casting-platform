@@ -9,9 +9,12 @@ import { TokenService } from './token.service';
 export interface Me {
   id: string; email: string; firstName: string; lastName: string;
   role: 'ADMIN' | 'AGENT' | 'ACTEUR'; provider: string; actorId: string | null;
+  agencyName: string | null; contractStatus: 'ACTIF' | 'A_VENIR' | 'EXPIRE' | 'SANS_AGENCE' | null; contractEnd: string | null;
 }
 
 /** Compte connecté et espace personnel de l'acteur freelance. */
+export interface Visibility { visibility: 'VISIBLE' | 'PAUSE'; changedAt: string | null; }
+
 @Injectable({ providedIn: 'root' })
 export class MeService {
   private readonly http = inject(HttpClient);
@@ -35,4 +38,15 @@ export class MeService {
   }
   setMain(photoId: string): Observable<PhotoResponse> { return this.http.put<PhotoResponse>(`${this.url}/photos/${photoId}/main`, {}); }
   deletePhoto(photoId: string): Observable<void> { return this.http.delete<void>(`${this.url}/photos/${photoId}`); }
+
+  /** Qui a consulté mes coordonnées (T-094). */
+  contactViews(): Observable<{ who: string; viewedAt: number }[]> {
+    return this.http.get<{ who: string; viewedAt: number }[]>(`${this.url}/contact-views`);
+  }
+
+  /** Consentement de l'acteur : visible des agences ou en pause. */
+  visibility(): Observable<Visibility> { return this.http.get<Visibility>(`${this.url}/visibility`); }
+  setVisibility(visibility: 'VISIBLE' | 'PAUSE'): Observable<Visibility> {
+    return this.http.put<Visibility>(`${this.url}/visibility`, { visibility });
+  }
 }

@@ -30,6 +30,7 @@ public class ActorDetailServiceImpl implements ActorDetailService {
     private final ActorPhotoRepository photoRepository;
     private final ActorDocumentRepository documentRepository;
     private final UserRepository userRepository;
+    private final ActorScope actorScope;
 
     @Override
     @Transactional(readOnly = true)
@@ -117,8 +118,9 @@ public class ActorDetailServiceImpl implements ActorDetailService {
                 .gender(actor.getGender())
                 .city(actor.getCity())
                 .country(actor.getCountry())
-                .phone(actor.getPhone())
-                .email(actor.getEmail())
+                .phone(actorScope.seesContact(actor) ? actor.getPhone() : null)
+                .email(actorScope.seesContact(actor) ? actor.getEmail() : null)
+                .contactHidden(!actorScope.seesContact(actor))
                 .bio(actor.getBio())
                 .height(actor.getHeight())
                 .weight(actor.getWeight())

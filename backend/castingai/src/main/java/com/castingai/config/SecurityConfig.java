@@ -31,6 +31,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final com.castingai.security.ContractGuardFilter contractGuardFilter;
     private final UserDetailsServiceImpl userDetailsService;
 
     @Bean
@@ -47,6 +48,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/health",
                                 "/api/auth/providers", "/api/auth/google", "/api/auth/facebook").permitAll()
                         .requestMatchers("/error").permitAll()
+                        // Page de partage au réalisateur : accès par lien secret, sans compte
+                        .requestMatchers("/api/public/**").permitAll()
                         // Administration : comptes des agents, import de fichiers
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Espace personnel : tout compte connecté (l'acteur freelance n'a accès qu'à ceci)
@@ -70,11 +73,22 @@ public class SecurityConfig {
                 );
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        // Après l'authentification : un agent sans contrat actif passe en lecture seule.
+        http.addFilterAfter(contractGuardFilter, com.castingai.security.JwtAuthenticationFilter.class);
 
 
         return http.build();
     }
 
+
+    /** Le garde de contrat ne tourne que dans la chaîne de sécurité (après l'authentification), pas en filtre web séparé. */
+    @Bean
+    public org.springframework.boot.web.servlet.FilterRegistrationBean<com.castingai.security.ContractGuardFilter> contractGuardRegistration(
+            com.castingai.security.ContractGuardFilter f) {
+        var reg = new org.springframework.boot.web.servlet.FilterRegistrationBean<>(f);
+        reg.setEnabled(false);
+        return reg;
+    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {

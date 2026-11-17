@@ -73,6 +73,18 @@ public class Actor {
     @JoinColumn(name = "user_id", unique = true)
     private User account;
 
+    /** Agence qui a apporté la fiche (T-092) ; nul = vivier de la plateforme. */
+    @Column(name = "agency_id")
+    private UUID agencyId;
+
+    /** VISIBLE : présent dans les recherches des agences ; PAUSE : retiré par l'acteur lui-même. */
+    @Builder.Default
+    @Column(name = "visibility", nullable = false, length = 10)
+    private String visibility = "VISIBLE";
+
+    @Column(name = "visibility_changed_at")
+    private LocalDateTime visibilityChangedAt;
+
     /** AGENCE, INSCRIPTION ou IMPORT. */
     @Builder.Default
     @Column(name = "source", nullable = false, length = 20)

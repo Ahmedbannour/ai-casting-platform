@@ -25,6 +25,7 @@ public class ActorServiceImpl implements ActorService {
     private final ActorRepository actorRepository;
     private final UserRepository userRepository;
     private final ActorMapper actorMapper;
+    private final ActorScope actorScope;
     private final com.castingai.repository.ActorPhotoRepository photoRepository;
 
     @Override
@@ -44,6 +45,10 @@ public class ActorServiceImpl implements ActorService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         actor.setCreatedBy(user);
+        // T-092 : une fiche créée par un agent reste privée à son agence
+        if (user.getRole() == com.castingai.entity.Role.AGENT && user.getAgency() != null) {
+            actor.setAgencyId(user.getAgency().getId());
+        }
 
         return actorMapper.toResponse(actorRepository.saveAndFlush(actor));
     }
@@ -55,7 +60,7 @@ public class ActorServiceImpl implements ActorService {
     @Transactional(readOnly = true)
     public ActorResponse findById(UUID id) {
         return actorRepository.findByIdSimple(id)
-                .map(actorMapper::toResponse)
+                .map(this::toVisibleResponse)
                 .orElseThrow(() -> new ActorNotFoundException(id));
     }
 
@@ -63,7 +68,8 @@ public class ActorServiceImpl implements ActorService {
     @Override
     @Transactional(readOnly = true)
     public Page<ActorSummaryResponse> findAll(String search, Pageable pageable) {
-        Page<ActorSummaryResponse> page = actorRepository.findBySearchTerm(search, pageable)
+        ActorScope.Scope s = actorScope.current();
+        Page<ActorSummaryResponse> page = actorRepository.findBySearchTerm(search, s.all(), s.agency(), pageable)
                 .map(actorMapper::toSummary);
         attachMainPhotos(page.getContent());
         return page;
@@ -81,8 +87,11 @@ public class ActorServiceImpl implements ActorService {
         if (request.getGender() != null) actor.setGender(request.getGender());
         if (request.getCity() != null) actor.setCity(request.getCity());
         if (request.getCountry() != null) actor.setCountry(request.getCountry());
-        if (request.getPhone() != null) actor.setPhone(request.getPhone());
-        if (request.getEmail() != null) actor.setEmail(request.getEmail());
+        // T-094 : qui ne voit pas les coordonnées ne peut pas les écraser
+        if (actorScope.seesContact(actor)) {
+            if (request.getPhone() != null) actor.setPhone(request.getPhone());
+            if (request.getEmail() != null) actor.setEmail(request.getEmail());
+        }
         if (request.getBio() != null) actor.setBio(request.getBio());
         if (request.getHeight() != null) actor.setHeight(request.getHeight());
         if (request.getWeight() != null) actor.setWeight(request.getWeight());
@@ -124,7 +133,7 @@ public class ActorServiceImpl implements ActorService {
                             .note(dto.getNote()).actor(actor).build()));
         }
 
-        return actorMapper.toResponse(actorRepository.save(actor));
+        return toVisibleResponse(actorRepository.save(actor));
     }
 
     @Override
@@ -144,12 +153,14 @@ public class ActorServiceImpl implements ActorService {
             String search, String gender,
             Integer minAge, Integer maxAge,
             String city, Pageable pageable) {
+        ActorScope.Scope s = actorScope.current();
         Page<ActorSummaryResponse> page = actorRepository.searchAdvanced(
                         search == null ? "" : search.trim(),
                         gender == null ? "" : gender,
                         minAge == null ? 0 : minAge,
                         maxAge == null ? 150 : maxAge,
                         city == null ? "" : city.trim(),
+                        s.all(), s.agency(),
                         pageable)
                 .map(actorMapper::toSummary);
         attachMainPhotos(page.getContent());
@@ -166,5 +177,10 @@ public class ActorServiceImpl implements ActorService {
         actors.forEach(a -> a.setMainPhotoUrl(byActor.get(a.getId())));
     }
 
-
+    /** Réponse avec coordonnées masquées si l'utilisateur ne les voit pas directement (T-094). */
+    private ActorResponse toVisibleResponse(Actor actor) {
+        ActorResponse r = actorMapper.toResponse(actor);
+        if (!actorScope.seesContact(actor)) { r.setPhone(null); r.setEmail(null); r.setContactHidden(true); }
+        return r;
+    }
 }

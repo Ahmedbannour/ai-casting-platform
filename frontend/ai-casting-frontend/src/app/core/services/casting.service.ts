@@ -60,6 +60,10 @@ export interface ShortlistEntry {
   /** Disponibilité pour les dates de tournage : OK, A_VERIFIER, ou null si inconnue. */
   availability: 'OK' | 'A_VERIFIER' | null;
   availabilityNote: string | null;
+  /** L'acteur s'est mis en pause (T-093). */
+  paused?: boolean;
+  /** L'acteur a un compte : il peut recevoir une proposition (T-095). */
+  hasAccount?: boolean;
 }
 
 export interface Member { userId: string; name: string; email: string; owner: boolean; addedAt: string; }

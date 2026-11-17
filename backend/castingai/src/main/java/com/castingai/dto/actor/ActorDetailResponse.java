@@ -26,6 +26,8 @@ public class ActorDetailResponse {
     private String country;
     private String phone;
     private String email;
+    /** T-094 : coordonnées masquées tant que l'agent ne les demande pas. */
+    private boolean contactHidden;
     private String bio;
     private Integer height;
     private Integer weight;

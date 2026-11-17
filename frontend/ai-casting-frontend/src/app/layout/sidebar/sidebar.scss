@@ -175,3 +175,7 @@
 .collapsed .who { justify-content: center; padding: 6px 0; }
 .collapsed .who-text { display: none; }
 .actor-note .empty-history { line-height: 1.55; }
+
+/* T-096 · cloche de notifications à côté du bouton de repli */
+.top-tools { display: inline-flex; align-items: center; gap: 6px; }
+.collapsed .top-tools { flex-direction: column; }

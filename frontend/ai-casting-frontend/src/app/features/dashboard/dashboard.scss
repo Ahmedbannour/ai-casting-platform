@@ -393,7 +393,7 @@ app-select.sort { width: 200px; --field-h: 38px; }
   option { background: var(--bg-surface); }
 }
 
-@media (max-width: 760px) {
+@container page (max-width: 760px) {
   .dash { padding: 20px 16px; }
   .toolbar-end { margin-left: 0; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }

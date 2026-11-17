@@ -21,6 +21,13 @@ export const routes: Routes = [
     data: { mode: 'inscription' }
   },
   {
+    // Page du réalisateur : publique, ouverte par lien secret
+    path: 'partage/:token',
+    loadComponent: () =>
+      import('./features/share/director-share')
+        .then(m => m.DirectorShareComponent)
+  },
+  {
     path: 'roles/:id/planche',
     canActivate: [authGuard, agence],
     loadComponent: () =>
@@ -48,6 +55,13 @@ export const routes: Routes = [
           import('./features/actors/gallery/actor-gallery')
             .then(m => m.ActorGalleryComponent),
         data: { self: true }
+      },
+      {
+        path: 'mes-propositions',
+        canActivate: [roleGuard('ACTEUR')],
+        loadComponent: () =>
+          import('./features/offers/my-offers')
+            .then(m => m.MyOffersComponent)
       },
       // ── Administration ──
       {

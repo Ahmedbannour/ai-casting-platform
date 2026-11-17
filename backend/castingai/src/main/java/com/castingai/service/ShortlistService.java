@@ -30,6 +30,7 @@ public class ShortlistService {
     private final ActorPhotoRepository photoRepository;
     private final RoleService roleService;
     private final AccessService access;
+    private final ActorScope actorScope;
 
     @Transactional(readOnly = true)
     public List<EntryResponse> list(String email, UUID roleId) {
@@ -47,6 +48,7 @@ public class ShortlistService {
             throw new ConflictException("Cet acteur est déjà dans la shortlist de ce rôle");
         }
         Actor actor = actorRepository.findById(actorId)
+                .filter(x -> actorScope.canSee(x.getId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Acteur introuvable"));
         ShortlistEntry e = entryRepository.save(ShortlistEntry.builder().role(role).actor(actor).addedBy(me).build());
         event(e, null, me);
@@ -109,7 +111,7 @@ public class ShortlistService {
 
     // ── outils ──
 
-    private ShortlistEntry visibleEntry(User me, UUID entryId) {
+    public ShortlistEntry visibleEntry(User me, UUID entryId) {
         ShortlistEntry e = entryRepository.findById(entryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Entrée de shortlist introuvable"));
         roleService.visibleRole(me, e.getRole().getId());
@@ -148,7 +150,8 @@ public class ShortlistService {
         String[] avail = availability(e.getRole(), a);
         return new EntryResponse(e.getId(), e.getRole().getId(), a.getId(), a.getFirstName(), a.getLastName(), age,
                 a.getCity(), a.getGender(), photos.get(a.getId()), e.getStatus(), e.getNote(), e.getAuditionDate(),
-                e.getCreatedAt(), e.getUpdatedAt(), avail[0], avail[1]);
+                e.getCreatedAt(), e.getUpdatedAt(), avail[0], avail[1],
+                "PAUSE".equals(a.getVisibility()), a.getAccount() != null);
     }
 
     /**

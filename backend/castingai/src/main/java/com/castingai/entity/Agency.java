@@ -41,6 +41,16 @@ public class Agency {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    /** T-098 · Forfait (ESSENTIEL, PRO, STUDIO, SUR_MESURE), montant mensuel et devise. */
+    @Column(length = 20)
+    private String plan;
+
+    @Column(name = "monthly_amount", precision = 12, scale = 2)
+    private java.math.BigDecimal monthlyAmount;
+
+    @Column(length = 3, nullable = false)
+    private String currency = "TND";
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

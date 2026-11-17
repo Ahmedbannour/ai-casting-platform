@@ -13,10 +13,17 @@ declare global {
 /** Charge un script tiers une seule fois. */
 function loadScript(src: string, id: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (document.getElementById(id)) { resolve(); return; }
+    const existing = document.getElementById(id) as HTMLScriptElement | null;
+    if (existing) {
+      // Déjà ajouté : attendre la fin du chargement s'il n'est pas encore terminé.
+      if (existing.dataset['loaded'] === '1') { resolve(); return; }
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(), { once: true });
+      return;
+    }
     const s = document.createElement('script');
     s.src = src; s.id = id; s.async = true; s.defer = true;
-    s.onload = () => resolve();
+    s.onload = () => { s.dataset['loaded'] = '1'; resolve(); };
     s.onerror = () => reject();
     document.head.appendChild(s);
   });
@@ -53,7 +60,13 @@ export class LoginComponent implements OnInit {
   readonly google = signal<string | null>(null);
   readonly facebook = signal<string | null>(null);
   readonly socialBusy = signal<'' | 'google' | 'facebook'>('');
-  @ViewChild('googleBtn') googleBtn?: ElementRef<HTMLElement>;
+  /** Zone du bouton Google : elle n'existe qu'après l'affichage du bloc @if. */
+  private googleEl?: HTMLElement;
+  private gsiReady = false;
+  @ViewChild('googleBtn') set googleBtn(ref: ElementRef<HTMLElement> | undefined) {
+    this.googleEl = ref?.nativeElement;
+    this.renderGoogle();
+  }
 
   /** Planche contact décorative : un profil retenu, un écarté. */
   readonly frames = [
@@ -152,21 +165,31 @@ export class LoginComponent implements OnInit {
 
   // ── Google : bouton officiel (Google Identity Services) ──
   private setupGoogle(clientId: string): void {
-    loadScript('https://accounts.google.com/gsi/client', 'gsi-client').then(() => {
+    loadScript('https://accounts.google.com/gsi/client?hl=fr', 'gsi-client').then(() => {
       window.google.accounts.id.initialize({
         client_id: clientId,
         callback: (resp: { credential: string }) => this.social('google', resp.credential),
         ux_mode: 'popup'
       });
-      const el = this.googleBtn?.nativeElement;
-      if (el) {
-        window.google.accounts.id.renderButton(el, {
-          theme: document.documentElement.classList.contains('light') ? 'outline' : 'filled_black',
-          size: 'large', shape: 'pill', logo_alignment: 'left', locale: 'fr',
-          text: this.mode === 'inscription' ? 'signup_with' : 'continue_with', width: el.clientWidth || 320
-        });
-      }
+      this.gsiReady = true;
+      this.renderGoogle();
     }).catch(() => this.google.set(null));
+  }
+
+  /** Dessine le bouton dès que le script ET la zone sont prêts, quel que soit l'ordre d'arrivée. */
+  private renderGoogle(): void {
+    const el = this.googleEl;
+    if (!this.gsiReady || !el || !window.google?.accounts?.id || el.childElementCount > 0) return;
+    // Laisser la mise en page se faire pour connaître la largeur réelle de la zone.
+    setTimeout(() => {
+      if (el.childElementCount > 0) return;
+      window.google.accounts.id.renderButton(el, {
+        theme: document.documentElement.classList.contains('light') ? 'outline' : 'filled_black',
+        size: 'large', shape: 'pill', logo_alignment: 'left', locale: 'fr',
+        text: this.mode === 'inscription' ? 'signup_with' : 'continue_with',
+        width: Math.min(400, el.clientWidth || 320)
+      });
+    });
   }
 
   // ── Facebook : SDK JavaScript, autorisations e-mail et profil public uniquement ──

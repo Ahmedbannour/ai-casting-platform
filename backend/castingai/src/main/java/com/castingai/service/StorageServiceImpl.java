@@ -93,13 +93,17 @@ public class StorageServiceImpl implements StorageService {
     }
 
     private String buildUrl(String filename) {
-        return minioConfig.getUrl() + "/" + minioConfig.getBucketName() + "/" + filename;
+        return minioConfig.getPublicBase() + "/" + minioConfig.getBucketName() + "/" + filename;
     }
 
     @Override
     public String keyFromUrl(String url) {
         if (url == null) return null;
-        String prefix = minioConfig.getUrl() + "/" + minioConfig.getBucketName() + "/";
-        return url.startsWith(prefix) ? url.substring(prefix.length()) : null;
+        // Adresse publique actuelle, ou ancienne adresse directe de MinIO.
+        for (String base : new String[] { minioConfig.getPublicBase(), minioConfig.getUrl() }) {
+            String prefix = base + "/" + minioConfig.getBucketName() + "/";
+            if (url.startsWith(prefix)) return url.substring(prefix.length());
+        }
+        return null;
     }
 }

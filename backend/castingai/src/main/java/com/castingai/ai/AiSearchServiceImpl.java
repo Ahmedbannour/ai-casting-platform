@@ -42,6 +42,7 @@ public class AiSearchServiceImpl implements AiSearchService {
     private final ActorPhotoRepository photoRepository;
     private final SearchHistoryRepository searchHistoryRepository;
     private final UserRepository userRepository;
+    private final com.castingai.service.ActorScope actorScope;
     private final com.castingai.repository.AiFeedbackRepository feedbackRepository;
     private final com.castingai.service.ShortlistService shortlistService;
     private final ObjectMapper objectMapper;
@@ -80,6 +81,8 @@ public class AiSearchServiceImpl implements AiSearchService {
         int size = Math.max(1, Math.min(request.getSize(), 50));
         int page = Math.max(0, request.getPage());
         ParsedCriteria c = parseQuery(request.getQuery());
+        com.castingai.service.ActorScope.Scope scope = userRepository.findByEmail(userEmail)
+                .map(actorScope::of).orElse(new com.castingai.service.ActorScope.Scope(false, com.castingai.service.ActorScope.NONE));
 
         // 1. Filtrer et classer dans la base : seuls les identifiants d'une page sont chargés
         Page<UUID> ids = actorRepository.rankedSearch(
@@ -87,6 +90,7 @@ public class AiSearchServiceImpl implements AiSearchService {
                 c.getMinAge() == null ? 0 : c.getMinAge(),
                 c.getMaxAge() == null ? 150 : c.getMaxAge(),
                 nz(c.getLanguage()), nz(c.getSkill()), nz(c.getCity()), nz(c.getHairColor()),
+                scope.all(), scope.agency(),
                 PageRequest.of(page, size));
 
         // 2. Charger uniquement les acteurs de la page (sous-tables en lots) et leurs photos principales

@@ -31,6 +31,8 @@ export interface ActorDetail {
   country: string;
   phone: string;
   email: string;
+  /** T-094 : coordonnées masquées tant que l'agent ne les demande pas. */
+  contactHidden?: boolean;
   bio: string;
   height: number;
   weight: number;
@@ -55,6 +57,11 @@ export class ActorDetailService {
 
   private url(id: string): string {
     return `${environment.apiUrl}/actors/${id}`;
+  }
+
+  /** Révèle téléphone et e-mail ; la consultation est tracée et visible de l'acteur (T-094). */
+  revealContact(id: string): Observable<{ phone: string | null; email: string | null }> {
+    return this.http.post<{ phone: string | null; email: string | null }>(`${this.url(id)}/contact`, {});
   }
 
   getDetail(id: string): Observable<ActorDetail> {

@@ -48,4 +48,4 @@ h1 { font-size: 34px; line-height: 1; }
   border: 1px dashed var(--border); background: var(--glass);
   h2 { font-size: 22px; margin-bottom: 6px; } p { color: var(--text-muted); margin-bottom: 18px; } }
 
-@media (max-width: 760px) { .projects { padding: 20px 16px; } .card-actions { opacity: 1; } }
+@container page (max-width: 760px) { .projects { padding: 20px 16px; } .card-actions { opacity: 1; } }

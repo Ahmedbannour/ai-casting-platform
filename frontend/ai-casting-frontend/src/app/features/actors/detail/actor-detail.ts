@@ -26,6 +26,8 @@ export class ActorDetailComponent implements OnInit {
 
   readonly actor = signal<ActorDetail | null>(null);
   readonly loading = signal(true);
+  readonly revealing = signal(false);
+  readonly revealError = signal('');
   readonly error = signal(false);
   readonly tab = signal<Tab>('profil');
   readonly lightbox = signal<number | null>(null);
@@ -233,4 +235,17 @@ export class ActorDetailComponent implements OnInit {
 
   edit(): void { this.router.navigate(['/actors', this.actor()!.id, 'edit']); }
   gallery(): void { this.router.navigate(['/actors', this.actor()!.id, 'gallery']); }
+
+  /** T-094 : l'agent demande les coordonnées ; l'acteur verra la consultation. */
+  revealContact(a: ActorDetail): void {
+    this.revealing.set(true);
+    this.revealError.set('');
+    this.detailService.revealContact(a.id).subscribe({
+      next: c => { this.revealing.set(false); this.actor.set({ ...a, phone: c.phone ?? '', email: c.email ?? '', contactHidden: false }); },
+      error: e => {
+        this.revealing.set(false);
+        this.revealError.set(e?.error?.code === 'CONTRAT_INACTIF' ? 'Contrat inactif : coordonnées indisponibles.' : 'Coordonnées indisponibles. Réessayez.');
+      }
+    });
+  }
 }

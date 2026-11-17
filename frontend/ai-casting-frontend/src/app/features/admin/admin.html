@@ -6,7 +6,7 @@
 
   <div class="tabs" role="tablist" aria-label="Sections de l'administration">
     @for (t of tabs; track t.id) {
-      <button type="button" role="tab" [attr.aria-selected]="tab() === t.id" [class.on]="tab() === t.id" (click)="tab.set(t.id)">{{ t.label }}</button>
+      <button type="button" role="tab" [attr.aria-selected]="tab() === t.id" [class.on]="tab() === t.id" (click)="tab.set(t.id); t.id === 'journal' && loadAudit()">{{ t.label }}</button>
     }
   </div>
 
@@ -32,6 +32,30 @@
               }
             </div>
           }
+        </div>
+
+        @let rv = st.revenue;
+        <div class="panel revenue">
+          <div class="rev-main">
+            <h2>Revenu mensuel récurrent</h2>
+            <p class="rev-sub">Somme des forfaits des contrats actifs</p>
+            <div class="rev-amounts">
+              @for (m of rv.mrr; track m.currency) { <b>{{ money(m.amount, m.currency) }}</b> }
+              @empty { <b class="none">—</b> }
+            </div>
+            <small>{{ rv.payingAgencies }} agence{{ rv.payingAgencies > 1 ? 's' : '' }} payante{{ rv.payingAgencies > 1 ? 's' : '' }}@if (rv.activeWithoutAmount) { · {{ rv.activeWithoutAmount }} contrat{{ rv.activeWithoutAmount > 1 ? 's' : '' }} actif{{ rv.activeWithoutAmount > 1 ? 's' : '' }} sans montant }</small>
+          </div>
+          <div class="rev-renew">
+            <h3>À renouveler sous 30 jours</h3>
+            @if (rv.renewals.length) {
+              <ul>
+                @for (r of rv.renewals; track r.id) {
+                  <li><b>{{ r.name }}</b><span>{{ r.daysLeft === 0 ? 'aujourd’hui' : 'dans ' + r.daysLeft + ' j' }} · {{ frDate(r.contractEnd) }}</span>
+                    @if (r.monthlyAmount != null) { <em>{{ money(r.monthlyAmount, r.currency) }}/mois</em> }</li>
+                }
+              </ul>
+            } @else { <p class="rev-sub">Aucun contrat ne se termine dans les 30 jours.</p> }
+          </div>
         </div>
 
         <div class="panel big-chart">
@@ -122,6 +146,15 @@
             <input id="ag-max" name="max" type="number" min="1" max="1000" step="1" inputmode="numeric" [(ngModel)]="agency.maxAgents" placeholder="illimité"
                    [attr.aria-invalid]="!!agencyFieldError('maxAgents')" />
             @if (agencyFieldError('maxAgents'); as m) { <small class="field-msg">{{ m }}</small> }</div>
+          <div class="f"><label for="ag-plan">Forfait</label>
+            <app-select inputId="ag-plan" name="plan" [(ngModel)]="agency.plan" [options]="planOptions" /></div>
+          <div class="f"><label for="ag-amount">Montant mensuel <em>facultatif</em></label>
+            <div class="money-in">
+              <input id="ag-amount" name="amount" type="number" min="0" step="0.01" inputmode="decimal" [(ngModel)]="agency.monthlyAmount" placeholder="0"
+                     [attr.aria-invalid]="!!agencyFieldError('monthlyAmount')" />
+              <app-select name="currency" [(ngModel)]="agency.currency" [options]="currencyOptions" ariaLabel="Devise" [compact]="true" />
+            </div>
+            @if (agencyFieldError('monthlyAmount'); as m) { <small class="field-msg">{{ m }}</small> }</div>
           <div class="create-actions">
             @if (agencyError()) { <small class="field-msg">{{ agencyError() }}</small> }
             <button type="button" class="btn-ghost" (click)="agencyForm.set(null)">Annuler</button>
@@ -142,6 +175,7 @@
                 <span class="status">{{ statusLabel(a.status) }}</span>
               </header>
               <p class="contract">Contrat du {{ frDate(a.contractStart) }} · {{ daysLeft(a) }}</p>
+              <p class="offer">@if (a.plan) {<b>{{ planLabel(a.plan) }}</b>} @else {<span>Forfait non défini</span>}@if (a.monthlyAmount != null) { · {{ money(a.monthlyAmount, a.currency) }} par mois }</p>
               <dl>
                 <div><dt>Agents</dt><dd>{{ a.agents }}@if (a.maxAgents) {<em>/{{ a.maxAgents }}</em>}</dd></div>
                 <div><dt>Projets en cours</dt><dd>{{ a.activeProjects }}<em>/{{ a.projects }}</em></dd></div>
@@ -331,6 +365,32 @@
   }
 
   <!-- ═══════════════ Import ═══════════════ -->
+  @if (tab() === 'journal') {
+    <section class="pane">
+      <div class="toolbar">
+        <p class="intro">Chaque action sensible de l'administration est enregistrée : qui l'a faite, sur quoi, et quand. Le journal ne peut pas être modifié.</p>
+        <app-select class="audit-filter" [options]="auditOptions" [ngModel]="auditFilter()" (ngModelChange)="loadAudit($event)" ariaLabel="Filtrer les actions" [compact]="true" />
+      </div>
+      @if (!auditLoaded()) { <div class="skel"></div> }
+      @else if (!auditEntries().length) {
+        <div class="empty"><h3>Rien à afficher</h3><p>Les créations de comptes, les contrats et les imports apparaîtront ici.</p></div>
+      } @else {
+        <ol class="audit">
+          @for (e of auditEntries(); track e.id) {
+            <li [attr.data-a]="e.action">
+              <span class="when">{{ auditWhen(e.createdAt) }}</span>
+              <div class="what">
+                <span class="head"><b>{{ auditLabel[e.action] || e.action }}</b>@if (e.target) { · {{ e.target }} }</span>
+                @if (e.details) { <span class="det">{{ e.details }}</span> }
+                <span class="who">par {{ e.actor }}</span>
+              </div>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+  }
+
   @if (tab() === 'import') {
     <section class="pane imp">
       @if (result(); as r) {

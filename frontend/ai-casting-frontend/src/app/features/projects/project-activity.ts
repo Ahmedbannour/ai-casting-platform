@@ -35,7 +35,7 @@ import { ActivityItem, CastingService, STATUSES } from '../../core/services/cast
   .when { flex: none; width: 112px; font-size: 12.5px; color: var(--text-subtle); font-variant-numeric: tabular-nums; }
   .what { font-size: 14px; color: var(--text-muted); line-height: 1.5; b { color: var(--text-primary); } a { color: var(--text-primary); font-weight: 600; text-decoration: none; } a:hover { text-decoration: underline; } }
   .empty { color: var(--text-muted); font-size: 14px; }
-  @media (max-width: 600px) { li { flex-direction: column; gap: 2px; } }
+  @container page (max-width: 600px) { li { flex-direction: column; gap: 2px; } }
   `]
 })
 export class ProjectActivityComponent implements OnInit {

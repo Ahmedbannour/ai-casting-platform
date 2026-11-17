@@ -80,5 +80,9 @@ public final class CastingDtos {
             LocalDateTime updatedAt,
             /** Disponibilité pour les dates de tournage du rôle : OK, A_VERIFIER, ou null si inconnue (US-07). */
             String availability,
-            String availabilityNote) {}
+            String availabilityNote,
+            /** L'acteur s'est mis en pause : il n'apparaît plus aux réalisateurs (T-093). */
+            boolean paused,
+            /** L'acteur a un compte : on peut lui envoyer une proposition (T-095). */
+            boolean hasAccount) {}
 }

@@ -7,6 +7,8 @@
       <span class="brand-mark" aria-hidden="true"></span>
       <span class="logo-text">AI Casting</span>
     </a>
+    <span class="top-tools">
+    <app-notification-bell />
     <button type="button" class="collapse" (click)="toggleCollapse()"
             [attr.aria-label]="nav.collapsed() ? 'Déplier le menu' : 'Replier le menu'"
             [attr.aria-expanded]="!nav.collapsed()" [title]="nav.collapsed() ? 'Déplier le menu' : 'Replier le menu'">
@@ -15,6 +17,7 @@
         <path [attr.d]="nav.collapsed() ? 'm13 10 2 2-2 2' : 'm16 10-2 2 2 2'"/>
       </svg>
     </button>
+    </span>
   </div>
 
   @if (!isActor()) {

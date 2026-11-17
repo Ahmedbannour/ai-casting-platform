@@ -85,7 +85,7 @@ import { CastingRole, CastingService, EntryStatus, ShortlistEntry, criteria } fr
   .note { font-style: italic; color: #575c66; }
   .empty { grid-column: 1 / -1; color: #575c66; }
   footer { margin-top: 24px; padding-top: 10px; border-top: 1px solid #d0d4db; font-size: 11px; color: #8f95a0; }
-  @media (max-width: 760px) { .grid { grid-template-columns: repeat(2, 1fr); } .sheet { padding: 20px; } }
+  @container page (max-width: 760px) { .grid { grid-template-columns: repeat(2, 1fr); } .sheet { padding: 20px; } }
   @media print {
     :host { background: #fff; padding: 0; }
     .no-print { display: none !important; }

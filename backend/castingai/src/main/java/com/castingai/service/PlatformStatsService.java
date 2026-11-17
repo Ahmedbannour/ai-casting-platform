@@ -32,11 +32,17 @@ public class PlatformStatsService {
     public record Freelancers(long total, long withPhoto, long withAvailability, long availableNow, long shortlistedOnce) {}
     public record Overview(Kpis kpis, List<MonthPoint> monthly, List<Bucket> projectStatus, List<Bucket> pipeline,
                            List<Bucket> genders, List<Bucket> ages, List<Bucket> cities, List<Bucket> sources,
-                           Freelancers freelancers, LocalDateTime computedAt) {}
+                           Freelancers freelancers, Revenue revenue, LocalDateTime computedAt) {}
 
     public record AgencyStats(UUID id, String name, String city, String contactEmail, LocalDate contractStart, LocalDate contractEnd,
                               Integer maxAgents, String status, long agents, long projects, long activeProjects,
-                              long roles, long rolesFilled, long candidates, long searches30, LocalDateTime lastActivity) {}
+                              long roles, long rolesFilled, long candidates, long searches30, LocalDateTime lastActivity,
+                              String plan, java.math.BigDecimal monthlyAmount, String currency) {}
+
+    /** T-098 · Revenu mensuel récurrent par devise et contrats à renouveler sous 30 jours. */
+    public record Money(String currency, java.math.BigDecimal amount) {}
+    public record Renewal(UUID id, String name, LocalDate contractEnd, long daysLeft, java.math.BigDecimal monthlyAmount, String currency) {}
+    public record Revenue(List<Money> mrr, long payingAgencies, long activeWithoutAmount, List<Renewal> renewals) {}
 
     public record ProjectStats(UUID id, String title, String type, String status, LocalDate startDate, LocalDate endDate,
                                LocalDateTime createdAt, String owner, String agency, long roles, long rolesFilled,
@@ -47,7 +53,7 @@ public class PlatformStatsService {
     public Overview overview(int months) {
         int m = Math.max(3, Math.min(months, 24));
         return new Overview(kpis(), monthly(m), projectStatus(), pipeline(), genders(), ages(), cities(), sources(),
-                freelancers(), LocalDateTime.now());
+                freelancers(), revenue(), LocalDateTime.now());
     }
 
     private long count(String sql, Object... args) {
@@ -159,11 +165,32 @@ public class PlatformStatsService {
                 count("select count(*) from actors a where " + f + " and exists (select 1 from shortlist_entries e where e.actor_id = a.id)"));
     }
 
+    // ── Revenu (T-098) ──
+
+    private static final String ACTIVE = "contract_start <= current_date and (contract_end is null or contract_end >= current_date)";
+
+    public Revenue revenue() {
+        List<Money> mrr = jdbc.query("select currency, sum(monthly_amount) from agencies where " + ACTIVE
+                + " and monthly_amount > 0 group by currency order by 2 desc", (rs, i) -> new Money(rs.getString(1), rs.getBigDecimal(2)));
+        return new Revenue(mrr,
+                count("select count(*) from agencies where " + ACTIVE + " and monthly_amount > 0"),
+                count("select count(*) from agencies where " + ACTIVE + " and (monthly_amount is null or monthly_amount = 0)"),
+                renewals());
+    }
+
+    /** Contrats actifs qui se terminent dans les 30 jours, du plus proche au plus lointain. */
+    public List<Renewal> renewals() {
+        return jdbc.query("select id, name, contract_end, (contract_end - current_date), monthly_amount, currency from agencies "
+                + "where " + ACTIVE + " and contract_end is not null and contract_end <= current_date + 30 order by contract_end",
+                (rs, i) -> new Renewal(rs.getObject(1, UUID.class), rs.getString(2), rs.getObject(3, LocalDate.class), rs.getLong(4),
+                        rs.getBigDecimal(5), rs.getString(6)));
+    }
+
     // ── Agences ──
 
     public List<AgencyStats> agencies() {
         String sql = """
-            select a.id, a.name, a.city, a.contact_email, a.contract_start, a.contract_end, a.max_agents,
+            select a.id, a.name, a.city, a.contact_email, a.contract_start, a.contract_end, a.max_agents, a.plan, a.monthly_amount, a.currency,
               case when a.contract_start > current_date then 'A_VENIR'
                    when a.contract_end is not null and a.contract_end < current_date then 'EXPIRE' else 'ACTIF' end as status,
               (select count(*) from users u where u.agency_id = a.id) as agents,
@@ -183,7 +210,8 @@ public class PlatformStatsService {
                 rs.getObject("contract_start", LocalDate.class), rs.getObject("contract_end", LocalDate.class),
                 (Integer) rs.getObject("max_agents"), rs.getString("status"), rs.getLong("agents"), rs.getLong("projects"),
                 rs.getLong("active_projects"), rs.getLong("roles"), rs.getLong("filled"), rs.getLong("candidates"),
-                rs.getLong("searches30"), rs.getObject("last_activity", LocalDateTime.class)));
+                rs.getLong("searches30"), rs.getObject("last_activity", LocalDateTime.class),
+                rs.getString("plan"), rs.getBigDecimal("monthly_amount"), rs.getString("currency")));
     }
 
     // ── Projets ──

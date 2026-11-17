@@ -11,6 +11,8 @@
       <h1>Mon profil</h1>
       <p>Les agents de casting voient cette fiche telle que vous la remplissez. Vos disponibilités sont comparées
         aux dates de tournage : gardez-les à jour pour être proposé au bon moment.</p>
+      <app-visibility-switch />
+      <app-profile-score #score />
     } @else {
       <h1>{{ isEdit() ? 'Modifier le dossier' : 'Nouvel acteur' }}</h1>
       <p>Seuls le prénom et le nom sont obligatoires. Plus le dossier est complet, mieux la recherche le classe.</p>
@@ -87,6 +89,9 @@
                    [attr.aria-invalid]="show(form.get('phone'))" />
             @if (msg('phone'); as m) { <small class="field-msg">{{ m }}</small> }
           </div>
+          @if (contactHidden()) {
+            <p class="field-hint contact-lock">Coordonnées masquées pour votre agence. Affichez-les depuis la fiche de l'acteur : la consultation lui sera signalée.</p>
+          }
         </div>
       </section>
 

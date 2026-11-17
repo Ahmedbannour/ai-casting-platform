@@ -183,7 +183,7 @@ import { ProjectActivityComponent } from './project-activity';
   .skel { height: 180px; border-radius: var(--radius-l); background: linear-gradient(90deg, var(--bg-hover) 25%, var(--bg-surface) 50%, var(--bg-hover) 75%);
     background-size: 200% 100%; animation: skel 1.4s linear infinite; }
   @keyframes skel { to { background-position: -200% 0; } }
-  @media (max-width: 760px) { .page { padding: 20px 16px; } h1 { font-size: 30px; } .role { flex-wrap: wrap; } .head-side { align-items: flex-start; } .progress { text-align: left; } }
+  @container page (max-width: 760px) { .page { padding: 20px 16px; } h1 { font-size: 30px; } .role { flex-wrap: wrap; } .head-side { align-items: flex-start; } .progress { text-align: left; } }
   `]
 })
 export class ProjectDetailComponent implements OnInit {

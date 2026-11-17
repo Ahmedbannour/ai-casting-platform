@@ -1,0 +1,28 @@
+# T-106 · Profil de production (SPRING_PROFILES_ACTIVE=prod).
+# Aucun secret par défaut : chaque valeur vient d'une variable d'environnement,
+# et ProductionGuard refuse les valeurs de développement.
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  ai:
+    ollama:
+      base-url: ${OLLAMA_URL:http://ollama:11434}
+
+minio:
+  url: ${MINIO_URL}
+  access-key: ${S3_ACCESS_KEY}
+  secret-key: ${S3_SECRET_KEY}
+
+jwt:
+  secret: ${JWT_SECRET}
+
+casting:
+  admin:
+    email: ${CASTING_ADMIN_EMAIL:}
+    password: ${CASTING_ADMIN_PASSWORD:}
+
+logging:
+  level:
+    root: INFO

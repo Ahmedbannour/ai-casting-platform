@@ -21,16 +21,26 @@ export interface PlatformStats {
   kpis: Kpis; monthly: MonthPoint[]; projectStatus: Bucket[]; pipeline: Bucket[];
   genders: Bucket[]; ages: Bucket[]; cities: Bucket[]; sources: Bucket[];
   freelancers: { total: number; withPhoto: number; withAvailability: number; availableNow: number; shortlistedOnce: number };
+  revenue: Revenue;
   computedAt: string;
 }
+/** T-098 · revenu mensuel récurrent par devise et contrats à renouveler sous 30 jours. */
+export interface Revenue {
+  mrr: { currency: string; amount: number }[]; payingAgencies: number; activeWithoutAmount: number;
+  renewals: { id: string; name: string; contractEnd: string; daysLeft: number; monthlyAmount: number | null; currency: string }[];
+}
+export type Plan = 'ESSENTIEL' | 'PRO' | 'STUDIO' | 'SUR_MESURE';
 export interface AgencyStats {
   id: string; name: string; city: string | null; contactEmail: string | null; contractStart: string; contractEnd: string | null;
   maxAgents: number | null; status: 'ACTIF' | 'A_VENIR' | 'EXPIRE'; agents: number; projects: number; activeProjects: number;
   roles: number; rolesFilled: number; candidates: number; searches30: number; lastActivity: string | null;
+  plan: Plan | null; monthlyAmount: number | null; currency: string;
 }
 export interface AgencyRequest {
   name: string; city: string | null; contactEmail: string | null; contractStart: string; contractEnd: string | null; maxAgents: number | null; notes: string | null;
+  plan: Plan | '' | null; monthlyAmount: number | null; currency: string;
 }
+export interface AuditEntry { id: string; actor: string; action: string; target: string | null; details: string | null; createdAt: number; }
 export interface ProjectStats {
   id: string; title: string; type: string; status: string; startDate: string | null; endDate: string | null; createdAt: string;
   owner: string; agency: string | null; roles: number; rolesFilled: number; candidates: number; auditions: number; chosen: number; lastActivity: string | null;
@@ -64,6 +74,11 @@ export class AdminService {
   agencies(): Observable<AgencyStats[]> { return this.http.get<AgencyStats[]>(`${this.url}/agencies`); }
   createAgency(body: AgencyRequest): Observable<AgencyStats> { return this.http.post<AgencyStats>(`${this.url}/agencies`, body); }
   updateAgency(id: string, body: AgencyRequest): Observable<AgencyStats> { return this.http.put<AgencyStats>(`${this.url}/agencies/${id}`, body); }
+  /** T-099 · journal d'audit de l'administration. */
+  audit(action?: string): Observable<AuditEntry[]> {
+    return this.http.get<AuditEntry[]>(`${this.url}/audit`, { params: action ? { action } : {} });
+  }
+
   projects(status?: string): Observable<ProjectStats[]> {
     return this.http.get<ProjectStats[]>(`${this.url}/projects`, { params: status ? { status } : {} });
   }

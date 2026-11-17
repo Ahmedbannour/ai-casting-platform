@@ -97,7 +97,7 @@ import { PROJECT_TYPES, Project, ProjectRequest, ProjectService, ProjectType } f
   .primary:disabled { opacity: .6; cursor: default; }
   @keyframes fade { from { opacity: 0; } }
   @keyframes pop { from { opacity: 0; transform: translateY(16px) scale(.97); } }
-  @media (max-width: 520px) { .row { flex-direction: column; } }
+  @container page (max-width: 520px) { .row { flex-direction: column; } }
   `]
 })
 export class ProjectFormComponent implements OnInit {

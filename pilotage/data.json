@@ -6,8 +6,8 @@
   "client": "Vous, porteur du projet (donneur d’ordre)",
   "debut": "2026-11-15",
   "maj": "2026-11-17",
-  "jour": "J4",
-  "avancement": 86,
+  "jour": "J5",
+  "avancement": 92,
   "avancement_veille": 71,
   "phase_courante": "PH1"
  },
@@ -558,6 +558,27 @@
     "README.md"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-031",
+   "titre": "Plan de mise à jour vers le produit final",
+   "original": "Demander à l'entreprise un plan des mises à jour bien défini pour obtenir un produit final (ajouts, corrections, développements), puis réaliser les mises à jour une par une, afficher les tâches bloquantes avec les solutions proposées, rendre la présentation plus responsive et en temps réel, installer des skills et bibliothèques sûres.",
+   "ameliore": "Objectif : un plan complet en lots (sécurité, conformité, comptes, métier, IA, interface, qualité, mise en ligne) avec une file d'exécution unique. Livrables : vues « Plan produit final » et « Blocages » (solutions gratuites, choix en un clic) dans la salle de pilotage, page responsive et horloge en direct ; outillage vérifié (sources officielles, versions figées, audit). Critères : chaque tâche testée avant « fait », une seule tâche en cours, blocages visibles avec au moins deux solutions.",
+   "date": "2026-11-17",
+   "departements": [
+    "dir",
+    "prod",
+    "devops",
+    "front",
+    "qa",
+    "jur"
+   ],
+   "livrables": [
+    "Plan produit final (8 lots, 28 tâches)",
+    "Vues Plan et Blocages dans la salle de pilotage",
+    "Outillage vérifié"
+   ],
+   "statut": "En cours"
   }
  ],
  "bibliotheques": [
@@ -602,6 +623,13 @@
    "cote": "Infra",
    "usage": "PostgreSQL 16 + extension vector, remplace postgres:16",
    "licence": "PostgreSQL"
+  },
+  {
+   "nom": "OSV-Scanner 2.7.1",
+   "source": "github.com/google/osv-scanner (version publiée)",
+   "usage": "Analyse des failles connues des bibliothèques Java et JavaScript",
+   "verification": "Empreinte SHA-256 identique à celle publiée",
+   "cout": "Gratuit, open source (Apache 2.0)"
   }
  ],
  "taches": [
@@ -1534,6 +1562,768 @@
    "prompt": "P-022",
    "statut": "en_cours",
    "detail": ""
+  },
+  {
+   "id": "T-084",
+   "titre": "Rôles administrateur, agent de casting, acteur freelance",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-028",
+   "statut": "fait",
+   "detail": "Inscription publique = compte acteur ; /api/me ; agence réservée aux rôles ADMIN et AGENT."
+  },
+  {
+   "id": "T-085",
+   "titre": "Import d'acteurs depuis Excel ou CSV",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-028",
+   "statut": "fait",
+   "detail": "Aperçu sans enregistrement, nettoyage, doublons ; testé sur CSV et Excel."
+  },
+  {
+   "id": "T-086",
+   "titre": "Connexion avec Google et Facebook",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH2",
+   "prio": "P1",
+   "jour": "J5",
+   "prompt": "P-028",
+   "statut": "fait",
+   "detail": "Google et Facebook vérifiés par de vraies connexions du client. Correctifs : appsecret_proof, réponses text/javascript, affichage du bouton Google."
+  },
+  {
+   "id": "T-087",
+   "titre": "Agences clientes sous contrat",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-028",
+   "statut": "fait",
+   "detail": "Contrat, statut, statistiques par agence."
+  },
+  {
+   "id": "T-088",
+   "titre": "Tableau de bord administrateur de la plateforme",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-028",
+   "statut": "fait",
+   "detail": "Six onglets vérifiés sur les vraies données."
+  },
+  {
+   "id": "T-089",
+   "titre": "Note principale du cahier des charges : le modèle",
+   "dept": "prod",
+   "resp": "Sarra Mansouri",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-028",
+   "statut": "fait",
+   "detail": "Diapositives 2 et 3 du cahier des charges."
+  },
+  {
+   "id": "T-090",
+   "titre": "Le contrat ouvre l'accès, sinon lecture seule",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-029",
+   "statut": "fait",
+   "detail": "Vérifié par test et à l'écran : bandeau à 30 jours de la fin, bandeau rouge et lecture seule une fois le contrat échu."
+  },
+  {
+   "id": "T-091",
+   "titre": "Validation par le réalisateur, sans compte",
+   "dept": "back",
+   "resp": "Sarra Mansouri",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-029",
+   "statut": "fait",
+   "detail": "Vérifié de bout en bout : API + test, panneau de partage, page publique (bureau et mobile), avis sur les cartes, lien retiré = page fermée."
+  },
+  {
+   "id": "T-092",
+   "titre": "Un espace par agence cliente",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-029",
+   "statut": "fait",
+   "detail": "V17 : fiche rattachée à l'agence qui l'apporte. Autre agence = absente des recherches et 404 partout. Équipe limitée à l'agence. Tableau de bord limité. Test + écran."
+  },
+  {
+   "id": "T-093",
+   "titre": "Consentement de l'acteur : visible ou en pause",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-029",
+   "statut": "fait",
+   "detail": "V16 + /api/me/visibility ; recherches et liens réalisateur excluent les profils en pause ; mention sur les cartes. Test + écran."
+  },
+  {
+   "id": "T-094",
+   "titre": "Coordonnées protégées et consultations tracées",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P1",
+   "jour": "J5",
+   "prompt": "P-029",
+   "statut": "fait",
+   "detail": "V18 : fiches du vivier = téléphone et e-mail masqués ; demande tracée, visible de l'acteur ; champs verrouillés en modification. Test + écran."
+  },
+  {
+   "id": "T-095",
+   "titre": "Proposition de rôle et convocation à l'acteur",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH2",
+   "prio": "P1",
+   "jour": "J5",
+   "prompt": "P-029",
+   "statut": "fait",
+   "detail": "V19 : convocation ou proposition ; l'acteur accepte ou décline ; convocation acceptée = candidat en Audition. Test + écran."
+  },
+  {
+   "id": "T-096",
+   "titre": "Notifications dans l'application",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH2",
+   "prio": "P1",
+   "jour": "J5",
+   "prompt": "P-029",
+   "statut": "fait",
+   "detail": "V20 : cloche (menu + mobile) ; avis du réalisateur, réponse d'acteur, nouvelle proposition, consultation des coordonnées, contrat à 30 jours. Test + écran."
+  },
+  {
+   "id": "T-097",
+   "titre": "Profil acteur complet : score et conseils",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH2",
+   "prio": "P1",
+   "jour": "J5",
+   "prompt": "P-029",
+   "statut": "fait",
+   "detail": "Jauge dans « Mon profil » : 10 critères pondérés, 3 conseils prioritaires cliquables, mise à jour après enregistrement. Vérifié à l'écran."
+  },
+  {
+   "id": "T-098",
+   "titre": "Offre commerciale et revenu mensuel",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P1",
+   "jour": "J5",
+   "prompt": "P-029",
+   "statut": "fait",
+   "detail": "V21 : forfait, montant mensuel et devise par agence ; revenu mensuel récurrent ; renouvellements à 30 jours (tableau de bord + cloche). Test + écran."
+  },
+  {
+   "id": "T-099",
+   "titre": "Journal d'audit de l'administrateur",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P2",
+   "jour": "J5",
+   "prompt": "P-029",
+   "statut": "fait",
+   "detail": "V22 : comptes créés ou modifiés, agences ajoutées, contrats (avant → après), imports ; onglet « Journal » filtrable, réservé à l'administrateur. Test (42/42) + écran."
+  },
+  {
+   "id": "T-103",
+   "titre": "Photos servies par la même adresse que l'application",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-031",
+   "statut": "fait",
+   "detail": "Les photos étaient bloquées (adresse localhost:9000). Servies via /casting-media, migration V23 des adresses, 45/45 tests, vérifié à l'écran.",
+   "lot": "L1"
+  },
+  {
+   "id": "T-104",
+   "titre": "Pages adaptées au menu ouvert ou replié",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH3",
+   "prio": "P1",
+   "jour": "J5",
+   "prompt": "P-031",
+   "statut": "fait",
+   "detail": "23 points de rupture convertis en requêtes de conteneur : la page suit la place réelle. Vérifié sur les pages acteur à 1024 px, menu ouvert et replié.",
+   "lot": "L6"
+  },
+  {
+   "id": "T-105",
+   "titre": "Corriger les 6 failles des bibliothèques du site",
+   "dept": "devops",
+   "resp": "Rami Saidi",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-031",
+   "statut": "fait",
+   "detail": "Angular 20.3.25 → 20.3.35 (même version majeure) : 0 faille en production (6 avant). Outils de développement : 16 modérées (47 avant, dont 3 critiques), toutes dans l'outil en ligne de commande d'Angular. Compilation de production réussie (limite de taille des styles relevée à 32 ko ; admin.scss à découper), site vérifié.",
+   "lot": "L1"
+  },
+  {
+   "id": "T-106",
+   "titre": "Profils développement et production, secrets obligatoires",
+   "dept": "devops",
+   "resp": "Laura Blanc",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-031",
+   "statut": "fait",
+   "detail": "Profil « prod » sans aucune valeur par défaut ; ProductionGuard refuse le démarrage (avant l'ouverture du port) si un secret manque, est trop court ou vaut une valeur de développement — vérifié en vrai ; acteurs et compte de démonstration seulement hors production ; premier administrateur créé depuis CASTING_ADMIN_EMAIL / CASTING_ADMIN_PASSWORD. 48/48 tests (3 nouveaux), README à jour.",
+   "lot": "L1"
+  },
+  {
+   "id": "T-107",
+   "titre": "Protection contre les essais de mot de passe en série",
+   "dept": "back",
+   "resp": "Claire Dubois",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Après 5 échecs en 15 minutes pour une adresse ou une machine : attente imposée, message clair, entrée dans le journal d'audit.",
+   "lot": "L1"
+  },
+  {
+   "id": "T-108",
+   "titre": "En-têtes de sécurité, documentation API fermée en production",
+   "dept": "devops",
+   "resp": "Rami Saidi",
+   "phase": "PH3",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Content-Security-Policy, HSTS, X-Frame-Options ; Swagger réservé au développement ; origines autorisées limitées au site.",
+   "lot": "L1"
+  },
+  {
+   "id": "T-109",
+   "titre": "Photos et documents privés : liens signés à durée limitée",
+   "dept": "back",
+   "resp": "Marc Lefèvre",
+   "phase": "PH3",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Le stockage est aujourd'hui public. Lien signé valable quelques minutes, délivré seulement à qui a le droit de voir la fiche.",
+   "lot": "L1"
+  },
+  {
+   "id": "T-101",
+   "titre": "Consentement daté et conditions d'utilisation",
+   "dept": "jur",
+   "resp": "Mehdi Amrani",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Case non pré-cochée, texte versionné et daté, conditions d'utilisation et politique de confidentialité (pages publiques), nouvel accord demandé à chaque nouvelle version ; mineurs : accord d'un représentant légal. Relecture par un juriste avant lancement.",
+   "lot": "L2"
+  },
+  {
+   "id": "T-102",
+   "titre": "Invitation des acteurs importés à confirmer le partage",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "L'agence génère un lien d'invitation par acteur importé ; l'acteur crée son compte, reprend sa fiche et choisit : rester chez son agence ou rejoindre le vivier. Sans réponse : privé à l'agence.",
+   "lot": "L2"
+  },
+  {
+   "id": "T-110",
+   "titre": "Mes données : export et suppression du compte",
+   "dept": "back",
+   "resp": "Antoine Roux",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Depuis « Mon profil » : télécharger toutes ses données (fiche, photos, consultations) et supprimer son compte, avec effacement des photos. Loi tunisienne n° 2004-63 et RGPD.",
+   "lot": "L2"
+  },
+  {
+   "id": "T-111",
+   "titre": "Durées de conservation et purge automatique",
+   "dept": "jur",
+   "resp": "Aurélie Fontaine",
+   "phase": "PH3",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Durées définies pour le journal d'audit, les consultations de coordonnées, les notifications ; purge planifiée chaque nuit.",
+   "lot": "L2"
+  },
+  {
+   "id": "T-112",
+   "titre": "Mot de passe oublié",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "bloque",
+   "detail": "Lien de réinitialisation à usage unique.",
+   "lot": "L3",
+   "bloquant": "Aucun moyen d'envoyer des e-mails pour l'instant (règle du coût zéro).",
+   "solutions": [
+    {
+     "titre": "Lien de réinitialisation donné par l'administrateur",
+     "detail": "Sans e-mail : l'administrateur ou l'agence génère un lien à usage unique (valable 1 h) et le transmet à la personne. Disponible tout de suite.",
+     "cout": "Gratuit",
+     "delai": "1 jour",
+     "dept": "back",
+     "resp": "Hichem Jaziri",
+     "recommande": true
+    },
+    {
+     "titre": "Envoi d'e-mails par Gmail (SMTP gratuit)",
+     "detail": "Compte Gmail de l'entreprise + mot de passe d'application, saisi par vous dans une fenêtre masquée. Limite d'environ 500 e-mails par jour.",
+     "cout": "Gratuit",
+     "delai": "1 jour après votre saisie",
+     "dept": "devops",
+     "resp": "Rami Saidi",
+     "recommande": false
+    },
+    {
+     "titre": "Mailpit en local pour les essais",
+     "detail": "Boîte de réception locale gratuite (open source) : les e-mails sont visibles sans être envoyés. Pour tester, pas pour la production.",
+     "cout": "Gratuit",
+     "delai": "2 heures",
+     "dept": "devops",
+     "resp": "Laura Blanc",
+     "recommande": false
+    }
+   ]
+  },
+  {
+   "id": "T-113",
+   "titre": "Vérification de l'adresse e-mail à l'inscription",
+   "dept": "back",
+   "resp": "Claire Dubois",
+   "phase": "PH3",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "bloque",
+   "detail": "Dépend de l'envoi d'e-mails (T-112).",
+   "lot": "L3",
+   "bloquant": "Même blocage que T-112 : pas encore d'envoi d'e-mails.",
+   "solutions": [
+    {
+     "titre": "Lien de réinitialisation donné par l'administrateur",
+     "detail": "Sans e-mail : l'administrateur ou l'agence génère un lien à usage unique (valable 1 h) et le transmet à la personne. Disponible tout de suite.",
+     "cout": "Gratuit",
+     "delai": "1 jour",
+     "dept": "back",
+     "resp": "Hichem Jaziri",
+     "recommande": true
+    },
+    {
+     "titre": "Envoi d'e-mails par Gmail (SMTP gratuit)",
+     "detail": "Compte Gmail de l'entreprise + mot de passe d'application, saisi par vous dans une fenêtre masquée. Limite d'environ 500 e-mails par jour.",
+     "cout": "Gratuit",
+     "delai": "1 jour après votre saisie",
+     "dept": "devops",
+     "resp": "Rami Saidi",
+     "recommande": false
+    },
+    {
+     "titre": "Mailpit en local pour les essais",
+     "detail": "Boîte de réception locale gratuite (open source) : les e-mails sont visibles sans être envoyés. Pour tester, pas pour la production.",
+     "cout": "Gratuit",
+     "delai": "2 heures",
+     "dept": "devops",
+     "resp": "Laura Blanc",
+     "recommande": false
+    }
+   ]
+  },
+  {
+   "id": "T-114",
+   "titre": "Connexion Facebook ouverte au public",
+   "dept": "devops",
+   "resp": "Laura Blanc",
+   "phase": "PH3",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "bloque",
+   "detail": "Aujourd'hui l'application Meta est en mode développement : seuls les comptes ajoutés comme testeurs peuvent se connecter.",
+   "lot": "L3",
+   "bloquant": "Meta exige une adresse publique en HTTPS pour la politique de confidentialité et la suppression des données.",
+   "solutions": [
+    {
+     "titre": "Publier la politique de confidentialité sur une page gratuite",
+     "detail": "Page publique HTTPS gratuite (artefact public ou GitHub Pages) dès que T-101 est rédigée ; suffit à Meta pour le mode public (nom, photo, e-mail).",
+     "cout": "Gratuit",
+     "delai": "Après T-101",
+     "dept": "jur",
+     "resp": "Mehdi Amrani",
+     "recommande": true
+    },
+    {
+     "titre": "Attendre la mise en ligne du site (T-126)",
+     "detail": "La politique est publiée sur le domaine de la plateforme.",
+     "cout": "Gratuit",
+     "delai": "Après T-126",
+     "dept": "devops",
+     "resp": "Rami Saidi",
+     "recommande": false
+    },
+    {
+     "titre": "Rester en mode développement",
+     "detail": "Vous ajoutez à la main les comptes Facebook des testeurs dans Meta.",
+     "cout": "Gratuit",
+     "delai": "Immédiat",
+     "dept": "client",
+     "resp": "Leila Bouaziz",
+     "recommande": false
+    }
+   ]
+  },
+  {
+   "id": "T-115",
+   "titre": "Photo de profil Facebook ou Google à la première connexion",
+   "dept": "back",
+   "resp": "Antoine Roux",
+   "phase": "PH3",
+   "prio": "P2",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Possible sans examen Meta (photo de profil uniquement ; les albums exigent un examen et une vérification d'entreprise). À réaliser sur votre accord.",
+   "lot": "L3"
+  },
+  {
+   "id": "T-116",
+   "titre": "Agenda des auditions",
+   "dept": "front",
+   "resp": "Julien Petit",
+   "phase": "PH3",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Convocation avec date, heure et lieu ; vue agenda pour l'agent et l'acteur ; rappel dans la cloche la veille.",
+   "lot": "L4"
+  },
+  {
+   "id": "T-117",
+   "titre": "Vivier à grande échelle : pagination et filtres",
+   "dept": "back",
+   "resp": "Marc Lefèvre",
+   "phase": "PH3",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Pagination côté serveur, filtres combinés (ville, âge, taille, langues, compétences), tri ; tenue à 100 000 fiches.",
+   "lot": "L4"
+  },
+  {
+   "id": "T-118",
+   "titre": "Notifications par e-mail",
+   "dept": "back",
+   "resp": "Antoine Roux",
+   "phase": "PH3",
+   "prio": "P2",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "bloque",
+   "detail": "Proposition reçue, réponse de l'acteur, contrat à renouveler.",
+   "lot": "L4",
+   "bloquant": "Dépend de l'envoi d'e-mails (T-112).",
+   "solutions": [
+    {
+     "titre": "Envoi d'e-mails par Gmail (SMTP gratuit)",
+     "detail": "Compte Gmail de l'entreprise + mot de passe d'application, saisi par vous dans une fenêtre masquée. Limite d'environ 500 e-mails par jour.",
+     "cout": "Gratuit",
+     "delai": "1 jour après votre saisie",
+     "dept": "devops",
+     "resp": "Rami Saidi",
+     "recommande": false
+    },
+    {
+     "titre": "Mailpit en local pour les essais",
+     "detail": "Boîte de réception locale gratuite (open source) : les e-mails sont visibles sans être envoyés. Pour tester, pas pour la production.",
+     "cout": "Gratuit",
+     "delai": "2 heures",
+     "dept": "devops",
+     "resp": "Laura Blanc",
+     "recommande": false
+    },
+    {
+     "titre": "Rester sur la cloche de l'application",
+     "detail": "Pas d'e-mail : les notifications restent dans l'application.",
+     "cout": "Gratuit",
+     "delai": "Immédiat",
+     "dept": "prod",
+     "resp": "Élodie Martin",
+     "recommande": false
+    }
+   ]
+  },
+  {
+   "id": "T-119",
+   "titre": "IA : fiches indexées à chaque modification, explication en arrière-plan",
+   "dept": "ia",
+   "resp": "Nadia Ben Salem",
+   "phase": "PH2",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Vecteur recalculé à l'enregistrement d'une fiche ; l'explication de l'IA arrive après les cartes, sans bloquer l'écran.",
+   "lot": "L5"
+  },
+  {
+   "id": "T-120",
+   "titre": "Accessibilité (WCAG 2.2 niveau AA)",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH3",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Contrastes, navigation au clavier, libellés des champs, annonces pour lecteurs d'écran ; audit puis corrections.",
+   "lot": "L6"
+  },
+  {
+   "id": "T-121",
+   "titre": "Application installable sur téléphone et pages d'erreur",
+   "dept": "front",
+   "resp": "Julien Petit",
+   "phase": "PH3",
+   "prio": "P2",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Icône sur l'écran d'accueil (PWA), page 404, page « serveur indisponible ».",
+   "lot": "L6"
+  },
+  {
+   "id": "T-122",
+   "titre": "Tests automatiques de bout en bout des quatre parcours",
+   "dept": "qa",
+   "resp": "Thomas Girard",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Playwright (Microsoft, open source) : administrateur, agent, acteur, réalisateur ; lancés avant chaque livraison.",
+   "lot": "L7"
+  },
+  {
+   "id": "T-123",
+   "titre": "Intégration continue sur GitHub",
+   "dept": "devops",
+   "resp": "Rami Saidi",
+   "phase": "PH3",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "bloque",
+   "detail": "Tests lancés automatiquement à chaque envoi sur GitHub.",
+   "lot": "L7",
+   "bloquant": "Votre règle : aucun commit ni envoi sur GitHub sans votre accord explicite.",
+   "solutions": [
+    {
+     "titre": "Autoriser commit et envoi sur une branche dédiée",
+     "detail": "Vous validez chaque envoi ; GitHub Actions lance les tests (gratuit dans les limites de GitHub).",
+     "cout": "Gratuit",
+     "delai": "1 jour après accord",
+     "dept": "devops",
+     "resp": "Rami Saidi",
+     "recommande": true
+    },
+    {
+     "titre": "Intégration locale sans envoi",
+     "detail": "Un script lance tous les tests (back, front, bout en bout) avant chaque livraison, sur votre PC.",
+     "cout": "Gratuit",
+     "delai": "2 heures",
+     "dept": "qa",
+     "resp": "Amel Kacem",
+     "recommande": false
+    },
+    {
+     "titre": "Reporter",
+     "detail": "Pas d'intégration continue pour l'instant.",
+     "cout": "Gratuit",
+     "delai": "—",
+     "dept": "dir",
+     "resp": "Sonia Mercier",
+     "recommande": false
+    }
+   ]
+  },
+  {
+   "id": "T-124",
+   "titre": "Déploiement Docker de production",
+   "dept": "devops",
+   "resp": "Laura Blanc",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Images du serveur et du site, serveur web (nginx) qui sert le site, l'API et /casting-media sur une seule adresse ; HTTPS.",
+   "lot": "L7"
+  },
+  {
+   "id": "T-125",
+   "titre": "Sauvegardes automatiques de la base et des photos",
+   "dept": "devops",
+   "resp": "Rami Saidi",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Sauvegarde quotidienne, 14 jours conservés, restauration testée.",
+   "lot": "L7"
+  },
+  {
+   "id": "T-126",
+   "titre": "Hébergement et nom de domaine",
+   "dept": "devops",
+   "resp": "Laura Blanc",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "bloque",
+   "detail": "Mettre la plateforme en ligne pour les agences.",
+   "lot": "L8",
+   "bloquant": "Un serveur public et un domaine ont en général un coût (règle du coût zéro).",
+   "solutions": [
+    {
+     "titre": "Tunnel Cloudflare gratuit depuis votre PC",
+     "detail": "Adresse publique HTTPS gratuite, sans ouvrir de port ; le PC doit rester allumé. Adresse aléatoire sans domaine à vous.",
+     "cout": "Gratuit",
+     "delai": "1 jour",
+     "dept": "devops",
+     "resp": "Laura Blanc",
+     "recommande": true
+    },
+    {
+     "titre": "Serveur gratuit Oracle Cloud « Always Free »",
+     "detail": "Machine virtuelle gratuite en continu ; Oracle demande une carte bancaire pour vérifier l'identité (aucun prélèvement annoncé). À valider par la Finance.",
+     "cout": "Gratuit (carte demandée)",
+     "delai": "2 jours",
+     "dept": "fin",
+     "resp": "Philippe Garnier",
+     "recommande": false
+    },
+    {
+     "titre": "Démonstration en local seulement",
+     "detail": "La plateforme reste sur votre PC jusqu'à la décision d'hébergement.",
+     "cout": "Gratuit",
+     "delai": "Immédiat",
+     "dept": "dir",
+     "resp": "Karim Haddad",
+     "recommande": false
+    }
+   ]
+  },
+  {
+   "id": "T-100",
+   "titre": "Recette des quatre parcours et documentation",
+   "dept": "qa",
+   "resp": "Amel Kacem",
+   "phase": "PH2",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Recette manuelle et automatique, README à jour, guide utilisateur pour les agences et les acteurs.",
+   "lot": "L8"
+  },
+  {
+   "id": "T-127",
+   "titre": "Nettoyage des données de test et lancement",
+   "dept": "dir",
+   "resp": "Karim Haddad",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "a_faire",
+   "detail": "Suppression des comptes et agences de test, vérification finale, ouverture aux premières agences.",
+   "lot": "L8"
+  },
+  {
+   "id": "T-128",
+   "titre": "Corriger les failles des bibliothèques Java du serveur",
+   "dept": "devops",
+   "resp": "Rami Saidi",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-031",
+   "statut": "fait",
+   "lot": "L1",
+   "detail": "OSV-Scanner (Google, empreinte vérifiée) : ~60 failles connues. Retrait de RabbitMQ, Elasticsearch et Redis (inutilisés) ; Tomcat 10.1.59, Jackson 2.21.7, PostgreSQL 42.7.12, Log4j 2.25.5, Spring AI 1.0.9, MinIO 8.6.0 (OkHttp 5), Guava, Bouncy Castle, Snappy. Reste 2 failles de Spring Web 6.2, corrigées seulement en Spring Framework 7 (T-129). 45/45 tests + essai réel d'envoi sur le stockage."
+  },
+  {
+   "id": "T-129",
+   "titre": "Passer à Spring Boot 4 (Spring Framework 7)",
+   "dept": "back",
+   "resp": "Marc Lefèvre",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J6",
+   "prompt": "P-031",
+   "statut": "en_cours",
+   "lot": "L1",
+   "detail": "Seule façon gratuite de corriger les 2 failles critiques restantes de Spring Web 6.2 (corrigées en 7.0.9). Avec Spring AI 1.1 ou 2.0, Spring Security 7, Jackson 3 ; migration guidée, tests complets avant/après."
   }
  ],
  "journal": [
@@ -1593,28 +2383,27 @@
   }
  ],
  "maintenant": {
-  "etape": 4,
-  "titre": "P-022 · J4 · carte mentale en temps réel",
+  "titre": "P-031 · T-106 faite ; T-129 en cours (Spring Boot 4)",
+  "etape": 29,
   "agents": [
    {
-    "nom": "Sarra Mansouri",
-    "action": "Rend la carte mentale vivante : pings, liens animés, horloge du direct",
-    "court": "carte en direct"
+    "nom": "Marc Lefèvre",
+    "action": "Inventaire des changements Spring Boot 3.5 → 4 (Security 7, Jackson 3, Spring AI) avant migration",
+    "court": "T-129"
    },
    {
     "nom": "Amel Kacem",
-    "action": "Vérifie la carte dans le navigateur",
+    "action": "Référence avant migration : 48/48 tests",
     "court": "recette"
+   },
+   {
+    "nom": "Laura Blanc",
+    "action": "T-106 livrée : profil prod, secrets obligatoires",
+    "court": "T-106 fait"
    }
   ]
  },
  "activite": [
-  {
-   "h": "J4",
-   "t": "2026-11-17T08:00:00Z",
-   "nom": "Hichem Jaziri",
-   "texte": "Sprints S4 et S5 livrés : rôles, recherche pré-remplie, shortlists ; 20 tests sur 20."
-  },
   {
    "h": "J4",
    "t": "2026-11-17T08:01:00Z",
@@ -1626,6 +2415,165 @@
    "t": "2026-11-17T08:02:00Z",
    "nom": "Sarra Mansouri",
    "texte": "J4 : la carte mentale passe en temps réel (pings, liens animés, horloge du direct)."
+  },
+  {
+   "h": "J5",
+   "nom": "Karim Haddad",
+   "t": "2026-11-17T09:40:00Z",
+   "texte": "Plan produit final v1 : 8 lots, 28 tâches, file d'exécution de 19 tâches ; 6 tâches bloquées avec 3 solutions gratuites chacune."
+  },
+  {
+   "h": "J5",
+   "nom": "Sarra Mansouri",
+   "t": "2026-11-17T09:55:00Z",
+   "texte": "Salle de pilotage : vues « Plan produit final » et « Blocages », horloge en direct à la seconde, mise en page pour téléphone."
+  },
+  {
+   "h": "J5",
+   "nom": "Rami Saidi",
+   "t": "2026-11-17T10:00:00Z",
+   "texte": "T-105 démarrée : 6 failles en production (4 hautes, 2 modérées), corrigeables sans changer de version majeure."
+  },
+  {
+   "h": "J5",
+   "nom": "Rami Saidi",
+   "t": "2026-11-17T10:20:00Z",
+   "texte": "T-105 faite : Angular 20.3.35, 0 faille en production (6 avant)."
+  },
+  {
+   "h": "J5",
+   "nom": "Rami Saidi",
+   "t": "2026-11-17T10:45:00Z",
+   "texte": "OSV-Scanner installé (empreinte vérifiée). Serveur Java : ~60 failles → 2 restantes (Spring Web 6.2, T-129). RabbitMQ, Elasticsearch, Redis retirés."
+  },
+  {
+   "h": "J5",
+   "nom": "Amel Kacem",
+   "t": "2026-11-17T10:55:00Z",
+   "texte": "Recette T-128 : 45/45 tests, envoi/lecture/suppression réels sur MinIO 8.6, serveur redémarré."
+  },
+  {
+   "h": "J5",
+   "nom": "Laura Blanc",
+   "t": "2026-11-17T11:15:00Z",
+   "texte": "T-106 faite : démarrage en production refusé avec les secrets de développement (vérifié en vrai), plus de compte de démo en production. 48/48 tests."
   }
- ]
+ ],
+ "plan": {
+  "objectif": "Produit final : plateforme en ligne, sûre et conforme, où les agences sous contrat trouvent, valident et convoquent des acteurs, et où chaque acteur garde la main sur ses données.",
+  "version": "Plan v1 · 17/11/2026",
+  "lots": [
+   {
+    "id": "L1",
+    "titre": "Sécurité et stabilité",
+    "but": "Rien d'exploitable avant la mise en ligne",
+    "taches": [
+     "T-103",
+     "T-105",
+     "T-128",
+     "T-129",
+     "T-106",
+     "T-107",
+     "T-108",
+     "T-109"
+    ]
+   },
+   {
+    "id": "L2",
+    "titre": "Consentement et données personnelles",
+    "but": "Conforme à la loi tunisienne 2004-63 et au RGPD",
+    "taches": [
+     "T-101",
+     "T-102",
+     "T-110",
+     "T-111"
+    ]
+   },
+   {
+    "id": "L3",
+    "titre": "Comptes et connexion",
+    "but": "Chacun peut entrer, et retrouver l'accès seul",
+    "taches": [
+     "T-112",
+     "T-113",
+     "T-114",
+     "T-115"
+    ]
+   },
+   {
+    "id": "L4",
+    "titre": "Métier du casting",
+    "but": "Du rôle à l'audition sans sortir de la plateforme",
+    "taches": [
+     "T-116",
+     "T-117",
+     "T-118"
+    ]
+   },
+   {
+    "id": "L5",
+    "titre": "Intelligence artificielle",
+    "but": "Des résultats rapides, même sans carte graphique",
+    "taches": [
+     "T-119"
+    ]
+   },
+   {
+    "id": "L6",
+    "titre": "Interface et accessibilité",
+    "but": "Agréable sur tous les écrans, utilisable par tous",
+    "taches": [
+     "T-104",
+     "T-120",
+     "T-121"
+    ]
+   },
+   {
+    "id": "L7",
+    "titre": "Qualité et exploitation",
+    "but": "Testé automatiquement, déployable, sauvegardé",
+    "taches": [
+     "T-122",
+     "T-123",
+     "T-124",
+     "T-125"
+    ]
+   },
+   {
+    "id": "L8",
+    "titre": "Mise en ligne",
+    "but": "Ouvert aux premières agences",
+    "taches": [
+     "T-126",
+     "T-100",
+     "T-127"
+    ]
+   }
+  ],
+  "file": [
+   "T-105",
+   "T-128",
+   "T-106",
+   "T-129",
+   "T-107",
+   "T-108",
+   "T-101",
+   "T-102",
+   "T-110",
+   "T-109",
+   "T-111",
+   "T-117",
+   "T-116",
+   "T-119",
+   "T-120",
+   "T-121",
+   "T-122",
+   "T-124",
+   "T-125",
+   "T-100",
+   "T-127"
+  ],
+  "courante": "T-129",
+  "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages »."
+ }
 }

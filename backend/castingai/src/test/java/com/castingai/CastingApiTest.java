@@ -161,4 +161,45 @@ class CastingApiTest {
         send("GET", "/api/roles/" + r, a, null).andExpect(status().isNotFound());
         send("GET", "/api/roles/" + java.util.UUID.randomUUID() + "/shortlist", a, null).andExpect(status().isNotFound());
     }
+
+    @Test
+    void partageAuRealisateurEtAvis() throws Exception {
+        String a = auth(), p = project(a), r = role(a, p, "{\"name\":\"Léa\"}");
+        String[] act = actors(a, 2);
+        String e1 = read(send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", act[0]))).get("id").asText();
+        send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", act[1])).andExpect(status().isCreated());
+
+        JsonNode share = read(send("POST", "/api/roles/" + r + "/shares", a, "{\"label\":\"Pour Claire\",\"days\":7}")
+                .andExpect(status().isCreated()));
+        String token = share.get("token").asText();
+        assertThat(token).hasSize(32);
+        send("POST", "/api/roles/" + r + "/shares", a, "{\"days\":120}").andExpect(status().isBadRequest());
+
+        // le réalisateur, sans compte : candidats sans coordonnées
+        String page = mvc.perform(get("/api/public/shares/" + token)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.roleName").value("Léa"))
+                .andExpect(jsonPath("$.candidates.length()").value(2))
+                .andReturn().getResponse().getContentAsString();
+        assertThat(page).doesNotContain("\"email\"").doesNotContain("\"phone\"");
+
+        mvc.perform(put("/api/public/shares/" + token + "/votes/" + e1).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"vote\":\"OUI\",\"comment\":\"Très juste\",\"voterName\":\"Claire\"}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(put("/api/public/shares/" + token + "/votes/" + e1).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"vote\":\"PEUT\",\"voterName\":\"Claire\"}")).andExpect(status().isBadRequest());
+        mvc.perform(put("/api/public/shares/" + token + "/votes/" + java.util.UUID.randomUUID()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"vote\":\"NON\",\"voterName\":\"Claire\"}")).andExpect(status().isNotFound());
+
+        // l'agent voit l'avis
+        send("GET", "/api/roles/" + r + "/votes", a, null)
+                .andExpect(jsonPath("$[0].vote").value("OUI")).andExpect(jsonPath("$[0].voterName").value("Claire"));
+        send("GET", "/api/roles/" + r + "/shares", a, null).andExpect(jsonPath("$[0].oui").value(1));
+
+        // lien révoqué : plus accessible ; jeton inconnu : introuvable
+        mvc.perform(delete("/api/shares/" + share.get("id").asText()).header("Authorization", a)).andExpect(status().isNoContent());
+        mvc.perform(get("/api/public/shares/" + token)).andExpect(status().isGone());
+        mvc.perform(get("/api/public/shares/inconnu")).andExpect(status().isNotFound());
+        // l'espace agence reste fermé sans connexion
+        mvc.perform(get("/api/roles/" + r + "/shares")).andExpect(status().isUnauthorized());
+    }
 }

@@ -60,6 +60,12 @@ public class TeamService {
         if (u.getRole() == com.castingai.entity.Role.ACTEUR) {
             throw new IllegalArgumentException("Ce compte est un compte acteur : seuls les agents de l'agence peuvent rejoindre un projet");
         }
+        // T-092 : l'équipe d'un projet reste dans l'agence de son propriétaire
+        var ownerAgency = p.getOwner().getAgency();
+        if (u.getRole() == com.castingai.entity.Role.AGENT && ownerAgency != null
+                && (u.getAgency() == null || !ownerAgency.getId().equals(u.getAgency().getId()))) {
+            throw new IllegalArgumentException("Ce compte n'appartient pas à votre agence : seuls ses agents peuvent rejoindre le projet");
+        }
         if (u.getId().equals(p.getOwner().getId()) || memberRepository.existsByProjectIdAndUserId(projectId, u.getId())) {
             throw new ConflictException("Cette personne fait déjà partie de l'équipe");
         }

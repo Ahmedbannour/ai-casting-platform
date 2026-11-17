@@ -354,6 +354,15 @@ Toutes les valeurs ont un défaut pour le développement local ; en production, 
 | `S3_ACCESS_KEY` / `S3_SECRET_KEY` | Stockage des fichiers | identifiants de développement |
 | `OLLAMA_URL` | Serveur d'IA | `http://localhost:11434` |
 | `OLLAMA_CHAT_MODEL` / `OLLAMA_EMBEDDING_MODEL` | Modèles d'IA | `llama3.2` / `nomic-embed-text` |
+| `MINIO_PUBLIC_BASE` | Début des adresses de photos données au navigateur | vide : `/casting-media/…` sur la même adresse que le site |
+
+### Production (profil `prod`)
+
+Lancer avec `SPRING_PROFILES_ACTIVE=prod`. Dans ce profil :
+
+- aucune valeur par défaut : `DB_URL`, `DB_USER`, `DB_PASSWORD`, `MINIO_URL`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` et `JWT_SECRET` sont obligatoires ;
+- le serveur **refuse de démarrer** (avant d'ouvrir son port) si un secret est absent, trop court ou identique à une valeur de développement du dépôt ; `JWT_SECRET` doit être du Base64 d'au moins 32 octets (`openssl rand -base64 48`) ;
+- ni acteurs de démonstration ni compte `ahmed@casting.com` : le premier administrateur est créé à partir de `CASTING_ADMIN_EMAIL` et `CASTING_ADMIN_PASSWORD` (12 caractères au moins), seulement s'il n'en existe aucun.
 
 ---
 
@@ -430,7 +439,6 @@ ai-casting-platform/
 - Sans carte graphique, l'explication de l'IA prend 30 à 60 s (les cartes, elles, restent instantanées).
 - Le stockage des photos est public ; des liens signés sont prévus.
 - 9 tests automatiques (Testcontainers) mais pas encore d'intégration continue.
-- Le compte de démonstration est créé aussi hors développement : profils dev / prod à séparer.
 
 ---
 
