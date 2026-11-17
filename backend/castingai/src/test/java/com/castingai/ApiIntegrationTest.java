@@ -1,17 +1,17 @@
 package com.castingai;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,7 +29,7 @@ class ApiIntegrationTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+    static PostgreSQLContainer postgres = new PostgreSQLContainer(
             DockerImageName.parse("pgvector/pgvector:pg16").asCompatibleSubstituteFor("postgres"));
 
     @Autowired MockMvc mvc;
@@ -43,7 +43,7 @@ class ApiIntegrationTest {
     }
 
     private String bearer() throws Exception {
-        return "Bearer " + login().get("accessToken").asText();
+        return "Bearer " + login().get("accessToken").asString();
     }
 
     private JsonNode getJson(String url, String auth) throws Exception {
@@ -91,7 +91,7 @@ class ApiIntegrationTest {
 
     @Test
     void deuxSessionsCoexistent() throws Exception {
-        String refresh1 = login().get("refreshToken").asText();
+        String refresh1 = login().get("refreshToken").asString();
         login(); // une deuxième connexion ne doit pas invalider la première
         mvc.perform(post("/api/auth/refresh").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"refreshToken\":\"" + refresh1 + "\"}")).andExpect(status().isOk());
@@ -107,7 +107,7 @@ class ApiIntegrationTest {
         JsonNode r = json.readTree(body);
         assertThat(r.get("results").size()).isLessThanOrEqualTo(5);
         for (JsonNode a : r.get("results")) {
-            assertThat(a.get("gender").asText()).isEqualTo("Femme");
+            assertThat(a.get("gender").asString()).isEqualTo("Femme");
             assertThat(a.get("age").asInt()).isBetween(25, 35);
         }
     }
@@ -119,7 +119,7 @@ class ApiIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"firstName\":\"Test\",\"lastName\":\"Experiences\"}"))
                 .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
-        String id = json.readTree(created).get("id").asText();
+        String id = json.readTree(created).get("id").asString();
 
         mvc.perform(put("/api/actors/" + id).header("Authorization", auth)
                         .contentType(MediaType.APPLICATION_JSON)

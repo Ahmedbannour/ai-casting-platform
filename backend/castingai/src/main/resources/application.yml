@@ -8,15 +8,15 @@ spring:
       max-file-size: 10MB
       max-request-size: 50MB
 
-#  ai:
-#    openai:
-#      api-key: "dummy-key"
-#      chat:
-#        options:
-#          model: gpt-4o-mini
-#    autoconfigure:
-#      exclude:
-#        - org.springframework.ai.autoconfigure.openai.OpenAiAutoConfiguration
+  #  ai:
+  #    openai:
+  #      api-key: "dummy-key"
+  #      chat:
+  #        options:
+  #          model: gpt-4o-mini
+  #    autoconfigure:
+  #      exclude:
+  #        - org.springframework.ai.autoconfigure.openai.OpenAiAutoConfiguration
 
 
   # Spring AI (ajout Cellule IA, J1) — configurable par variables d'environnement
@@ -53,6 +53,12 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+  web:
+    error:
+      include-binding-errors: always
+
+      include-message: always
+
 
 # Échelle de l'IA locale — à adapter à la machine (mesure : infra/perf/bench-ia.ps1)
 #   Niveau 1 · Éco      (processeur modeste)   : AI_MODEL=llama3.2:1b AI_EXPLAIN_COUNT=3 AI_MAX_TOKENS=250
@@ -79,9 +85,6 @@ minio:
 
 server:
   port: 8080
-  error:
-    include-message: always
-    include-binding-errors: always
 
 jwt:
   secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}

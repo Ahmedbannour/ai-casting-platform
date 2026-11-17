@@ -1,18 +1,18 @@
 package com.castingai;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.Map;
@@ -30,7 +30,7 @@ class CastingApiTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+    static PostgreSQLContainer postgres = new PostgreSQLContainer(
             DockerImageName.parse("pgvector/pgvector:pg16").asCompatibleSubstituteFor("postgres"));
 
     @Autowired MockMvc mvc;
@@ -40,7 +40,7 @@ class CastingApiTest {
         String body = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"ahmed@casting.com\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-        return "Bearer " + json.readTree(body).get("accessToken").asText();
+        return "Bearer " + json.readTree(body).get("accessToken").asString();
     }
 
     private ResultActions send(String method, String url, String a, Object body) throws Exception {
@@ -58,17 +58,17 @@ class CastingApiTest {
 
     private String project(String a) throws Exception {
         return read(send("POST", "/api/projects", a, "{\"title\":\"Les Passagers\",\"type\":\"LONG_METRAGE\"}")
-                .andExpect(status().isCreated())).get("id").asText();
+                .andExpect(status().isCreated())).get("id").asString();
     }
 
     private String role(String a, String projectId, String body) throws Exception {
-        return read(send("POST", "/api/projects/" + projectId + "/roles", a, body).andExpect(status().isCreated())).get("id").asText();
+        return read(send("POST", "/api/projects/" + projectId + "/roles", a, body).andExpect(status().isCreated())).get("id").asString();
     }
 
     private String[] actors(String a, int n) throws Exception {
         JsonNode content = read(send("GET", "/api/actors/search?size=" + n, a, null)).get("content");
         String[] ids = new String[n];
-        for (int i = 0; i < n; i++) ids[i] = content.get(i).get("id").asText();
+        for (int i = 0; i < n; i++) ids[i] = content.get(i).get("id").asString();
         return ids;
     }
 
@@ -78,7 +78,7 @@ class CastingApiTest {
         JsonNode r = read(send("POST", "/api/projects/" + p + "/roles", a, """
             {"name":"Léa","gender":"Femme","minAge":25,"maxAge":35,"languages":["Anglais","Espagnol"],
              "skills":["Danse"],"city":"Paris","importance":"PRINCIPAL"}""").andExpect(status().isCreated()));
-        assertThat(r.get("searchPrompt").asText())
+        assertThat(r.get("searchPrompt").asString())
                 .isEqualTo("femme entre 25 et 35 ans parlant anglais et espagnol avec danse à Paris");
         assertThat(r.get("languages").size()).isEqualTo(2);
         assertThat(r.get("filled").asBoolean()).isFalse();
@@ -114,9 +114,9 @@ class CastingApiTest {
 
         String e1 = read(send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", act[0]))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("PRESELECTIONNE"))).get("id").asText();
+                .andExpect(jsonPath("$.status").value("PRESELECTIONNE"))).get("id").asString();
         send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", act[0])).andExpect(status().isConflict());
-        String e2 = read(send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", act[1]))).get("id").asText();
+        String e2 = read(send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", act[1]))).get("id").asString();
 
         send("PATCH", "/api/shortlist/" + e1, a, "{\"status\":\"AUDITION\",\"note\":\"Très juste\",\"auditionDate\":\"2027-02-10\"}")
                 .andExpect(jsonPath("$.status").value("AUDITION")).andExpect(jsonPath("$.note").value("Très juste"));
@@ -128,8 +128,8 @@ class CastingApiTest {
         send("PATCH", "/api/shortlist/" + e2, a, "{\"status\":\"CHOISI\",\"replaceChosen\":true}").andExpect(status().isOk());
         JsonNode list = read(send("GET", "/api/roles/" + r + "/shortlist", a, null));
         for (JsonNode e : list) {
-            if (e.get("id").asText().equals(e1)) assertThat(e.get("status").asText()).isEqualTo("RAPPEL");
-            if (e.get("id").asText().equals(e2)) assertThat(e.get("status").asText()).isEqualTo("CHOISI");
+            if (e.get("id").asString().equals(e1)) assertThat(e.get("status").asString()).isEqualTo("RAPPEL");
+            if (e.get("id").asString().equals(e2)) assertThat(e.get("status").asString()).isEqualTo("CHOISI");
         }
         send("GET", "/api/roles/" + r, a, null)
                 .andExpect(jsonPath("$.countByStatus.CHOISI").value(1)).andExpect(jsonPath("$.countByStatus.RAPPEL").value(1));
@@ -166,12 +166,12 @@ class CastingApiTest {
     void partageAuRealisateurEtAvis() throws Exception {
         String a = auth(), p = project(a), r = role(a, p, "{\"name\":\"Léa\"}");
         String[] act = actors(a, 2);
-        String e1 = read(send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", act[0]))).get("id").asText();
+        String e1 = read(send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", act[0]))).get("id").asString();
         send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", act[1])).andExpect(status().isCreated());
 
         JsonNode share = read(send("POST", "/api/roles/" + r + "/shares", a, "{\"label\":\"Pour Claire\",\"days\":7}")
                 .andExpect(status().isCreated()));
-        String token = share.get("token").asText();
+        String token = share.get("token").asString();
         assertThat(token).hasSize(32);
         send("POST", "/api/roles/" + r + "/shares", a, "{\"days\":120}").andExpect(status().isBadRequest());
 
@@ -196,7 +196,7 @@ class CastingApiTest {
         send("GET", "/api/roles/" + r + "/shares", a, null).andExpect(jsonPath("$[0].oui").value(1));
 
         // lien révoqué : plus accessible ; jeton inconnu : introuvable
-        mvc.perform(delete("/api/shares/" + share.get("id").asText()).header("Authorization", a)).andExpect(status().isNoContent());
+        mvc.perform(delete("/api/shares/" + share.get("id").asString()).header("Authorization", a)).andExpect(status().isNoContent());
         mvc.perform(get("/api/public/shares/" + token)).andExpect(status().isGone());
         mvc.perform(get("/api/public/shares/inconnu")).andExpect(status().isNotFound());
         // l'espace agence reste fermé sans connexion

@@ -2,6 +2,7 @@ package com.castingai.repository;
 
 import com.castingai.entity.Project;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -24,13 +25,12 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
                               @Param("status") Project.Status status);
 
     /** Nombre de rôles et de rôles pourvus par projet : [project_id, total, pourvus]. */
-    @Query(value = """
+    @NativeQuery("""
         select project_id, count(*) as total, count(*) filter (where filled) as pourvus
         from casting_roles where project_id in (:ids) group by project_id
-        """, nativeQuery = true)
+        """)
     List<Object[]> countRoles(@Param("ids") List<UUID> ids);
 
-    @Query(value = "select count(*) > 0 from project_members where project_id = :projectId and user_id = :userId",
-           nativeQuery = true)
+    @NativeQuery("select count(*) > 0 from project_members where project_id = :projectId and user_id = :userId")
     boolean isMember(@Param("projectId") UUID projectId, @Param("userId") UUID userId);
 }

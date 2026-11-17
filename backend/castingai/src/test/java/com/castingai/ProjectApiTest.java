@@ -1,17 +1,17 @@
 package com.castingai;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.UUID;
@@ -32,7 +32,7 @@ class ProjectApiTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+    static PostgreSQLContainer postgres = new PostgreSQLContainer(
             DockerImageName.parse("pgvector/pgvector:pg16").asCompatibleSubstituteFor("postgres"));
 
     @Autowired MockMvc mvc;
@@ -42,7 +42,7 @@ class ProjectApiTest {
         String body = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(java.util.Map.of("email", email, "password", password))))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-        return "Bearer " + json.readTree(body).get("accessToken").asText();
+        return "Bearer " + json.readTree(body).get("accessToken").asString();
     }
 
     private String admin() throws Exception { return token("ahmed@casting.com", "password123"); }
@@ -54,7 +54,7 @@ class ProjectApiTest {
                 .content("{\"name\":\"Agence de test\",\"contractStart\":\"2026-01-01\"}"));
         JsonNode list = json.readTree(mvc.perform(get("/api/admin/agencies").header("Authorization", a))
                 .andReturn().getResponse().getContentAsString());
-        for (JsonNode x : list) if (x.get("name").asText().equals("Agence de test")) return x.get("id").asText();
+        for (JsonNode x : list) if (x.get("name").asString().equals("Agence de test")) return x.get("id").asString();
         throw new IllegalStateException("Agence de test introuvable");
     }
 
@@ -77,10 +77,10 @@ class ProjectApiTest {
         String auth = admin();
         JsonNode p = create(auth, """
             {"title":"Les Passagers","type":"LONG_METRAGE","description":"Drame","startDate":"2027-03-01","endDate":"2027-05-30"}""");
-        assertThat(p.get("status").asText()).isEqualTo("EN_COURS");
+        assertThat(p.get("status").asString()).isEqualTo("EN_COURS");
         assertThat(p.get("owner").asBoolean()).isTrue();
         assertThat(p.get("rolesCount").asInt()).isZero();
-        String id = p.get("id").asText();
+        String id = p.get("id").asString();
 
         mvc.perform(get("/api/projects").header("Authorization", auth))
                 .andExpect(status().isOk())
@@ -114,7 +114,7 @@ class ProjectApiTest {
     @Test
     void archiverPuisRestaurerEtFiltrerParEtat() throws Exception {
         String auth = admin();
-        String id = create(auth, "{\"title\":\"Pub été\",\"type\":\"PUBLICITE\"}").get("id").asText();
+        String id = create(auth, "{\"title\":\"Pub été\",\"type\":\"PUBLICITE\"}").get("id").asString();
 
         mvc.perform(post("/api/projects/" + id + "/archive").header("Authorization", auth))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ARCHIVE"));
@@ -130,7 +130,7 @@ class ProjectApiTest {
     @Test
     void unUtilisateurNeVoitQueSesProjetsEtNePeutPasSupprimer() throws Exception {
         String adminAuth = admin();
-        String adminProject = create(adminAuth, "{\"title\":\"Projet de l'admin\",\"type\":\"THEATRE\"}").get("id").asText();
+        String adminProject = create(adminAuth, "{\"title\":\"Projet de l'admin\",\"type\":\"THEATRE\"}").get("id").asString();
 
         String user = simpleUser("yanis.s3@test.local");
         // invisible : 404, sans révéler l'existence du projet
@@ -138,7 +138,7 @@ class ProjectApiTest {
         mvc.perform(get("/api/projects").header("Authorization", user))
                 .andExpect(jsonPath("$[?(@.id == '" + adminProject + "')]").isEmpty());
 
-        String own = create(user, "{\"title\":\"Court de Yanis\",\"type\":\"COURT_METRAGE\"}").get("id").asText();
+        String own = create(user, "{\"title\":\"Court de Yanis\",\"type\":\"COURT_METRAGE\"}").get("id").asString();
         mvc.perform(post("/api/projects/" + own + "/archive").header("Authorization", user)).andExpect(status().isOk());
         mvc.perform(delete("/api/projects/" + own).header("Authorization", user)).andExpect(status().isForbidden());
 

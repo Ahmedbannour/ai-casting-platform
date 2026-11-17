@@ -112,10 +112,15 @@ textarea { height: auto; padding: 10px 12px; resize: vertical; line-height: 1.55
 .intro { margin-top: -8px; }
 
 /* ── Barre d'enregistrement, collée en bas ─────────────────────────────── */
-.bar { position: sticky; bottom: 16px; z-index: 5; display: flex; justify-content: flex-end; margin-top: 4px; padding-bottom: 16px; pointer-events: none; }
+/* Au repos, la barre reste à sa place en fin de formulaire ; elle ne flotte (fond opaque) qu'avec des modifications à enregistrer. */
+.bar { position: static; z-index: 5; display: flex; justify-content: flex-end; margin-top: 4px; padding-bottom: 16px; pointer-events: none; }
+.bar.floating { position: sticky; bottom: 16px; }
 .bar-in { pointer-events: auto; display: flex; align-items: center; gap: 10px; max-width: 100%; padding: 8px 8px 8px 16px;
-  border: 1px solid var(--border); border-radius: var(--radius-l); background: var(--glass-strong);
-  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); box-shadow: 0 14px 40px rgba(0,0,0,.32); }
+  border: 1px solid var(--border); border-radius: var(--radius-l); background: color-mix(in srgb, var(--bg-surface) 97%, var(--text-primary) 3%); }
+.bar.floating .bar-in { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); box-shadow: 0 14px 40px rgba(0,0,0,.38);
+  animation: barIn .22s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes barIn { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .bar.floating .bar-in { animation: none; } }
 .bar-msg { min-width: 0; &:empty { display: none; } }
 .btn-ghost, .btn-primary { height: 42px; padding: 0 18px; border-radius: var(--radius-s); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .btn-ghost { @extend %glass; color: var(--text-primary); font-weight: 500; &:hover { background: var(--bg-hover); } }
@@ -130,7 +135,7 @@ textarea { height: auto; padding: 10px 12px; resize: vertical; line-height: 1.55
 
 @media (max-width: 860px) {
   /* Mobile : la barre d'onglets occupe déjà le bas de l'écran ; les actions reprennent leur place en fin de formulaire. */
-  .bar { position: static; padding-bottom: 104px; }
+  .bar, .bar.floating { position: static; padding-bottom: 104px; }
   .bar-in { width: 100%; flex-wrap: wrap; padding: 12px; box-shadow: none; background: var(--glass); }
   .bar-msg { flex: 1 0 100%; }
   .bar-in .btn-ghost, .bar-in .btn-primary { flex: 1; }

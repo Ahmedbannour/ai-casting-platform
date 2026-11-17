@@ -579,6 +579,22 @@
     "Outillage vérifié"
    ],
    "statut": "En cours"
+  },
+  {
+   "id": "P-032",
+   "date": "2026-11-17",
+   "titre": "Affichage des notifications et détails de design",
+   "original": "probleme dans l'affichage de notification , merci de vérifier tous les détails de design et l'amilorer pour donner une meilleur experience a l'utilisateur",
+   "ameliore": "Corriger le panneau de notifications (rogné, transparent) et revoir les détails qui gênent la lecture : panneau au-dessus de toute la page, lisible, clair par type de notification, utilisable au clavier et sur mobile ; barre d'enregistrement qui ne masque plus le formulaire. Vérifier à l'écran sur bureau et mobile.",
+   "departements": [
+    "front",
+    "qa"
+   ],
+   "livrables": [
+    "Cloche et panneau revus",
+    "Barre d'enregistrement contextuelle"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -1816,7 +1832,7 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
+   "statut": "en_cours",
    "detail": "Après 5 échecs en 15 minutes pour une adresse ou une machine : attente imposée, message clair, entrée dans le journal d'audit.",
    "lot": "L1"
   },
@@ -2319,11 +2335,24 @@
    "resp": "Marc Lefèvre",
    "phase": "PH3",
    "prio": "P0",
-   "jour": "J6",
+   "jour": "J5",
    "prompt": "P-031",
-   "statut": "en_cours",
+   "statut": "fait",
    "lot": "L1",
-   "detail": "Seule façon gratuite de corriger les 2 failles critiques restantes de Spring Web 6.2 (corrigées en 7.0.9). Avec Spring AI 1.1 ou 2.0, Spring Security 7, Jackson 3 ; migration guidée, tests complets avant/après."
+   "detail": "Spring Boot 4.0.9 (Spring Framework 7.0.10, Tomcat 11, Security 7, Jackson 3), Spring AI 2.0.2, springdoc 3, Testcontainers 2. Migration par la recette officielle OpenRewrite puis corrections à la main. OSV-Scanner : 0 faille connue côté serveur (≈60 au départ). 48/48 tests, serveur redémarré, connexion et pages vérifiées."
+  },
+  {
+   "id": "T-130",
+   "titre": "Panneau de notifications et barre d'enregistrement revus",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-032",
+   "statut": "fait",
+   "lot": "L6",
+   "detail": "Signalé par le client : panneau rogné et transparent (le flou du menu latéral capturait sa position). Rendu désormais dans la couche « overlay » du CDK Angular, au-dessus de tout, fond opaque, icône par type, groupes « Aujourd'hui / Plus tôt », fermeture au clavier ; aligné à droite sur mobile. La barre « Enregistrer » ne flotte plus qu'avec des modifications non enregistrées. Vérifié bureau et mobile, aucune erreur console, compilation de production OK."
   }
  ],
  "journal": [
@@ -2383,39 +2412,27 @@
   }
  ],
  "maintenant": {
-  "titre": "P-031 · T-106 faite ; T-129 en cours (Spring Boot 4)",
-  "etape": 29,
+  "titre": "P-031 · T-129 et T-130 faites ; T-107 en cours (essais de mot de passe en série)",
+  "etape": 30,
   "agents": [
    {
+    "nom": "Claire Dubois",
+    "action": "Limite les essais de connexion : 5 échecs en 15 min → attente imposée, journal d'audit",
+    "court": "T-107"
+   },
+   {
+    "nom": "Sarra Mansouri",
+    "action": "T-130 livrée : panneau de notifications au-dessus de tout, barre d'enregistrement contextuelle",
+    "court": "T-130 fait"
+   },
+   {
     "nom": "Marc Lefèvre",
-    "action": "Inventaire des changements Spring Boot 3.5 → 4 (Security 7, Jackson 3, Spring AI) avant migration",
-    "court": "T-129"
-   },
-   {
-    "nom": "Amel Kacem",
-    "action": "Référence avant migration : 48/48 tests",
-    "court": "recette"
-   },
-   {
-    "nom": "Laura Blanc",
-    "action": "T-106 livrée : profil prod, secrets obligatoires",
-    "court": "T-106 fait"
+    "action": "T-129 livrée : Spring Boot 4, 0 faille connue côté serveur",
+    "court": "T-129 fait"
    }
   ]
  },
  "activite": [
-  {
-   "h": "J4",
-   "t": "2026-11-17T08:01:00Z",
-   "nom": "Amel Kacem",
-   "texte": "Parcours complet vérifié : rôle → recherche pré-remplie → cartes retenues → shortlist → rôle pourvu."
-  },
-  {
-   "h": "J4",
-   "t": "2026-11-17T08:02:00Z",
-   "nom": "Sarra Mansouri",
-   "texte": "J4 : la carte mentale passe en temps réel (pings, liens animés, horloge du direct)."
-  },
   {
    "h": "J5",
    "nom": "Karim Haddad",
@@ -2457,6 +2474,18 @@
    "nom": "Laura Blanc",
    "t": "2026-11-17T11:15:00Z",
    "texte": "T-106 faite : démarrage en production refusé avec les secrets de développement (vérifié en vrai), plus de compte de démo en production. 48/48 tests."
+  },
+  {
+   "h": "J5",
+   "nom": "Marc Lefèvre",
+   "t": "2026-11-17T12:10:00Z",
+   "texte": "T-129 faite : Spring Boot 4.0.9 + Spring AI 2.0.2 (OpenRewrite). OSV-Scanner : 0 faille côté serveur. 48/48 tests."
+  },
+  {
+   "h": "J5",
+   "nom": "Sarra Mansouri",
+   "t": "2026-11-17T12:25:00Z",
+   "texte": "T-130 (demande client) : panneau de notifications sorti du menu (overlay CDK), opaque, icônes par type ; barre d'enregistrement contextuelle. Vérifié bureau + mobile."
   }
  ],
  "plan": {
@@ -2524,6 +2553,7 @@
     "but": "Agréable sur tous les écrans, utilisable par tous",
     "taches": [
      "T-104",
+     "T-130",
      "T-120",
      "T-121"
     ]
@@ -2573,7 +2603,7 @@
    "T-100",
    "T-127"
   ],
-  "courante": "T-129",
+  "courante": "T-107",
   "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages »."
  }
 }

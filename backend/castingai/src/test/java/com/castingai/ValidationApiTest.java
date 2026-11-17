@@ -1,18 +1,18 @@
 package com.castingai;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.Map;
@@ -30,7 +30,7 @@ class ValidationApiTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+    static PostgreSQLContainer postgres = new PostgreSQLContainer(
             DockerImageName.parse("pgvector/pgvector:pg16").asCompatibleSubstituteFor("postgres"));
 
     @Autowired MockMvc mvc;
@@ -40,7 +40,7 @@ class ValidationApiTest {
         String body = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(Map.of("email", "ahmed@casting.com", "password", "password123"))))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-        return "Bearer " + json.readTree(body).get("accessToken").asText();
+        return "Bearer " + json.readTree(body).get("accessToken").asString();
     }
 
     private ResultActions send(String method, String url, String a, Object body) throws Exception {
@@ -92,7 +92,7 @@ class ValidationApiTest {
     void tournageDansLaPeriodeDuProjet() throws Exception {
         String a = admin();
         String p = read(send("POST", "/api/projects", a, Map.of("title", "Projet borné", "type", "SERIE",
-                "startDate", "2027-01-01", "endDate", "2027-06-30")).andExpect(status().isCreated())).get("id").asText();
+                "startDate", "2027-01-01", "endDate", "2027-06-30")).andExpect(status().isCreated())).get("id").asString();
         send("POST", "/api/projects/" + p + "/roles", a, Map.of("name", "Trop tôt", "shootStart", "2026-12-15", "shootEnd", "2027-01-10"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message", containsString("avant le projet (01/01/2027)")));
         send("POST", "/api/projects/" + p + "/roles", a, Map.of("name", "Trop tard", "shootStart", "2027-06-01", "shootEnd", "2027-07-15"))
@@ -104,10 +104,10 @@ class ValidationApiTest {
     @Test
     void dateAuditionPeutEtreEffacee() throws Exception {
         String a = admin();
-        String p = read(send("POST", "/api/projects", a, Map.of("title", "Projet audition", "type", "SERIE"))).get("id").asText();
-        String r = read(send("POST", "/api/projects/" + p + "/roles", a, Map.of("name", "Nina"))).get("id").asText();
-        String act = read(actor(a, "").andExpect(status().is2xxSuccessful())).get("id").asText();
-        String e = read(send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", act))).get("id").asText();
+        String p = read(send("POST", "/api/projects", a, Map.of("title", "Projet audition", "type", "SERIE"))).get("id").asString();
+        String r = read(send("POST", "/api/projects/" + p + "/roles", a, Map.of("name", "Nina"))).get("id").asString();
+        String act = read(actor(a, "").andExpect(status().is2xxSuccessful())).get("id").asString();
+        String e = read(send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", act))).get("id").asString();
         send("PATCH", "/api/shortlist/" + e, a, "{\"auditionDate\":\"2027-02-03\"}").andExpect(jsonPath("$.auditionDate").value("2027-02-03"));
         send("PATCH", "/api/shortlist/" + e, a, "{\"note\":\"rappel\"}").andExpect(jsonPath("$.auditionDate").value("2027-02-03"));
         send("PATCH", "/api/shortlist/" + e, a, "{\"clearAudition\":true}").andExpect(jsonPath("$.auditionDate").isEmpty());

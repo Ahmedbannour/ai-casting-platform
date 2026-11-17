@@ -3,7 +3,7 @@
 > Trouvez l'acteur idéal en une phrase.
 > Une plateforme de casting qui comprend les demandes en langage naturel (« une femme de 25 à 35 ans qui parle anglais et danse ») et propose les meilleurs profils avec un score et une justification.
 
-![Java](https://img.shields.io/badge/Java-21-orange) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F) ![Angular](https://img.shields.io/badge/Angular-20-DD0031) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20%2B%20pgvector-336791) ![IA locale](https://img.shields.io/badge/IA-Ollama%20llama3.2-black) ![Coût](https://img.shields.io/badge/co%C3%BBt%20logiciel-0%20%E2%82%AC-brightgreen)
+![Java](https://img.shields.io/badge/Java-21-orange) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-6DB33F) ![Angular](https://img.shields.io/badge/Angular-20-DD0031) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20%2B%20pgvector-336791) ![IA locale](https://img.shields.io/badge/IA-Ollama%20llama3.2-black) ![Coût](https://img.shields.io/badge/co%C3%BBt%20logiciel-0%20%E2%82%AC-brightgreen)
 
 | | |
 |---|---|
@@ -78,7 +78,7 @@ Mesurés sur le code, la base de données et le PC de développement le 16 novem
 ```mermaid
 flowchart LR
     U([Utilisateur<br/>navigateur]) --> F[Frontend Angular 20<br/>localhost:4200]
-    F -- "/api (proxy)" --> B[Backend Spring Boot 3.5<br/>Java 21 · localhost:8080]
+    F -- "/api (proxy)" --> B[Backend Spring Boot 4.0<br/>Java 21 · localhost:8080]
     B --> P[(PostgreSQL 16<br/>+ pgvector)]
     B --> S[(Stockage S3<br/>Silo, compatible MinIO)]
     B --> O[Ollama<br/>llama3.2 + nomic-embed-text]
@@ -92,10 +92,10 @@ flowchart LR
 | Couche | Technologie | Rôle |
 |---|---|---|
 | Interface | Angular 20, composants autonomes, signals, Tailwind 4 | Écrans, formulaires, session |
-| API | Spring Boot 3.5, Spring Security (JWT), JPA, Flyway | Règles métier, sécurité, accès aux données |
+| API | Spring Boot 4.0 (Spring Framework 7), Spring Security 7 (JWT), JPA, Flyway | Règles métier, sécurité, accès aux données |
 | Base de données | PostgreSQL 16 avec l'extension pgvector | Acteurs, utilisateurs, historique ; vecteurs pour la recherche sémantique |
 | Fichiers | Silo (fork gratuit compatible MinIO / S3) | Photos et documents |
-| IA | Ollama en local (llama3.2, nomic-embed-text), Spring AI | Compréhension des demandes, classement, embeddings |
+| IA | Ollama en local (llama3.2, nomic-embed-text), Spring AI 2.0 | Compréhension des demandes, classement, embeddings |
 | Optionnel | Redis, RabbitMQ, Elasticsearch (profil `extras`) | Non utilisés pour l'instant, arrêtés par défaut |
 
 ---
@@ -435,6 +435,8 @@ ai-casting-platform/
 ---
 
 ## 15. Limites connues
+
+- Sécurité des bibliothèques vérifiée avec OSV-Scanner (Google) le 17/11/2026 : 0 faille connue côté serveur, 0 côté site livré ; 16 failles modérées restent dans les outils de développement d'Angular (non livrés).
 
 - Sans carte graphique, l'explication de l'IA prend 30 à 60 s (les cartes, elles, restent instantanées).
 - Le stockage des photos est public ; des liens signés sont prévus.

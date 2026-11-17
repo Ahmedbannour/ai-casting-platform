@@ -92,8 +92,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);   // Spring Security 7
         provider.setPasswordEncoder(passwordEncoder());
         // Mot de passe vérifié AVANT l'état du compte : sans le bon mot de passe,
         // on ne révèle pas qu'un compte existe et qu'il est désactivé.

@@ -4,6 +4,7 @@ import com.castingai.entity.Actor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -93,7 +94,7 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
      * Recherche IA côté base : filtres stricts (genre, âge), puis classement par pertinence
      * (langue, compétence, ville, cheveux) et pagination. Ne charge que les identifiants d'une page.
      */
-    @Query(value = """
+    @NativeQuery(value = """
         SELECT a.id FROM actors a
         WHERE a.visibility = 'VISIBLE'
           AND (:all OR a.agency_id IS NULL OR a.agency_id = :agency)
@@ -116,8 +117,7 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
           AND (:gender = '' OR a.gender = :gender)
           AND (:minAge = 0 OR a.birth_date <= CURRENT_DATE - make_interval(years => CAST(:minAge AS int)))
           AND (:maxAge = 150 OR a.birth_date > CURRENT_DATE - make_interval(years => CAST(:maxAge AS int) + 1))
-        """,
-        nativeQuery = true)
+        """)
     Page<UUID> rankedSearch(@Param("gender") String gender,
                             @Param("minAge") int minAge,
                             @Param("maxAge") int maxAge,

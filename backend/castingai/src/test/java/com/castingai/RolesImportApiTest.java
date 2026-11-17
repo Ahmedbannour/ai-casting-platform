@@ -1,23 +1,23 @@
 package com.castingai;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.ByteArrayOutputStream;
@@ -38,7 +38,7 @@ class RolesImportApiTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+    static PostgreSQLContainer postgres = new PostgreSQLContainer(
             DockerImageName.parse("pgvector/pgvector:pg16").asCompatibleSubstituteFor("postgres"));
 
     @Autowired MockMvc mvc;
@@ -50,7 +50,7 @@ class RolesImportApiTest {
     }
 
     private String token(String email, String password) throws Exception {
-        return "Bearer " + read(login(email, password).andExpect(status().isOk())).get("accessToken").asText();
+        return "Bearer " + read(login(email, password).andExpect(status().isOk())).get("accessToken").asString();
     }
 
     private String admin() throws Exception { return token("ahmed@casting.com", "password123"); }
@@ -74,11 +74,11 @@ class RolesImportApiTest {
     void inscriptionCreeUnCompteActeurQuiNeVoitQueSaFiche() throws Exception {
         JsonNode reg = read(send("POST", "/api/auth/register", null, Map.of("email", "Nina.Free@Test.local",
                 "password", "motdepasse123", "firstName", "Nina", "lastName", "Libre")).andExpect(status().isCreated()));
-        assertThat(reg.get("role").asText()).isEqualTo("ACTEUR");
-        String nina = "Bearer " + reg.get("accessToken").asText();
+        assertThat(reg.get("role").asString()).isEqualTo("ACTEUR");
+        String nina = "Bearer " + reg.get("accessToken").asString();
 
         JsonNode me = read(send("GET", "/api/me", nina, null).andExpect(status().isOk()));
-        assertThat(me.get("email").asText()).isEqualTo("nina.free@test.local");
+        assertThat(me.get("email").asString()).isEqualTo("nina.free@test.local");
         assertThat(me.get("actorId").isNull()).isFalse();
 
         send("GET", "/api/me/actor", nina, null).andExpect(status().isOk()).andExpect(jsonPath("$.firstName").value("Nina"));
@@ -92,7 +92,7 @@ class RolesImportApiTest {
         send("GET", "/api/admin/users", nina, null).andExpect(status().isForbidden());
 
         // L'agence, elle, voit la fiche du freelance
-        send("GET", "/api/actors/" + me.get("actorId").asText(), admin(), null).andExpect(status().isOk())
+        send("GET", "/api/actors/" + me.get("actorId").asString(), admin(), null).andExpect(status().isOk())
                 .andExpect(jsonPath("$.city").value("Lyon"));
 
         // Deux fois la même adresse : refusé
@@ -106,18 +106,18 @@ class RolesImportApiTest {
         send("POST", "/api/admin/agents", admin(), Map.of("email", "sans.agence@test.local", "firstName", "Sans", "lastName", "Agence"))
                 .andExpect(status().isBadRequest());
         String agency = read(send("POST", "/api/admin/agencies", admin(), Map.of("name", "Studio Lumière", "contractStart", "2026-01-01",
-                "contractEnd", "2027-12-31", "maxAgents", 1)).andExpect(status().isCreated())).get("id").asText();
+                "contractEnd", "2027-12-31", "maxAgents", 1)).andExpect(status().isCreated())).get("id").asString();
         send("POST", "/api/admin/agencies", admin(), Map.of("name", "Studio X", "contractStart", "2026-06-01", "contractEnd", "2026-01-01"))
                 .andExpect(status().isBadRequest());
         JsonNode created = read(send("POST", "/api/admin/agents", admin(),
                 Map.of("email", "agent.s7@test.local", "firstName", "Karim", "lastName", "Agent", "agencyId", agency)).andExpect(status().isCreated()));
-        assertThat(created.get("user").get("agencyName").asText()).isEqualTo("Studio Lumière");
+        assertThat(created.get("user").get("agencyName").asString()).isEqualTo("Studio Lumière");
         // Contrat limité à 1 agent : le second est refusé
         send("POST", "/api/admin/agents", admin(), Map.of("email", "agent2.s7@test.local", "firstName", "Second", "lastName", "Agent", "agencyId", agency))
                 .andExpect(status().isConflict());
-        String temp = created.get("temporaryPassword").asText();
+        String temp = created.get("temporaryPassword").asString();
         assertThat(temp).hasSize(12);
-        assertThat(created.get("user").get("role").asText()).isEqualTo("AGENT");
+        assertThat(created.get("user").get("role").asString()).isEqualTo("AGENT");
 
         String agent = token("agent.s7@test.local", temp);
         send("GET", "/api/projects", agent, null).andExpect(status().isOk());
@@ -125,7 +125,7 @@ class RolesImportApiTest {
         send("GET", "/api/me/actor", agent, null).andExpect(status().isForbidden());
 
         // Désactivé par l'administrateur : plus de connexion, message clair
-        String id = created.get("user").get("id").asText();
+        String id = created.get("user").get("id").asString();
         send("PATCH", "/api/admin/users/" + id, admin(), Map.of("enabled", false)).andExpect(jsonPath("$.enabled").value(false));
         login("agent.s7@test.local", temp).andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value("Ce compte est désactivé. Contactez l'administrateur de l'agence."));
@@ -137,7 +137,7 @@ class RolesImportApiTest {
         send("POST", "/api/auth/register", null, Map.of("email", "acteur.equipe@test.local",
                 "password", "motdepasse123", "firstName", "Paul", "lastName", "Equipe")).andExpect(status().isCreated());
         String a = admin();
-        String p = read(send("POST", "/api/projects", a, Map.of("title", "Projet fermé", "type", "SERIE"))).get("id").asText();
+        String p = read(send("POST", "/api/projects", a, Map.of("title", "Projet fermé", "type", "SERIE"))).get("id").asString();
         send("POST", "/api/projects/" + p + "/members", a, Map.of("email", "acteur.equipe@test.local"))
                 .andExpect(status().isBadRequest());
     }
@@ -159,22 +159,22 @@ class RolesImportApiTest {
         assertThat(pv.get("duplicates").asInt()).isEqualTo(1);
 
         JsonNode r1 = pv.get("rows").get(0);
-        assertThat(r1.get("status").asText()).isEqualTo("OK");
+        assertThat(r1.get("status").asString()).isEqualTo("OK");
         JsonNode d = r1.get("data");
-        assertThat(d.get("firstName").asText()).isEqualTo("Jean-Pierre");
-        assertThat(d.get("lastName").asText()).isEqualTo("Durand");
-        assertThat(d.get("gender").asText()).isEqualTo("Homme");
+        assertThat(d.get("firstName").asString()).isEqualTo("Jean-Pierre");
+        assertThat(d.get("lastName").asString()).isEqualTo("Durand");
+        assertThat(d.get("gender").asString()).isEqualTo("Homme");
         assertThat(d.get("height").asInt()).isEqualTo(182);
-        assertThat(d.get("phone").asText()).isEqualTo("0612345678");
-        assertThat(d.get("email").asText()).isEqualTo("jp.durand@mail.com");
-        assertThat(d.get("languages").get(0).get("name").asText()).isEqualTo("Anglais");
-        assertThat(d.get("languages").get(0).get("level").asText()).isEqualTo("Courant");
-        assertThat(d.get("languages").get(1).get("name").asText()).isEqualTo("Français");
-        assertThat(d.get("skills").get(0).get("name").asText()).isEqualTo("Hip-hop");
-        assertThat(d.get("skills").get(1).get("name").asText()).isEqualTo("Escrime");
+        assertThat(d.get("phone").asString()).isEqualTo("0612345678");
+        assertThat(d.get("email").asString()).isEqualTo("jp.durand@mail.com");
+        assertThat(d.get("languages").get(0).get("name").asString()).isEqualTo("Anglais");
+        assertThat(d.get("languages").get(0).get("level").asString()).isEqualTo("Courant");
+        assertThat(d.get("languages").get(1).get("name").asString()).isEqualTo("Français");
+        assertThat(d.get("skills").get(0).get("name").asString()).isEqualTo("Hip-hop");
+        assertThat(d.get("skills").get(1).get("name").asString()).isEqualTo("Escrime");
 
-        assertThat(pv.get("rows").get(1).get("errors").get(0).asText()).contains("31/02/1995");
-        assertThat(pv.get("rows").get(2).get("status").asText()).isEqualTo("DOUBLON");
+        assertThat(pv.get("rows").get(1).get("errors").get(0).asString()).contains("31/02/1995");
+        assertThat(pv.get("rows").get(2).get("status").asString()).isEqualTo("DOUBLON");
         assertThat(pv.get("rows").get(3).get("errors").toString()).contains("Adresse e-mail invalide");
 
         // Enregistrement de la ligne valide, puis une seconde fois : écartée car déjà en base
@@ -184,7 +184,7 @@ class RolesImportApiTest {
         send("POST", "/api/admin/import/actors", a, body).andExpect(jsonPath("$.created").value(0))
                 .andExpect(jsonPath("$.skipped[0].reason").value("Déjà en base : même adresse e-mail"));
         JsonNode again = preview(a, "acteurs.csv", csv.getBytes(StandardCharsets.UTF_8));
-        assertThat(again.get("rows").get(0).get("status").asText()).isEqualTo("DOUBLON");
+        assertThat(again.get("rows").get(0).get("status").asString()).isEqualTo("DOUBLON");
     }
 
     @Test
@@ -209,15 +209,15 @@ class RolesImportApiTest {
         }
         JsonNode pv = preview(admin(), "casting.xlsx", xlsx);
         JsonNode row = pv.get("rows").get(0);
-        assertThat(row.get("status").asText()).isEqualTo("OK");
+        assertThat(row.get("status").asString()).isEqualTo("OK");
         JsonNode d = row.get("data");
-        assertThat(d.get("firstName").asText()).isEqualTo("Inès");
-        assertThat(d.get("lastName").asText()).isEqualTo("Belkacem");
-        assertThat(d.get("birthDate").asText()).isEqualTo("1998-07-14");
+        assertThat(d.get("firstName").asString()).isEqualTo("Inès");
+        assertThat(d.get("lastName").asString()).isEqualTo("Belkacem");
+        assertThat(d.get("birthDate").asString()).isEqualTo("1998-07-14");
         assertThat(d.get("height").asInt()).isEqualTo(171);
-        assertThat(d.get("phone").asText()).isEqualTo("0698765432");
-        assertThat(d.get("city").asText()).isEqualTo("Marseille");
-        assertThat(pv.get("columns").get(1).get("field").asText()).isEqualTo("birthDate");
+        assertThat(d.get("phone").asString()).isEqualTo("0698765432");
+        assertThat(d.get("city").asString()).isEqualTo("Marseille");
+        assertThat(pv.get("columns").get(1).get("field").asString()).isEqualTo("birthDate");
 
         mvc.perform(multipart("/api/admin/import/actors/preview")
                         .file(new MockMultipartFile("file", "notes.pdf", "application/pdf", new byte[]{1, 2, 3}))
@@ -238,7 +238,7 @@ class RolesImportApiTest {
         send("GET", "/api/admin/agencies", a, null).andExpect(status().isOk());
         // Réservé à l'administrateur
         String nina = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "stats.acteur@test.local",
-                "password", "motdepasse123", "firstName", "Stat", "lastName", "Acteur"))).get("accessToken").asText();
+                "password", "motdepasse123", "firstName", "Stat", "lastName", "Acteur"))).get("accessToken").asString();
         send("GET", "/api/admin/stats", nina, null).andExpect(status().isForbidden());
     }
 
@@ -246,7 +246,7 @@ class RolesImportApiTest {
     void contratEchuLectureSeule() throws Exception {
         String a = admin();
         String agency = read(send("POST", "/api/admin/agencies", a, Map.of("name", "Agence échue", "contractStart", "2024-01-01",
-                "contractEnd", "2024-12-31")).andExpect(status().isCreated())).get("id").asText();
+                "contractEnd", "2024-12-31")).andExpect(status().isCreated())).get("id").asString();
         assertThat(read(send("GET", "/api/admin/agencies", a, null)).toString()).contains("EXPIRE");
         send("POST", "/api/admin/agents", a, Map.of("email", "agent.echu@test.local", "firstName", "Eric", "lastName", "Echu",
                 "password", "motdepasse123", "agencyId", agency)).andExpect(status().isCreated());
@@ -268,7 +268,7 @@ class RolesImportApiTest {
     void acteurEnPauseSortDesRecherches() throws Exception {
         String z = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "zelie.pause@test.local",
                 "password", "motdepasse123", "firstName", "Zélie", "lastName", "Pausemaker")).andExpect(status().isCreated()))
-                .get("accessToken").asText();
+                .get("accessToken").asString();
         String a = admin();
         send("GET", "/api/me/visibility", z, null).andExpect(jsonPath("$.visibility").value("VISIBLE"));
         send("GET", "/api/actors/search?search=Pausemaker", a, null).andExpect(jsonPath("$.totalElements").value(1));
@@ -288,7 +288,7 @@ class RolesImportApiTest {
 
     private String agentOf(String agencyName, String email) throws Exception {
         String ag = read(send("POST", "/api/admin/agencies", admin(), Map.of("name", agencyName, "contractStart", "2026-01-01",
-                "contractEnd", "2030-12-31", "maxAgents", 5)).andExpect(status().isCreated())).get("id").asText();
+                "contractEnd", "2030-12-31", "maxAgents", 5)).andExpect(status().isCreated())).get("id").asString();
         send("POST", "/api/admin/agents", admin(), Map.of("email", email, "firstName", "Agent", "lastName", agencyName,
                 "password", "motdepasse123", "agencyId", ag)).andExpect(status().isCreated());
         return token(email, "motdepasse123");
@@ -301,7 +301,7 @@ class RolesImportApiTest {
 
         // Alpha apporte une fiche : elle lui reste privée
         String id = read(send("POST", "/api/actors", a, Map.of("firstName", "Ines", "lastName", "Privatalpha"))
-                .andExpect(status().isCreated())).get("id").asText();
+                .andExpect(status().isCreated())).get("id").asString();
         send("GET", "/api/actors/search?search=Privatalpha", a, null).andExpect(jsonPath("$.totalElements").value(1));
         send("GET", "/api/actors/" + id, a, null).andExpect(status().isOk());
 
@@ -318,12 +318,12 @@ class RolesImportApiTest {
         send("GET", "/api/actors/search?search=Partagelibre", b, null).andExpect(jsonPath("$.totalElements").value(1));
 
         // Beta ne peut pas glisser la fiche d'Alpha dans sa shortlist
-        String pb = read(send("POST", "/api/projects", b, Map.of("title", "Projet Beta", "type", "SERIE"))).get("id").asText();
-        String rb = read(send("POST", "/api/projects/" + pb + "/roles", b, Map.of("name", "Rôle Beta"))).get("id").asText();
+        String pb = read(send("POST", "/api/projects", b, Map.of("title", "Projet Beta", "type", "SERIE"))).get("id").asString();
+        String rb = read(send("POST", "/api/projects/" + pb + "/roles", b, Map.of("name", "Rôle Beta"))).get("id").asString();
         send("POST", "/api/roles/" + rb + "/shortlist", b, Map.of("actorId", id)).andExpect(status().isNotFound());
 
         // L'équipe d'un projet reste dans l'agence
-        String pa = read(send("POST", "/api/projects", a, Map.of("title", "Projet Alpha", "type", "SERIE"))).get("id").asText();
+        String pa = read(send("POST", "/api/projects", a, Map.of("title", "Projet Alpha", "type", "SERIE"))).get("id").asString();
         send("POST", "/api/projects/" + pa + "/members", a, Map.of("email", "agent.beta@test.local"))
                 .andExpect(status().isBadRequest());
     }
@@ -333,8 +333,8 @@ class RolesImportApiTest {
         String g = agentOf("Agence Gamma", "agent.gamma@test.local");
         String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "lina.contact@test.local",
                 "password", "motdepasse123", "firstName", "Lina", "lastName", "Contactable")).andExpect(status().isCreated()))
-                .get("accessToken").asText();
-        String id = read(send("GET", "/api/me", f, null)).get("actorId").asText();
+                .get("accessToken").asString();
+        String id = read(send("GET", "/api/me", f, null)).get("actorId").asString();
         send("PUT", "/api/me/actor", f, Map.of("firstName", "Lina", "lastName", "Contactable", "phone", "+33612345678"))
                 .andExpect(jsonPath("$.phone").value("+33612345678"));
 
@@ -354,7 +354,7 @@ class RolesImportApiTest {
         // L'administrateur voit tout ; l'agence voit les fiches qu'elle a apportées
         send("GET", "/api/actors/" + id, admin(), null).andExpect(jsonPath("$.contactHidden").value(false))
                 .andExpect(jsonPath("$.phone").value("+33612345678"));
-        String own = read(send("POST", "/api/actors", g, Map.of("firstName", "Omar", "lastName", "Maison", "phone", "+21698765432"))).get("id").asText();
+        String own = read(send("POST", "/api/actors", g, Map.of("firstName", "Omar", "lastName", "Maison", "phone", "+21698765432"))).get("id").asString();
         send("GET", "/api/actors/" + own, g, null).andExpect(jsonPath("$.contactHidden").value(false))
                 .andExpect(jsonPath("$.phone").value("+21698765432"));
     }
@@ -364,13 +364,13 @@ class RolesImportApiTest {
         String d = agentOf("Agence Delta", "agent.delta@test.local");
         String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "sami.offre@test.local",
                 "password", "motdepasse123", "firstName", "Sami", "lastName", "Offrable")).andExpect(status().isCreated()))
-                .get("accessToken").asText();
-        String actorId = read(send("GET", "/api/me", f, null)).get("actorId").asText();
+                .get("accessToken").asString();
+        String actorId = read(send("GET", "/api/me", f, null)).get("actorId").asString();
 
-        String p = read(send("POST", "/api/projects", d, Map.of("title", "Les Phares", "type", "SERIE"))).get("id").asText();
+        String p = read(send("POST", "/api/projects", d, Map.of("title", "Les Phares", "type", "SERIE"))).get("id").asString();
         String r = read(send("POST", "/api/projects/" + p + "/roles", d, Map.of("name", "Yanis, gardien de phare",
-                "shootStart", "2027-05-01", "shootEnd", "2027-06-30"))).get("id").asText();
-        String e = read(send("POST", "/api/roles/" + r + "/shortlist", d, Map.of("actorId", actorId)).andExpect(status().isCreated())).get("id").asText();
+                "shootStart", "2027-05-01", "shootEnd", "2027-06-30"))).get("id").asString();
+        String e = read(send("POST", "/api/roles/" + r + "/shortlist", d, Map.of("actorId", actorId)).andExpect(status().isCreated())).get("id").asString();
 
         // Convocation : date obligatoire, avant la fin du tournage
         send("POST", "/api/shortlist/" + e + "/offers", d, Map.of("kind", "AUDITION")).andExpect(status().isBadRequest());
@@ -381,9 +381,9 @@ class RolesImportApiTest {
 
         // L'acteur la voit dans son espace, avec le rôle et l'agence, et l'accepte
         JsonNode mine = read(send("GET", "/api/me/offers", f, null).andExpect(status().isOk()));
-        assertThat(mine.get(0).get("roleName").asText()).isEqualTo("Yanis, gardien de phare");
-        assertThat(mine.get(0).get("agencyName").asText()).isEqualTo("Agence Delta");
-        String offer = mine.get(0).get("id").asText();
+        assertThat(mine.get(0).get("roleName").asString()).isEqualTo("Yanis, gardien de phare");
+        assertThat(mine.get(0).get("agencyName").asString()).isEqualTo("Agence Delta");
+        String offer = mine.get(0).get("id").asString();
         send("PUT", "/api/me/offers/" + offer, f, Map.of("answer", "ACCEPTEE", "note", "Avec plaisir")).andExpect(status().isNoContent());
         send("PUT", "/api/me/offers/" + offer, f, Map.of("answer", "DECLINEE")).andExpect(status().isConflict());
         send("GET", "/api/me/offers", d, null).andExpect(status().isForbidden());
@@ -392,12 +392,12 @@ class RolesImportApiTest {
         send("GET", "/api/roles/" + r + "/offers", d, null).andExpect(jsonPath("$[0].status").value("ACCEPTEE"))
                 .andExpect(jsonPath("$[0].answerNote").value("Avec plaisir"));
         JsonNode list = read(send("GET", "/api/roles/" + r + "/shortlist", d, null));
-        assertThat(list.get(0).get("status").asText()).isEqualTo("AUDITION");
-        assertThat(list.get(0).get("auditionDate").asText()).isEqualTo("2027-04-12");
+        assertThat(list.get(0).get("status").asString()).isEqualTo("AUDITION");
+        assertThat(list.get(0).get("auditionDate").asString()).isEqualTo("2027-04-12");
 
         // Fiche sans compte : pas de proposition possible, l'agent contacte l'acteur directement
-        String own = read(send("POST", "/api/actors", d, Map.of("firstName", "Sans", "lastName", "Compte"))).get("id").asText();
-        String e2 = read(send("POST", "/api/roles/" + r + "/shortlist", d, Map.of("actorId", own))).get("id").asText();
+        String own = read(send("POST", "/api/actors", d, Map.of("firstName", "Sans", "lastName", "Compte"))).get("id").asString();
+        String e2 = read(send("POST", "/api/roles/" + r + "/shortlist", d, Map.of("actorId", own))).get("id").asString();
         send("POST", "/api/shortlist/" + e2 + "/offers", d, Map.of("kind", "PROPOSITION")).andExpect(status().isBadRequest());
     }
 
@@ -406,13 +406,13 @@ class RolesImportApiTest {
         String d = agentOf("Agence Epsilon", "agent.epsilon@test.local");
         String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "rita.notif@test.local",
                 "password", "motdepasse123", "firstName", "Rita", "lastName", "Notifiee")).andExpect(status().isCreated()))
-                .get("accessToken").asText();
-        String actorId = read(send("GET", "/api/me", f, null)).get("actorId").asText();
+                .get("accessToken").asString();
+        String actorId = read(send("GET", "/api/me", f, null)).get("actorId").asString();
         send("GET", "/api/me/notifications", f, null).andExpect(jsonPath("$.unread").value(0));
 
-        String p = read(send("POST", "/api/projects", d, Map.of("title", "Projet cloche", "type", "SERIE"))).get("id").asText();
-        String r = read(send("POST", "/api/projects/" + p + "/roles", d, Map.of("name", "Rôle cloche"))).get("id").asText();
-        String e = read(send("POST", "/api/roles/" + r + "/shortlist", d, Map.of("actorId", actorId))).get("id").asText();
+        String p = read(send("POST", "/api/projects", d, Map.of("title", "Projet cloche", "type", "SERIE"))).get("id").asString();
+        String r = read(send("POST", "/api/projects/" + p + "/roles", d, Map.of("name", "Rôle cloche"))).get("id").asString();
+        String e = read(send("POST", "/api/roles/" + r + "/shortlist", d, Map.of("actorId", actorId))).get("id").asString();
 
         // Proposition → l'acteur est prévenu
         send("POST", "/api/shortlist/" + e + "/offers", d, Map.of("kind", "PROPOSITION")).andExpect(status().isCreated());
@@ -421,7 +421,7 @@ class RolesImportApiTest {
                 .andExpect(jsonPath("$.items[0].link").value("/mes-propositions"));
 
         // Réponse → l'agent est prévenu ; consultation des coordonnées → l'acteur aussi
-        String offer = read(send("GET", "/api/me/offers", f, null)).get(0).get("id").asText();
+        String offer = read(send("GET", "/api/me/offers", f, null)).get(0).get("id").asString();
         send("PUT", "/api/me/offers/" + offer, f, Map.of("answer", "DECLINEE")).andExpect(status().isNoContent());
         send("GET", "/api/me/notifications", d, null).andExpect(jsonPath("$.items[0].title").value("Rita Notifiee a décliné votre demande"));
         send("POST", "/api/actors/" + actorId + "/contact", d, null).andExpect(status().isOk());
@@ -429,7 +429,7 @@ class RolesImportApiTest {
                 .andExpect(jsonPath("$.items[0].title").value("Agence Epsilon a consulté vos coordonnées"));
 
         // Avis du réalisateur → le propriétaire du projet est prévenu
-        String token = read(send("POST", "/api/roles/" + r + "/shares", d, Map.of("days", 7))).get("token").asText();
+        String token = read(send("POST", "/api/roles/" + r + "/shares", d, Map.of("days", 7))).get("token").asString();
         mvc.perform(put("/api/public/shares/" + token + "/votes/" + e).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"vote\":\"OUI\",\"voterName\":\"Claire\"}")).andExpect(status().isNoContent());
         send("GET", "/api/me/notifications", d, null).andExpect(jsonPath("$.items[0].title").value("Claire a répondu « oui » pour Rita Notifiee"));
@@ -454,10 +454,10 @@ class RolesImportApiTest {
 
         JsonNode rev = read(send("GET", "/api/admin/stats", a, null).andExpect(status().isOk())).get("revenue");
         boolean eur = false;
-        for (JsonNode m : rev.get("mrr")) if (m.get("currency").asText().equals("EUR")) { eur = true; assertThat(m.get("amount").asDouble()).isEqualTo(450.0); }
+        for (JsonNode m : rev.get("mrr")) if (m.get("currency").asString().equals("EUR")) { eur = true; assertThat(m.get("amount").asDouble()).isEqualTo(450.0); }
         assertThat(eur).isTrue();
         boolean found = false;
-        for (JsonNode r : rev.get("renewals")) if (r.get("name").asText().equals("Agence Zeta")) { found = true; assertThat(r.get("daysLeft").asLong()).isEqualTo(10); }
+        for (JsonNode r : rev.get("renewals")) if (r.get("name").asString().equals("Agence Zeta")) { found = true; assertThat(r.get("daysLeft").asLong()).isEqualTo(10); }
         assertThat(found).isTrue();
 
         // La cloche de l'administrateur rappelle le renouvellement
@@ -469,11 +469,11 @@ class RolesImportApiTest {
     void journalAuditDeLAdministration() throws Exception {
         String a = admin();
         String ag = read(send("POST", "/api/admin/agencies", a, Map.of("name", "Agence Iota", "contractStart", "2026-01-01"))
-                .andExpect(status().isCreated())).get("id").asText();
+                .andExpect(status().isCreated())).get("id").asString();
         send("PUT", "/api/admin/agencies/" + ag, a, Map.of("name", "Agence Iota", "contractStart", "2026-01-01",
                 "contractEnd", "2027-06-30", "plan", "STUDIO", "monthlyAmount", 900, "currency", "TND")).andExpect(status().isOk());
         String uid = read(send("POST", "/api/admin/agents", a, Map.of("email", "agent.iota@test.local", "firstName", "Ines",
-                "lastName", "Iota", "password", "motdepasse123", "agencyId", ag)).andExpect(status().isCreated())).get("user").get("id").asText();
+                "lastName", "Iota", "password", "motdepasse123", "agencyId", ag)).andExpect(status().isCreated())).get("user").get("id").asString();
         send("PATCH", "/api/admin/users/" + uid, a, Map.of("enabled", false)).andExpect(status().isOk());
 
         JsonNode log = read(send("GET", "/api/admin/audit", a, null).andExpect(status().isOk()));
@@ -482,7 +482,7 @@ class RolesImportApiTest {
                 .contains("CONTRAT_MODIFIE").contains("au 30/06/2027, STUDIO, 900 TND/mois")
                 .contains("COMPTE_CREE").contains("agent.iota@test.local")
                 .contains("COMPTE_MODIFIE").contains("désactivé");
-        assertThat(log.get(0).get("actor").asText()).contains("ahmed@casting.com");
+        assertThat(log.get(0).get("actor").asString()).contains("ahmed@casting.com");
         send("GET", "/api/admin/audit?action=COMPTE_MODIFIE", a, null).andExpect(jsonPath("$[0].action").value("COMPTE_MODIFIE"));
 
         // Réservé à l'administrateur

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@angular/cdk/overlay-prebuilt.css";   /* panneaux flottants (cloche) au-dessus de toute la page */
 
 /*
  * Identité visuelle « table lumineuse » : un directeur de casting trie des photos

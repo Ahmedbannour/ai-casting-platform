@@ -1,18 +1,18 @@
 package com.castingai;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.Map;
@@ -30,7 +30,7 @@ class TeamApiTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+    static PostgreSQLContainer postgres = new PostgreSQLContainer(
             DockerImageName.parse("pgvector/pgvector:pg16").asCompatibleSubstituteFor("postgres"));
 
     @Autowired MockMvc mvc;
@@ -40,7 +40,7 @@ class TeamApiTest {
         String body = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(Map.of("email", email, "password", password))))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-        return "Bearer " + json.readTree(body).get("accessToken").asText();
+        return "Bearer " + json.readTree(body).get("accessToken").asString();
     }
 
     private String admin() throws Exception { return token("ahmed@casting.com", "password123"); }
@@ -52,7 +52,7 @@ class TeamApiTest {
                 .content("{\"name\":\"Agence de test\",\"contractStart\":\"2026-01-01\"}"));
         JsonNode list = json.readTree(mvc.perform(get("/api/admin/agencies").header("Authorization", a))
                 .andReturn().getResponse().getContentAsString());
-        for (JsonNode x : list) if (x.get("name").asText().equals("Agence de test")) return x.get("id").asText();
+        for (JsonNode x : list) if (x.get("name").asString().equals("Agence de test")) return x.get("id").asString();
         throw new IllegalStateException("Agence de test introuvable");
     }
 
@@ -72,7 +72,7 @@ class TeamApiTest {
     private JsonNode read(ResultActions r) throws Exception { return json.readTree(r.andReturn().getResponse().getContentAsString()); }
 
     private String project(String a, String title) throws Exception {
-        return read(send("POST", "/api/projects", a, Map.of("title", title, "type", "SERIE")).andExpect(status().isCreated())).get("id").asText();
+        return read(send("POST", "/api/projects", a, Map.of("title", title, "type", "SERIE")).andExpect(status().isCreated())).get("id").asString();
     }
 
     @Test
@@ -97,7 +97,7 @@ class TeamApiTest {
         send("POST", "/api/projects/" + p + "/members", yanis, Map.of("email", "ahmed@casting.com")).andExpect(status().isForbidden());
 
         // il peut se retirer lui-même ; le propriétaire ne peut pas être retiré
-        String ownerId = team.get(0).get("userId").asText(), yanisId = team.get(1).get("userId").asText();
+        String ownerId = team.get(0).get("userId").asString(), yanisId = team.get(1).get("userId").asString();
         send("DELETE", "/api/projects/" + p + "/members/" + ownerId, a, null).andExpect(status().isForbidden());
         send("DELETE", "/api/projects/" + p + "/members/" + yanisId, yanis, null).andExpect(status().isNoContent());
         send("GET", "/api/projects/" + p, yanis, null).andExpect(status().isNotFound());
@@ -106,16 +106,16 @@ class TeamApiTest {
     @Test
     void journalDActiviteDuProjet() throws Exception {
         String a = admin(), p = project(a, "Projet journal");
-        String r = read(send("POST", "/api/projects/" + p + "/roles", a, Map.of("name", "Léa"))).get("id").asText();
-        String actor = read(send("GET", "/api/actors/search?size=1", a, null)).get("content").get(0).get("id").asText();
-        String e = read(send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", actor))).get("id").asText();
+        String r = read(send("POST", "/api/projects/" + p + "/roles", a, Map.of("name", "Léa"))).get("id").asString();
+        String actor = read(send("GET", "/api/actors/search?size=1", a, null)).get("content").get(0).get("id").asString();
+        String e = read(send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", actor))).get("id").asString();
         send("PATCH", "/api/shortlist/" + e, a, "{\"status\":\"AUDITION\"}").andExpect(status().isOk());
 
         JsonNode log = read(send("GET", "/api/projects/" + p + "/activity", a, null).andExpect(status().isOk()));
         assertThat(log.size()).isEqualTo(2);
-        assertThat(log.get(0).get("toStatus").asText()).isEqualTo("AUDITION");      // le plus récent d'abord
-        assertThat(log.get(0).get("fromStatus").asText()).isEqualTo("PRESELECTIONNE");
-        assertThat(log.get(0).get("roleName").asText()).isEqualTo("Léa");
+        assertThat(log.get(0).get("toStatus").asString()).isEqualTo("AUDITION");      // le plus récent d'abord
+        assertThat(log.get(0).get("fromStatus").asString()).isEqualTo("PRESELECTIONNE");
+        assertThat(log.get(0).get("roleName").asString()).isEqualTo("Léa");
         assertThat(log.get(1).get("fromStatus").isNull()).isTrue();                    // ajout initial
     }
 
@@ -123,15 +123,15 @@ class TeamApiTest {
     void disponibiliteCompareeAuxDatesDeTournage() throws Exception {
         String a = admin(), p = project(a, "Projet dispo");
         String r = read(send("POST", "/api/projects/" + p + "/roles", a,
-                Map.of("name", "Marc", "shootStart", "2027-03-01", "shootEnd", "2027-03-10"))).get("id").asText();
+                Map.of("name", "Marc", "shootStart", "2027-03-01", "shootEnd", "2027-03-10"))).get("id").asString();
         String libre = read(send("POST", "/api/actors", a, """
             {"firstName":"Libre","lastName":"Test","gender":"Homme","city":"Paris",
-             "availabilities":[{"fromDate":"2027-02-01","toDate":"2027-04-01"}]}""").andExpect(status().is2xxSuccessful())).get("id").asText();
+             "availabilities":[{"fromDate":"2027-02-01","toDate":"2027-04-01"}]}""").andExpect(status().is2xxSuccessful())).get("id").asString();
         String occupe = read(send("POST", "/api/actors", a, """
             {"firstName":"Occupe","lastName":"Test","gender":"Homme","city":"Paris",
-             "availabilities":[{"fromDate":"2027-01-01","toDate":"2027-01-31"}]}""").andExpect(status().is2xxSuccessful())).get("id").asText();
+             "availabilities":[{"fromDate":"2027-01-01","toDate":"2027-01-31"}]}""").andExpect(status().is2xxSuccessful())).get("id").asString();
         String inconnu = read(send("POST", "/api/actors", a, """
-            {"firstName":"Inconnu","lastName":"Test","gender":"Homme","city":"Paris"}""").andExpect(status().is2xxSuccessful())).get("id").asText();
+            {"firstName":"Inconnu","lastName":"Test","gender":"Homme","city":"Paris"}""").andExpect(status().is2xxSuccessful())).get("id").asString();
 
         send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", libre)).andExpect(jsonPath("$.availability").value("OK"));
         send("POST", "/api/roles/" + r + "/shortlist", a, Map.of("actorId", occupe))

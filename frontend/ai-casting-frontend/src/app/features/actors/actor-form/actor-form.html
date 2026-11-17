@@ -238,7 +238,7 @@
       </section>
 
       <!-- Barre d'enregistrement -->
-      <div class="bar"><div class="bar-in">
+      <div class="bar" [class.floating]="form.dirty || (submitted() && totalErrors()) || error()"><div class="bar-in">
         <div class="bar-msg" role="status">
           @if (error()) { <span class="field-msg">{{ error() }}</span> }
           @else if (submitted() && totalErrors()) { <span class="field-msg">{{ totalErrors() }} champ{{ totalErrors() > 1 ? 's' : '' }} à corriger avant d'enregistrer.</span> }

@@ -6,7 +6,8 @@ import com.castingai.entity.User;
 import com.castingai.exception.AuthException;
 import com.castingai.exception.ForbiddenException;
 import com.castingai.repository.UserRepository;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import tools.jackson.core.JacksonException;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -65,13 +67,13 @@ public class SocialAuthService {
         } catch (RestClientException e) {
             throw new AuthException("Jeton Google refusé");
         }
-        if (t == null || !googleClientId.equals(t.path("aud").asText())
-                || !(t.path("iss").asText().endsWith("accounts.google.com"))) {
+        if (t == null || !googleClientId.equals(t.path("aud").asString())
+                || !(t.path("iss").asString().endsWith("accounts.google.com"))) {
             throw new AuthException("Jeton Google non destiné à cette application");
         }
-        if (!"true".equals(t.path("email_verified").asText())) throw new AuthException("Adresse e-mail Google non vérifiée");
-        return signIn(new Identity("GOOGLE", t.path("sub").asText(), t.path("email").asText(),
-                t.path("given_name").asText(""), t.path("family_name").asText("")));
+        if (!"true".equals(t.path("email_verified").asString())) throw new AuthException("Adresse e-mail Google non vérifiée");
+        return signIn(new Identity("GOOGLE", t.path("sub").asString(), t.path("email").asString(),
+                t.path("given_name").asString(""), t.path("family_name").asString("")));
     }
 
     @Transactional
@@ -81,19 +83,19 @@ public class SocialAuthService {
             JsonNode dbg = getJson(GRAPH + "/debug_token?input_token={t}&access_token={a}",
                     accessToken, facebookAppId + "|" + facebookAppSecret);
             JsonNode d = dbg == null ? null : dbg.path("data");
-            if (d == null || !d.path("is_valid").asBoolean() || !facebookAppId.equals(d.path("app_id").asText())) {
+            if (d == null || !d.path("is_valid").asBoolean() || !facebookAppId.equals(d.path("app_id").asString())) {
                 log.warn("Facebook : jeton invalide ou destiné à une autre application (valide={}, app={})",
-                        d == null ? null : d.path("is_valid").asBoolean(), d == null ? null : d.path("app_id").asText());
+                        d == null ? null : d.path("is_valid").asBoolean(), d == null ? null : d.path("app_id").asString());
                 throw new AuthException("Jeton Facebook non destiné à cette application");
             }
             // appsecret_proof : exigé par Meta pour les appels serveur quand « Exiger la clé secrète » est actif
             JsonNode me = getJson(GRAPH + "/me?fields=id,first_name,last_name,email&access_token={t}&appsecret_proof={p}",
                     accessToken, appSecretProof(accessToken));
-            if (me == null || me.path("email").asText("").isBlank()) {
+            if (me == null || me.path("email").asString("").isBlank()) {
                 throw new AuthException("Facebook n'a pas transmis d'adresse e-mail : autorisez l'accès à l'e-mail ou inscrivez-vous avec un mot de passe");
             }
-            return signIn(new Identity("FACEBOOK", me.path("id").asText(), me.path("email").asText(),
-                    me.path("first_name").asText(""), me.path("last_name").asText("")));
+            return signIn(new Identity("FACEBOOK", me.path("id").asString(), me.path("email").asString(),
+                    me.path("first_name").asString(""), me.path("last_name").asString("")));
         } catch (org.springframework.web.client.RestClientResponseException e) {
             // Réponse d'erreur de Facebook (message, type, code) : jamais de jeton dans ce texte
             log.warn("Facebook a refusé l'appel : {} {}", e.getStatusCode(), e.getResponseBodyAsString());
@@ -104,7 +106,7 @@ public class SocialAuthService {
         }
     }
 
-    private static final com.fasterxml.jackson.databind.ObjectMapper JSON = new com.fasterxml.jackson.databind.ObjectMapper();
+    private static final tools.jackson.databind.ObjectMapper JSON = new JsonMapper();
 
     /**
      * GET puis lecture JSON. La réponse est lue comme du texte : l'API Graph de Facebook répond
@@ -115,7 +117,7 @@ public class SocialAuthService {
         if (body == null || body.isBlank()) return null;
         try {
             return JSON.readTree(body);
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new org.springframework.web.client.RestClientException("Réponse illisible du fournisseur d'identité", e);
         }
     }
