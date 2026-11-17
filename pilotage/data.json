@@ -7,7 +7,7 @@
   "debut": "2026-11-15",
   "maj": "2026-11-17",
   "jour": "J5",
-  "avancement": 92,
+  "avancement": 94,
   "avancement_veille": 71,
   "phase_courante": "PH1"
  },
@@ -16,25 +16,25 @@
    "id": "PH0",
    "nom": "Phase 0 · Stabiliser",
    "semaines": "S1–S2",
-   "avancement": 90
+   "avancement": 92
   },
   {
    "id": "PH1",
    "nom": "Phase 1 · MVP métier",
    "semaines": "S3–S6",
-   "avancement": 70
+   "avancement": 88
   },
   {
    "id": "PH2",
    "nom": "Phase 2 · IA différenciante",
    "semaines": "S7–S9",
-   "avancement": 35
+   "avancement": 70
   },
   {
    "id": "PH3",
    "nom": "Phase 3 · Lancer",
    "semaines": "S10–S12",
-   "avancement": 0
+   "avancement": 26
   }
  ],
  "departements": [
@@ -1957,10 +1957,9 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "bloque",
-   "detail": "Lien de réinitialisation à usage unique.",
+   "statut": "a_faire",
+   "detail": "Solution choisie par le client (D-011) : Lien de réinitialisation donné par l'administrateur.",
    "lot": "L3",
-   "bloquant": "Aucun moyen d'envoyer des e-mails pour l'instant (règle du coût zéro).",
    "solutions": [
     {
      "titre": "Lien de réinitialisation donné par l'administrateur",
@@ -2000,10 +1999,9 @@
    "prio": "P1",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "bloque",
-   "detail": "Dépend de l'envoi d'e-mails (T-112).",
+   "statut": "a_faire",
+   "detail": "Solution choisie par le client (D-013) : Lien à usage unique généré par l'administrateur (au lieu d'un e-mail de vérification).",
    "lot": "L3",
-   "bloquant": "Même blocage que T-112 : pas encore d'envoi d'e-mails.",
    "solutions": [
     {
      "titre": "Lien de réinitialisation donné par l'administrateur",
@@ -2043,10 +2041,9 @@
    "prio": "P1",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "bloque",
-   "detail": "Aujourd'hui l'application Meta est en mode développement : seuls les comptes ajoutés comme testeurs peuvent se connecter.",
+   "statut": "a_faire",
+   "detail": "Solution choisie par le client (D-014) : Politique de confidentialité publiée sur une page publique gratuite, après T-101.",
    "lot": "L3",
-   "bloquant": "Meta exige une adresse publique en HTTPS pour la politique de confidentialité et la suppression des données.",
    "solutions": [
     {
      "titre": "Publier la politique de confidentialité sur une page gratuite",
@@ -2125,10 +2122,9 @@
    "prio": "P2",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "bloque",
-   "detail": "Proposition reçue, réponse de l'acteur, contrat à renouveler.",
+   "statut": "a_faire",
+   "detail": "Solution choisie par le client (D-012) : Envoi d'e-mails par Gmail (SMTP gratuit) : votre mot de passe d'application sera saisi dans une fenêtre masquée.",
    "lot": "L4",
-   "bloquant": "Dépend de l'envoi d'e-mails (T-112).",
    "solutions": [
     {
      "titre": "Envoi d'e-mails par Gmail (SMTP gratuit)",
@@ -2220,10 +2216,9 @@
    "prio": "P1",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "bloque",
-   "detail": "Tests lancés automatiquement à chaque envoi sur GitHub.",
+   "statut": "a_faire",
+   "detail": "Solution choisie par le client (D-015) : Commit et envoi sur la branche dédiée, tests par GitHub Actions.",
    "lot": "L7",
-   "bloquant": "Votre règle : aucun commit ni envoi sur GitHub sans votre accord explicite.",
    "solutions": [
     {
      "titre": "Autoriser commit et envoi sur une branche dédiée",
@@ -2289,10 +2284,9 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "bloque",
-   "detail": "Mettre la plateforme en ligne pour les agences.",
+   "statut": "a_faire",
+   "detail": "Solution choisie par le client (D-016) : Tunnel Cloudflare gratuit depuis votre PC.",
    "lot": "L8",
-   "bloquant": "Un serveur public et un domaine ont en général un coût (règle du coût zéro).",
    "solutions": [
     {
      "titre": "Tunnel Cloudflare gratuit depuis votre PC",
@@ -2465,12 +2459,6 @@
   {
    "h": "J5",
    "nom": "Rami Saidi",
-   "t": "2026-11-17T10:20:00Z",
-   "texte": "T-105 faite : Angular 20.3.35, 0 faille en production (6 avant)."
-  },
-  {
-   "h": "J5",
-   "nom": "Rami Saidi",
    "t": "2026-11-17T10:45:00Z",
    "texte": "OSV-Scanner installé (empreinte vérifiée). Serveur Java : ~60 failles → 2 restantes (Spring Web 6.2, T-129). RabbitMQ, Elasticsearch, Redis retirés."
   },
@@ -2515,6 +2503,18 @@
    "nom": "Yasmine Trabelsi",
    "t": "2026-11-17T14:10:00Z",
    "texte": "Salle de pilotage : bouton « Équipe » — chaque agent dit où il en est et répond à vos questions en direct, à partir de l'état réel du projet."
+  },
+  {
+   "h": "J5",
+   "nom": "Karim Haddad",
+   "t": "2026-11-17T14:40:00Z",
+   "texte": "Vos 6 choix de solutions (D-011 à D-016) sont intégrés : T-112, T-113, T-114, T-118, T-123 et T-126 ne sont plus bloquées et prennent place dans la file."
+  },
+  {
+   "h": "J5",
+   "nom": "Sarra Mansouri",
+   "t": "2026-11-17T14:45:00Z",
+   "texte": "Correctifs salle de pilotage : envoi au tchat jamais bloqué (file d'attente, délai max 2 min, bouton Réessayer) ; bouton des blocages de la carte mentale réparé."
   }
  ],
  "plan": {
@@ -2618,17 +2618,23 @@
    "T-108",
    "T-101",
    "T-102",
+   "T-112",
+   "T-113",
+   "T-114",
    "T-110",
    "T-109",
    "T-111",
    "T-117",
    "T-116",
+   "T-118",
    "T-119",
    "T-120",
    "T-121",
    "T-122",
+   "T-123",
    "T-124",
    "T-125",
+   "T-126",
    "T-100",
    "T-127"
   ],

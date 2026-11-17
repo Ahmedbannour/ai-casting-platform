@@ -815,7 +815,7 @@ function renderPlan(){const P=D.plan;if(!P){$('#pl-obj').textContent='Plan en co
   $('#pl-lots').innerHTML=P.lots.map(l=>{const lt=l.taches.map(i=>byId[i]).filter(Boolean);const d=lt.filter(t=>t.statut==='fait').length;const pct=lt.length?Math.round(d/lt.length*100):0;
     return `<div class="panel lot"><div class="lh"><h3><span class="lid">${l.id}</span> ${esc(l.titre)}</h3><span class="small mono">${d}/${lt.length}</span></div><p class="but">${esc(l.but||'')}</p><div class="bar" style="margin:0"><i style="width:${pct}%;background:${pct===100?'var(--ok)':'var(--accent)'}"></i></div><ul>${lt.map(t=>`<li data-task="${t.id}" class="${ch.has(t.id)?'flash':''}" title="${ST[t.statut]}"><span class="dot ${t.statut}"></span><span><span class="id">${t.id}</span> ${esc(t.titre)}</span>${t.statut==='bloque'&&needsFix(t)?fixBtn(t):`<span class="prio ${t.prio}">${t.prio}</span>`}</li>`).join('')}</ul></div>`}).join('');
 }
-function renderBlk(){const B=T.filter(t=>t.statut!=='fait'&&(t.statut==='bloque'||t.bloquant||DECS.some(x=>x.source===t.id&&x.statut!=='fait'))&&(t.solutions||t.bloquant||t.statut==='bloque'));
+function renderBlocages(){const B=T.filter(t=>t.statut!=='fait'&&(t.statut==='bloque'||t.bloquant||DECS.some(x=>x.source===t.id&&x.statut!=='fait'))&&(t.solutions||t.bloquant||t.statut==='bloque'));
   const pend=B.filter(t=>needsFix(t));$('#blk-cnt').textContent=pend.length||'';
   $('#bl-sub').textContent=pend.length?`${pend.length} en attente de votre choix`:'Aucune décision en attente';
   $('#bl-list').innerHTML=B.length?B.sort((a,b)=>needsFix(b)-needsFix(a)).map(t=>{const dec=DECS.find(x=>x.source===t.id);const offers=(t.solutions&&t.solutions.length)?t.solutions:defaultOffers(t);
@@ -825,7 +825,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if
   choose(t,offers[+i],b);},true);
 
 // ===== Tchat avec les agents (P-034) =====
-let CHAT={open:false,agent:null,busy:false},CHATS={},chatRef=null,sampleFn=null,UNREAD={},PREVAG=null;
+let CHAT={open:false,agent:null,busy:{}},QUEUE={},MID=0,CHATS={},chatRef=null,sampleFn=null,UNREAD={},PREVAG=null;
 const fmtT=iso=>{try{return new Date(iso).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}catch(e){return ''}};
 function agentState(n){const a=(NOW.agents||[]).find(z=>z.nom===n);const ts=T.filter(t=>t.resp===n);const run=ts.filter(t=>t.statut==='en_cours');const blk=ts.filter(t=>t.statut==='bloque');
   let where=a?a.action:run.length?`Travaille sur ${run[0].id} · ${run[0].titre}`:blk.length?`Bloqué sur ${blk[0].id} · ${blk[0].titre}`:'Disponible';
@@ -848,13 +848,13 @@ function chatRender(){const body=$('#ch-body'),foot=$('#ch-foot');$('#ch-back').
   $('#ch-title').firstChild.textContent=n;$('#ch-sub').textContent=`${mb?mb.role:''} · ${x?x.court:''}`;
   const c=k=>s.ts.filter(t=>t.statut===k).length;const col={fait:'var(--ok-soft)',en_cours:'var(--run-soft)',a_faire:'var(--todo-soft)',bloque:'var(--ko-soft)'};
   const msgs=(CHATS[n]||[]);
-  body.innerHTML=`<div class="ch-where"><span class="lab">${s.active?'● En ce moment':'Où il en est'}</span><b>${esc(s.where)}</b><div class="cnt4">${ORDER.map(k=>`<span style="background:${col[k]}">${ST[k]} ${c(k)}</span>`).join('')}</div></div><div class="ch-msgs" id="ch-msgs" aria-live="polite">${msgs.length?msgs.map(m=>`<div class="msg ${m.r==='me'?'me':m.r==='sys'?'sys':'ag'}${m.typing?' typing':''}">${esc(m.x)}<span class="t">${m.r==='me'?'Vous':m.r==='sys'?'Mise à jour':esc(n.split(' ')[0])} · ${fmtT(m.at)}</span></div>`).join(''):`<div class="msg sys">Posez une question à ${esc(n.split(' ')[0])} : il répond à partir de l'état réel du projet. Les mises à jour de ses tâches s'affichent ici en direct.</div>`}</div>`;
+  body.innerHTML=`<div class="ch-where"><span class="lab">${s.active?'● En ce moment':'Où il en est'}</span><b>${esc(s.where)}</b><div class="cnt4">${ORDER.map(k=>`<span style="background:${col[k]}">${ST[k]} ${c(k)}</span>`).join('')}</div></div><div class="ch-msgs" id="ch-msgs" aria-live="polite">${msgs.length?msgs.map(m=>`<div class="msg ${m.r==='me'?'me':m.r==='sys'?'sys':'ag'}${m.typing?' typing':''}" ${m.id?`data-mid="${m.id}"`:''}><span class="tx">${esc(m.x)}</span>${m.retry?` <button type="button" class="btn" data-retry="${esc(m.retry)}" style="margin-top:6px;font-size:13px;padding:4px 10px">Réessayer</button>`:''}<span class="t">${m.r==='me'?'Vous':m.r==='sys'?'Mise à jour':esc(n.split(' ')[0])} · ${fmtT(m.at)}</span></div>`).join(''):`<div class="msg sys">Posez une question à ${esc(n.split(' ')[0])} : il répond à partir de l'état réel du projet. Les mises à jour de ses tâches s'affichent ici en direct.</div>`}</div>`;
   if(!foot.dataset.agent||foot.dataset.agent!==n){foot.dataset.agent=n;
-    foot.innerHTML=`<div class="ch-sugg">${['Où en es-tu ?','Qu’est-ce qui te bloque ?','Quelle est ta prochaine tâche ?','Qu’as-tu terminé aujourd’hui ?'].map(q=>`<button type="button" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div><form class="ch-form" id="ch-form"><label for="ch-in" class="small" style="position:absolute;left:-9999px">Votre question</label><textarea id="ch-in" rows="1" placeholder="Écrire à ${esc(n.split(' ')[0])}…"></textarea><button type="submit" id="ch-send">Envoyer</button></form>${sampleFn?'':'<p class="ch-note">Réponses indisponibles dans cet affichage : ouvrez la salle de pilotage sur claude.ai.</p>'}`;
+    foot.innerHTML=`<div class="ch-sugg">${['Où en es-tu ?','Qu’est-ce qui te bloque ?','Quelle est ta prochaine tâche ?','Qu’as-tu terminé aujourd’hui ?'].map(q=>`<button type="button" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div><form class="ch-form" id="ch-form"><label for="ch-in" class="small" style="position:absolute;left:-9999px">Votre question</label><textarea id="ch-in" rows="1" placeholder="Écrire à ${esc(n.split(' ')[0])}…"></textarea><button type="submit" id="ch-send">Envoyer</button></form>`;
     foot.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>chatAsk(b.dataset.q));
     $('#ch-form').onsubmit=e=>{e.preventDefault();const v=$('#ch-in').value.trim();if(v)chatAsk(v);};
     $('#ch-in').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#ch-form').requestSubmit();}};}
-  $('#ch-send').disabled=CHAT.busy||!sampleFn;const ml=$('#ch-msgs');if(ml)body.scrollTop=body.scrollHeight;}
+  $('#ch-send').disabled=false;$('#ch-send').textContent=CHAT.busy[n]?'Envoyer (en file)':'Envoyer';const ml=$('#ch-msgs');if(ml)body.scrollTop=body.scrollHeight;}
 function chatContext(n){const [x,mb]=memberOf(n),s=agentState(n);const P=D.plan||{};const byId=Object.fromEntries(T.map(t=>[t.id,t]));
   const mine=s.ts.map(t=>`- ${t.id} [${ST[t.statut]}] ${t.titre}${t.detail?' — '+t.detail:''}${t.bloquant?' — BLOQUANT : '+t.bloquant:''}`).join('\n')||'(aucune tâche à ton nom)';
   const file=(P.file||[]).map((id,i)=>byId[id]?`${i+1}. ${id} [${ST[byId[id].statut]}] ${byId[id].titre} (${byId[id].resp})`:'').filter(Boolean).join('\n');
@@ -874,27 +874,44 @@ Tâches bloquées (solutions gratuites proposées dans l'onglet Blocages) :
 ${blk}
 Activité récente :
 ${act}`;}
-async function chatAsk(q){const n=CHAT.agent;if(!n||CHAT.busy||!sampleFn)return;CHAT.busy=true;$('#ch-in').value='';
-  chatPush(n,{r:'me',x:q});const hist=(CHATS[n]||[]).filter(m=>m.r!=='sys'&&!m.typing).slice(-9,-1).map(m=>`${m.r==='me'?'Client':n} : ${m.x}`).join('\n');
-  const ans={r:'ag',x:'…',typing:true};chatPush(n,ans);chatRender();
-  const prompt=chatContext(n)+(hist?`\n\nDébut de la conversation :\n${hist}`:'')+`\n\nQuestion du client : ${q}`;
-  try{const res=await sampleFn(prompt,{modelTier:'quick',cache:false,onText:({text})=>{ans.x=text||'…';const ml=$('#ch-msgs');if(ml&&ml.lastElementChild&&CHAT.agent===n){ml.lastElementChild.firstChild.textContent=ans.x;$('#ch-body').scrollTop=$('#ch-body').scrollHeight;}}});
-    ans.x=(res&&res.text)||ans.x;}
-  catch(e){ans.x=e&&e.code==='not_granted'?'Les réponses ne sont pas autorisées dans cet affichage.':e&&e.code==='rate_limited'?'Trop de questions d’un coup : réessayez dans un instant.':'Réponse impossible pour le moment : réessayez.';}
-  ans.typing=false;CHAT.busy=false;chatRender();chatSave();}
+async function getSample(){if(sampleFn)return sampleFn;try{if(window.claude&&claude.use)sampleFn=await claude.use('sample');}catch(e){}return sampleFn;}
+/** Envoi : jamais bloqué. Si l'agent répond déjà, la question attend son tour (file par agent). */
+function chatAsk(q,again){const n=CHAT.agent;if(!n)return;q=String(q||'').trim();if(!q)return;const i=$('#ch-in');if(i&&!again)i.value='';
+  if(!again)chatPush(n,{r:'me',x:q});
+  (QUEUE[n]=QUEUE[n]||[]).push(q);if(!CHAT.busy[n])chatRun(n);else chatRender();}
+async function chatRun(n){const q=(QUEUE[n]||[]).shift();if(q===undefined){CHAT.busy[n]=false;if(CHAT.open)chatRender();return;}
+  CHAT.busy[n]=true;const id='m'+(++MID)+'-'+Date.now();const ans={id,r:'ag',x:'…',typing:true};chatPush(n,ans);
+  const hist=(CHATS[n]||[]).filter(m=>(m.r==='me'||m.r==='ag')&&!m.typing&&!m.retry).slice(-9).map(m=>`${m.r==='me'?'Client':n} : ${m.x}`).join('\n');
+  const prompt=chatContext(n)+(hist?`\n\nConversation récente :\n${hist}`:'')+`\n\nQuestion du client à laquelle tu réponds maintenant : ${q}`;
+  const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),120000);
+  const paint=()=>{if(!(CHAT.open&&CHAT.agent===n))return;const el=document.querySelector(`#ch-msgs [data-mid="${id}"] .tx`);if(el){el.textContent=ans.x;const b=$('#ch-body');b.scrollTop=b.scrollHeight;}};
+  try{const fn=await getSample();if(!fn)throw {code:'unavailable'};
+    const res=await fn(prompt,{modelTier:'quick',cache:false,signal:ctl.signal,onText:({text})=>{ans.x=text||'…';paint();}});
+    ans.x=((res&&res.text)||ans.x||'').trim()||'(réponse vide)';}
+  catch(e){const c=e&&e.code;ans.retry=q;
+    ans.x=c==='unavailable'?'Les réponses ne sont possibles que dans la salle de pilotage ouverte sur claude.ai.'
+      :c==='not_granted'?'Réponses non autorisées : acceptez la demande d’autorisation affichée par claude.ai, puis réessayez.'
+      :c==='rate_limited'?'Beaucoup de questions en peu de temps : patientez quelques secondes, puis réessayez.'
+      :(ctl.signal.aborted||(e&&e.name==='AbortError'))?'La réponse a pris trop de temps (plus de 2 minutes).'
+      :'Réponse impossible pour le moment (connexion interrompue ?).';
+    if(c==='rate_limited')await new Promise(r=>setTimeout(r,4000));}
+  finally{clearTimeout(timer);}
+  ans.typing=false;if(CHAT.open)chatRender();chatSave();chatRun(n);}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-retry]');if(!b)return;e.stopPropagation();const n=CHAT.agent;if(!n)return;
+  const q=b.dataset.retry;CHATS[n]=(CHATS[n]||[]).filter(m=>m.retry!==q);chatAsk(q,true);},true);
 function chatOpen(n){CHAT.open=true;CHAT.agent=n||null;$('#chatp').classList.add('on');$('#team-fab').setAttribute('aria-expanded','true');chatRender();setTimeout(()=>{const i=$('#ch-in');(i&&CHAT.agent?i:$('#ch-close')).focus()},250);}
 function chatClose(){CHAT.open=false;$('#chatp').classList.remove('on');$('#team-fab').setAttribute('aria-expanded','false');$('#team-fab').focus();}
 $('#team-fab').onclick=()=>CHAT.open?chatClose():chatOpen(null);
 $('#ch-close').onclick=chatClose;$('#ch-back').onclick=()=>{CHAT.agent=null;$('#ch-foot').dataset.agent='';chatRender();};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-chat]');if(b){e.stopPropagation();CHAT.agent=b.dataset.chat;chatOpen(b.dataset.chat);}},true);
 addEventListener('keydown',e=>{if(e.key==='Escape'&&CHAT.open&&!$('#modal').classList.contains('on'))chatClose();});
-(async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');if(db){chatRef=db.doc('live/chats');try{chatRef.onSnapshot(sn=>{const v=val(sn);if(v&&v.items&&!CHAT.busy){CHATS=v.items;if(CHAT.open)chatRender();}},()=>{});}catch(e){}}
-  sampleFn=await claude.use('sample');if(CHAT.open){$('#ch-foot').dataset.agent='';chatRender();}}catch(e){}})();
+(async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');if(db){chatRef=db.doc('live/chats');try{chatRef.onSnapshot(sn=>{const v=val(sn);if(v&&v.items&&!Object.values(CHAT.busy).some(Boolean)){CHATS=v.items;if(CHAT.open)chatRender();}},()=>{});}catch(e){}}
+  await getSample();if(CHAT.open){$('#ch-foot').dataset.agent='';chatRender();}}catch(e){}})();
 function renderAll(){
   DEP=Object.fromEntries(D.departements.map(x=>[x.id,x]));T=D.taches;applyDecs();members=D.departements.reduce((a,x)=>a+x.membres.length,0);
   NOW=D.maintenant||{agents:[]};activeNames=new Set(NOW.agents.map(a=>a.nom));detectChanges();
   D.departements.forEach(x=>{if(x.membres.some(m=>activeNames.has(m.nom)))mmOpen.add(x.id)});
-  renderTop();renderNow();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();renderPlan();renderBlk();chatDetect();if(CHAT.open)chatRender();
+  renderTop();renderNow();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();renderPlan();renderBlocages();renderBlk();chatDetect();if(CHAT.open)chatRender();
   if(location.hash==='#carte'){renderMM();const info=$('#mm-info');if(info&&info.innerHTML){if(mmFocus)showAgent(mmFocus);else if(infoKind==='projet')showProject();else if(infoKind&&infoKind.startsWith('dept:'))showDept(infoKind.slice(5));}}
   setLive();
 }
@@ -935,7 +952,7 @@ function route(){
   document.querySelectorAll('nav.tabs a').forEach(a=>a.setAttribute('aria-current',a.getAttribute('href')==='#'+v?'page':'false'));
   if(v==='organisation')renderOrg();if(v==='carte'){renderMM();if(mmFocus)showAgent(mmFocus);else if(!$('#mm-info').innerHTML)showProject();}
 }
-renderTop();renderNow();initFilters();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();renderPlan();renderBlk();
+renderTop();renderNow();initFilters();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();renderPlan();renderBlocages();renderBlk();
 chatDetect();
 addEventListener('hashchange',route);route();
 </script>
