@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActorService } from '../../../core/services/actor.service';
 import { DateFieldComponent } from '../../../shared/components/date-field/date-field';
+import { SelectFieldComponent, SelectOption } from '../../../shared/components/select-field/select-field';
 import { ageAt, frDate, todayIso } from '../../../shared/forms/dates';
 import { RULES, email, errorMessage, intBetween, noOverlap, notBlank, periodOrder, personName, phone, uniqueNames } from '../../../shared/forms/rules';
 
@@ -14,7 +15,7 @@ type SectionId = 'identite' | 'physique' | 'talents' | 'parcours' | 'dispos';
 @Component({
   selector: 'app-actor-form',
   standalone: true,
-  imports: [ReactiveFormsModule, DateFieldComponent],
+  imports: [ReactiveFormsModule, DateFieldComponent, SelectFieldComponent],
   templateUrl: './actor-form.html',
   styleUrl: './actor-form.scss'
 })
@@ -61,19 +62,31 @@ export class ActorFormComponent implements OnInit {
     afterRenderEffect(() => { this.active(); this.loaded(); this.placeIndicator(); });
   }
 
+  /** PC : trait vertical sous la rubrique active. Tablette/mobile : pastille centrée exactement dans le carrousel. */
   private placeIndicator(): void {
     const nav = this.host.nativeElement.querySelector('.toc') as HTMLElement | null;
+    const btns = nav ? Array.from(nav.querySelectorAll('button')) as HTMLElement[] : [];
     const btn = nav?.querySelector('button.on') as HTMLElement | null;
-    if (!nav || !btn) return;
+    if (!nav || !btn || !btns.length) return;
+    const carousel = window.matchMedia('(max-width: 1000px)').matches;
+    if (carousel) {
+      // Marges intérieures : la première et la dernière rubrique peuvent, elles aussi, venir au centre.
+      nav.style.setProperty('--pl', Math.max(0, (nav.clientWidth - btns[0].offsetWidth) / 2) + 'px');
+      nav.style.setProperty('--pr', Math.max(0, (nav.clientWidth - btns[btns.length - 1].offsetWidth) / 2) + 'px');
+    }
     nav.style.setProperty('--x', btn.offsetLeft + 'px');
     nav.style.setProperty('--y', btn.offsetTop + 'px');
     nav.style.setProperty('--w', btn.offsetWidth + 'px');
     nav.style.setProperty('--h', btn.offsetHeight + 'px');
+    const first = !nav.classList.contains('ready');
     nav.classList.add('ready');
-    if (nav.scrollWidth > nav.clientWidth + 2) {
-      const target = btn.offsetLeft - (nav.clientWidth - btn.offsetWidth) / 2;
-      nav.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
-    }
+    if (carousel) nav.scrollTo({ left: btn.offsetLeft + btn.offsetWidth / 2 - nav.clientWidth / 2, behavior: first ? 'auto' : 'smooth' });
+  }
+
+  /** Couleurs proposées ; une ancienne valeur hors liste reste affichée telle quelle. */
+  colorOptions(list: string[], current: string): SelectOption[] {
+    const base: SelectOption[] = [{ value: '', label: 'Non précisé' }, ...list];
+    return current && !list.includes(current) ? [...base, current] : base;
   }
 
   ngOnInit(): void {
@@ -89,6 +102,13 @@ export class ActorFormComponent implements OnInit {
     // Le défilement se fait dans le conteneur de la mise en page : écoute en phase de capture.
     const onScroll = () => this.onScroll();
     document.addEventListener('scroll', onScroll, true);
+    // Défilement manuel (molette, toucher, clavier) : le suivi reprend.
+    const resume = (e: Event) => {
+      if (e instanceof KeyboardEvent && !['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(e.key)) return;
+      this.follow = true;
+    };
+    for (const t of ['wheel', 'touchstart', 'keydown']) document.addEventListener(t, resume, { passive: true });
+    this.destroyRef.onDestroy(() => { for (const t of ['wheel', 'touchstart', 'keydown']) document.removeEventListener(t, resume); });
     const onResize = () => this.placeIndicator();
     window.addEventListener('resize', onResize);
     this.destroyRef.onDestroy(() => { document.removeEventListener('scroll', onScroll, true); window.removeEventListener('resize', onResize); });
@@ -245,19 +265,19 @@ export class ActorFormComponent implements OnInit {
 
   totalErrors(): number { return Object.values(this.sectionErrors()).reduce((a, b) => a + b, 0); }
 
-  /** Pendant un défilement lancé par le sommaire, le suivi est suspendu : le trait va droit à la cible. */
-  private lockUntil = 0;
+  /** Après un clic dans le sommaire, la rubrique choisie reste active jusqu'à ce que l'utilisateur fasse défiler lui-même. */
+  private follow = true;
   private frame = 0;
 
   scrollTo(id: SectionId): void {
     this.active.set(id);
-    this.lockUntil = Date.now() + 900;
+    this.follow = false;
     this.host.nativeElement.querySelector(`#${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   onScroll(): void {
-    if (Date.now() < this.lockUntil || this.frame) return;
-    this.frame = requestAnimationFrame(() => { this.frame = 0; if (Date.now() >= this.lockUntil) this.spy(); });
+    if (!this.follow || this.frame) return;
+    this.frame = requestAnimationFrame(() => { this.frame = 0; if (this.follow) this.spy(); });
   }
 
   private spy(): void {

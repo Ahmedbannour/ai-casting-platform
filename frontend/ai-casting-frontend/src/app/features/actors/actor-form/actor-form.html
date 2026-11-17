@@ -13,7 +13,7 @@
     <div class="skel"></div>
   } @else {
   <div class="layout">
-    <nav class="toc" aria-label="Sections du formulaire">
+    <div class="toc-wrap"><nav class="toc" aria-label="Sections du formulaire">
       <span class="ind" aria-hidden="true"></span>
       @for (s of sections; track s.id) {
         <button type="button" [class.on]="active() === s.id" (click)="scrollTo(s.id)" [attr.aria-current]="active() === s.id ? 'true' : null">
@@ -21,7 +21,7 @@
           @if (sectionErrors()[s.id]; as n) { <span class="bad" [attr.aria-label]="n + ' erreur' + (n > 1 ? 's' : '')">{{ n }}</span> }
         </button>
       }
-    </nav>
+    </nav></div>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="sections">
 
@@ -100,19 +100,11 @@
           </div>
           <div class="f">
             <label for="a-eyes">Yeux</label>
-            <select id="a-eyes" formControlName="eyeColor">
-              <option value="">Non précisé</option>
-              @for (c of eyeColors; track c) { <option [value]="c">{{ c }}</option> }
-              @if (form.value.eyeColor && !eyeColors.includes(form.value.eyeColor)) { <option [value]="form.value.eyeColor">{{ form.value.eyeColor }}</option> }
-            </select>
+            <app-select inputId="a-eyes" formControlName="eyeColor" [options]="colorOptions(eyeColors, form.value.eyeColor)" placeholder="Non précisé" />
           </div>
           <div class="f">
             <label for="a-hair">Cheveux</label>
-            <select id="a-hair" formControlName="hairColor">
-              <option value="">Non précisé</option>
-              @for (c of hairColors; track c) { <option [value]="c">{{ c }}</option> }
-              @if (form.value.hairColor && !hairColors.includes(form.value.hairColor)) { <option [value]="form.value.hairColor">{{ form.value.hairColor }}</option> }
-            </select>
+            <app-select inputId="a-hair" formControlName="hairColor" [options]="colorOptions(hairColors, form.value.hairColor)" placeholder="Non précisé" />
           </div>
         </div>
         <div class="f" [class.invalid]="show(form.get('bio'))">
@@ -134,10 +126,7 @@
               <div class="pair" [formGroupName]="i" [class.invalid]="show(ctl(languages, i, 'name')) || isDuplicate(languages, i)">
                 <input formControlName="name" list="dl-langs" placeholder="Anglais" aria-label="Langue"
                        [attr.aria-invalid]="show(ctl(languages, i, 'name')) || isDuplicate(languages, i)" />
-                <select formControlName="level" aria-label="Niveau">
-                  <option value="">Niveau</option>
-                  @for (n of languageLevels; track n) { <option [value]="n">{{ n }}</option> }
-                </select>
+                <app-select formControlName="level" [options]="languageLevels" placeholder="Niveau" ariaLabel="Niveau de langue" />
                 <button type="button" class="rm" (click)="remove(languages, i)" aria-label="Retirer cette langue">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
                 @if (isDuplicate(languages, i)) { <small class="field-msg">Langue déjà ajoutée.</small> }
@@ -153,10 +142,7 @@
               <div class="pair" [formGroupName]="i" [class.invalid]="show(ctl(skills, i, 'name')) || isDuplicate(skills, i)">
                 <input formControlName="name" list="dl-skills" placeholder="Danse" aria-label="Compétence"
                        [attr.aria-invalid]="show(ctl(skills, i, 'name')) || isDuplicate(skills, i)" />
-                <select formControlName="level" aria-label="Niveau">
-                  <option value="">Niveau</option>
-                  @for (n of skillLevels; track n) { <option [value]="n">{{ n }}</option> }
-                </select>
+                <app-select formControlName="level" [options]="skillLevels" placeholder="Niveau" ariaLabel="Niveau de compétence" />
                 <button type="button" class="rm" (click)="remove(skills, i)" aria-label="Retirer cette compétence">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
                 @if (isDuplicate(skills, i)) { <small class="field-msg">Compétence déjà ajoutée.</small> }

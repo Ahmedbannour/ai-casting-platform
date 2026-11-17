@@ -206,3 +206,8 @@ input[aria-invalid="true"]:not(.df-input), select[aria-invalid="true"], textarea
 
 input::placeholder, textarea::placeholder { color: var(--text-subtle); }
 input:disabled, select:disabled, textarea:disabled { opacity: .55; cursor: not-allowed; }
+
+/* Une fenêtre (formulaire, visionneuse) est ouverte : la barre d'onglets mobile s'efface en glissant
+   pour ne pas la recouvrir (la zone de contenu forme une couche séparée, à cause des transitions de page). */
+app-main-layout .tabbar { transition: transform .28s cubic-bezier(.2,.8,.2,1), opacity .2s; }
+body:has([aria-modal="true"]) app-main-layout .tabbar { transform: translateY(calc(100% + 24px)); opacity: 0; pointer-events: none; }

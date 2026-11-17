@@ -28,17 +28,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
+        Map<String, String> errors = new java.util.LinkedHashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
-            String field = ((FieldError) error).getField();
-            String message = error.getDefaultMessage();
-            errors.put(field, message);
+            String field = error instanceof FieldError fe ? fe.getField() : error.getObjectName();
+            errors.putIfAbsent(field, error.getDefaultMessage());
         });
 
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.BAD_REQUEST.value());
         body.put("errors", errors);
+        // Un message lisible pour l'interface : la première règle non respectée.
+        body.put("message", errors.values().stream().findFirst().orElse("Données invalides"));
 
         return ResponseEntity.badRequest().body(body);
     }

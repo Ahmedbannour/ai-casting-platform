@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class LanguageDto {
-    @NotBlank(message = "Language name is required")
+    @NotBlank(message = "Le nom de la langue est obligatoire")
     private String name;
     private String level;
 }

@@ -115,7 +115,7 @@ export class CastingService {
 
   shortlist(roleId: string): Observable<ShortlistEntry[]> { return this.http.get<ShortlistEntry[]>(`${this.api}/roles/${roleId}/shortlist`); }
   addToShortlist(roleId: string, actorId: string): Observable<ShortlistEntry> { return this.http.post<ShortlistEntry>(`${this.api}/roles/${roleId}/shortlist`, { actorId }); }
-  updateEntry(id: string, patch: { status?: EntryStatus; note?: string; auditionDate?: string | null; replaceChosen?: boolean }): Observable<ShortlistEntry> {
+  updateEntry(id: string, patch: { status?: EntryStatus; note?: string; auditionDate?: string | null; replaceChosen?: boolean; clearAudition?: boolean }): Observable<ShortlistEntry> {
     return this.http.patch<ShortlistEntry>(`${this.api}/shortlist/${id}`, patch);
   }
   removeEntry(id: string): Observable<void> { return this.http.delete<void>(`${this.api}/shortlist/${id}`); }

@@ -1,4 +1,5 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { SelectFieldComponent } from '../../shared/components/select-field/select-field';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -12,7 +13,7 @@ interface Chip { key: 'search' | 'gender' | 'age' | 'city'; label: string; }
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, SelectFieldComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
@@ -52,6 +53,7 @@ export class DashboardComponent implements OnInit {
     { value: 'Homme', label: 'Hommes' }
   ];
 
+  readonly sizeOptions = [12, 24, 48, 96].map(n => ({ value: n, label: String(n) }));
   readonly sorts = [
     { value: 'lastName:asc', label: 'Nom, A → Z' },
     { value: 'lastName:desc', label: 'Nom, Z → A' },
@@ -85,8 +87,9 @@ export class DashboardComponent implements OnInit {
     this.actorService.searchAdvanced(
       this.search.trim() || undefined,
       this.gender || undefined,
-      this.minAge ?? undefined,
-      this.maxAge ?? undefined,
+      // Tranche d'âge incohérente : ignorée (le message l'explique) plutôt que de renvoyer une liste vide.
+      this.ageError() ? undefined : this.ageValue(this.minAge),
+      this.ageError() ? undefined : this.ageValue(this.maxAge),
       this.city.trim() || undefined,
       this.page, this.size, this.sortBy, this.sortDir
     ).subscribe({
@@ -98,6 +101,19 @@ export class DashboardComponent implements OnInit {
       },
       error: () => this.loading.set(false)
     });
+  }
+
+  private ageValue(v: number | null): number | undefined {
+    return v === null || v === undefined || (v as unknown) === '' ? undefined : +v;
+  }
+
+  /** Message si la tranche d'âge saisie ne peut pas filtrer. */
+  ageError(): string {
+    const lo = this.ageValue(this.minAge), hi = this.ageValue(this.maxAge);
+    const bad = (n?: number) => n !== undefined && (!Number.isInteger(n) || n < 0 || n > 120);
+    if (bad(lo) || bad(hi)) return 'Âge : nombre entier entre 0 et 120';
+    if (lo !== undefined && hi !== undefined && lo > hi) return 'Âge minimum supérieur au maximum';
+    return '';
   }
 
   /** Saisie libre (nom, ville, âges) : on attend 300 ms sans frappe avant de chercher. */

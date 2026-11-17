@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class SkillDto {
-    @NotBlank(message = "Skill name is required")
+    @NotBlank(message = "Le nom de la compétence est obligatoire")
     private String name;
     private String level;
 }

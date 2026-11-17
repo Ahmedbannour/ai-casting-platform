@@ -31,11 +31,14 @@
       }
     </div>
 
-    <div class="field age" aria-label="Tranche d'âge">
+    <div class="field age" [class.invalid]="ageError()" aria-label="Tranche d'âge">
       <span class="field-label">Âge</span>
-      <input type="number" min="0" max="120" [(ngModel)]="minAge" (ngModelChange)="onTyping()" placeholder="min" aria-label="Âge minimum" />
+      <input type="number" min="0" max="120" step="1" inputmode="numeric" [(ngModel)]="minAge" (ngModelChange)="onTyping()" placeholder="min"
+             aria-label="Âge minimum" [attr.aria-describedby]="ageError() ? 'age-msg' : null" />
       <span class="to">à</span>
-      <input type="number" min="0" max="120" [(ngModel)]="maxAge" (ngModelChange)="onTyping()" placeholder="max" aria-label="Âge maximum" />
+      <input type="number" min="0" max="120" step="1" inputmode="numeric" [(ngModel)]="maxAge" (ngModelChange)="onTyping()" placeholder="max"
+             aria-label="Âge maximum" [attr.aria-describedby]="ageError() ? 'age-msg' : null" />
+      @if (ageError(); as m) { <small id="age-msg" class="age-msg" role="alert">{{ m }}</small> }
     </div>
 
     <label class="field city">
@@ -44,12 +47,7 @@
     </label>
 
     <div class="toolbar-end">
-      <label class="field sort">
-        <span class="sr-only">Trier</span>
-        <select [(ngModel)]="sortKey" aria-label="Trier">
-          @for (s of sorts; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
-        </select>
-      </label>
+      <app-select class="sort" [options]="sorts" [(ngModel)]="sortKey" ariaLabel="Trier" />
       <div class="segmented icons" role="radiogroup" aria-label="Affichage">
         <button type="button" role="radio" [attr.aria-checked]="view() === 'grille'" [class.on]="view() === 'grille'"
                 (click)="setView('grille')" title="Grille de photos" aria-label="Grille de photos">
@@ -195,12 +193,7 @@
       </div>
       <label class="pager-size">
         Afficher
-        <select [ngModel]="size" (ngModelChange)="changeSize($event)">
-          <option [ngValue]="12">12</option>
-          <option [ngValue]="24">24</option>
-          <option [ngValue]="48">48</option>
-          <option [ngValue]="96">96</option>
-        </select>
+        <app-select [options]="sizeOptions" [ngModel]="size" (ngModelChange)="changeSize($event)" ariaLabel="Acteurs par page" [compact]="true" />
       </label>
     </footer>
   }

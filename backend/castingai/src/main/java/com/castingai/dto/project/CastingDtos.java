@@ -59,7 +59,9 @@ public final class CastingDtos {
             ShortlistEntry.Status status,
             String note,
             LocalDate auditionDate,
-            Boolean replaceChosen) {}
+            Boolean replaceChosen,
+            /** Vrai pour effacer la date d'audition (null seul signifie « inchangée »). */
+            Boolean clearAudition) {}
 
     public record EntryResponse(
             UUID id,

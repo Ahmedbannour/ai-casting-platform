@@ -4,12 +4,16 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CastingRole, CastingService, EntryStatus, STATUSES, ShortlistEntry, criteria, importanceLabel } from '../../core/services/casting.service';
 import { RoleFormComponent } from './role-form';
+import { ProjectService } from '../../core/services/project.service';
+import { frDate } from '../../shared/forms/dates';
+import { DateFieldComponent } from '../../shared/components/date-field/date-field';
+import { SelectFieldComponent } from '../../shared/components/select-field/select-field';
 
 /** Page d'un rôle : critères, recherche pré-remplie et shortlist en colonnes par statut (US-11 à US-14). */
 @Component({
   selector: 'app-role-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, RoleFormComponent],
+  imports: [RouterLink, FormsModule, RoleFormComponent, DateFieldComponent, SelectFieldComponent],
   template: `
   <div class="page">
     @if (role(); as r) {
@@ -66,9 +70,14 @@ import { RoleFormComponent } from './role-form';
                 } @else if (e.availability === 'OK') {
                   <p class="avail ok">✓ Disponible pendant le tournage</p>
                 }
-                <label class="aud">Audition
-                  <input type="date" [value]="e.auditionDate || ''" (change)="setAudition(e, $any($event.target).value)" aria-label="Date d'audition" />
-                </label>
+                <div class="aud">
+                  <span>Audition</span>
+                  <app-date-field [ngModel]="e.auditionDate || ''" (ngModelChange)="setAudition(e, $event)" [ngModelOptions]="{ standalone: true }"
+                                  [ariaLabel]="'Date d’audition de ' + e.firstName" placeholder="à fixer"
+                                  [max]="r.shootEnd || null" [openAt]="r.shootStart"
+                                  [maxMessage]="'Après la fin du tournage.'"
+                                  [hint]="r.shootStart ? 'Tournage le ' + frDate(r.shootStart) : ''" [compact]="true" />
+                </div>
                 @if (editingNote() === e.id) {
                   <textarea [(ngModel)]="noteDraft" rows="2" (keydown.enter)="$event.preventDefault(); saveNote(e)"
                             (keydown.escape)="editingNote.set(null)" aria-label="Note" autofocus></textarea>
@@ -80,10 +89,10 @@ import { RoleFormComponent } from './role-form';
                   <button type="button" class="note" (click)="editNote(e)">{{ e.note || 'Ajouter une note' }}</button>
                 }
                 <div class="card-foot">
-                  <select [ngModel]="e.status" (ngModelChange)="move(e, $event)" aria-label="Statut">
-                    @for (o of statuses; track o.value) { <option [value]="o.value">{{ o.label }}</option> }
-                  </select>
-                  <button type="button" class="remove" (click)="remove(e)" [attr.aria-label]="'Retirer ' + e.firstName + ' ' + e.lastName">Retirer</button>
+                  <app-select class="status" [options]="cardStatuses" [ngModel]="e.status" (ngModelChange)="move(e, $event)" ariaLabel="Statut" [compact]="true" />
+                  <button type="button" class="remove" (click)="remove(e)" [attr.aria-label]="'Retirer ' + e.firstName + ' ' + e.lastName + ' de la shortlist'" title="Retirer de la shortlist">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+                  </button>
                 </div>
               </article>
             } @empty {
@@ -110,7 +119,7 @@ import { RoleFormComponent } from './role-form';
   }
 
   @if (editOpen() && role()) {
-    <app-role-form [projectId]="role()!.projectId" [role]="role()" (saved)="role.set($event); editOpen.set(false)" (cancel)="editOpen.set(false)" />
+    <app-role-form [projectId]="role()!.projectId" [role]="role()" [projectStart]="projectStart()" [projectEnd]="projectEnd()" (saved)="role.set($event); editOpen.set(false)" (cancel)="editOpen.set(false)" />
   }
   `,
   styles: [`
@@ -159,20 +168,23 @@ import { RoleFormComponent } from './role-form';
   .avail { font-size: 12px; line-height: 1.35; padding: 4px 6px; border-radius: 4px; }
   .avail.warn { background: color-mix(in srgb, var(--reject) 16%, transparent); color: var(--text-primary); }
   .avail.ok { color: var(--text-muted); }
-  .aud { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 12px; color: var(--text-muted);
-    input { height: 26px; padding: 0 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--glass); color: var(--text-primary);
-      font-size: 12px; color-scheme: dark; } }
-  :host-context(.light) .aud input { color-scheme: light; }
+  .aud { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-muted);
+    app-date-field { min-width: 0; } }
   .note { text-align: left; border: none; background: none; padding: 0; font-size: 12.5px; color: var(--text-muted); cursor: text; line-height: 1.4;
     &:hover { color: var(--text-primary); } }
   textarea { width: 100%; padding: 6px 8px; border-radius: 4px; border: 1px solid var(--accent); background: var(--glass); color: var(--text-primary);
     font-size: 13px; resize: vertical; outline: none; }
   .note-actions { display: flex; justify-content: flex-end; gap: 6px;
     button { border: none; background: none; color: var(--text-muted); font-size: 12.5px; cursor: pointer; } .ok { color: var(--accent); font-weight: 600; } }
-  .card-foot { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-  select { height: 28px; padding: 0 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--glass); color: var(--text-primary);
-    font-size: 12.5px; cursor: pointer; option { background: var(--bg-surface); } }
-  .remove { border: none; background: none; color: var(--text-subtle); font-size: 12.5px; cursor: pointer; &:hover { color: var(--danger); } }
+  .card-foot { display: flex; align-items: center; gap: 6px; }
+  /* Corbeille en haut à droite de la carte : le statut garde toute la largeur. */
+  .card { position: relative; }
+  .card .who { padding-right: 14px; }
+  .card-foot .remove { position: absolute; top: 3px; right: 3px; width: 24px; height: 24px; opacity: .55; transition: opacity .15s, color .15s, background .15s; }
+  .card:hover .remove, .card:focus-within .remove, .card-foot .remove:focus-visible { opacity: 1; }
+  .status { flex: 1; min-width: 0; }
+  .remove { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: none; border-radius: 6px; background: none;
+    color: var(--text-subtle); cursor: pointer; &:hover { color: var(--danger); background: var(--bg-hover); } }
 
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 14px;
     padding: 10px 14px 10px 16px; border-radius: var(--radius-m); background: var(--glass-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
@@ -189,6 +201,12 @@ import { RoleFormComponent } from './role-form';
 })
 export class RoleDetailComponent implements OnInit, OnDestroy {
   private readonly casting = inject(CastingService);
+  private readonly projects = inject(ProjectService);
+  readonly projectStart = signal<string | null>(null);
+  readonly projectEnd = signal<string | null>(null);
+  /** Statut d'un candidat, au singulier (les titres de colonnes restent au pluriel). */
+  readonly cardStatuses = STATUSES.map(o => ({ value: o.value, label: ({ PRESELECTIONNE: 'Présélectionné', REFUSE: 'Refusé' } as Record<string, string>)[o.value] ?? o.label }));
+  readonly frDate = frDate;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -215,7 +233,14 @@ export class RoleDetailComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
-    this.casting.role(id).subscribe({ next: r => this.role.set(r), error: () => this.notFound.set(true) });
+    this.casting.role(id).subscribe({
+      next: r => {
+        this.role.set(r);
+        // Période du projet : bornes du tournage dans le formulaire du rôle.
+        this.projects.get(r.projectId).subscribe(p => { this.projectStart.set(p.startDate); this.projectEnd.set(p.endDate); });
+      },
+      error: () => this.notFound.set(true)
+    });
     this.casting.shortlist(id).subscribe({ next: e => this.entries.set(e) });
   }
 
@@ -254,7 +279,9 @@ export class RoleDetailComponent implements OnInit, OnDestroy {
 
   /** Date d'audition (US-13). */
   setAudition(e: ShortlistEntry, value: string): void {
-    this.casting.updateEntry(e.id, { auditionDate: value || null }).subscribe(u => this.entries.update(list => list.map(x => x.id === u.id ? u : x)));
+    if ((value || null) === (e.auditionDate || null)) return;
+    const patch = value ? { auditionDate: value } : { clearAudition: true };
+    this.casting.updateEntry(e.id, patch).subscribe(u => this.entries.update(list => list.map(x => x.id === u.id ? u : x)));
   }
 
   editNote(e: ShortlistEntry): void { this.noteDraft = e.note ?? ''; this.editingNote.set(e.id); }

@@ -43,6 +43,7 @@ public class RoleService {
         User me = access.user(email);
         Project p = access.visibleProject(me, projectId);
         validate(req);
+        withinProject(req, p);
         CastingRole r = CastingRole.builder().project(p).position(roleRepository.countByProjectId(projectId)).build();
         apply(r, req);
         return toResponse(roleRepository.save(r), Map.of());
@@ -52,6 +53,7 @@ public class RoleService {
     public RoleResponse update(String email, UUID roleId, RoleRequest req) {
         CastingRole r = visibleRole(access.user(email), roleId);
         validate(req);
+        withinProject(req, r.getProject());
         apply(r, req);
         return toResponse(roleRepository.save(r), counts(List.of(roleId)));
     }
@@ -99,6 +101,25 @@ public class RoleService {
         }
         if (req.gender() != null && !req.gender().isBlank() && !List.of("Femme", "Homme").contains(req.gender())) {
             throw new IllegalArgumentException("Genre : Femme, Homme ou vide");
+        }
+    }
+
+    /** Le tournage d'un rôle tient dans la période du projet, quand celle-ci est connue. */
+    private static void withinProject(RoleRequest req, Project p) {
+        java.time.format.DateTimeFormatter fr = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        if (p.getStartDate() != null) {
+            for (java.time.LocalDate d : java.util.Arrays.asList(req.shootStart(), req.shootEnd())) {
+                if (d != null && d.isBefore(p.getStartDate())) {
+                    throw new IllegalArgumentException("Le tournage ne peut pas commencer avant le projet (" + p.getStartDate().format(fr) + ")");
+                }
+            }
+        }
+        if (p.getEndDate() != null) {
+            for (java.time.LocalDate d : java.util.Arrays.asList(req.shootStart(), req.shootEnd())) {
+                if (d != null && d.isAfter(p.getEndDate())) {
+                    throw new IllegalArgumentException("Le tournage ne peut pas finir après le projet (" + p.getEndDate().format(fr) + ")");
+                }
+            }
         }
     }
 

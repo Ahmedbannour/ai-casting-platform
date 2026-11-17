@@ -14,21 +14,46 @@ svg { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; s
 
 .layout { display: grid; grid-template-columns: 196px 1fr; gap: 24px; align-items: start; }
 
-/* ── Sommaire ─────────────────────────────── */
-.toc { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 2px; padding-left: 10px; border-left: 1px solid var(--border); }
-.toc button { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 36px; padding: 0 10px;
+/* ── Sommaire, PC : liste verticale, un trait qui glisse vers la rubrique active ── */
+.toc-wrap { position: sticky; top: 16px; z-index: 6; }
+.toc { position: relative; display: flex; flex-direction: column; gap: 2px; padding-left: 10px; border-left: 1px solid var(--border); }
+.toc button { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 36px; padding: 0 10px;
   border: 0; border-radius: var(--radius-s); background: transparent; color: var(--text-muted); font: inherit; font-size: 14px; text-align: left; cursor: pointer;
   transition: color .15s, background .15s;
   &:hover { color: var(--text-primary); background: var(--bg-hover); }
   &.on { color: var(--text-primary); font-weight: 600; } }
-/* Un seul indicateur qui glisse vers la rubrique active, positionné d'après le bouton réel. */
-.toc button { z-index: 1; }
-.ind { position: absolute; left: -2px; top: 0; width: 3px; height: calc(var(--h, 36px) - 16px); border-radius: 3px; background: var(--accent);
-  transform: translateY(calc(var(--y, 0px) + 8px)); opacity: 0;
+.ind { position: absolute; left: -2px; top: 0; width: 3px; height: calc(var(--h, 36px) - 16px); border-radius: 3px; background: var(--accent); opacity: 0;
+  transform: translateY(calc(var(--y, 0px) + 8px));
   transition: transform .35s cubic-bezier(.2,.8,.2,1), height .35s cubic-bezier(.2,.8,.2,1), opacity .2s; }
 .toc.ready .ind { opacity: 1; }
+.bad { box-shadow: 0 0 0 2px var(--glass-strong); }
 .bad { min-width: 20px; height: 20px; padding: 0 6px; display: grid; place-items: center; border-radius: 999px;
   background: var(--danger); color: #fff; font-size: 11.5px; font-weight: 700; }
+
+/* ── Sommaire, tablette et mobile : carrousel horizontal, rubrique active au centre exact ── */
+@media (max-width: 1000px) {
+  .layout { display: flex; flex-direction: column; gap: 16px; min-width: 0; width: 100%; }
+  .layout .card { scroll-margin-top: 76px; } /* sous la bande collée en haut */
+  /* contain : la largeur de la bande ne dépend jamais de son contenu (sinon les marges de centrage l'élargissent). */
+  /* Le fond vitré (opaque) est porté par l'enveloppe ; seul le ruban de rubriques s'estompe sur les bords. */
+  .toc-wrap { top: 10px; width: 100%; min-width: 0; contain: inline-size; box-sizing: border-box;
+    border: 1px solid var(--border); border-radius: 999px; background: var(--glass-strong);
+    -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); box-shadow: 0 10px 30px rgba(0,0,0,.22); }
+  .toc { width: 100%; min-width: 0; box-sizing: border-box; flex-direction: row; align-items: center; gap: 4px;
+    overflow-x: auto; scrollbar-width: none; &::-webkit-scrollbar { display: none; }
+    padding: 5px var(--pr, 40%) 5px var(--pl, 40%); border: 0; border-radius: 999px;
+    /* Les rubriques s'estompent en s'éloignant du centre. */
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 22%, #000 78%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 22%, #000 78%, transparent 100%); }
+  .toc button { flex: none; height: 38px; padding: 0 18px; border-radius: 999px; font-size: 14.5px; font-weight: 500; white-space: nowrap;
+    transform: scale(.94); transition: color .3s, transform .38s cubic-bezier(.2,.8,.2,1);
+    &:hover { background: transparent; }
+    &.on { color: var(--on-accent); font-weight: 650; transform: scale(1); } }
+  .ind { left: 0; top: 5px; width: var(--w, 0px); height: var(--h, 38px); border-radius: 999px;
+    background: var(--accent); box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 38%, transparent);
+    transform: translateX(var(--x, 0px));
+    transition: transform .38s cubic-bezier(.2,.8,.2,1), width .38s cubic-bezier(.2,.8,.2,1), opacity .2s; }
+}
 
 /* ── Sections ─────────────────────────────── */
 .sections { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
@@ -111,19 +136,6 @@ textarea { height: auto; padding: 10px 12px; resize: vertical; line-height: 1.55
   .bar-in .btn-ghost, .bar-in .btn-primary { flex: 1; }
 } /* au-dessus de la barre d'onglets mobile */
 @media (max-width: 1000px) {
-  .layout { grid-template-columns: 1fr; }
-  /* Tablette / mobile : barre vitrée collée en haut, pastille qui glisse sous l'onglet actif. */
-  .toc { position: sticky; top: 10px; z-index: 6; flex-direction: row; gap: 2px; overflow-x: auto; padding: 4px;
-    border: 1px solid var(--border); border-radius: 999px; background: var(--glass-strong);
-    -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); box-shadow: 0 10px 30px rgba(0,0,0,.25);
-    scrollbar-width: none; scroll-behavior: smooth; &::-webkit-scrollbar { display: none; }
-    button { flex: none; height: 36px; padding: 0 14px; border-radius: 999px; transition: color .25s;
-      &:hover { background: transparent; } &.on { color: var(--on-accent); } } }
-  .ind { left: 0; top: 4px; width: var(--w, 0px); height: var(--h, 36px); border-radius: 999px;
-    background: var(--accent); box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
-    transform: translateX(var(--x, 0px));
-    transition: transform .38s cubic-bezier(.2,.8,.2,1), width .38s cubic-bezier(.2,.8,.2,1), opacity .2s; }
-  .bad { box-shadow: 0 0 0 2px var(--glass-strong); }
   .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .g-exp { grid-template-columns: 1fr 1fr; }
 }
@@ -135,4 +147,4 @@ textarea { height: auto; padding: 10px 12px; resize: vertical; line-height: 1.55
   .pair { grid-template-columns: 1fr 112px 34px; }
 }
 @media (prefers-reduced-motion: reduce) { .pair, .row-card { animation: none; } }
-@media (prefers-reduced-motion: reduce) { .ind { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .ind, .toc button { transition: none; } }

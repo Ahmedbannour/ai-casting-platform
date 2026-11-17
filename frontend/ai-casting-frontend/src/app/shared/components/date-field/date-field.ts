@@ -1,5 +1,8 @@
 import { Component, ElementRef, HostListener, OnDestroy, ViewChild, computed, effect, forwardRef, input, signal } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { SelectFieldComponent } from '../select-field/select-field';
+import { usableBottom } from '../../forms/viewport';
 import { DAYS_FR, MONTHS_FR, addDays, addMonths, clampIso, frDate, fromIso, parseFr, toIso, todayIso } from '../../forms/dates';
 
 interface Cell { iso: string; d: number; inMonth: boolean; today: boolean; disabled: boolean; inRange: boolean; edge: boolean; label: string; }
@@ -12,12 +15,13 @@ interface Cell { iso: string; d: number; inMonth: boolean; today: boolean; disab
 @Component({
   selector: 'app-date-field',
   standalone: true,
+  imports: [FormsModule, SelectFieldComponent],
   providers: [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DateFieldComponent), multi: true },
     { provide: NG_VALIDATORS, useExisting: forwardRef(() => DateFieldComponent), multi: true }
   ],
   template: `
-  <div class="df" [class.open]="open()" [class.invalid]="showError()" [class.disabled]="disabled()" (click)="focusInput($event)">
+  <div class="df" [class.compact]="compact()" [class.open]="open()" [class.invalid]="showError()" [class.disabled]="disabled()" (click)="focusInput($event)">
     <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
     <input #inp class="df-input" type="text" inputmode="numeric" autocomplete="off" maxlength="10" spellcheck="false"
            [id]="inputId()" [placeholder]="placeholder()" [value]="text()" [disabled]="disabled()"
@@ -43,12 +47,10 @@ interface Cell { iso: string; d: number; inMonth: boolean; today: boolean; disab
         <button type="button" class="nav" (click)="shiftMonth(-1)" [attr.aria-disabled]="!canPrev()" aria-label="Mois précédent">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
         <div class="title">
-          <select class="bare" [value]="viewMonth()" (change)="setView(viewYear(), +$any($event.target).value)" aria-label="Mois">
-            @for (m of months; track $index) { <option [value]="$index" [selected]="$index === viewMonth()">{{ m }}</option> }
-          </select>
-          <select class="bare" [value]="viewYear()" (change)="setView(+$any($event.target).value, viewMonth())" aria-label="Année">
-            @for (y of years(); track y) { <option [value]="y" [selected]="y === viewYear()">{{ y }}</option> }
-          </select>
+          <app-select class="month" [options]="monthOptions" [ngModel]="viewMonth()" (ngModelChange)="setView(viewYear(), $event)"
+                      ariaLabel="Mois" [compact]="true" />
+          <app-select class="year" [options]="yearOptions()" [ngModel]="viewYear()" (ngModelChange)="setView($event, viewMonth())"
+                      ariaLabel="Année" [compact]="true" />
         </div>
         <button type="button" class="nav" (click)="shiftMonth(1)" [attr.aria-disabled]="!canNext()" aria-label="Mois suivant">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
@@ -91,6 +93,8 @@ export class DateFieldComponent implements ControlValueAccessor, Validator, OnDe
   readonly showMessage = input(true);
   readonly clearable = input(true);
   readonly hint = input('');
+  /** Variante étroite (cartes) : 32 px, sans icône, boutons resserrés. */
+  readonly compact = input(false);
 
   @ViewChild('inp', { static: true }) private inp!: ElementRef<HTMLInputElement>;
   private calEl: HTMLElement | null = null;
@@ -116,6 +120,8 @@ export class DateFieldComponent implements ControlValueAccessor, Validator, OnDe
   readonly placeUp = signal(false);
 
   readonly months = MONTHS_FR;
+  readonly monthOptions = MONTHS_FR.map((m, i) => ({ value: i, label: m[0].toUpperCase() + m.slice(1) }));
+  readonly yearOptions = computed(() => this.years().map(y => ({ value: y, label: String(y) })));
   readonly dow = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
   private onChange: (v: string) => void = () => {};
@@ -318,7 +324,8 @@ export class DateFieldComponent implements ControlValueAccessor, Validator, OnDe
   onDocPointer(e: PointerEvent): void {
     if (!this.open()) return;
     const t = e.target as Node;
-    if (this.host.nativeElement.contains(t) || this.calEl?.contains(t)) return;
+    // Le menu des mois/années est lui aussi rendu dans <body> : un clic dedans reste « dans » le calendrier.
+    if (this.host.nativeElement.contains(t) || this.calEl?.contains(t) || (t as Element).closest?.('.sf-menu')) return;
     this.close();
     this.touched.set(true);
     this.onTouched();
@@ -345,7 +352,7 @@ export class DateFieldComponent implements ControlValueAccessor, Validator, OnDe
     if (!this.open()) return;
     const box = this.host.nativeElement.querySelector('.df')!.getBoundingClientRect();
     const w = 300, h = this.calEl?.offsetHeight || 360, gap = 6;
-    const up = box.bottom + gap + h > window.innerHeight && box.top - gap - h > 0;
+    const up = box.bottom + gap + h > usableBottom() && box.top - gap - h > 0;
     this.placeUp.set(up);
     this.pos.set({
       top: up ? box.top - gap - h : box.bottom + gap,
