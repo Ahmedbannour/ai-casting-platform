@@ -911,7 +911,12 @@ function chatDetect(){const cur=chatSnapshot();const acts=new Set((D.activite||[
 function chatPush(n,m,save){m.at=m.at||new Date().toISOString();(CHATS[n]=CHATS[n]||[]).push(m);if(CHATS[n].length>60)CHATS[n]=CHATS[n].slice(-60);
   if(!(CHAT.open&&CHAT.agent===n)&&m.r!=='me')UNREAD[n]=(UNREAD[n]||0)+1;if(save)chatSave();if(CHAT.open)chatRender();chatFab();}
 function chatFab(){const u=Object.values(UNREAD).reduce((a,b)=>a+b,0);const e=$('#fab-n');if(e){e.hidden=!u;e.textContent=u;}}
-async function chatSave(){if(!chatRef)return;try{await chatRef.set({items:CHATS});}catch(e){}}
+let DIAG=[],diagRef=null,diagT=null,saveChain=Promise.resolve();
+function diag(msg){const e={t:new Date().toISOString(),m:String(msg).slice(0,300),ua:navigator.userAgent.slice(0,80),w:innerWidth};DIAG.push(e);if(DIAG.length>60)DIAG=DIAG.slice(-60);
+  clearTimeout(diagT);diagT=setTimeout(()=>{if(diagRef)diagRef.set({items:DIAG}).catch(()=>{});},800);}
+addEventListener('error',e=>diag('erreur JS : '+e.message+' @'+(e.lineno||'')));
+addEventListener('unhandledrejection',e=>diag('promesse rejetée : '+((e.reason&&(e.reason.code||e.reason.message))||e.reason)));
+function chatSave(){if(!chatRef)return saveChain;saveChain=saveChain.then(()=>chatRef.set({items:CHATS})).catch(e=>diag('sauvegarde du fil refusée : '+((e&&(e.code||e.message))||e)));return saveChain;}
 const AVC=n=>{const [x]=memberOf(n);return x?x.couleur:'#888'};
 const TICK='<svg class="ticks read" viewBox="0 0 18 12" aria-hidden="true"><path d="M1 6.5l3.2 3.2L11 2.5M6.5 9.7l1 1L16 2.5"/></svg>';
 let WAQ='';
@@ -964,8 +969,8 @@ Activité récente :
 ${act}`;}
 async function getSample(){if(sampleFn)return sampleFn;try{if(window.claude&&claude.use)sampleFn=await claude.use('sample');}catch(e){}return sampleFn;}
 /** Envoi : jamais bloqué. Si l'agent répond déjà, la question attend son tour (file par agent). */
-function chatAsk(q,again){const n=CHAT.agent;if(!n)return;q=String(q||'').trim();if(!q)return;const i=$('#ch-in');if(i&&!again)i.value='';
-  if(!again)chatPush(n,{r:'me',x:q});
+function chatAsk(q,again){const n=CHAT.agent;if(!n){diag('envoi sans agent sélectionné');return;}q=String(q||'').trim();if(!q)return;diag('envoi à '+n+' : '+q.slice(0,40)+' · sample='+(sampleFn?'prêt':'absent'));const i=$('#ch-in');if(i&&!again)i.value='';
+  if(!again){chatPush(n,{r:'me',x:q});chatSave();}
   (QUEUE[n]=QUEUE[n]||[]).push(q);if(!CHAT.busy[n])chatRun(n);else chatRender();}
 async function chatRun(n){const q=(QUEUE[n]||[]).shift();if(q===undefined){CHAT.busy[n]=false;if(CHAT.open)chatRender();return;}
   CHAT.busy[n]=true;const id='m'+(++MID)+'-'+Date.now();const ans={id,r:'ag',x:'…',typing:true};chatPush(n,ans);
@@ -973,15 +978,17 @@ async function chatRun(n){const q=(QUEUE[n]||[]).shift();if(q===undefined){CHAT.
   const prompt=chatContext(n)+(hist?`\n\nConversation récente :\n${hist}`:'')+`\n\nQuestion du client à laquelle tu réponds maintenant : ${q}`;
   const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),120000);
   const paint=()=>{if(!(CHAT.open&&CHAT.agent===n))return;const el=document.querySelector(`#ch-msgs [data-mid="${id}"] .tx`);if(el){el.textContent=ans.x;const b=$('#ch-msgs');b.scrollTop=b.scrollHeight;}else chatRender();};
-  try{const fn=await getSample();if(!fn)throw {code:'unavailable'};
-    const res=await fn(prompt,{modelTier:'quick',cache:false,signal:ctl.signal,onText:({text})=>{ans.x=text||'…';paint();}});
-    ans.x=((res&&res.text)||ans.x||'').trim()||'(réponse vide)';}
-  catch(e){const c=e&&e.code;ans.retry=q;
+  const call=async(fn,full)=>full?fn(prompt,{modelTier:'quick',cache:false,signal:ctl.signal,onText:({text})=>{try{ans.x=text||'…';paint();}catch(e){}}}):fn(prompt);
+  try{const fn=sampleFn||await getSample();if(!fn)throw {code:'unavailable'};diag('appel de la réponse ('+n+')');
+    let res;try{res=await call(fn,true);}catch(e1){const c1=e1&&e1.code;diag('1er essai échoué : '+(c1||e1&&e1.name||'')+' '+(e1&&e1.message||''));
+      if(c1==='not_granted'||c1==='rate_limited'||ctl.signal.aborted)throw e1;res=await call(fn,false);diag('2e essai (sans options) réussi');}
+    ans.x=((res&&res.text)||ans.x||'').trim()||'(réponse vide)';if(ans.x==='…')ans.x='(réponse vide)';diag('réponse reçue : '+ans.x.length+' caractères');}
+  catch(e){const c=e&&e.code;ans.retry=q;diag('échec : '+(c||e&&e.name||'?')+' '+(e&&e.message||''));
     ans.x=c==='unavailable'?'Les réponses ne sont possibles que dans la salle de pilotage ouverte sur claude.ai.'
       :c==='not_granted'?'Réponses non autorisées : acceptez la demande d’autorisation affichée par claude.ai, puis réessayez.'
       :c==='rate_limited'?'Beaucoup de questions en peu de temps : patientez quelques secondes, puis réessayez.'
       :(ctl.signal.aborted||(e&&e.name==='AbortError'))?'La réponse a pris trop de temps (plus de 2 minutes).'
-      :'Réponse impossible pour le moment (connexion interrompue ?).';
+      :'Réponse impossible pour le moment'+(c||e&&e.message?' ('+(c||e.message)+')':'')+'.';
     if(c==='rate_limited')await new Promise(r=>setTimeout(r,4000));}
   finally{clearTimeout(timer);}
   ans.typing=false;if(CHAT.open)chatRender();chatSave();chatRun(n);}
@@ -996,8 +1003,8 @@ $('#wa-q').oninput=e=>{WAQ=e.target.value;chatList();};
 document.addEventListener('fullscreenchange',()=>{chatHost();});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-chat]');if(b){e.stopPropagation();chatOpen(b.dataset.chat);}},true);
 addEventListener('keydown',e=>{if(e.key==='Escape'&&CHAT.open&&!$('#modal').classList.contains('on')&&!document.fullscreenElement)chatClose();});
-(async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');if(db){chatRef=db.doc('live/chats');try{chatRef.onSnapshot(sn=>{const v=val(sn);if(v&&v.items&&!Object.values(CHAT.busy).some(Boolean)){CHATS=v.items;if(CHAT.open)chatRender();}},()=>{});}catch(e){}}
-  await getSample();if(CHAT.open)chatRender();}catch(e){}})();
+(async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');diag('ouverture · db='+(db?'oui':'non'));if(db){chatRef=db.doc('live/chats');diagRef=db.doc('live/diag');try{chatRef.onSnapshot(sn=>{const v=val(sn);if(v&&v.items&&!Object.values(CHAT.busy).some(Boolean)){CHATS=v.items;if(CHAT.open)chatRender();}},()=>{});}catch(e){}}
+  await getSample();diag('sample='+(sampleFn?'prêt':'absent'));if(CHAT.open)chatRender();}catch(e){}})();
 
 // ===== Roadmap (P-035) =====
 let RMZ='d';
