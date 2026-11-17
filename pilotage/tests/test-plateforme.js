@@ -3,6 +3,8 @@
 const { chromium } = require('playwright-core');
 const out = process.env.TEMP + '\\pw\\plat-';
 const BASE = 'http://localhost:4200';
+// Compte administrateur réservé à la recette (fichier local exclu de Git, créé une fois par creer-admin-recette.js).
+const QA = JSON.parse(require('fs').readFileSync(require('path').join('C:\\Users\\AhmedBannour\\ai-casting-platform\\pilotage\\tests', '.recette-admin.json'), 'utf8'));
 const ok = [], ko = [], notes = [];
 const check = (n, c, i) => (c ? ok : ko).push(n + (i !== undefined ? ' → ' + JSON.stringify(i).slice(0, 220) : ''));
 
@@ -40,10 +42,10 @@ async function audit(page, path, name, errors) {
     await page.click('button.submit-btn'); await page.waitForTimeout(1200);
     const err = await page.locator('[role=alert], .error, .form-error').first().textContent().catch(() => '');
     check(P + 'Connexion : mauvais mot de passe → message clair', /incorrect/i.test(err || ''), err);
-    await page.fill('#email', 'ahmed@casting.com'); await page.fill('#password', 'password123');
+    await page.fill('#email', QA.email); await page.fill('#password', QA.password);
     await page.click('button.submit-btn'); await page.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 15000 }).catch(() => {});
     const logged = !page.url().includes('/auth');
-    check(P + 'Connexion administrateur (compte de démo du profil dev)', logged, page.url());
+    check(P + 'Connexion administrateur (compte de recette)', logged, page.url());
     if (page.url().includes('/consentement')) {
       // T-101 · accord demandé à la connexion : refus sans case cochée, puis accord
       await page.getByRole('radio', { name: /18 ans ou plus/i }).click();
@@ -114,14 +116,14 @@ async function audit(page, path, name, errors) {
   // T-102 · invitation : l'administrateur crée un lien, l'acteur l'ouvre sans être connecté et crée son compte
   { const api = 'http://localhost:8080/api';
     const tk = (await (await fetch(api + '/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'ahmed@casting.com', password: 'password123' }) })).json()).accessToken;
+      body: JSON.stringify({ email: QA.email, password: QA.password }) })).json()).accessToken;
     const im = `recette.invit.${Date.now()}@exemple.tn`;
     const act = await (await fetch(api + '/actors', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tk },
       body: JSON.stringify({ firstName: 'Recette', lastName: 'Invitation', email: im }) })).json();
     const c1 = await browser.newContext({ viewport: { width: 1366, height: 860 }, locale: 'fr-FR', permissions: ['clipboard-read', 'clipboard-write'] });
     const p1 = await c1.newPage(); const e1 = []; p1.on('pageerror', e => e1.push(e.message));
     await p1.goto(BASE + '/auth/login'); await p1.waitForTimeout(1200);
-    await p1.fill('#email', 'ahmed@casting.com'); await p1.fill('#password', 'password123'); await p1.click('button.submit-btn');
+    await p1.fill('#email', QA.email); await p1.fill('#password', QA.password); await p1.click('button.submit-btn');
     await p1.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 15000 }).catch(() => {});
     await p1.goto(BASE + '/actors/' + act.id); await p1.waitForTimeout(1500);
     const btn = p1.getByRole('button', { name: /Créer le lien d'invitation/ });
@@ -152,7 +154,7 @@ async function audit(page, path, name, errors) {
     await p2.goto(link); await p2.waitForTimeout(1200);
     check('Invitation : lien déjà utilisé → « Lien plus valable »', /plus valable/.test(await p2.locator('h1').textContent().catch(() => '')));
     check('Invitation (acteur) : aucune erreur JavaScript', e2.length === 0, e2.slice(0, 3));
-    notes.push('Compte acteur de test créé par invitation : ' + im + ' (T-127)');
+    notes.push('Compte acteur de test créé par invitation : ' + im + ' (effacé en fin de recette)');
     await c2.close(); }
 
   // Parcours acteur : inscription d'un compte de test
@@ -171,7 +173,9 @@ async function audit(page, path, name, errors) {
   check('Inscription : champ représentant masqué pour un majeur', await page.locator('#guardianName').count() === 0);
   await page.click('button.submit-btn'); await page.waitForURL(u => u.pathname.startsWith('/mon-profil'), { timeout: 15000 }).catch(() => {});
   check('Acteur : inscription puis arrivée sur « Mon profil »', page.url().includes('/mon-profil'), page.url());
-  notes.push('Compte acteur de test créé : ' + mail + ' (à supprimer avec les autres comptes de test, T-127)');
+  await page.waitForTimeout(800);
+  check('T-113 : rappel « adresse non vérifiée » pour un nouveau compte', /pas encore vérifiée/.test(await page.locator('app-email-banner .eb').textContent().catch(() => '')));
+  notes.push('Compte acteur de test créé : ' + mail + ' (effacé en fin de recette)');
   await audit(page, '/mon-profil', 'Acteur · Mon profil', errors);
   await page.getByRole('radio', { name: /En pause/i }).first().click(); await page.waitForTimeout(1000);
   await page.reload(); await page.waitForTimeout(1500);
@@ -233,7 +237,7 @@ async function audit(page, path, name, errors) {
       await c4.close(); }
   { const c3 = await browser.newContext({ viewport: { width: 1366, height: 860 }, locale: 'fr-FR' }); const p3 = await c3.newPage();
     await p3.goto(BASE + '/auth/login'); await p3.waitForTimeout(1000);
-    await p3.fill('#email', 'ahmed@casting.com'); await p3.fill('#password', 'password123'); await p3.click('button.submit-btn');
+    await p3.fill('#email', QA.email); await p3.fill('#password', QA.password); await p3.click('button.submit-btn');
     await p3.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 15000 }).catch(() => {});
     await p3.goto(BASE + '/'); await p3.waitForTimeout(1200);
     check('Vitrine : un utilisateur connecté va directement à son espace', new URL(p3.url()).pathname !== '/', p3.url());
@@ -242,12 +246,12 @@ async function audit(page, path, name, errors) {
     check('Administration : onglet Messages avec le message de la vitrine', await p3.locator('app-contact-inbox li').filter({ hasText: 'recette.vitrine@exemple.tn' }).count() >= 1);
     // T-112 · mot de passe oublié : bouton clé dans « Équipe et comptes »
     await p3.getByRole('tab', { name: /Équipe et comptes/ }).click(); await p3.waitForTimeout(900);
-    await p3.locator('app-reset-link .key').first().click(); await p3.getByRole('button', { name: 'Créer le lien' }).click(); await p3.waitForTimeout(700);
+    await p3.locator('app-reset-link .key:not(.mail)').first().click(); await p3.getByRole('button', { name: 'Créer le lien' }).click(); await p3.waitForTimeout(700);
     check('Administration : lien de réinitialisation créé (1 heure)', /\/reinitialisation\/[A-Za-z0-9_-]{30,}$/.test(await p3.locator('body > .pop input').inputValue().catch(() => '')));
     await p3.keyboard.press('Escape');
     // Parcours complet sur le compte acteur de test
     const tk3 = (await (await fetch('http://localhost:8080/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'ahmed@casting.com', password: 'password123' }) })).json()).accessToken;
+      body: JSON.stringify({ email: QA.email, password: QA.password }) })).json()).accessToken;
     const users3 = await (await fetch('http://localhost:8080/api/admin/users', { headers: { Authorization: 'Bearer ' + tk3 } })).json();
     const who = users3.find(u => u.email === mail);
     const rl = await (await fetch(`http://localhost:8080/api/admin/users/${who.id}/password-reset`, { method: 'POST', headers: { Authorization: 'Bearer ' + tk3 } })).json();
@@ -268,11 +272,30 @@ async function audit(page, path, name, errors) {
     await p5.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 12000 }).catch(() => {});
     check('Mot de passe oublié : connexion avec le nouveau mot de passe', !p5.url().includes('/auth'), p5.url());
     await c5.close();
+    // T-113 · vérification de l'adresse par lien de l'administrateur
+    await p3.locator('.seg button').filter({ hasText: /E-mail à vérifier/ }).click(); await p3.waitForTimeout(400);
+    check('T-113 : filtre « E-mail à vérifier » avec le compte de test', await p3.locator('.row').filter({ hasText: mail }).count() === 1);
+    check('T-113 : bouton enveloppe sur un compte non vérifié', await p3.locator('.row').filter({ hasText: mail }).locator('app-reset-link .key.mail').count() === 1);
+    const vl = await (await fetch(`http://localhost:8080/api/admin/users/${who.id}/email-verification`, { method: 'POST', headers: { Authorization: 'Bearer ' + tk3 } })).json();
+    const c6 = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' }); const p6 = await c6.newPage();
+    await p6.goto(BASE + '/verification/' + vl.token); await p6.waitForTimeout(1200);
+    check('T-113 : lien ouvert → « Adresse vérifiée »', /Adresse vérifiée/.test(await p6.locator('h1').textContent()));
+    await p6.goto(BASE + '/verification/' + vl.token); await p6.waitForTimeout(1000);
+    check('T-113 : lien déjà utilisé → refusé', /plus valable/.test(await p6.locator('h1').textContent()));
+    await c6.close();
+    await p3.reload(); await p3.waitForTimeout(1200); await p3.getByRole('tab', { name: /Équipe et comptes/ }).click(); await p3.waitForTimeout(800);
+    check('T-113 : le compte n\'est plus « non vérifié »', await p3.locator('.row').filter({ hasText: mail }).locator('.unverif').count() === 0);
     await c3.close(); }
   await browser.close();
 
   console.log('RÉUSSIS (' + ok.length + ')\n  ' + ok.join('\n  '));
   console.log('ÉCHECS (' + ko.length + ')\n  ' + ko.join('\n  '));
   console.log('NOTES\n  ' + notes.join('\n  '));
+  // T-127 · la recette efface ce qu'elle a créé (comptes recette.*@exemple.tn, leurs fiches et messages)
+  try {
+    const sql = require('fs').readFileSync(require('path').join(__dirname.includes('pilotage') ? __dirname : 'C:\\Users\\AhmedBannour\\ai-casting-platform\\pilotage\\tests', 'nettoyer-recette.sql'));
+    require('child_process').execFileSync('docker', ['exec', '-i', 'casting-postgres', 'psql', '-U', 'casting_user', '-d', 'casting_db', '-v', 'ON_ERROR_STOP=1', '-q'], { input: sql });
+    notes.push('Données de recette effacées à la fin du passage');
+  } catch (e) { ko.push('Nettoyage de fin de recette : ' + String(e.message).slice(0, 160)); }
   require('fs').writeFileSync(out + 'resultat.json', JSON.stringify({ reussis: ok.length, echecs: ko, notes, date: new Date().toISOString() }, null, 1));
 })().catch(e => { console.error('ERREUR', e); process.exit(1); });

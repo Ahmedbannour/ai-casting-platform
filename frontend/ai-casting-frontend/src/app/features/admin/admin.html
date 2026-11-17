@@ -352,6 +352,7 @@
                       <span class="meta">
                         @if (providerLabel(u.provider)) { <span class="prov" [class.g]="u.provider === 'GOOGLE'" [class.f]="u.provider === 'FACEBOOK'">{{ providerLabel(u.provider) }}</span> }
                         <span>Depuis le {{ since(u.createdAt) }}</span>
+                        @if (!u.emailVerified) { <span class="unverif">E-mail non vérifié</span> }
                         @if (!u.enabled) { <span class="offtag">Désactivé</span> }
                       </span>
                     </div>
@@ -368,6 +369,7 @@
                       }
                     </div>
                     <div class="act">
+                      @if (!u.emailVerified) { <app-reset-link kind="verify" [userId]="u.id" [name]="u.firstName + ' ' + u.lastName" /> }
                       <app-reset-link [userId]="u.id" [name]="u.firstName + ' ' + u.lastName" />
                       @if (confirming() === u.id) {
                         <span class="confirm" role="alertdialog" [attr.aria-label]="'Désactiver ' + u.firstName + ' ' + u.lastName">Désactiver ?

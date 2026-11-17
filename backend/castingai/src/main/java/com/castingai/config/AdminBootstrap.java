@@ -39,7 +39,7 @@ public class AdminBootstrap implements ApplicationRunner {
             return;
         }
         users.save(User.builder().email(email.trim().toLowerCase()).password(encoder.encode(password))
-                .firstName("Administrateur").lastName("Plateforme").role(Role.ADMIN).enabled(true).build());
+                .firstName("Administrateur").lastName("Plateforme").role(Role.ADMIN).enabled(true).emailVerifiedAt(java.time.LocalDateTime.now()).build());
         log.info("Premier administrateur créé : {}", email.trim().toLowerCase());
     }
 }

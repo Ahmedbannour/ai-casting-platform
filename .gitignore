@@ -1,0 +1,6 @@
+
+# Outils téléchargés (cloudflared…)
+outils/
+
+# Compte administrateur de la recette (mot de passe aléatoire local)
+pilotage/tests/.recette-admin.json

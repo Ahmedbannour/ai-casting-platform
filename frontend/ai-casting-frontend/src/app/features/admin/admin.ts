@@ -230,7 +230,7 @@ export class AdminComponent implements OnInit {
   readonly roleOptions = [{ value: 'AGENT', label: 'Agent' }, { value: 'ADMIN', label: 'Administrateur' }];
   readonly filters = [
     { value: '', label: 'Tous' }, { value: 'ADMIN', label: 'Administrateurs' }, { value: 'AGENT', label: 'Agents' },
-    { value: 'ACTEUR', label: 'Acteurs' }, { value: 'OFF', label: 'Désactivés' }
+    { value: 'ACTEUR', label: 'Acteurs' }, { value: 'UNVERIF', label: 'E-mail à vérifier' }, { value: 'OFF', label: 'Désactivés' }
   ];
   readonly sort = signal<'recent' | 'name'>('recent');
   readonly actorLimit = signal(12);
@@ -238,11 +238,11 @@ export class AdminComponent implements OnInit {
   readonly counts = computed(() => {
     const u = this.users();
     return { '': u.length, ADMIN: u.filter(x => x.role === 'ADMIN').length, AGENT: u.filter(x => x.role === 'AGENT').length,
-      ACTEUR: u.filter(x => x.role === 'ACTEUR').length, OFF: u.filter(x => !x.enabled).length } as Record<string, number>;
+      ACTEUR: u.filter(x => x.role === 'ACTEUR').length, UNVERIF: u.filter(x => !x.emailVerified).length, OFF: u.filter(x => !x.enabled).length } as Record<string, number>;
   });
   readonly shownUsers = computed(() => {
     const q = this.search().trim().toLowerCase(), f = this.roleFilter();
-    const list = this.users().filter(u => (!f || (f === 'OFF' ? !u.enabled : u.role === f))
+    const list = this.users().filter(u => (!f || (f === 'OFF' ? !u.enabled : f === 'UNVERIF' ? !u.emailVerified : u.role === f))
       && (!q || `${u.firstName} ${u.lastName} ${u.email} ${u.agencyName ?? ''}`.toLowerCase().includes(q)));
     return this.sort() === 'name'
       ? [...list].sort((a, b) => `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`, 'fr'))

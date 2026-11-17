@@ -10,20 +10,22 @@ import { environment } from '../../../environments/environment';
   selector: 'app-reset-link',
   standalone: true,
   template: `
-    <button type="button" class="key" (click)="toggle()" [attr.aria-expanded]="open()"
-            [attr.aria-label]="'Lien de réinitialisation du mot de passe de ' + name" title="Mot de passe oublié : créer un lien">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/></svg>
+    <button type="button" class="key" [class.mail]="verify" (click)="toggle()" [attr.aria-expanded]="open()"
+            [attr.aria-label]="(verify ? 'Lien de vérification de l’adresse e-mail de ' : 'Lien de réinitialisation du mot de passe de ') + name"
+            [title]="verify ? 'Adresse e-mail non vérifiée : créer un lien' : 'Mot de passe oublié : créer un lien'">
+      @if (verify) { <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> }
+      @else { <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/></svg> }
     </button>
     @if (open()) {
       <div #pop class="pop" role="dialog" [style.top.px]="pos().top" [style.left.px]="pos().left" [attr.aria-label]="'Réinitialiser le mot de passe de ' + name">
-        <b>Mot de passe oublié · {{ name }}</b>
+        <b>{{ verify ? 'Vérifier l’e-mail' : 'Mot de passe oublié' }} · {{ name }}</b>
         @if (link()) {
-          <p>Envoyez ce lien à la personne. Il ne sert qu'une fois et expire à {{ until() }}.</p>
+          <p>Envoyez ce lien à la personne{{ verify ? ', à l’adresse de son compte' : '' }}. Il ne sert qu'une fois et expire {{ until() }}.</p>
           <div class="row"><input readonly [value]="link()" aria-label="Lien de réinitialisation" (focus)="$any($event.target).select()" />
             <button type="button" class="go" (click)="copy()">{{ copied() ? 'Copié' : 'Copier' }}</button></div>
-          <p class="small">Le lien ne sera plus affiché ensuite. Après le changement, ses autres sessions sont fermées.</p>
+          <p class="small">{{ verify ? 'En l’ouvrant, la personne confirme que l’adresse est bien la sienne. Le lien ne sera plus affiché ensuite.' : 'Le lien ne sera plus affiché ensuite. Après le changement, ses autres sessions sont fermées.' }}</p>
         } @else {
-          <p>Un lien à usage unique, valable 1 heure, permet de choisir un nouveau mot de passe. Un nouveau lien annule le précédent.</p>
+          <p>{{ verify ? 'Envoyez ce lien à l’adresse e-mail du compte : l’ouvrir prouve que l’adresse fonctionne et appartient bien à la personne. Valable 7 jours, à usage unique.' : 'Un lien à usage unique, valable 1 heure, permet de choisir un nouveau mot de passe. Un nouveau lien annule le précédent.' }}</p>
           <button type="button" class="go" [disabled]="busy()" (click)="create()">{{ busy() ? 'Création…' : 'Créer le lien' }}</button>
         }
         @if (error()) { <p class="err" role="alert">{{ error() }}</p> }
@@ -32,7 +34,8 @@ import { environment } from '../../../environments/environment';
   styles: [`
     :host { position: relative; display: inline-flex; }
     .key { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--border); background: transparent; cursor: pointer; color: var(--text-muted);
-      &:hover, &[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); } svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; } }
+      &:hover, &[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+      &.mail { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--accent-dim); } svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; } }
     .pop { position: fixed; z-index: 1000; width: min(380px, calc(100vw - 16px)); padding: 14px; border-radius: 12px; background: var(--bg-surface);
       border: 1px solid var(--border); box-shadow: 0 14px 40px rgba(0,0,0,.35); display: grid; gap: 8px; text-align: left; font-size: 13.5px; }
     b { font-size: 14px; } p { margin: 0; color: var(--text-muted); line-height: 1.45; } .small { font-size: 12.5px; } .err { color: var(--danger); }
@@ -43,6 +46,9 @@ import { environment } from '../../../environments/environment';
 export class ResetLinkComponent implements OnDestroy {
   @Input({ required: true }) userId!: string;
   @Input() name = '';
+  /** reset : mot de passe oublié (T-112) · verify : vérification de l'adresse e-mail (T-113). */
+  @Input() kind: 'reset' | 'verify' = 'reset';
+  get verify(): boolean { return this.kind === 'verify'; }
   private readonly http = inject(HttpClient);
   private readonly el = inject(ElementRef);
   readonly open = signal(false);
@@ -80,11 +86,13 @@ export class ResetLinkComponent implements OnDestroy {
 
   create(): void {
     this.busy.set(true); this.error.set('');
-    this.http.post<{ token: string; expiresAt: number }>(`${environment.apiUrl}/admin/users/${this.userId}/password-reset`, {}).subscribe({
+    const api = this.verify ? 'email-verification' : 'password-reset', page = this.verify ? 'verification' : 'reinitialisation';
+    this.http.post<{ token: string; expiresAt: number }>(`${environment.apiUrl}/admin/users/${this.userId}/${api}`, {}).subscribe({
       next: r => {
         this.busy.set(false);
-        this.link.set(`${location.origin}/reinitialisation/${r.token}`);
-        this.until.set(new Date(r.expiresAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+        this.link.set(`${location.origin}/${page}/${r.token}`);
+        const d = new Date(r.expiresAt);
+        this.until.set(this.verify ? 'le ' + d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : 'à ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
       },
       error: (e: HttpErrorResponse) => { this.busy.set(false); this.error.set(e.error?.message ?? 'Création impossible. Réessayez.'); }
     });

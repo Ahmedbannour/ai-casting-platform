@@ -160,7 +160,7 @@ public class DataSeederService implements ApplicationRunner {
                     .firstName("Ahmed")
                     .lastName("Bannour")
                     .role(Role.ADMIN)
-                    .enabled(true)
+                    .enabled(true).emailVerifiedAt(java.time.LocalDateTime.now())
                     .build());
             log.info("Admin user created: ahmed@casting.com / password123");
         }

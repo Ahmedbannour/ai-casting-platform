@@ -58,7 +58,7 @@ public class AdminController {
     }
 
     public record UserRow(UUID id, String email, String firstName, String lastName, String role, boolean enabled,
-                          String provider, LocalDateTime createdAt, UUID agencyId, String agencyName) {}
+                          String provider, LocalDateTime createdAt, UUID agencyId, String agencyName, boolean emailVerified) {}
     public record CreateAgentRequest(
             @NotBlank(message = "L'adresse e-mail est obligatoire") @Email(message = "Adresse e-mail invalide") String email,
             @NotBlank(message = "Le prénom est obligatoire") @Size(max = 80) String firstName,
@@ -166,7 +166,8 @@ public class AdminController {
     private static UserRow row(User u) {
         return new UserRow(u.getId(), u.getEmail(), u.getFirstName(), u.getLastName(), u.getRole().name(), u.isEnabled(),
                 u.getAuthProvider(), u.getCreatedAt(),
-                u.getAgency() == null ? null : u.getAgency().getId(), u.getAgency() == null ? null : u.getAgency().getName());
+                u.getAgency() == null ? null : u.getAgency().getId(), u.getAgency() == null ? null : u.getAgency().getName(),
+                u.getEmailVerifiedAt() != null || !"LOCAL".equals(u.getAuthProvider()));
     }
 
     private static final String ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";

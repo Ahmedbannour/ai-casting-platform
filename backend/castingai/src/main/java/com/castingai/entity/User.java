@@ -60,6 +60,10 @@ public class User implements UserDetails {
     @Column(name = "provider_id", length = 160)
     private String providerId;
 
+    /** T-113 · Adresse e-mail vérifiée (lien de l'administrateur, ou connexion Google / Facebook). */
+    @Column(name = "email_verified_at")
+    private LocalDateTime emailVerifiedAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

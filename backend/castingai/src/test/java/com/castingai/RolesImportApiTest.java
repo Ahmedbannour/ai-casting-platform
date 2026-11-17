@@ -619,4 +619,28 @@ class RolesImportApiTest {
         token("agent.oubli@test.local", "NouveauMdp-2026");
         send("POST", "/api/auth/refresh", null, Map.of("refreshToken", refresh)).andExpect(status().isUnauthorized());   // anciennes sessions fermées
     }
+
+    /** T-113 · Adresse e-mail vérifiée par un lien de l'administrateur (usage unique). */
+    @Test
+    void verificationEmailParLienAdministrateur() throws Exception {
+        String ac = read(send("POST", "/api/auth/register", null, Map.of("email", "verif.mail@test.local", "password", "Verif-12345",
+                "firstName", "Vera", "lastName", "Mail", "acceptTerms", true, "age", "MAJEUR")).andExpect(status().isCreated())).get("accessToken").asString();
+        String me = "Bearer " + ac;
+        send("GET", "/api/me/email", me, null).andExpect(jsonPath("$.verified").value(false));
+        String a = admin();
+        String id = null;
+        for (JsonNode u : read(send("GET", "/api/admin/users", a, null))) {
+            if ("verif.mail@test.local".equals(u.get("email").asString())) { id = u.get("id").asString(); assertThat(u.get("emailVerified").asBoolean()).isFalse(); }
+            if ("ahmed@casting.com".equals(u.get("email").asString())) assertThat(u.get("emailVerified").asBoolean()).isTrue();
+        }
+        String url = "/api/admin/users/" + id + "/email-verification";
+        send("POST", url, me, null).andExpect(status().isForbidden());
+        String t1 = read(send("POST", url, a, null).andExpect(status().isCreated())).get("token").asString();
+        String t2 = read(send("POST", url, a, null).andExpect(status().isCreated())).get("token").asString();
+        send("POST", "/api/public/email-verification/" + t1, null, null).andExpect(status().isNotFound());
+        send("POST", "/api/public/email-verification/" + t2, null, null).andExpect(status().isOk()).andExpect(jsonPath("$.firstName").value("Vera"));
+        send("POST", "/api/public/email-verification/" + t2, null, null).andExpect(status().isNotFound());
+        send("GET", "/api/me/email", me, null).andExpect(jsonPath("$.verified").value(true));
+        send("POST", url, a, null).andExpect(status().isConflict());
+    }
 }

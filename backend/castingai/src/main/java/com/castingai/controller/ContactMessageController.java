@@ -20,7 +20,7 @@ public class ContactMessageController {
 
     @PostMapping("/api/public/contact")
     public ResponseEntity<Map<String, Boolean>> submit(@RequestBody ContactMessageService.Request body, HttpServletRequest req) {
-        messages.submit(body, req.getRemoteAddr());
+        messages.submit(body, com.castingai.security.ClientIp.of(req));
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("ok", true));
     }
 

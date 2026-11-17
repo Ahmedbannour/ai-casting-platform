@@ -43,6 +43,12 @@ export const routes: Routes = [
     title: 'Politique de confidentialité · AI Casting'
   },
   {
+    // T-113 · lien de vérification de l'adresse e-mail (public, à usage unique)
+    path: 'verification/:token',
+    loadComponent: () => import('./features/legal/verify-page').then(m => m.VerifyPageComponent),
+    title: 'Vérification de l’adresse e-mail · AI Casting'
+  },
+  {
     // T-112 · lien de réinitialisation du mot de passe (public, à usage unique, 1 heure)
     path: 'reinitialisation/:token',
     loadComponent: () => import('./features/legal/reset-page').then(m => m.ResetPageComponent),

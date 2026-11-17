@@ -6,7 +6,7 @@ import { environment } from '../../../environments/environment';
 export interface UserRow {
   id: string; email: string; firstName: string; lastName: string;
   role: 'ADMIN' | 'AGENT' | 'ACTEUR'; enabled: boolean; provider: string; createdAt: string;
-  agencyId: string | null; agencyName: string | null;
+  agencyId: string | null; agencyName: string | null; emailVerified: boolean;
 }
 export interface Delta { current: number; previous: number; }
 export interface Kpis {

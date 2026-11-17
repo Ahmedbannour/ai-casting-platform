@@ -7,10 +7,11 @@ import { MeService } from '../../core/services/me.service';
 import { AuthService } from '../../core/services/auth.service';
 
 /** Mise en page : menu latéral (tiroir sur mobile) + contenu animé + barre d'onglets en bas sur mobile. */
+import { EmailBannerComponent } from './email-banner';
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, SidebarComponent, NotificationBellComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, SidebarComponent, NotificationBellComponent, EmailBannerComponent],
   styles: [`
     :host { display: flex; height: 100vh; width: 100%; overflow: hidden; }
     .content {
@@ -67,6 +68,7 @@ import { AuthService } from '../../core/services/auth.service';
           <span>{{ c.text }}</span>
         </div>
       }
+      <app-email-banner />
       <router-outlet />
     </div>
 

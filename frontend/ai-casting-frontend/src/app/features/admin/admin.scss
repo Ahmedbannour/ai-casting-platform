@@ -111,6 +111,7 @@ input:not([type="checkbox"]) { height: 40px; padding: 0 12px; border-radius: var
   mark { background: var(--accent-dim); color: var(--text-primary); border-radius: 3px; padding: 0 1px; } }
 .prov { padding: 1px 7px; border-radius: 99px; font-weight: 600; border: 1px solid var(--border); color: var(--text-muted);
   &.g { color: #8AB4F8; border-color: color-mix(in srgb, #8AB4F8 40%, transparent); } &.f { color: #6FA8FF; border-color: color-mix(in srgb, #1877F2 50%, transparent); } }
+.unverif { padding: 1px 7px; border-radius: 99px; background: var(--accent-dim); color: var(--accent); font-weight: 600; }
 .offtag { padding: 1px 7px; border-radius: 99px; background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); font-weight: 600; }
 .ctl { display: flex; align-items: center; gap: 8px; justify-content: flex-end;
   .role { width: 150px; } .agency-pick { width: 200px; } }
