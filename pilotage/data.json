@@ -1911,10 +1911,10 @@
    "resp": "Rami Saidi",
    "phase": "PH3",
    "prio": "P1",
-   "jour": "J6",
+   "jour": "J5",
    "prompt": "P-031",
-   "statut": "en_cours",
-   "detail": "Content-Security-Policy, HSTS, X-Frame-Options ; Swagger réservé au développement ; origines autorisées limitées au site.",
+   "statut": "fait",
+   "detail": "Toutes les réponses : X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, HSTS (en HTTPS) ; API : Content-Security-Policy « default-src 'none'; frame-ancestors 'none' ». Origines autorisées configurables (CORS_ALLOWED_ORIGINS obligatoire en production), sans cookies. Swagger fermé en production. 3 tests (54/54), recette navigateur 53/53. La CSP du site lui-même viendra avec le serveur web de production (T-124).",
    "lot": "L1"
   },
   {
@@ -1939,7 +1939,7 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
+   "statut": "en_cours",
    "detail": "Case non pré-cochée, texte versionné et daté, conditions d'utilisation et politique de confidentialité (pages publiques), nouvel accord demandé à chaque nouvelle version ; mineurs : accord d'un représentant légal. Relecture par un juriste avant lancement.",
    "lot": "L2"
   },
@@ -2436,11 +2436,11 @@
    "resp": "Sarra Mansouri",
    "phase": "PH3",
    "prio": "P1",
-   "jour": "J6",
+   "jour": "J5",
    "prompt": "P-036",
-   "statut": "a_faire",
+   "statut": "fait",
    "lot": "L6",
-   "detail": "Trouvé par la recette navigateur : sur téléphone, la cloche fixée en haut à droite recouvre les compteurs ✓/✕ de la recherche. Barre du haut dédiée (logo + cloche) ou marge réservée."
+   "detail": "Sur mobile, barre du haut collée (logo + cloche) à la place de la cloche flottante : plus rien ne recouvre le haut des pages. Vérifié par la recette navigateur (cloche dans la barre, saisie visible), compilation OK."
   },
   {
    "id": "T-133",
@@ -2513,34 +2513,27 @@
   }
  ],
  "maintenant": {
-  "titre": "P-031 · T-107 faite ; T-108 en cours (en-têtes de sécurité)",
-  "etape": 31,
+  "titre": "P-036 · T-108 et T-132 faites ; T-101 en cours (consentement, conditions d'utilisation)",
+  "etape": 32,
   "agents": [
    {
-    "nom": "Rami Saidi",
-    "action": "En-têtes de sécurité (CSP, HSTS, anti-cadre), documentation API fermée en production, origines limitées",
-    "court": "T-108"
+    "nom": "Mehdi Amrani",
+    "action": "Rédige les conditions d'utilisation et la politique de confidentialité (projet à faire relire par un juriste)",
+    "court": "T-101"
    },
    {
-    "nom": "Claire Dubois",
-    "action": "T-107 livrée : essais de mot de passe limités, blocages au journal",
-    "court": "T-107 fait"
+    "nom": "Hichem Jaziri",
+    "action": "Consentement versionné et daté côté serveur",
+    "court": "T-101"
+   },
+   {
+    "nom": "Amel Kacem",
+    "action": "Recette navigateur après chaque tâche : 53/53",
+    "court": "recette"
    }
   ]
  },
  "activite": [
-  {
-   "h": "J5",
-   "nom": "Sarra Mansouri",
-   "t": "2026-11-17T12:25:00Z",
-   "texte": "T-130 (demande client) : panneau de notifications sorti du menu (overlay CDK), opaque, icônes par type ; barre d'enregistrement contextuelle. Vérifié bureau + mobile."
-  },
-  {
-   "h": "J5",
-   "nom": "Claire Dubois",
-   "t": "2026-11-17T13:10:00Z",
-   "texte": "T-107 faite : 5 échecs → connexion bloquée 15 min (429), journal d'audit. Vérifié sur le vrai serveur. 51/51 tests."
-  },
   {
    "h": "J5",
    "nom": "Sarra Mansouri",
@@ -2588,6 +2581,18 @@
    "nom": "Sarra Mansouri",
    "t": "2026-11-17T16:15:00Z",
    "texte": "Messagerie des agents réparée : les fils venus de la base étaient en lecture seule (diagnostic live/diag). Test de non-régression ajouté."
+  },
+  {
+   "h": "J5",
+   "nom": "Rami Saidi",
+   "t": "2026-11-17T16:40:00Z",
+   "texte": "T-108 faite : en-têtes de sécurité, origines autorisées, Swagger fermé en production. 54/54 tests."
+  },
+  {
+   "h": "J5",
+   "nom": "Sarra Mansouri",
+   "t": "2026-11-17T16:55:00Z",
+   "texte": "T-132 faite : barre du haut sur mobile (logo + cloche), plus rien ne recouvre les pages. Recette 53/53."
   }
  ],
  "plan": {
@@ -2716,7 +2721,7 @@
    "T-100",
    "T-127"
   ],
-  "courante": "T-108",
+  "courante": "T-101",
   "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages ».",
   "calendrier": {
    "T-103": {
@@ -2761,8 +2766,8 @@
    },
    "T-108": {
     "debut": "2026-11-17",
-    "fin": "2026-11-18",
-    "reel": false
+    "fin": "2026-11-17",
+    "reel": true
    },
    "T-101": {
     "debut": "2026-11-19",
@@ -2880,9 +2885,9 @@
     "reel": true
    },
    "T-132": {
-    "debut": "2026-11-18",
-    "fin": "2026-11-18",
-    "reel": false
+    "debut": "2026-11-17",
+    "fin": "2026-11-17",
+    "reel": true
    },
    "T-131": {
     "debut": "2026-12-16",

@@ -37,8 +37,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults()) // 🔥 AJOUTE CETTE LIGNE ICI
+                .cors(Customizer.withDefaults())
+                // API sans état (jeton JWT dans l'en-tête Authorization, pas de cookie) : pas de CSRF.
                 .csrf(csrf -> csrf.disable())
+                // T-108 · En-têtes de sécurité sur toutes les réponses
+                .headers(h -> h
+                        .frameOptions(f -> f.deny())
+                        .contentTypeOptions(Customizer.withDefaults())
+                        .referrerPolicy(r -> r.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31_536_000))   // envoyé seulement en HTTPS
+                        .permissionsPolicyHeader(pp -> pp.policy("camera=(), microphone=(), geolocation=(), payment=()"))
+                        // L'API ne renvoie que du JSON : rien à charger, rien à afficher dans un cadre.
+                        .addHeaderWriter(new org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter(
+                                org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher.withDefaults().matcher("/api/**"),
+                                new org.springframework.security.web.header.writers.StaticHeadersWriter("Content-Security-Policy",
+                                        "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"))))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )

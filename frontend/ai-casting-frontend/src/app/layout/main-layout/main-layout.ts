@@ -21,6 +21,7 @@ import { AuthService } from '../../core/services/auth.service';
     }
     .tabbar { display: none; }
     .m-bell { display: none !important; }
+    .m-top { display: none; }
     .contract-banner { display: flex; align-items: flex-start; gap: 10px; margin: 16px 32px 0; padding: 12px 16px; border-radius: 12px;
       border: 1px solid color-mix(in srgb, var(--danger) 55%, var(--border)); background: color-mix(in srgb, var(--danger) 14%, var(--glass));
       color: var(--text-primary); font-size: 14px; line-height: 1.45; animation: bannerIn .3s ease-out both; }
@@ -30,7 +31,12 @@ import { AuthService } from '../../core/services/auth.service';
     @media (max-width: 860px) { .contract-banner { margin: 12px 14px 0; } }
     @media (max-width: 860px) {
       .content { padding-bottom: 76px; }
-      .m-bell { display: inline-flex !important; position: fixed; top: 12px; right: 12px; z-index: 25; }
+      /* T-132 · Barre du haut sur mobile : logo + cloche ; plus rien ne flotte au-dessus des pages */
+      .m-top { display: flex; position: sticky; top: 0; z-index: 25; align-items: center; justify-content: space-between; gap: 10px;
+        min-height: 54px; padding: 8px 14px; border-bottom: 1px solid var(--border);
+        background: var(--glass-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
+      .m-top .m-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text-primary); font-weight: 700; font-size: 16px; }
+      .m-bell { display: inline-flex !important; }
       .tabbar {
         position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 20; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); grid-auto-flow: column;
         height: 62px; padding: 6px; border-radius: 20px; border: 1px solid var(--border);
@@ -51,6 +57,10 @@ import { AuthService } from '../../core/services/auth.service';
   template: `
     <app-sidebar />
     <div class="content">
+      <header class="m-top">
+        <a class="m-logo" [routerLink]="role() === 'ACTEUR' ? '/mon-profil' : '/chat'" aria-label="AI Casting, accueil"><span class="brand-mark" aria-hidden="true"></span>AI Casting</a>
+        <app-notification-bell class="m-bell" />
+      </header>
       @if (contract(); as c) {
         <div class="contract-banner" [class.warn]="c.level === 'warn'" role="status">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
@@ -60,8 +70,6 @@ import { AuthService } from '../../core/services/auth.service';
       <router-outlet />
     </div>
 
-    <!-- Cloche toujours accessible sur mobile et tablette (le menu latéral y est replié) -->
-    <app-notification-bell class="m-bell" />
 
     <!-- Barre d'onglets (mobile uniquement) -->
     <nav class="tabbar" aria-label="Navigation">

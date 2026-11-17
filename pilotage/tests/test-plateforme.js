@@ -74,6 +74,21 @@ async function audit(page, path, name, errors) {
     const secs = ((Date.now() - t0) / 1000).toFixed(1);
     check(P + `Recherche IA : des profils proposés (${secs} s)`, found > 0, secs);
     await page.waitForTimeout(800); await page.screenshot({ path: out + (vp.mobile ? 'mobile' : 'bureau') + '-recherche.png' });
+    if (vp.mobile) {
+      const g = await page.evaluate(() => {
+        const bell = document.querySelector('.m-bell .bell')?.getBoundingClientRect();
+        const inter = (a, b) => a && b && !(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top);
+        // la cloche est dans la barre du haut (opaque) : seul compte le texte visible sous la barre
+        const top = document.querySelector('.m-top')?.getBoundingClientRect();
+        const inBar = !!top && bell && bell.top >= top.top && bell.bottom <= top.bottom;
+        const hits = inBar ? [] : [...document.querySelectorAll('.messages-list *, h1')].filter(e => e.children.length === 0 && e.textContent.trim() && inter(bell, e.getBoundingClientRect())).map(e => e.textContent.trim().slice(0, 20));
+        if (inBar && getComputedStyle(document.querySelector('.m-top')).position !== 'sticky') hits.push('barre non collée en haut');
+        const ta = document.querySelector('textarea')?.getBoundingClientRect();
+        return { hits, inputVisible: !!ta && ta.bottom <= innerHeight && ta.top >= 0 };
+      });
+      check(P + 'Mobile : la cloche ne recouvre aucun texte', g.hits.length === 0, g.hits);
+      check(P + 'Mobile : la zone de saisie de la recherche reste visible', g.inputVisible);
+    }
     const ov = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
     check(P + 'Recherche IA : pas de débordement', !ov);
 
