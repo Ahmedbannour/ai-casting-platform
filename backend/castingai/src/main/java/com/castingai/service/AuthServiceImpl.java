@@ -37,11 +37,14 @@ public class AuthServiceImpl implements AuthService {
     private final JwtConfig jwtConfig;
     private final ActorAccountService actorAccounts;
     private final LoginAttemptService loginAttempts;
+    private final ConsentService consents;
 
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         String email = request.getEmail().trim().toLowerCase();
+        var consent = new ConsentService.Request(request.getAcceptTerms(), request.getAge(), request.getGuardianName());
+        ConsentService.validate(consent);   // T-101 : aucun compte sans accord aux conditions
         if (userRepository.existsByEmail(email)) {
             throw new com.castingai.exception.ConflictException("Un compte existe déjà avec cette adresse e-mail");
         }
@@ -55,8 +58,9 @@ public class AuthServiceImpl implements AuthService {
                 .role(Role.ACTEUR)
                 .enabled(true)
                 .build();
-        userRepository.save(user);
+        userRepository.saveAndFlush(user);
         actorAccounts.createFicheFor(user, "INSCRIPTION");
+        consents.record(user.getId(), consent, "INSCRIPTION");
 
         return buildAuthResponse(user);
     }

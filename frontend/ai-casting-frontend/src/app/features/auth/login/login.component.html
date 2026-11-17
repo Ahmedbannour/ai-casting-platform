@@ -133,6 +133,34 @@
           }
         </div>
 
+        @if (mode === 'inscription') {
+          <fieldset class="field age" [class.error]="fieldError('age')">
+            <legend>Votre âge</legend>
+            <div class="seg" role="radiogroup" aria-label="Votre âge">
+              <button type="button" role="radio" [attr.aria-checked]="form.get('age')?.value === 'MAJEUR'"
+                      [class.on]="form.get('age')?.value === 'MAJEUR'" (click)="setAge('MAJEUR')">18 ans ou plus</button>
+              <button type="button" role="radio" [attr.aria-checked]="form.get('age')?.value === 'MINEUR'"
+                      [class.on]="form.get('age')?.value === 'MINEUR'" (click)="setAge('MINEUR')">Moins de 18 ans</button>
+            </div>
+            @if (fieldError('age'); as m) { <small class="field-msg">{{ m }}</small> }
+          </fieldset>
+          @if (form.get('age')?.value === 'MINEUR') {
+            <div class="field">
+              <label for="guardianName">Nom du parent ou représentant légal qui donne son accord</label>
+              <div class="input-wrap plain" [class.error]="fieldError('guardianName')">
+                <input id="guardianName" formControlName="guardianName" autocomplete="off" placeholder="Prénom et nom" maxlength="120" />
+              </div>
+              @if (fieldError('guardianName'); as m) { <small class="field-msg">{{ m }}</small> }
+            </div>
+          }
+          <label class="consent" [class.error]="fieldError('acceptTerms')">
+            <input type="checkbox" formControlName="acceptTerms" />
+            <span>J'accepte les <a routerLink="/legal/conditions" target="_blank">conditions d'utilisation</a>
+              et la <a routerLink="/legal/confidentialite" target="_blank">politique de confidentialité</a>.</span>
+          </label>
+          @if (fieldError('acceptTerms'); as m) { <small class="field-msg consent-msg">{{ m }}</small> }
+        }
+
         @if (error) {
           <div class="error-banner" role="alert">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -168,6 +196,7 @@
       @if (mode === 'login') {
         <p class="note">Les comptes des agents sont créés par l'administrateur de l'agence.</p>
       }
+      <p class="legal-links"><a routerLink="/legal/conditions">Conditions d'utilisation</a><a routerLink="/legal/confidentialite">Confidentialité</a></p>
     </div>
   </div>
 

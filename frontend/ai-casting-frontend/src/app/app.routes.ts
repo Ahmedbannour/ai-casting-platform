@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { homeRedirect, roleGuard } from './core/guards/role.guard';
+import { consentGuard } from './features/legal/consent.guard';
 
 /** Pages de l'agence (agents et administrateurs). */
 const agence = roleGuard('ADMIN', 'AGENT');
@@ -21,6 +22,24 @@ export const routes: Routes = [
     data: { mode: 'inscription' }
   },
   {
+    path: 'legal/conditions',
+    loadComponent: () => import('./features/legal/legal-page').then(m => m.LegalPageComponent),
+    data: { doc: 'conditions' },
+    title: 'Conditions d’utilisation · AI Casting'
+  },
+  {
+    path: 'legal/confidentialite',
+    loadComponent: () => import('./features/legal/legal-page').then(m => m.LegalPageComponent),
+    data: { doc: 'confidentialite' },
+    title: 'Politique de confidentialité · AI Casting'
+  },
+  {
+    // T-101 · accord demandé quand il manque ou que les textes ont changé
+    path: 'consentement',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/legal/consent-page').then(m => m.ConsentPageComponent)
+  },
+  {
     // Page du réalisateur : publique, ouverte par lien secret
     path: 'partage/:token',
     loadComponent: () =>
@@ -29,7 +48,7 @@ export const routes: Routes = [
   },
   {
     path: 'roles/:id/planche',
-    canActivate: [authGuard, agence],
+    canActivate: [authGuard, consentGuard, agence],
     loadComponent: () =>
       import('./features/projects/role-sheet')
         .then(m => m.RoleSheetComponent)
@@ -37,7 +56,7 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, consentGuard],
     children: [
       // ── Espace de l'acteur freelance ──
       {

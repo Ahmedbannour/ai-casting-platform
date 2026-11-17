@@ -80,7 +80,10 @@ export class LoginComponent implements OnInit {
           firstName: ['', [Validators.required, notBlank, personName, Validators.maxLength(80)]],
           lastName: ['', [Validators.required, notBlank, personName, Validators.maxLength(80)]],
           email: ['', [Validators.required, emailFormat]],
-          password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]]
+          password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]],
+          age: ['', [Validators.required]],
+          guardianName: ['', [Validators.maxLength(120)]],
+          acceptTerms: [false, [Validators.requiredTrue]]
         })
       : this.fb.group({
           email: ['', [Validators.required, emailFormat]],
@@ -105,6 +108,8 @@ export class LoginComponent implements OnInit {
     const c = this.form.get(name);
     if (!c || !c.invalid || !c.touched) return '';
     const e = c.errors!;
+    if (name === 'acceptTerms') return 'Cochez la case pour créer votre compte.';
+    if (name === 'age') return 'Indiquez votre âge.';
     if (e['required'] || e['blank']) return 'Champ obligatoire.';
     if (e['email']) return 'Adresse e-mail incomplète (ex. nom@domaine.fr).';
     if (e['minlength']) return '8 caractères au moins.';
@@ -126,6 +131,15 @@ export class LoginComponent implements OnInit {
     return score >= 4 ? { level: 3, label: 'Solide' } : score >= 2 ? { level: 2, label: 'Correct' } : { level: 1, label: 'Faible' };
   }
 
+  /** T-101 · un mineur s'inscrit avec l'accord de son représentant légal. */
+  setAge(a: 'MAJEUR' | 'MINEUR'): void {
+    this.form.get('age')!.setValue(a);
+    const g = this.form.get('guardianName')!;
+    g.setValidators(a === 'MINEUR' ? [Validators.required, notBlank, personName, Validators.maxLength(120)] : [Validators.maxLength(120)]);
+    if (a === 'MAJEUR') g.setValue('');
+    g.updateValueAndValidity();
+  }
+
   onSubmit(): void {
     this.form.markAllAsTouched();
     if (this.form.invalid || this.loading) return;
@@ -133,7 +147,8 @@ export class LoginComponent implements OnInit {
     this.error = '';
     const v = this.form.value;
     const call = this.mode === 'inscription'
-      ? this.authService.register({ email: v.email.trim(), password: v.password, firstName: v.firstName.trim(), lastName: v.lastName.trim() })
+      ? this.authService.register({ email: v.email.trim(), password: v.password, firstName: v.firstName.trim(), lastName: v.lastName.trim(),
+          acceptTerms: v.acceptTerms === true, age: v.age, guardianName: v.age === 'MINEUR' ? v.guardianName.trim() : undefined })
       : this.authService.login({ email: v.email.trim(), password: v.password });
     call.subscribe({
       next: r => this.done(r),

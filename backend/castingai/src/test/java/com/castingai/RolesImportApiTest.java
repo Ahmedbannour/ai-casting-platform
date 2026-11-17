@@ -70,9 +70,28 @@ class RolesImportApiTest {
                 .header("Authorization", a)).andExpect(status().isOk()));
     }
 
+    /** T-101 · Aucun compte sans accord daté ; mineur = représentant légal ; compte existant = accord à la connexion. */
+    @Test
+    void consentementDateEtVersionne() throws Exception {
+        var base = new java.util.HashMap<String, Object>(Map.of("email", "lea.consent@test.local", "password", "motdepasse123", "firstName", "Léa", "lastName", "Accord"));
+        assertThat(read(send("POST", "/api/auth/register", null, base).andExpect(status().isBadRequest())).get("message").asString()).contains("conditions");
+        base.put("acceptTerms", true); base.put("age", "MINEUR");
+        assertThat(read(send("POST", "/api/auth/register", null, base).andExpect(status().isBadRequest())).get("message").asString()).contains("représentant légal");
+        base.put("guardianName", "Samia Accord");
+        String lea = "Bearer " + read(send("POST", "/api/auth/register", null, base).andExpect(status().isCreated())).get("accessToken").asString();
+        JsonNode st = read(send("GET", "/api/me/consent", lea, null).andExpect(status().isOk()));
+        assertThat(st.get("required").asBoolean()).isFalse();
+        assertThat(st.get("version").asString()).isEqualTo(com.castingai.service.ConsentService.VERSION);
+
+        String a = admin();   // compte créé avant les conditions : accord demandé
+        assertThat(read(send("GET", "/api/me/consent", a, null)).get("required").asBoolean()).isTrue();
+        send("POST", "/api/me/consent", a, Map.of("accept", false, "age", "MAJEUR")).andExpect(status().isBadRequest());
+        assertThat(read(send("POST", "/api/me/consent", a, Map.of("accept", true, "age", "MAJEUR")).andExpect(status().isOk())).get("required").asBoolean()).isFalse();
+    }
+
     @Test
     void inscriptionCreeUnCompteActeurQuiNeVoitQueSaFiche() throws Exception {
-        JsonNode reg = read(send("POST", "/api/auth/register", null, Map.of("email", "Nina.Free@Test.local",
+        JsonNode reg = read(send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "Nina.Free@Test.local",
                 "password", "motdepasse123", "firstName", "Nina", "lastName", "Libre")).andExpect(status().isCreated()));
         assertThat(reg.get("role").asString()).isEqualTo("ACTEUR");
         String nina = "Bearer " + reg.get("accessToken").asString();
@@ -96,7 +115,7 @@ class RolesImportApiTest {
                 .andExpect(jsonPath("$.city").value("Lyon"));
 
         // Deux fois la même adresse : refusé
-        send("POST", "/api/auth/register", null, Map.of("email", "nina.free@test.local",
+        send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "nina.free@test.local",
                 "password", "motdepasse123", "firstName", "Nina", "lastName", "Bis")).andExpect(status().isConflict());
     }
 
@@ -134,7 +153,7 @@ class RolesImportApiTest {
 
     @Test
     void unActeurNeRejointPasUnProjet() throws Exception {
-        send("POST", "/api/auth/register", null, Map.of("email", "acteur.equipe@test.local",
+        send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "acteur.equipe@test.local",
                 "password", "motdepasse123", "firstName", "Paul", "lastName", "Equipe")).andExpect(status().isCreated());
         String a = admin();
         String p = read(send("POST", "/api/projects", a, Map.of("title", "Projet fermé", "type", "SERIE"))).get("id").asString();
@@ -237,7 +256,7 @@ class RolesImportApiTest {
         send("GET", "/api/admin/projects", a, null).andExpect(status().isOk());
         send("GET", "/api/admin/agencies", a, null).andExpect(status().isOk());
         // Réservé à l'administrateur
-        String nina = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "stats.acteur@test.local",
+        String nina = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "stats.acteur@test.local",
                 "password", "motdepasse123", "firstName", "Stat", "lastName", "Acteur"))).get("accessToken").asString();
         send("GET", "/api/admin/stats", nina, null).andExpect(status().isForbidden());
     }
@@ -266,7 +285,7 @@ class RolesImportApiTest {
 
     @Test
     void acteurEnPauseSortDesRecherches() throws Exception {
-        String z = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "zelie.pause@test.local",
+        String z = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "zelie.pause@test.local",
                 "password", "motdepasse123", "firstName", "Zélie", "lastName", "Pausemaker")).andExpect(status().isCreated()))
                 .get("accessToken").asString();
         String a = admin();
@@ -313,7 +332,7 @@ class RolesImportApiTest {
 
         // L'administrateur voit tout ; le vivier (freelances) reste visible de tous
         send("GET", "/api/actors/" + id, admin(), null).andExpect(status().isOk());
-        send("POST", "/api/auth/register", null, Map.of("email", "vivier.libre@test.local", "password", "motdepasse123",
+        send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "vivier.libre@test.local", "password", "motdepasse123",
                 "firstName", "Vivier", "lastName", "Partagelibre")).andExpect(status().isCreated());
         send("GET", "/api/actors/search?search=Partagelibre", b, null).andExpect(jsonPath("$.totalElements").value(1));
 
@@ -331,7 +350,7 @@ class RolesImportApiTest {
     @Test
     void coordonneesProtegeesEtConsultationsTracees() throws Exception {
         String g = agentOf("Agence Gamma", "agent.gamma@test.local");
-        String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "lina.contact@test.local",
+        String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "lina.contact@test.local",
                 "password", "motdepasse123", "firstName", "Lina", "lastName", "Contactable")).andExpect(status().isCreated()))
                 .get("accessToken").asString();
         String id = read(send("GET", "/api/me", f, null)).get("actorId").asString();
@@ -362,7 +381,7 @@ class RolesImportApiTest {
     @Test
     void propositionEtConvocationAcceptees() throws Exception {
         String d = agentOf("Agence Delta", "agent.delta@test.local");
-        String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "sami.offre@test.local",
+        String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "sami.offre@test.local",
                 "password", "motdepasse123", "firstName", "Sami", "lastName", "Offrable")).andExpect(status().isCreated()))
                 .get("accessToken").asString();
         String actorId = read(send("GET", "/api/me", f, null)).get("actorId").asString();
@@ -404,7 +423,7 @@ class RolesImportApiTest {
     @Test
     void notificationsDeLaCloche() throws Exception {
         String d = agentOf("Agence Epsilon", "agent.epsilon@test.local");
-        String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "rita.notif@test.local",
+        String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "rita.notif@test.local",
                 "password", "motdepasse123", "firstName", "Rita", "lastName", "Notifiee")).andExpect(status().isCreated()))
                 .get("accessToken").asString();
         String actorId = read(send("GET", "/api/me", f, null)).get("actorId").asString();

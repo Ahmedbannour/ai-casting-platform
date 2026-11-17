@@ -1939,8 +1939,8 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "en_cours",
-   "detail": "Case non pré-cochée, texte versionné et daté, conditions d'utilisation et politique de confidentialité (pages publiques), nouvel accord demandé à chaque nouvelle version ; mineurs : accord d'un représentant légal. Relecture par un juriste avant lancement.",
+   "statut": "fait",
+   "detail": "Case non pré-cochée et choix de l'âge à l'inscription ; mineur : nom du représentant légal obligatoire. Accord enregistré et daté par document (conditions, confidentialité), version 2026-11-17 ; à chaque nouvelle version, une page « Avant de continuer » redemande l'accord (aussi pour les comptes Google/Facebook). Pages publiques /legal/conditions et /legal/confidentialite (loi tunisienne 2004-63, RGPD). Textes en version de travail : informations de l'éditeur à compléter et relecture par un juriste avant lancement. Tests 55/55, recette navigateur 60/60.",
    "lot": "L2"
   },
   {
@@ -1952,7 +1952,7 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
+   "statut": "en_cours",
    "detail": "L'agence génère un lien d'invitation par acteur importé ; l'acteur crée son compte, reprend sa fiche et choisit : rester chez son agence ou rejoindre le vivier. Sans réponse : privé à l'agence.",
    "lot": "L2"
   },
@@ -2513,22 +2513,22 @@
   }
  ],
  "maintenant": {
-  "titre": "P-036 · T-108 et T-132 faites ; T-101 en cours (consentement, conditions d'utilisation)",
-  "etape": 32,
+  "titre": "P-037 · T-101 faite (consentement daté, pages légales) ; T-102 en cours",
+  "etape": 33,
   "agents": [
    {
     "nom": "Mehdi Amrani",
-    "action": "Rédige les conditions d'utilisation et la politique de confidentialité (projet à faire relire par un juriste)",
+    "action": "Textes juridiques en ligne (version de travail) ; relecture par un juriste avant le lancement",
     "court": "T-101"
    },
    {
     "nom": "Hichem Jaziri",
-    "action": "Consentement versionné et daté côté serveur",
-    "court": "T-101"
+    "action": "Invitations des acteurs importés : lien d'activation à usage unique",
+    "court": "T-102"
    },
    {
     "nom": "Amel Kacem",
-    "action": "Recette navigateur après chaque tâche : 53/53",
+    "action": "Recette navigateur : 60/60, dont l'inscription avec accord et la page « Avant de continuer »",
     "court": "recette"
    }
   ]
@@ -2593,6 +2593,12 @@
    "nom": "Sarra Mansouri",
    "t": "2026-11-17T16:55:00Z",
    "texte": "T-132 faite : barre du haut sur mobile (logo + cloche), plus rien ne recouvre les pages. Recette 53/53."
+  },
+  {
+   "h": "J5",
+   "nom": "Mehdi Amrani",
+   "t": "2026-11-17T08:35:00Z",
+   "texte": "T-101 livrée : accord daté et versionné à l'inscription (âge, représentant légal pour un mineur), page « Avant de continuer » à la connexion, conditions d'utilisation et politique de confidentialité publiques. 55/55 tests, 60/60 en navigateur."
   }
  ],
  "plan": {

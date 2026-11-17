@@ -38,6 +38,7 @@ public class MeController {
     private final ActorRepository actors;
     private final ActorAccountService accounts;
     private final ActorService actorService;
+    private final com.castingai.service.ConsentService consents;
     private final PhotoService photoService;
 
     public record MeResponse(UUID id, String email, String firstName, String lastName, String role,
@@ -61,6 +62,19 @@ public class MeController {
                                     String visibility) {}
 
     /** Consentement de l'acteur : visible des agences sous contrat, ou en pause (T-093). */
+    /** T-101 · L'utilisateur connecté a-t-il accepté la version en vigueur des conditions ? */
+    @GetMapping("/consent")
+    public com.castingai.service.ConsentService.Status consent(@AuthenticationPrincipal UserDetails principal) {
+        return consents.status(user(principal).getId());
+    }
+
+    /** T-101 · Accord daté aux conditions et à la politique de confidentialité (comptes créés avec Google ou Facebook, nouvelle version). */
+    @PostMapping("/consent")
+    public com.castingai.service.ConsentService.Status acceptConsent(@AuthenticationPrincipal UserDetails principal,
+                                                                     @RequestBody com.castingai.service.ConsentService.Request body) {
+        return consents.record(user(principal).getId(), body, "CONNEXION");
+    }
+
     @GetMapping("/visibility")
     @org.springframework.transaction.annotation.Transactional
     public VisibilityResponse myVisibility(@AuthenticationPrincipal UserDetails principal) {

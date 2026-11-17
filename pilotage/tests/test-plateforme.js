@@ -44,6 +44,16 @@ async function audit(page, path, name, errors) {
     await page.click('button.submit-btn'); await page.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 15000 }).catch(() => {});
     const logged = !page.url().includes('/auth');
     check(P + 'Connexion administrateur (compte de démo du profil dev)', logged, page.url());
+    if (page.url().includes('/consentement')) {
+      // T-101 · accord demandé à la connexion : refus sans case cochée, puis accord
+      await page.getByRole('radio', { name: /18 ans ou plus/i }).click();
+      await page.getByRole('button', { name: /^Continuer/ }).click(); await page.waitForTimeout(400);
+      check(P + 'Accord : case non cochée → message', /Cochez/.test(await page.locator('[role=alert]').textContent().catch(() => '')));
+      await page.locator('.check input').check();
+      await page.getByRole('button', { name: /^Continuer/ }).click();
+      await page.waitForURL(u => !u.pathname.startsWith('/consentement'), { timeout: 10000 }).catch(() => {});
+      check(P + 'Accord : enregistré puis retour à la page demandée', !page.url().includes('/consentement'), page.url());
+    }
     if (!logged) { await ctx.close(); continue; }
 
     // Pages agence / administration
@@ -108,6 +118,13 @@ async function audit(page, path, name, errors) {
   await page.goto(BASE + '/auth/inscription'); await page.waitForTimeout(1500);
   await page.fill('#firstName', 'Recette'); await page.fill('#lastName', 'Automatique');
   await page.fill('#email', mail); await page.fill('#password', 'Recette-' + Date.now());
+  await page.click('button.submit-btn'); await page.waitForTimeout(600);
+  check('Inscription : refusée sans âge ni case cochée', page.url().includes('/auth/inscription') && await page.locator('.consent.error').count() === 1);
+  await page.getByRole('radio', { name: /Moins de 18 ans/i }).click(); await page.locator('.consent input').check();
+  await page.click('button.submit-btn'); await page.waitForTimeout(600);
+  check('Inscription : mineur sans représentant légal → refusée', page.url().includes('/auth/inscription') && await page.locator('#guardianName').count() === 1);
+  await page.getByRole('radio', { name: /18 ans ou plus/i }).click();
+  check('Inscription : champ représentant masqué pour un majeur', await page.locator('#guardianName').count() === 0);
   await page.click('button.submit-btn'); await page.waitForURL(u => u.pathname.startsWith('/mon-profil'), { timeout: 15000 }).catch(() => {});
   check('Acteur : inscription puis arrivée sur « Mon profil »', page.url().includes('/mon-profil'), page.url());
   notes.push('Compte acteur de test créé : ' + mail + ' (à supprimer avec les autres comptes de test, T-127)');
@@ -121,7 +138,18 @@ async function audit(page, path, name, errors) {
   await page.goto(BASE + '/admin'); await page.waitForTimeout(800);
   check('Acteur : pas d\'accès à l\'administration', !page.url().endsWith('/admin'), page.url());
   check('Acteur : aucune erreur JavaScript', errors.length === 0, errors.slice(0, 3));
-  await ctx.close(); await browser.close();
+  await ctx.close();
+
+  // T-101 · pages publiques des textes
+  { const c2 = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' }); const p2 = await c2.newPage();
+    for (const [u, t] of [['/legal/conditions', /Conditions d’utilisation/], ['/legal/confidentialite', /Politique de confidentialité/]]) {
+      await p2.goto(BASE + u); await p2.waitForTimeout(900);
+      const h = await p2.locator('h1').textContent().catch(() => '');
+      const over = await p2.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
+      check(`Page publique ${u} (mobile, sans connexion)`, t.test(h || '') && !over && !p2.url().includes('/auth'), { h, over });
+    }
+    await c2.close(); }
+  await browser.close();
 
   console.log('RÉUSSIS (' + ok.length + ')\n  ' + ok.join('\n  '));
   console.log('ÉCHECS (' + ko.length + ')\n  ' + ko.join('\n  '));

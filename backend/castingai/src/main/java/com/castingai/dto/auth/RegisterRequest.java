@@ -23,4 +23,13 @@ public class RegisterRequest {
     @NotBlank(message = "Le nom est obligatoire")
     @Size(max = 80)
     private String lastName;
+
+    /** T-101 · Case « J'accepte les conditions… », jamais pré-cochée. */
+    private Boolean acceptTerms;
+
+    /** MAJEUR, ou MINEUR avec le nom du représentant légal. */
+    private String age;
+
+    @Size(max = 120)
+    private String guardianName;
 }

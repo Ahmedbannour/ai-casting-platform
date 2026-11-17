@@ -25,6 +25,10 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
+  /** T-101 · accord aux conditions et à la politique de confidentialité. */
+  acceptTerms?: boolean;
+  age?: 'MAJEUR' | 'MINEUR';
+  guardianName?: string;
 }
 
 /**
