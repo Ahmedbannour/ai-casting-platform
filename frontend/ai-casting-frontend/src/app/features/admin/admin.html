@@ -346,6 +346,7 @@
                 <app-select class="role" [options]="roleOptions" [ngModel]="u.role" (ngModelChange)="setRole(u, $event)"
                             [compact]="true" [ariaLabel]="'Rôle de ' + u.firstName + ' ' + u.lastName" />
               }
+              <app-reset-link [userId]="u.id" [name]="u.firstName + ' ' + u.lastName" />
               @if (confirming() === u.id) {
                 <span class="confirm">{{ u.enabled ? 'Désactiver ?' : 'Réactiver ?' }}
                   <button type="button" [class.yes]="u.enabled" (click)="setEnabled(u, !u.enabled)">Oui</button>

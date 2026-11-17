@@ -70,7 +70,7 @@ input:not([type="checkbox"]) { height: 40px; padding: 0 12px; border-radius: var
     font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 16px; letter-spacing: .06em; user-select: all; } }
 
 .users { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-.users li { @extend %glass; display: grid; grid-template-columns: 36px 1fr 170px 130px; align-items: center; gap: 12px;
+.users li { @extend %glass; display: grid; grid-template-columns: 36px 1fr 170px 34px 130px; align-items: center; gap: 12px;
   padding: 10px 12px; border-radius: var(--radius-m); transition: opacity .2s;
   &.off { opacity: .6; } &.none { display: block; text-align: center; color: var(--text-subtle); padding: 24px; } }
 .avatar { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--accent-dim);
@@ -237,7 +237,7 @@ th.r, td.r { text-align: right; }
   .stats { grid-template-columns: 1fr 1fr; }
   .stats .stat:nth-child(2) { grid-column: 1 / -1; order: -1; }
   .create { grid-template-columns: 1fr 1fr; }
-  .users li { grid-template-columns: 36px 1fr; .role, .tag, .state, .confirm { grid-column: 2; justify-self: start; } }
+  .users li { grid-template-columns: 36px 1fr; .role, .tag, .state, .confirm, app-reset-link { grid-column: 2; justify-self: start; } }
 }
 @media (max-width: 860px) { .page { padding: 18px 14px 104px; } .import-bar { bottom: 88px; } }
 @container page (max-width: 560px) {

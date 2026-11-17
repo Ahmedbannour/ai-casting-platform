@@ -10,6 +10,7 @@ import { AreaSparkComponent, ColumnSeries, HBar, HBarsComponent, StackedColumnsC
 import { EMAIL_RE } from '../../shared/forms/rules';
 import { frDate, todayIso } from '../../shared/forms/dates';
 import { ContactInboxComponent } from './contact-inbox';
+import { ResetLinkComponent } from './reset-link';
 
 type Tab = 'tableau' | 'agences' | 'projets' | 'acteurs' | 'equipe' | 'import' | 'journal' | 'messages';
 type RowFilter = 'tous' | 'OK' | 'ERREUR' | 'DOUBLON' | 'remarques';
@@ -25,7 +26,7 @@ const STATUS_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, RouterLink, SelectFieldComponent, DateFieldComponent, StackedColumnsComponent, AreaSparkComponent, HBarsComponent, ContactInboxComponent],
+  imports: [FormsModule, RouterLink, SelectFieldComponent, DateFieldComponent, StackedColumnsComponent, AreaSparkComponent, HBarsComponent, ContactInboxComponent, ResetLinkComponent],
   templateUrl: './admin.html',
   styleUrl: './admin.scss'
 })

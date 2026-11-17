@@ -43,6 +43,12 @@ export const routes: Routes = [
     title: 'Politique de confidentialité · AI Casting'
   },
   {
+    // T-112 · lien de réinitialisation du mot de passe (public, à usage unique, 1 heure)
+    path: 'reinitialisation/:token',
+    loadComponent: () => import('./features/legal/reset-page').then(m => m.ResetPageComponent),
+    title: 'Nouveau mot de passe · AI Casting'
+  },
+  {
     // T-102 · lien d'invitation d'un acteur (public, à usage unique)
     path: 'invitation/:token',
     loadComponent: () => import('./features/legal/invitation-page').then(m => m.InvitationPageComponent),

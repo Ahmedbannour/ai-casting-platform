@@ -240,6 +240,34 @@ async function audit(page, path, name, errors) {
     await p3.goto(BASE + '/admin'); await p3.waitForTimeout(1200);
     await p3.getByRole('tab', { name: 'Messages' }).click(); await p3.waitForTimeout(900);
     check('Administration : onglet Messages avec le message de la vitrine', await p3.locator('app-contact-inbox li').filter({ hasText: 'recette.vitrine@exemple.tn' }).count() >= 1);
+    // T-112 · mot de passe oublié : bouton clé dans « Équipe et comptes »
+    await p3.getByRole('tab', { name: /Équipe et comptes/ }).click(); await p3.waitForTimeout(900);
+    await p3.locator('app-reset-link .key').first().click(); await p3.getByRole('button', { name: 'Créer le lien' }).click(); await p3.waitForTimeout(700);
+    check('Administration : lien de réinitialisation créé (1 heure)', /\/reinitialisation\/[A-Za-z0-9_-]{30,}$/.test(await p3.locator('body > .pop input').inputValue().catch(() => '')));
+    await p3.keyboard.press('Escape');
+    // Parcours complet sur le compte acteur de test
+    const tk3 = (await (await fetch('http://localhost:8080/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'ahmed@casting.com', password: 'password123' }) })).json()).accessToken;
+    const users3 = await (await fetch('http://localhost:8080/api/admin/users', { headers: { Authorization: 'Bearer ' + tk3 } })).json();
+    const who = users3.find(u => u.email === mail);
+    const rl = await (await fetch(`http://localhost:8080/api/admin/users/${who.id}/password-reset`, { method: 'POST', headers: { Authorization: 'Bearer ' + tk3 } })).json();
+    const c5 = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' }); const p5 = await c5.newPage();
+    await p5.goto(BASE + '/reinitialisation/' + rl.token); await p5.waitForTimeout(1000);
+    check('Mot de passe oublié : page du lien (mobile, sans connexion)', /Nouveau mot de passe/.test(await p5.locator('h1').textContent()));
+    const npw = 'Nouveau-' + Date.now();
+    await p5.fill('#pw', npw); await p5.fill('#pw2', npw + 'x'); await p5.getByRole('button', { name: /Changer mon mot de passe/ }).click(); await p5.waitForTimeout(300);
+    check('Mot de passe oublié : confirmation différente → message', /identiques/.test(await p5.locator('[role=alert]').textContent().catch(() => '')));
+    await p5.fill('#pw2', npw); await p5.getByRole('button', { name: /Changer mon mot de passe/ }).click(); await p5.waitForTimeout(900);
+    check('Mot de passe oublié : changement confirmé', /Mot de passe changé/.test(await p5.locator('h1').textContent()));
+    await p5.goto(BASE + '/reinitialisation/' + rl.token); await p5.waitForTimeout(900);
+    check('Mot de passe oublié : lien déjà utilisé → refusé', /plus valable/.test(await p5.locator('h1').textContent()));
+    await p5.goto(BASE + '/auth/login'); await p5.waitForTimeout(900);
+    await p5.getByRole('button', { name: 'Mot de passe oublié ?' }).click();
+    check('Connexion : aide « Mot de passe oublié ? »', /administrateur/.test(await p5.locator('.forgot-help').textContent().catch(() => '')));
+    await p5.fill('#email', mail); await p5.fill('#password', npw); await p5.click('button.submit-btn');
+    await p5.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 12000 }).catch(() => {});
+    check('Mot de passe oublié : connexion avec le nouveau mot de passe', !p5.url().includes('/auth'), p5.url());
+    await c5.close();
     await c3.close(); }
   await browser.close();
 

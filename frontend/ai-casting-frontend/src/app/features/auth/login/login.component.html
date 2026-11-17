@@ -106,7 +106,11 @@
         </div>
 
         <div class="field">
-          <label for="password">Mot de passe</label>
+          <div class="pw-label"><label for="password">Mot de passe</label>
+            @if (mode === 'login') { <button type="button" class="forgot" (click)="forgot = !forgot" [attr.aria-expanded]="forgot">Mot de passe oublié ?</button> }</div>
+          @if (forgot && mode === 'login') {
+            <p class="forgot-help" role="note">Votre administrateur vous envoie un lien pour choisir un nouveau mot de passe (valable 1 heure). Agents : demandez-le à l'administrateur de votre agence. Acteurs : écrivez-nous depuis la <a routerLink="/" fragment="contact">page Contact</a>.</p>
+          }
           <div class="input-wrap" [class.focused]="pwFocused"
                [class.error]="form.get('password')?.invalid && form.get('password')?.touched">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"

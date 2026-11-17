@@ -1991,8 +1991,8 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "en_cours",
-   "detail": "Solution choisie par le client (D-011) : Lien de réinitialisation donné par l'administrateur.",
+   "statut": "fait",
+   "detail": "Solution D-011, sans envoi d'e-mail : dans Administration › Équipe et comptes, un bouton clé crée pour un compte un lien à usage unique, valable 1 heure (empreinte seule gardée ; un nouveau lien annule le précédent). La personne choisit un nouveau mot de passe sur /reinitialisation/… ; ses autres sessions sont fermées ; tout est noté au journal. Sur la connexion, « Mot de passe oublié ? » explique la marche à suivre. Tests 58/58, recette navigateur 91/91.",
    "lot": "L3",
    "solutions": [
     {
@@ -2526,17 +2526,17 @@
   }
  ],
  "maintenant": {
-  "titre": "P-041 · T-112 en cours : mot de passe oublié (lien donné par l'administrateur)",
-  "etape": 37,
+  "titre": "P-042 · T-112 faite (mot de passe oublié) ; prochaine : T-113",
+  "etape": 38,
   "agents": [
    {
     "nom": "Hichem Jaziri",
-    "action": "Lien de réinitialisation à usage unique, créé par l'administrateur (D-011)",
+    "action": "T-112 livrée : lien de réinitialisation 1 h depuis l'Administration",
     "court": "T-112"
    },
    {
     "nom": "Amel Kacem",
-    "action": "Prépare la recette du parcours « mot de passe oublié »",
+    "action": "Recette navigateur : 91/91",
     "court": "recette"
    }
   ],
@@ -2546,33 +2546,33 @@
    "etapes": [
     {
      "t": "Serveur",
-     "s": "en_cours"
+     "s": "fait"
     },
     {
      "t": "Administration",
-     "s": "a_faire"
+     "s": "fait"
     },
     {
      "t": "Page de réinitialisation",
-     "s": "a_faire"
+     "s": "fait"
     },
     {
      "t": "Tests serveur",
-     "s": "a_faire"
+     "s": "fait"
     },
     {
      "t": "Recette navigateur",
-     "s": "a_faire"
+     "s": "fait"
     },
     {
      "t": "Git",
-     "s": "a_faire"
+     "s": "fait"
     }
    ]
   },
   "derniere": {
-   "t": "2026-11-17T21:49:13Z",
-   "texte": "Salle de pilotage : suivi en direct de la tâche en cours (étapes, avancement, notifications)"
+   "t": "2026-11-17T22:20:00Z",
+   "texte": "T-112 terminée et poussée sur Git : 58/58 tests, 91/91 en navigateur"
   }
  },
  "activite": [
@@ -2659,6 +2659,12 @@
    "nom": "Yasmine Trabelsi",
    "t": "2026-11-17T21:45:00Z",
    "texte": "Vitrine v3 : fiches d'acteurs à glisser comme sur mobile, haut de page plein écran, rideau « Scène » au clic sur le menu, formulaire de contact et carte de Tunis. 84/84 en navigateur."
+  },
+  {
+   "h": "J5",
+   "nom": "Hichem Jaziri",
+   "t": "2026-11-17T22:20:00Z",
+   "texte": "T-112 livrée : l'administrateur crée un lien de réinitialisation (1 h, usage unique) ; les autres sessions sont fermées après le changement. 58/58 tests, 91/91 en navigateur."
   }
  ],
  "plan": {

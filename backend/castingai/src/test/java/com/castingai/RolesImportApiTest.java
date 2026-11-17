@@ -590,4 +590,33 @@ class RolesImportApiTest {
         send("POST", url, null, Map.of("name", "Acteur 9", "email", "a9@test.tn", "profile", "ACTEUR", "message", "Encore une question sur mon profil"))
                 .andExpect(status().isTooManyRequests());
     }
+
+    /** T-112 · Lien de réinitialisation créé par l'administrateur : 1 heure, usage unique, sessions fermées. */
+    @Test
+    void motDePasseOublieParLienAdministrateur() throws Exception {
+        String g = agentOf("Agence Oubli", "agent.oubli@test.local");
+        String refresh = read(login("agent.oubli@test.local", "motdepasse123")).get("refreshToken").asString();
+        String a = admin();
+        String userId = null;
+        for (JsonNode u : read(send("GET", "/api/admin/users", a, null)))
+            if ("agent.oubli@test.local".equals(u.get("email").asString())) userId = u.get("id").asString();
+        assertThat(userId).isNotNull();
+        String url = "/api/admin/users/" + userId + "/password-reset";
+
+        send("POST", url, g, null).andExpect(status().isForbidden());                 // seul l'administrateur
+        String t1 = read(send("POST", url, a, null).andExpect(status().isCreated())).get("token").asString();
+        String t2 = read(send("POST", url, a, null).andExpect(status().isCreated())).get("token").asString();
+        send("GET", "/api/public/password-reset/" + t1, null, null).andExpect(status().isNotFound());   // remplacé
+        send("GET", "/api/public/password-reset/" + t2, null, null).andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName").value("Agent")).andExpect(jsonPath("$.email").value("a******@test.local"));
+
+        String pr = "/api/public/password-reset/" + t2;
+        send("POST", pr, null, Map.of("password", "court")).andExpect(status().isBadRequest());
+        send("POST", pr, null, Map.of("password", "NouveauMdp-2026")).andExpect(status().isNoContent());
+        send("POST", pr, null, Map.of("password", "EncoreUn-2026")).andExpect(status().isNotFound());   // usage unique
+
+        login("agent.oubli@test.local", "motdepasse123").andExpect(status().isUnauthorized());
+        token("agent.oubli@test.local", "NouveauMdp-2026");
+        send("POST", "/api/auth/refresh", null, Map.of("refreshToken", refresh)).andExpect(status().isUnauthorized());   // anciennes sessions fermées
+    }
 }

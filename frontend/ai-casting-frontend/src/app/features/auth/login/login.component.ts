@@ -48,6 +48,8 @@ export class LoginComponent implements OnInit {
   private readonly zone = inject(NgZone);
 
   /** « login » ou « inscription » (acteur freelance). */
+  /** T-112 · aide « mot de passe oublié » (lien donné par l'administrateur, D-011). */
+  forgot = false;
   readonly mode: 'login' | 'inscription' = this.route.snapshot.data['mode'] === 'inscription' ? 'inscription' : 'login';
 
   form: FormGroup;

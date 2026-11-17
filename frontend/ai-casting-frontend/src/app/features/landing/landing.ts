@@ -113,6 +113,9 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.watchSections();
     this.watchMap();
+    // Arrivée par un lien vers une section (ex. /#contact depuis la connexion)
+    const h = location.hash.slice(1);
+    if (h && SCENES[h]) setTimeout(() => { const el = document.getElementById(h); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 67, behavior: 'instant' as ScrollBehavior }); }, 60);
     if (this.still) return;
     this.startMotion();
     const canvas = this.sceneRef?.nativeElement;
