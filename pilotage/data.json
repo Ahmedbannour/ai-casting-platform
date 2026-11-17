@@ -625,6 +625,24 @@
     "Panneau Équipe et tchat par agent"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-035",
+   "date": "2026-11-17",
+   "titre": "Tchat type messagerie depuis la carte mentale, roadmap visuelle, calendrier Google",
+   "original": "toujourrs le chat n'est pas correct , il faut que si je cliq sur un agent dans la carte mental , je peux ouvrire une conversation avec cet agent , avec une fenetres des messages a voir (comme whatsapp) , assurer que le chat fonctionee correctement et le tester , ainsi qu'ajouter une fenetre qui montre clairements le task managment par rapport au temps sous forme d'une roadmap visuelle et interactive (option plein ecran) , et partagé ca sur mon calendrier (google)",
+   "ameliore": "Clic sur un agent (carte mentale, bandeau « En ce moment ») = conversation dans une messagerie type WhatsApp (liste + fil, bulles, heure, coches, « en train d'écrire… », plein écran sur mobile) ; tests automatisés et essai réel sur claude.ai. Roadmap de Gantt interactive (lots, tâches, aujourd'hui, zoom jours/semaines, plein écran, clic = détail). Lots publiés dans Google Calendar.",
+   "departements": [
+    "front",
+    "qa",
+    "dir"
+   ],
+   "livrables": [
+    "Messagerie des agents",
+    "Roadmap",
+    "Événements Google Calendar"
+   ],
+   "statut": "En cours"
   }
  ],
  "bibliotheques": [
@@ -2458,18 +2476,6 @@
  "activite": [
   {
    "h": "J5",
-   "nom": "Rami Saidi",
-   "t": "2026-11-17T10:45:00Z",
-   "texte": "OSV-Scanner installé (empreinte vérifiée). Serveur Java : ~60 failles → 2 restantes (Spring Web 6.2, T-129). RabbitMQ, Elasticsearch, Redis retirés."
-  },
-  {
-   "h": "J5",
-   "nom": "Amel Kacem",
-   "t": "2026-11-17T10:55:00Z",
-   "texte": "Recette T-128 : 45/45 tests, envoi/lecture/suppression réels sur MinIO 8.6, serveur redémarré."
-  },
-  {
-   "h": "J5",
    "nom": "Laura Blanc",
    "t": "2026-11-17T11:15:00Z",
    "texte": "T-106 faite : démarrage en production refusé avec les secrets de développement (vérifié en vrai), plus de compte de démo en production. 48/48 tests."
@@ -2515,6 +2521,12 @@
    "nom": "Sarra Mansouri",
    "t": "2026-11-17T14:45:00Z",
    "texte": "Correctifs salle de pilotage : envoi au tchat jamais bloqué (file d'attente, délai max 2 min, bouton Réessayer) ; bouton des blocages de la carte mentale réparé."
+  },
+  {
+   "h": "J5",
+   "nom": "Sarra Mansouri",
+   "t": "2026-11-17T15:30:00Z",
+   "texte": "Messagerie type WhatsApp : clic sur un agent dans la carte mentale = conversation ; onglet Roadmap (Gantt interactif, plein écran). 24/24 tests automatiques (Playwright + Edge)."
   }
  ],
  "plan": {
@@ -2639,6 +2651,164 @@
    "T-127"
   ],
   "courante": "T-108",
-  "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages »."
+  "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages ».",
+  "calendrier": {
+   "T-103": {
+    "debut": "2026-11-17",
+    "fin": "2026-11-17",
+    "reel": true
+   },
+   "T-105": {
+    "debut": "2026-11-17",
+    "fin": "2026-11-17",
+    "reel": true
+   },
+   "T-128": {
+    "debut": "2026-11-17",
+    "fin": "2026-11-17",
+    "reel": true
+   },
+   "T-129": {
+    "debut": "2026-11-17",
+    "fin": "2026-11-17",
+    "reel": true
+   },
+   "T-106": {
+    "debut": "2026-11-17",
+    "fin": "2026-11-17",
+    "reel": true
+   },
+   "T-107": {
+    "debut": "2026-11-17",
+    "fin": "2026-11-17",
+    "reel": true
+   },
+   "T-104": {
+    "debut": "2026-11-17",
+    "fin": "2026-11-17",
+    "reel": true
+   },
+   "T-130": {
+    "debut": "2026-11-17",
+    "fin": "2026-11-17",
+    "reel": true
+   },
+   "T-108": {
+    "debut": "2026-11-17",
+    "fin": "2026-11-18",
+    "reel": false
+   },
+   "T-101": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-20",
+    "reel": false
+   },
+   "T-102": {
+    "debut": "2026-11-23",
+    "fin": "2026-11-24",
+    "reel": false
+   },
+   "T-112": {
+    "debut": "2026-11-25",
+    "fin": "2026-11-25",
+    "reel": false
+   },
+   "T-113": {
+    "debut": "2026-11-26",
+    "fin": "2026-11-26",
+    "reel": false
+   },
+   "T-114": {
+    "debut": "2026-11-27",
+    "fin": "2026-11-27",
+    "reel": false
+   },
+   "T-110": {
+    "debut": "2026-11-30",
+    "fin": "2026-12-01",
+    "reel": false
+   },
+   "T-109": {
+    "debut": "2026-12-02",
+    "fin": "2026-12-03",
+    "reel": false
+   },
+   "T-111": {
+    "debut": "2026-12-04",
+    "fin": "2026-12-04",
+    "reel": false
+   },
+   "T-117": {
+    "debut": "2026-12-07",
+    "fin": "2026-12-09",
+    "reel": false
+   },
+   "T-116": {
+    "debut": "2026-12-10",
+    "fin": "2026-12-14",
+    "reel": false
+   },
+   "T-118": {
+    "debut": "2026-12-15",
+    "fin": "2026-12-15",
+    "reel": false
+   },
+   "T-119": {
+    "debut": "2026-12-16",
+    "fin": "2026-12-18",
+    "reel": false
+   },
+   "T-120": {
+    "debut": "2026-12-21",
+    "fin": "2026-12-22",
+    "reel": false
+   },
+   "T-121": {
+    "debut": "2026-12-23",
+    "fin": "2026-12-23",
+    "reel": false
+   },
+   "T-122": {
+    "debut": "2026-12-24",
+    "fin": "2026-12-28",
+    "reel": false
+   },
+   "T-123": {
+    "debut": "2026-12-29",
+    "fin": "2026-12-29",
+    "reel": false
+   },
+   "T-124": {
+    "debut": "2026-12-30",
+    "fin": "2026-12-31",
+    "reel": false
+   },
+   "T-125": {
+    "debut": "2027-01-01",
+    "fin": "2027-01-01",
+    "reel": false
+   },
+   "T-126": {
+    "debut": "2027-01-04",
+    "fin": "2027-01-04",
+    "reel": false
+   },
+   "T-100": {
+    "debut": "2027-01-05",
+    "fin": "2027-01-06",
+    "reel": false
+   },
+   "T-127": {
+    "debut": "2027-01-07",
+    "fin": "2027-01-07",
+    "reel": false
+   },
+   "T-115": {
+    "debut": "2027-01-08",
+    "fin": "2027-01-08",
+    "reel": false
+   }
+  },
+  "calendrier_note": "Dates prévisionnelles en jours ouvrés (lundi-vendredi), une tâche à la fois dans l'ordre de la file ; recalculées quand le plan avance. Tâches faites : date réelle."
  }
 }
