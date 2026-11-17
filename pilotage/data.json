@@ -595,6 +595,36 @@
     "Barre d'enregistrement contextuelle"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-033",
+   "date": "2026-11-17",
+   "titre": "Tâches par statut et solutions gratuites des blocages",
+   "original": "merci de presenter les taches selon leur type (fait , en cour , a faire et bloqué) dans la salle d'operation , et mettre des proposition (gratuit) a faire pour chaque taches bloqué",
+   "ameliore": "Dans la vue d'accueil de la salle de pilotage, ranger les tâches du plan en quatre colonnes (Fait, En cours, À faire, Bloqué) ; chaque tâche bloquée montre son blocage et ses solutions gratuites, choisissables en un clic. Lisible sur téléphone.",
+   "departements": [
+    "front",
+    "dir"
+   ],
+   "livrables": [
+    "Vue « Tâches par statut »"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-034",
+   "date": "2026-11-17",
+   "titre": "Tchat avec chaque agent dans la salle de pilotage",
+   "original": "merci d'ajouter un petit tchat avec chaque agent ia (dans la presentation) , ou je peux voir ou il es , et posé des questions a lui (reponse et updates en temps réel)",
+   "ameliore": "Ajouter à la salle de pilotage un panneau « Équipe » : chaque agent avec ce qu'il fait en direct ; un tchat par agent qui répond en temps réel (réponse écrite au fil de l'eau) à partir de l'état réel du projet, sans rien inventer ; mises à jour de ses tâches poussées dans la conversation ; conversations conservées et lues par l'entreprise au prompt suivant.",
+   "departements": [
+    "front",
+    "ia"
+   ],
+   "livrables": [
+    "Panneau Équipe et tchat par agent"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -865,9 +895,10 @@
    "resp": "Sonia Mercier",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "en_cours",
+   "statut": "fait",
    "prompt": "P-002",
-   "jour": "J1"
+   "jour": "J1",
+   "detail": "Clôturée le 17/11 : la planification est remplacée par le plan produit final (P-031)."
   },
   {
    "id": "T-018",
@@ -995,9 +1026,10 @@
    "resp": "Rami Saidi",
    "prio": "P0",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-001",
-   "jour": "J4"
+   "jour": "J4",
+   "detail": "Réalisée dans T-106 (profil prod, compte de démo hors production)."
   },
   {
    "id": "T-029",
@@ -1008,7 +1040,8 @@
    "phase": "PH0",
    "statut": "a_faire",
    "prompt": "P-001",
-   "jour": "J5"
+   "jour": "J5",
+   "detail": "Reprise dans T-124 (Docker de production) et T-123 (intégration continue)."
   },
   {
    "id": "T-030",
@@ -1017,9 +1050,10 @@
    "resp": "Élodie Martin",
    "prio": "P1",
    "phase": "PH1",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-001",
-   "jour": "J4"
+   "jour": "J4",
+   "detail": "Livrée : docs/user-stories-mvp.md (décision D-002)."
   },
   {
    "id": "T-031",
@@ -1564,8 +1598,8 @@
    "prio": "P1",
    "jour": "J3",
    "prompt": "P-021",
-   "statut": "a_faire",
-   "detail": ""
+   "statut": "fait",
+   "detail": "Livrée : sprint S6 (équipe, journal, planche contact), commit 3e08866."
   },
   {
    "id": "T-078",
@@ -1576,8 +1610,8 @@
    "prio": "P0",
    "jour": "J4",
    "prompt": "P-022",
-   "statut": "en_cours",
-   "detail": ""
+   "statut": "fait",
+   "detail": "Livrée le 16/11 : carte mentale en temps réel (pings, liens animés, horloge)."
   },
   {
    "id": "T-084",
@@ -2430,18 +2464,6 @@
  "activite": [
   {
    "h": "J5",
-   "nom": "Sarra Mansouri",
-   "t": "2026-11-17T09:55:00Z",
-   "texte": "Salle de pilotage : vues « Plan produit final » et « Blocages », horloge en direct à la seconde, mise en page pour téléphone."
-  },
-  {
-   "h": "J5",
-   "nom": "Rami Saidi",
-   "t": "2026-11-17T10:00:00Z",
-   "texte": "T-105 démarrée : 6 failles en production (4 hautes, 2 modérées), corrigeables sans changer de version majeure."
-  },
-  {
-   "h": "J5",
    "nom": "Rami Saidi",
    "t": "2026-11-17T10:20:00Z",
    "texte": "T-105 faite : Angular 20.3.35, 0 faille en production (6 avant)."
@@ -2481,6 +2503,18 @@
    "nom": "Claire Dubois",
    "t": "2026-11-17T13:10:00Z",
    "texte": "T-107 faite : 5 échecs → connexion bloquée 15 min (429), journal d'audit. Vérifié sur le vrai serveur. 51/51 tests."
+  },
+  {
+   "h": "J5",
+   "nom": "Sarra Mansouri",
+   "t": "2026-11-17T13:40:00Z",
+   "texte": "Salle de pilotage : tâches du plan rangées par statut (Fait, En cours, À faire, Bloqué) ; chaque tâche bloquée affiche ses solutions gratuites, à choisir en un clic."
+  },
+  {
+   "h": "J5",
+   "nom": "Yasmine Trabelsi",
+   "t": "2026-11-17T14:10:00Z",
+   "texte": "Salle de pilotage : bouton « Équipe » — chaque agent dit où il en est et répond à vos questions en direct, à partir de l'état réel du projet."
   }
  ],
  "plan": {

@@ -309,6 +309,79 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
 .chip.tick{border-color:var(--ok);color:var(--ok)}
 @media (prefers-reduced-motion:no-preference){.qi.en_cours::before{content:"";position:absolute;inset:-4px;border-radius:14px;border:2px solid var(--run);animation:qpl 1.8s ease-out infinite;pointer-events:none}@keyframes qpl{from{opacity:.9}to{opacity:0;transform:scale(1.04)}}}
 @media (prefers-reduced-motion:reduce){.flash{animation:none}.stack i{transition:none}}
+
+/* ===== Tâches par statut (P-033) ===== */
+.kan4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
+.k4col{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.k4h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 4px;font-weight:600}
+.k4h .n{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.k4col.fait{border-top:4px solid var(--ok)}.k4col.en_cours{border-top:4px solid var(--run)}.k4col.a_faire{border-top:4px solid var(--todo)}.k4col.bloque{border-top:4px solid var(--ko)}
+.k4c{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.k4c:hover{border-color:var(--accent)}
+.k4c .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.k4c .id{font-family:var(--f-mono);font-size:12px;color:var(--accent)}
+.k4c b{font-size:14px;font-weight:600;line-height:1.35}
+.k4c .who{font-size:12.5px;color:var(--muted)}
+.k4c.fait{opacity:.8}
+.k4c .why{grid-column:auto;font-size:13px}
+.k4c .sols{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.sol{border:1px dashed var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;background:var(--surface2);cursor:default}
+.sol.rec{border-style:solid;border-color:var(--ok)}
+.sol .st1{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13.5px;font-weight:600}
+.sol .free{font-family:var(--f-mono);font-size:11px;padding:1px 7px;border-radius:999px;background:var(--ok-soft);color:var(--ok)}
+.sol .recb{font-family:var(--f-mono);font-size:11px;padding:1px 7px;border-radius:999px;background:var(--ok);color:#fff}
+.sol p{font-size:12.5px;color:var(--muted);line-height:1.45}
+.sol .meta{font-size:12px;color:var(--muted)}
+.sol .choose{align-self:flex-start;font-size:13px;padding:5px 10px}
+.k4c .chosen{color:var(--ok);font-size:13px;font-weight:600}
+.k4more{font:inherit;font-size:13px;color:var(--accent);background:none;border:none;cursor:pointer;padding:4px;text-align:left}
+@media (max-width:1100px){.kan4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.kan4{grid-template-columns:1fr}}
+
+/* ===== Tchat avec les agents (P-034) ===== */
+.team-fab{position:fixed;right:20px;bottom:20px;z-index:45;display:flex;align-items:center;gap:8px;padding:11px 16px 11px 13px;border-radius:999px;border:none;background:var(--accent);color:#fff;font:inherit;font-weight:600;font-size:15px;cursor:pointer;box-shadow:0 10px 30px rgba(20,30,80,.35)}
+.team-fab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.team-fab .fab-n{background:#fff;color:var(--accent);border-radius:999px;font-size:12px;font-family:var(--f-mono);padding:1px 7px}
+.team-fab:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.chatp{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:55;background:var(--surface);border-left:1px solid var(--line);box-shadow:-20px 0 60px rgba(0,0,0,.25);display:flex;flex-direction:column;transform:translateX(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);visibility:hidden}
+.chatp.on{transform:none;visibility:visible}
+.chatp .ch-head{display:flex;align-items:center;gap:10px;padding:14px 14px 12px 16px;border-bottom:1px solid var(--line)}
+.chatp .ch-head h2{font-size:17px;flex:1;min-width:0}
+.chatp .ch-head .sub{display:block;font-size:12.5px;color:var(--muted);font-weight:400;font-family:var(--f-body)}
+.ch-ib{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);cursor:pointer;flex:none}
+.ch-ib svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ch-body{flex:1;overflow-y:auto;overscroll-behavior:contain}
+.ch-list{padding:8px}
+.ch-dep{font-family:var(--f-mono);font-size:12px;color:var(--muted);padding:12px 8px 6px}
+.ch-ag{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;padding:9px 8px;border:none;border-radius:10px;background:none;color:inherit;font:inherit;cursor:pointer}
+.ch-ag:hover,.ch-ag:focus-visible{background:var(--surface2)}
+.ch-ag .nm{font-weight:600;font-size:14.5px}
+.ch-ag .wh{display:block;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-ag .wh.act{color:var(--run)}
+.ch-ag .unr{min-width:20px;height:20px;border-radius:999px;background:var(--ko);color:#fff;font-size:11.5px;font-family:var(--f-mono);display:grid;place-items:center;padding:0 6px}
+.ch-where{margin:12px 14px 4px;padding:12px 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.ch-where .lab{font-family:var(--f-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.ch-where b{font-size:14.5px;line-height:1.4}
+.ch-where .cnt4{display:flex;gap:6px;flex-wrap:wrap}
+.ch-where .cnt4 span{font-size:12px;padding:2px 8px;border-radius:999px}
+.ch-msgs{display:flex;flex-direction:column;gap:10px;padding:12px 14px 16px}
+.msg{max-width:88%;padding:9px 12px;border-radius:14px;font-size:14.5px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.msg.ag{align-self:flex-start;background:var(--surface2);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.sys{align-self:center;max-width:94%;background:var(--run-soft);color:var(--ink);font-size:13px;border-radius:10px;border-left:4px solid var(--run)}
+.msg .t{display:block;font-size:11px;opacity:.7;margin-top:4px;font-family:var(--f-mono)}
+.msg.typing{color:var(--muted)}
+.ch-sugg{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 8px}
+.ch-sugg button{font:inherit;font-size:13px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.ch-sugg button:hover{border-color:var(--accent)}
+.ch-form{display:flex;gap:8px;align-items:flex-end;padding:10px 12px 12px;border-top:1px solid var(--line);background:var(--surface)}
+.ch-form textarea{flex:1;min-height:42px;max-height:140px;resize:none;font:inherit;font-size:14.5px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--ink)}
+.ch-form textarea:focus{outline:2px solid var(--accent);outline-offset:0}
+.ch-form button{height:42px;padding:0 16px;border-radius:12px;border:none;background:var(--accent);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.ch-form button:disabled{opacity:.5;cursor:default}
+.ch-note{font-size:12px;color:var(--muted);padding:0 14px 10px}
+@media (max-width:700px){.team-fab{right:14px;bottom:14px;padding:10px 14px 10px 11px}.chatp{width:100vw;border-left:none}}
+@media (prefers-reduced-motion:reduce){.chatp{transition:none}}
 /* ===== Écrans étroits ===== */
 @media (max-width:900px){.plan-top{grid-template-columns:1fr}}
 @media (max-width:700px){
@@ -351,6 +424,7 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
     <div class="panel"><div class="phead"><h2>Avancement du plan</h2><span class="sub" id="pl-count"></span></div><div class="pnum" id="pl-pct"></div><div class="stack" id="pl-stack"></div><div class="legend" id="pl-legend"></div></div>
   </div>
   <div class="cur" id="pl-cur"></div>
+  <div class="panel"><div class="phead"><h2>Tâches par statut</h2><span class="sub">tâches du plan · les tâches bloquées proposent des solutions gratuites</span></div><div class="kan4" id="pl-kan"></div></div>
   <div class="panel"><div class="phead"><h2>File d'exécution</h2><span class="sub">une tâche à la fois, dans cet ordre</span></div><div class="queue" id="pl-queue"></div></div>
   <div class="lots" id="pl-lots"></div>
 </section>
@@ -446,6 +520,12 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
 </div></main>
 <footer><div class="wrap" id="foot"></div></footer>
 
+<button type="button" class="team-fab" id="team-fab" aria-haspopup="dialog" aria-controls="chatp"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Équipe<span class="fab-n" id="fab-n" hidden></span></button>
+<aside class="chatp" id="chatp" role="dialog" aria-modal="false" aria-labelledby="ch-title">
+  <div class="ch-head"><button type="button" class="ch-ib" id="ch-back" hidden aria-label="Retour à l'équipe"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><h2 id="ch-title">Équipe<span class="sub" id="ch-sub">Où en est chacun, en direct</span></h2><button type="button" class="ch-ib" id="ch-close" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="ch-body" id="ch-body"></div>
+  <div id="ch-foot"></div>
+</aside>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="m-title"><div class="box" id="m-box"></div></div>
 <script id="data" type="application/json">__DATA__</script>
 <script>
@@ -720,6 +800,18 @@ function renderPlan(){const P=D.plan;if(!P){$('#pl-obj').textContent='Plan en co
   $('#pl-cur').classList.toggle('flash',!!cur&&ch.has(cur.id));
   $('#pl-queue').innerHTML=(P.file||[]).map((id,i)=>{const t=byId[id];if(!t)return'';return `<button type="button" class="qi ${t.statut}${ch.has(id)?' flash':''}" data-task="${id}" ${id===P.courante?'aria-current="step"':''}><span class="n">${i+1} · ${id}</span><b>${esc(t.titre)}</b></button>`}).join('');
   const qc=$('#pl-queue').querySelector('[aria-current]');if(qc&&!renderPlan.scrolled){renderPlan.scrolled=true;setTimeout(()=>qc.scrollIntoView({block:'nearest',inline:'center'}),60)}
+
+  // Tâches par statut : Fait, En cours, À faire, Bloqué (avec solutions gratuites)
+  const COLS=[['fait','Fait'],['en_cours','En cours'],['a_faire','À faire'],['bloque','Bloqué']];
+  const lotOf=id=>(P.lots.find(l=>l.taches.includes(id))||{});
+  const solsHtml=t=>{const dec=DECS.find(x=>x.source===t.id);if(dec)return `<p class="chosen">Votre choix : ${esc(dec.offre)} → ${esc(dec.id)}</p>`;
+    const offers=(t.solutions&&t.solutions.length)?t.solutions:defaultOffers(t);
+    return `<div class="sols">${offers.map((o,i)=>`<div class="sol ${o.recommande?'rec':''}"><span class="st1">${esc(o.titre)}<span class="free">${esc(o.cout||'Gratuit')}</span>${o.recommande?'<span class="recb">Recommandée</span>':''}</span><p>${esc(o.detail)}</p><span class="meta">Délai : ${esc(o.delai||'—')} · ${esc(o.resp||'')}</span><button type="button" class="btn choose" data-pick="${t.id}|${i}">Choisir cette solution</button></div>`).join('')}</div>`;};
+  const sh=renderPlan.showDone||false;
+  $('#pl-kan').innerHTML=COLS.map(([k,lab])=>{let l=ts.filter(t=>t.statut===k);const total=l.length;if(k==='fait'&&!sh)l=l.slice(0,6);
+    return `<div class="k4col ${k}"><div class="k4h"><span>${lab}</span><span class="n">${total}</span></div>${l.map(t=>`<div class="k4c ${k}${ch.has(t.id)?' flash':''}" data-task="${t.id}" tabindex="0" role="button" aria-label="${esc(t.id+' '+t.titre)}"><div class="top"><span class="id">${t.id}</span><span class="prio ${t.prio}">${t.prio}</span></div><b>${esc(t.titre)}</b><span class="who">${esc(lotOf(t.id).titre||'')} · ${esc(t.resp||'')}</span>${k==='bloque'?`<p class="why">${esc(t.bloquant||'Tâche bloquée')}</p>${solsHtml(t)}`:''}</div>`).join('')||'<p class="small" style="padding:4px">Aucune</p>'}${k==='fait'&&total>6?`<button type="button" class="k4more" id="k4more">${sh?'Réduire':'Voir les '+total+' tâches faites'}</button>`:''}</div>`}).join('');
+  const km=$('#k4more');if(km)km.onclick=e=>{e.stopPropagation();renderPlan.showDone=!sh;renderPlan();};
+  $('#pl-kan').querySelectorAll('.sol').forEach(x=>x.addEventListener('click',e=>{if(!e.target.closest('[data-pick]'))e.stopPropagation()}));
   $('#pl-lots').innerHTML=P.lots.map(l=>{const lt=l.taches.map(i=>byId[i]).filter(Boolean);const d=lt.filter(t=>t.statut==='fait').length;const pct=lt.length?Math.round(d/lt.length*100):0;
     return `<div class="panel lot"><div class="lh"><h3><span class="lid">${l.id}</span> ${esc(l.titre)}</h3><span class="small mono">${d}/${lt.length}</span></div><p class="but">${esc(l.but||'')}</p><div class="bar" style="margin:0"><i style="width:${pct}%;background:${pct===100?'var(--ok)':'var(--accent)'}"></i></div><ul>${lt.map(t=>`<li data-task="${t.id}" class="${ch.has(t.id)?'flash':''}" title="${ST[t.statut]}"><span class="dot ${t.statut}"></span><span><span class="id">${t.id}</span> ${esc(t.titre)}</span>${t.statut==='bloque'&&needsFix(t)?fixBtn(t):`<span class="prio ${t.prio}">${t.prio}</span>`}</li>`).join('')}</ul></div>`}).join('');
 }
@@ -730,12 +822,79 @@ function renderBlk(){const B=T.filter(t=>t.statut!=='fait'&&(t.statut==='bloque'
     return `<div class="panel blk ${dec?'decided':''}"><div class="phead" style="margin-bottom:4px"><h3><span class="mono" style="color:var(--accent)">${t.id}</span> ${esc(t.titre)}</h3><span class="prio ${t.prio}">${t.prio}</span></div>${dec?`<p class="chosen">Votre choix : ${esc(dec.offre)} → ${esc(dec.id)}</p>`:`<p class="reason">${esc(t.bloquant||'Tâche bloquée')}</p><div class="offers">${offers.map((o,i)=>`<div class="offer ${o.recommande?'rec':''}">${o.recommande?'<span class="badge">Recommandée</span>':''}<h3>${esc(o.titre)}</h3><p class="small">${esc(o.detail)}</p><div class="tags"><span class="badge free">${esc(o.cout||'Gratuit')}</span><span>Délai : ${esc(o.delai||'—')}</span>${o.dept&&DEP[o.dept]?dept(o.dept):''}<span>${esc(o.resp||'')}</span></div><button type="button" class="btn choose" data-pick="${t.id}|${i}">Choisir cette solution</button></div>`).join('')}</div>`}</div>`}).join(''):'<div class="panel"><p>Aucune tâche bloquée.</p></div>';
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b)return;e.stopPropagation();const [id,i]=b.dataset.pick.split('|');const t=T.find(x=>x.id===id);if(!t)return;const offers=(t.solutions&&t.solutions.length)?t.solutions:defaultOffers(t);
-  const box=b.closest('.offers');box.querySelectorAll('.choose').forEach(x=>x.classList.add('scope'));choose(t,offers[+i],b);},true);
+  choose(t,offers[+i],b);},true);
+
+// ===== Tchat avec les agents (P-034) =====
+let CHAT={open:false,agent:null,busy:false},CHATS={},chatRef=null,sampleFn=null,UNREAD={},PREVAG=null;
+const fmtT=iso=>{try{return new Date(iso).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}catch(e){return ''}};
+function agentState(n){const a=(NOW.agents||[]).find(z=>z.nom===n);const ts=T.filter(t=>t.resp===n);const run=ts.filter(t=>t.statut==='en_cours');const blk=ts.filter(t=>t.statut==='bloque');
+  let where=a?a.action:run.length?`Travaille sur ${run[0].id} · ${run[0].titre}`:blk.length?`Bloqué sur ${blk[0].id} · ${blk[0].titre}`:'Disponible';
+  return {active:!!a,where,ts,run,blk};}
+function chatSnapshot(){const m={};D.departements.forEach(x=>x.membres.forEach(mb=>{m[mb.nom]=Object.fromEntries(T.filter(t=>t.resp===mb.nom).map(t=>[t.id,t.statut]))}));return m;}
+let PREVACT=null;
+function chatDetect(){const cur=chatSnapshot();const acts=new Set((D.activite||[]).map(a=>a.nom+'|'+a.texte));
+  if(!chatDetect.armed){if(liveState==='on')chatDetect.armed=true;PREVAG=cur;PREVACT=acts;return;}
+  for(const a of (D.activite||[])){const k=a.nom+'|'+a.texte;if(PREVACT&&!PREVACT.has(k)&&memberOf(a.nom)[0])chatPush(a.nom,{r:'sys',x:a.texte});}PREVACT=acts;
+  if(PREVAG){for(const n in cur){for(const id in cur[n]){const was=PREVAG[n]&&PREVAG[n][id];if(was&&was!==cur[n][id]){const t=T.find(z=>z.id===id);chatPush(n,{r:'sys',x:`Mise à jour : ${id} « ${t?t.titre:''} » passe de « ${ST[was]||was} » à « ${ST[cur[n][id]]||cur[n][id]} ».`});}}}}PREVAG=cur;}
+function chatPush(n,m,save){m.at=m.at||new Date().toISOString();(CHATS[n]=CHATS[n]||[]).push(m);if(CHATS[n].length>60)CHATS[n]=CHATS[n].slice(-60);
+  if(!(CHAT.open&&CHAT.agent===n)&&m.r!=='me')UNREAD[n]=(UNREAD[n]||0)+1;if(save)chatSave();if(CHAT.open)chatRender();chatFab();}
+function chatFab(){const u=Object.values(UNREAD).reduce((a,b)=>a+b,0);const e=$('#fab-n');if(e){e.hidden=!u;e.textContent=u;}}
+async function chatSave(){if(!chatRef)return;try{await chatRef.set({items:CHATS});}catch(e){}}
+function chatRender(){const body=$('#ch-body'),foot=$('#ch-foot');$('#ch-back').hidden=!CHAT.agent;
+  if(!CHAT.agent){$('#ch-title').firstChild.textContent='Équipe';$('#ch-sub').textContent='Où en est chacun, en direct · cliquez pour discuter';
+    body.innerHTML=`<div class="ch-list">${D.departements.map(x=>`<div class="ch-dep">${esc(x.nom)}</div>${x.membres.map(mb=>{const s=agentState(mb.nom);return `<button type="button" class="ch-ag" data-chat="${esc(mb.nom)}"><span class="av ${s.active?'pulse':''}" style="background:${x.couleur}">${initials(mb.nom)}</span><span><span class="nm">${esc(mb.nom)}</span><span class="wh ${s.active||s.run.length?'act':''}">${esc(s.where)}</span></span>${UNREAD[mb.nom]?`<span class="unr">${UNREAD[mb.nom]}</span>`:'<span></span>'}</button>`}).join('')}`).join('')}</div>`;
+    foot.innerHTML='';foot.dataset.agent='';return;}
+  const n=CHAT.agent,[x,mb]=memberOf(n),s=agentState(n);UNREAD[n]=0;chatFab();
+  $('#ch-title').firstChild.textContent=n;$('#ch-sub').textContent=`${mb?mb.role:''} · ${x?x.court:''}`;
+  const c=k=>s.ts.filter(t=>t.statut===k).length;const col={fait:'var(--ok-soft)',en_cours:'var(--run-soft)',a_faire:'var(--todo-soft)',bloque:'var(--ko-soft)'};
+  const msgs=(CHATS[n]||[]);
+  body.innerHTML=`<div class="ch-where"><span class="lab">${s.active?'● En ce moment':'Où il en est'}</span><b>${esc(s.where)}</b><div class="cnt4">${ORDER.map(k=>`<span style="background:${col[k]}">${ST[k]} ${c(k)}</span>`).join('')}</div></div><div class="ch-msgs" id="ch-msgs" aria-live="polite">${msgs.length?msgs.map(m=>`<div class="msg ${m.r==='me'?'me':m.r==='sys'?'sys':'ag'}${m.typing?' typing':''}">${esc(m.x)}<span class="t">${m.r==='me'?'Vous':m.r==='sys'?'Mise à jour':esc(n.split(' ')[0])} · ${fmtT(m.at)}</span></div>`).join(''):`<div class="msg sys">Posez une question à ${esc(n.split(' ')[0])} : il répond à partir de l'état réel du projet. Les mises à jour de ses tâches s'affichent ici en direct.</div>`}</div>`;
+  if(!foot.dataset.agent||foot.dataset.agent!==n){foot.dataset.agent=n;
+    foot.innerHTML=`<div class="ch-sugg">${['Où en es-tu ?','Qu’est-ce qui te bloque ?','Quelle est ta prochaine tâche ?','Qu’as-tu terminé aujourd’hui ?'].map(q=>`<button type="button" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div><form class="ch-form" id="ch-form"><label for="ch-in" class="small" style="position:absolute;left:-9999px">Votre question</label><textarea id="ch-in" rows="1" placeholder="Écrire à ${esc(n.split(' ')[0])}…"></textarea><button type="submit" id="ch-send">Envoyer</button></form>${sampleFn?'':'<p class="ch-note">Réponses indisponibles dans cet affichage : ouvrez la salle de pilotage sur claude.ai.</p>'}`;
+    foot.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>chatAsk(b.dataset.q));
+    $('#ch-form').onsubmit=e=>{e.preventDefault();const v=$('#ch-in').value.trim();if(v)chatAsk(v);};
+    $('#ch-in').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#ch-form').requestSubmit();}};}
+  $('#ch-send').disabled=CHAT.busy||!sampleFn;const ml=$('#ch-msgs');if(ml)body.scrollTop=body.scrollHeight;}
+function chatContext(n){const [x,mb]=memberOf(n),s=agentState(n);const P=D.plan||{};const byId=Object.fromEntries(T.map(t=>[t.id,t]));
+  const mine=s.ts.map(t=>`- ${t.id} [${ST[t.statut]}] ${t.titre}${t.detail?' — '+t.detail:''}${t.bloquant?' — BLOQUANT : '+t.bloquant:''}`).join('\n')||'(aucune tâche à ton nom)';
+  const file=(P.file||[]).map((id,i)=>byId[id]?`${i+1}. ${id} [${ST[byId[id].statut]}] ${byId[id].titre} (${byId[id].resp})`:'').filter(Boolean).join('\n');
+  const blk=T.filter(t=>t.statut==='bloque').map(t=>`- ${t.id} ${t.titre} : ${t.bloquant||''}`).join('\n');
+  const act=(D.activite||[]).slice(-10).map(a=>`- ${a.nom} : ${a.texte}`).join('\n');
+  return `Tu es ${n}, ${mb?mb.role:''}${mb&&mb.niveau?' ('+mb.niveau+')':''}, département « ${x?x.nom:''} » de Prisme Ingénierie, entreprise de sous-traitance (simulée) qui développe la plateforme AI Casting pour le client. Le client te parle depuis la salle de pilotage.
+Règles : réponds en français, à la première personne, en 2 à 6 phrases claires, sans titres ni listes longues. Appuie-toi UNIQUEMENT sur l'état en direct ci-dessous ; n'invente ni avancement, ni chiffres, ni dates ; si l'information manque, dis-le simplement. Si le client te demande de faire ou de changer quelque chose, réponds que sa demande est notée dans ce fil et que l'équipe la traitera au prochain passage, dans l'ordre de la file. Ne parle que du projet.
+
+ÉTAT EN DIRECT (${D.meta.maj||''}, ${D.meta.jour||''}) :
+Ce que tu fais en ce moment : ${s.where}
+Tes tâches :
+${mine}
+Tâche en cours de l'entreprise : ${P.courante||'—'}
+File d'exécution :
+${file}
+Tâches bloquées (solutions gratuites proposées dans l'onglet Blocages) :
+${blk}
+Activité récente :
+${act}`;}
+async function chatAsk(q){const n=CHAT.agent;if(!n||CHAT.busy||!sampleFn)return;CHAT.busy=true;$('#ch-in').value='';
+  chatPush(n,{r:'me',x:q});const hist=(CHATS[n]||[]).filter(m=>m.r!=='sys'&&!m.typing).slice(-9,-1).map(m=>`${m.r==='me'?'Client':n} : ${m.x}`).join('\n');
+  const ans={r:'ag',x:'…',typing:true};chatPush(n,ans);chatRender();
+  const prompt=chatContext(n)+(hist?`\n\nDébut de la conversation :\n${hist}`:'')+`\n\nQuestion du client : ${q}`;
+  try{const res=await sampleFn(prompt,{modelTier:'quick',cache:false,onText:({text})=>{ans.x=text||'…';const ml=$('#ch-msgs');if(ml&&ml.lastElementChild&&CHAT.agent===n){ml.lastElementChild.firstChild.textContent=ans.x;$('#ch-body').scrollTop=$('#ch-body').scrollHeight;}}});
+    ans.x=(res&&res.text)||ans.x;}
+  catch(e){ans.x=e&&e.code==='not_granted'?'Les réponses ne sont pas autorisées dans cet affichage.':e&&e.code==='rate_limited'?'Trop de questions d’un coup : réessayez dans un instant.':'Réponse impossible pour le moment : réessayez.';}
+  ans.typing=false;CHAT.busy=false;chatRender();chatSave();}
+function chatOpen(n){CHAT.open=true;CHAT.agent=n||null;$('#chatp').classList.add('on');$('#team-fab').setAttribute('aria-expanded','true');chatRender();setTimeout(()=>{const i=$('#ch-in');(i&&CHAT.agent?i:$('#ch-close')).focus()},250);}
+function chatClose(){CHAT.open=false;$('#chatp').classList.remove('on');$('#team-fab').setAttribute('aria-expanded','false');$('#team-fab').focus();}
+$('#team-fab').onclick=()=>CHAT.open?chatClose():chatOpen(null);
+$('#ch-close').onclick=chatClose;$('#ch-back').onclick=()=>{CHAT.agent=null;$('#ch-foot').dataset.agent='';chatRender();};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-chat]');if(b){e.stopPropagation();CHAT.agent=b.dataset.chat;chatOpen(b.dataset.chat);}},true);
+addEventListener('keydown',e=>{if(e.key==='Escape'&&CHAT.open&&!$('#modal').classList.contains('on'))chatClose();});
+(async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');if(db){chatRef=db.doc('live/chats');try{chatRef.onSnapshot(sn=>{const v=val(sn);if(v&&v.items&&!CHAT.busy){CHATS=v.items;if(CHAT.open)chatRender();}},()=>{});}catch(e){}}
+  sampleFn=await claude.use('sample');if(CHAT.open){$('#ch-foot').dataset.agent='';chatRender();}}catch(e){}})();
 function renderAll(){
   DEP=Object.fromEntries(D.departements.map(x=>[x.id,x]));T=D.taches;applyDecs();members=D.departements.reduce((a,x)=>a+x.membres.length,0);
   NOW=D.maintenant||{agents:[]};activeNames=new Set(NOW.agents.map(a=>a.nom));detectChanges();
   D.departements.forEach(x=>{if(x.membres.some(m=>activeNames.has(m.nom)))mmOpen.add(x.id)});
-  renderTop();renderNow();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();renderPlan();renderBlk();
+  renderTop();renderNow();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();renderPlan();renderBlk();chatDetect();if(CHAT.open)chatRender();
   if(location.hash==='#carte'){renderMM();const info=$('#mm-info');if(info&&info.innerHTML){if(mmFocus)showAgent(mmFocus);else if(infoKind==='projet')showProject();else if(infoKind&&infoKind.startsWith('dept:'))showDept(infoKind.slice(5));}}
   setLive();
 }
@@ -777,6 +936,7 @@ function route(){
   if(v==='organisation')renderOrg();if(v==='carte'){renderMM();if(mmFocus)showAgent(mmFocus);else if(!$('#mm-info').innerHTML)showProject();}
 }
 renderTop();renderNow();initFilters();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();renderPlan();renderBlk();
+chatDetect();
 addEventListener('hashchange',route);route();
 </script>
 </body>
