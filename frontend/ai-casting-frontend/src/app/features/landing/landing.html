@@ -1,7 +1,11 @@
 <div class="vitrine">
+  <div #wipe class="wipe" aria-hidden="true">
+    <div class="wipe-line"><span class="wipe-num">Scène {{ wipeNum() < 10 ? '0' + wipeNum() : wipeNum() }}</span></div>
+    <div class="wipe-line"><span class="wipe-title">{{ wipeLabel() }}</span></div>
+  </div>
   <a class="skip" href="#contenu" (click)="go('contenu', $event)">Aller au contenu</a>
   <header class="nav" [class.open]="menu()">
-    <a class="logo" routerLink="/" aria-label="AI Casting, accueil"><span class="ring" aria-hidden="true"></span>AI Casting</a>
+    <a class="logo" href="#contenu" (click)="go('contenu', $event)" aria-label="AI Casting, haut de page"><span class="ring" aria-hidden="true"></span>AI Casting</a>
     <nav id="menu-mobile" aria-label="Sections">
       <a href="#methode" [class.on]="section() === 'methode'" (click)="go('methode', $event)">Comment ça marche</a>
       <a href="#agences" [class.on]="section() === 'agences'" (click)="go('agences', $event)">Agences</a>
@@ -30,38 +34,71 @@
       <p class="fine">Profil acteur gratuit · accès agence sur contrat</p>
     </div>
 
-    <figure class="desk" aria-label="Démonstration : la recherche de profils à partir d'une description de rôle">
-      <div class="brief" role="group" aria-label="Essayez un rôle">
+    <figure class="desk" aria-label="Démonstration : faire le tri parmi des profils proposés par l'IA">
+      <div class="brief" role="group" aria-label="Choisissez un rôle">
         <div class="chips">
           @for (b of briefs; track b.label; let i = $index) {
-            <button type="button" [class.on]="active() === i" [attr.aria-pressed]="active() === i" (click)="choose(i)">{{ b.label }}</button>
+            <button type="button" [class.on]="active() === i" [attr.aria-pressed]="active() === i" (click)="pick(i)">{{ b.label }}</button>
           }
         </div>
-        <p class="typed" aria-live="polite"><span>{{ typed() }}</span><i class="caret" [class.done]="phase() !== 'typing'" aria-hidden="true"></i></p>
+        <p class="typed"><span>{{ typed() }}</span><i class="caret" aria-hidden="true"></i></p>
       </div>
 
-      <div class="sheet" [class.sorting]="phase() === 'sorting'" [class.marked]="phase() === 'marked'" aria-hidden="true">
-        @for (f of frames; track f.n) {
-          <div class="frame" [style.--tone]="f.tone" [style.--i]="f.n"
-               [class.keep]="phase() === 'marked' && keep(f.n) >= 0" [class.ko]="phase() === 'marked' && ko(f.n)">
-            <svg class="person" viewBox="0 0 100 100">
-              @switch (f.shape) {
-                @case (0) { <circle cx="50" cy="38" r="17"/><path d="M18 100c2-24 16-36 32-36s30 12 32 36z"/> }
-                @case (1) { <path d="M30 52c-2-24 8-34 20-34s22 10 20 34c-4-6-6-14-6-14H36s-2 8-6 14z"/><circle cx="50" cy="39" r="15"/><path d="M20 100c3-22 15-33 30-33s27 11 30 33z"/> }
-                @default { <circle cx="50" cy="40" r="16"/><path d="M33 31c4-12 30-12 34 0z"/><path d="M16 100c2-23 17-34 34-34s32 11 34 34z"/> }
+      <div class="deck" tabindex="0" role="group" (keydown)="key($event)" [class.hint]="!touched()"
+           aria-label="Profils proposés. Flèche droite pour retenir, flèche gauche pour écarter.">
+        @for (cd of cards(); track active() + cd.name; let i = $index) {
+          @if (i >= idx() && i < idx() + 3) {
+            <article class="card" [class.top]="i === idx()" [style]="cardStyle(i)" [attr.aria-hidden]="i !== idx()"
+                     (pointerdown)="i === idx() && down($event)" (pointermove)="move($event)" (pointerup)="up()" (pointercancel)="up()">
+              <div class="face" [style.--tone]="cd.tone">
+                <svg class="person" viewBox="0 0 100 100" aria-hidden="true">
+                  @switch (cd.shape) {
+                    @case (0) { <circle cx="50" cy="38" r="17"/><path d="M18 100c2-24 16-36 32-36s30 12 32 36z"/> }
+                    @case (1) { <path d="M30 52c-2-24 8-34 20-34s22 10 20 34c-4-6-6-14-6-14H36s-2 8-6 14z"/><circle cx="50" cy="39" r="15"/><path d="M20 100c3-22 15-33 30-33s27 11 30 33z"/> }
+                    @default { <circle cx="50" cy="40" r="16"/><path d="M33 31c4-12 30-12 34 0z"/><path d="M16 100c2-23 17-34 34-34s32 11 34 34z"/> }
+                  }
+                </svg>
+                @if (i === idx()) {
+                  <span class="stamp keep" [style.opacity]="stampKeep()" aria-hidden="true">
+                    <svg viewBox="0 0 200 200"><path d="M104 18 C 52 16, 14 52, 16 104 C 18 156, 62 186, 108 184 C 156 182, 188 146, 186 98 C 184 52, 150 20, 96 24"/></svg>Retenu</span>
+                  <span class="stamp ko" [style.opacity]="stampKo()" aria-hidden="true">
+                    <svg viewBox="0 0 200 200"><path d="M40 40 L 160 160"/><path d="M160 40 L 40 160"/></svg>Écarté</span>
+                }
+                <div class="info">
+                  <h3>{{ cd.name }}, {{ cd.age }} ans</h3>
+                  <p class="city">{{ cd.city }}</p>
+                  <ul class="tags">@for (t of cd.tags; track t) { <li>{{ t }}</li> }</ul>
+                  <p class="ai" [class.yes]="cd.match"><b>{{ cd.match ? 'L’IA suggère : retenir' : 'L’IA suggère : écarter' }}</b>{{ cd.why }}</p>
+                </div>
+              </div>
+            </article>
+          }
+        }
+        @if (done()) {
+          <div class="summary" role="status">
+            <div class="planchette">
+              @for (cd of cards(); track cd.name; let i = $index) {
+                <span class="mf" [style.--tone]="cd.tone" [class.k]="choices()[i] === 'keep'" [class.x]="choices()[i] === 'ko'"><i>{{ cd.name }}</i></span>
               }
-            </svg>
-            <span class="num">{{ f.n + 1 }}</span>
-            <svg class="pencil ok" viewBox="0 0 200 200" preserveAspectRatio="none" [style.--d]="keep(f.n) * 0.32 + 's'">
-              <path d="M104 18 C 52 16, 14 52, 16 104 C 18 156, 62 186, 108 184 C 156 182, 188 146, 186 98 C 184 52, 150 20, 96 24"/></svg>
-            <svg class="pencil no" viewBox="0 0 200 200" preserveAspectRatio="none">
-              <path d="M30 34 L 172 168"/><path d="M170 30 L 34 170"/></svg>
+            </div>
+            <h3>{{ kept() }} profil{{ kept() > 1 ? 's' : '' }} retenu{{ kept() > 1 ? 's' : '' }} sur {{ cards().length }}</h3>
+            <p>Vous avez suivi l’IA {{ agree() }} fois sur {{ cards().length }}. Elle propose et explique, vous décidez.</p>
+            <div class="sum-cta">
+              <button type="button" class="btn solid" (click)="next()">Essayer un autre rôle</button>
+              <button type="button" class="btn line" (click)="replay()">Rejouer</button>
+            </div>
           </div>
         }
       </div>
-      <p class="why" [class.show]="phase() === 'marked'" aria-live="polite">
-        <span class="ring" aria-hidden="true"></span>Profil {{ firstKeep() + 1 }} retenu : {{ briefs[active()].why }}</p>
-      <figcaption>Démonstration. Chaque profil retenu vient avec la raison de son choix ; c’est toujours l’agence qui décide.</figcaption>
+
+      <div class="deck-ctrl" [class.off]="done()">
+        <button type="button" class="round ko" (click)="decide('ko')" aria-label="Écarter ce profil" [disabled]="done()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        <span class="count" aria-live="polite">{{ done() ? cards().length : idx() + 1 }} / {{ cards().length }}</span>
+        <button type="button" class="round keep" (click)="decide('keep')" aria-label="Retenir ce profil" [disabled]="done()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/></svg></button>
+      </div>
+      <figcaption>Démonstration avec des profils fictifs. Glissez la fiche à droite pour la retenir, à gauche pour l’écarter.</figcaption>
     </figure>
     <a class="scroll-hint" href="#methode" (click)="go('methode', $event)" aria-label="Découvrir la méthode"><span></span></a>
   </section>

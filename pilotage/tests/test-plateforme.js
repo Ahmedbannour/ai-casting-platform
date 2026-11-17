@@ -195,9 +195,17 @@ async function audit(page, path, name, errors) {
     // Vitrine publique
     await p2.goto(BASE + '/'); await p2.waitForTimeout(4500);
     check('Vitrine : affichée aux visiteurs (mobile)', /Décrivez le rôle/.test(await p2.locator('h1').textContent().catch(() => '')) && p2.url() === BASE + '/');
-    check('Vitrine : planche annotée (profils entourés et barrés)', await p2.locator('.frame.keep').count() >= 2 && await p2.locator('.frame.ko').count() >= 1);
-    await p2.getByRole('button', { name: /Rôle d’enfant/ }).click(); await p2.waitForTimeout(3500);
-    check('Vitrine : choisir un autre rôle rejoue la planche', /Garçon/.test(await p2.locator('.typed').textContent()));
+    await p2.locator('.deck').scrollIntoViewIfNeeded(); await p2.waitForTimeout(400);
+    { const bx = await p2.locator('.card.top').boundingBox(); const x0 = bx.x + bx.width / 2, y0 = bx.y + bx.height / 2;
+      await p2.mouse.move(x0, y0); await p2.mouse.down(); for (let i = 1; i <= 8; i++) await p2.mouse.move(x0 + i * 22, y0);
+      await p2.mouse.up(); await p2.waitForTimeout(500); }
+    check('Vitrine : glisser une fiche à droite la retient', (await p2.locator('.deck-ctrl .count').textContent()).trim().startsWith('2'));
+    await p2.locator('.deck').focus(); await p2.keyboard.press('ArrowLeft'); await p2.waitForTimeout(450);
+    for (let i = 0; i < 3; i++) { await p2.getByRole('button', { name: 'Retenir ce profil' }).click(); await p2.waitForTimeout(420); }
+    await p2.waitForTimeout(600);
+    check('Vitrine : résumé après la dernière fiche', /retenus? sur 5/.test(await p2.locator('.summary h3').textContent().catch(() => '')));
+    await p2.getByRole('button', { name: /Rôle d’enfant/ }).click(); await p2.waitForTimeout(1200);
+    check('Vitrine : choisir un autre rôle relance les fiches', /Adam/.test(await p2.locator('.card.top h3').textContent().catch(() => '')));
     check('Vitrine : pas de débordement sur mobile', !(await p2.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)));
     // Contact : erreurs claires, envoi, e-mail affiché à la demande, carte
     await p2.locator('#contact').scrollIntoViewIfNeeded(); await p2.waitForTimeout(800);
@@ -215,6 +223,14 @@ async function audit(page, path, name, errors) {
     await p2.waitForURL(u => u.pathname.startsWith('/auth/inscription'), { timeout: 8000 }).catch(() => {});
     check('Vitrine : menu mobile → inscription', p2.url().includes('/auth/inscription'), p2.url());
     await c2.close(); }
+  { const c4 = await browser.newContext({ viewport: { width: 1600, height: 860 }, locale: 'fr-FR' }); const p4 = await c4.newPage();
+      await p4.goto(BASE + '/'); await p4.waitForTimeout(2200);
+      check('Vitrine : le haut de page couvre l\'écran', Math.abs(await p4.evaluate(() => document.querySelector('.hero').getBoundingClientRect().bottom - innerHeight)) <= 4);
+      await p4.getByRole('link', { name: 'Comment ça marche' }).first().click(); await p4.waitForTimeout(500);
+      check('Vitrine : rideau « Scène 02 » au clic sur le menu', /Comment ça marche/.test(await p4.locator('.wipe-title').textContent()) && await p4.locator('.wipe').isVisible());
+      await p4.waitForTimeout(1300);
+      check('Vitrine : arrivée sur la section choisie', Math.abs(await p4.evaluate(() => document.getElementById('methode').getBoundingClientRect().top) - 68) <= 6);
+      await c4.close(); }
   { const c3 = await browser.newContext({ viewport: { width: 1366, height: 860 }, locale: 'fr-FR' }); const p3 = await c3.newPage();
     await p3.goto(BASE + '/auth/login'); await p3.waitForTimeout(1000);
     await p3.fill('#email', 'ahmed@casting.com'); await p3.fill('#password', 'password123'); await p3.click('button.submit-btn');

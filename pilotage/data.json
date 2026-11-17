@@ -2466,7 +2466,7 @@
    "prompt": "P-031",
    "statut": "fait",
    "lot": "L2",
-   "detail": "Page d'accueil / pour les visiteurs non connectés : planche contact interactive (le visiteur choisit un rôle, la description s'écrit, le crayon entoure les profils retenus et barre les écartés), méthode en 3 étapes, agences et acteurs, engagements sur les données, appel final. Couleurs et police de la marque, adaptée au mobile, mouvements réduits respectés. Un utilisateur connecté va directement à son espace. Recette navigateur 75/75."
+   "detail": "Page d'accueil / pour les visiteurs non connectés, plein écran : fiches d'acteurs fictifs à faire glisser (droite = retenir, gauche = écarter, aussi au clavier et par boutons) avec la suggestion de l'IA et un résumé en mini-planche ; faisceau de projecteur en Three.js ; animations GSAP ; rideau « Scène 02 » au clic sur le menu ; contact (formulaire enregistré, lu dans l'Administration, e-mail affiché au clic) ; carte MapLibre/OpenFreeMap qui vole vers Tunis (adresse à confirmer). Mobile, clavier et mouvements réduits pris en compte. Recette navigateur 84/84."
   }
  ],
  "journal": [
@@ -2526,17 +2526,17 @@
   }
  ],
  "maintenant": {
-  "titre": "P-039 · Vitrine publique en ligne (T-134) ; prochaine : T-112",
-  "etape": 35,
+  "titre": "P-040 · Vitrine v3 : fiches à glisser, rideau de cinéma, contact et carte ; prochaine : T-112",
+  "etape": 36,
   "agents": [
    {
     "nom": "Yasmine Trabelsi",
-    "action": "Vitrine publique livrée : planche contact animée et interactive",
+    "action": "Vitrine : fiches à glisser, faisceau 3D, rideau entre les scènes, contact et carte",
     "court": "T-134"
    },
    {
     "nom": "Amel Kacem",
-    "action": "Recette navigateur : 75/75",
+    "action": "Recette navigateur : 84/84",
     "court": "recette"
    }
   ]
@@ -2619,6 +2619,12 @@
    "nom": "Yasmine Trabelsi",
    "t": "2026-11-17T21:15:00Z",
    "texte": "T-134 livrée : page vitrine publique sur / — planche contact interactive, agences, acteurs, engagements. 75/75 en navigateur."
+  },
+  {
+   "h": "J5",
+   "nom": "Yasmine Trabelsi",
+   "t": "2026-11-17T21:45:00Z",
+   "texte": "Vitrine v3 : fiches d'acteurs à glisser comme sur mobile, haut de page plein écran, rideau « Scène » au clic sur le menu, formulaire de contact et carte de Tunis. 84/84 en navigateur."
   }
  ],
  "plan": {
