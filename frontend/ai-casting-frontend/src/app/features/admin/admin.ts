@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { HostListener, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
@@ -229,13 +229,59 @@ export class AdminComponent implements OnInit {
   readonly userError = signal('');
   readonly roleOptions = [{ value: 'AGENT', label: 'Agent' }, { value: 'ADMIN', label: 'Administrateur' }];
   readonly filters = [
-    { value: '', label: 'Tous' }, { value: 'AGENT', label: 'Agents' }, { value: 'ADMIN', label: 'Administrateurs' }, { value: 'ACTEUR', label: 'Acteurs' }
+    { value: '', label: 'Tous' }, { value: 'ADMIN', label: 'Administrateurs' }, { value: 'AGENT', label: 'Agents' },
+    { value: 'ACTEUR', label: 'Acteurs' }, { value: 'OFF', label: 'Désactivés' }
   ];
-  readonly shownUsers = computed(() => {
-    const q = this.search().trim().toLowerCase();
-    return this.users().filter(u => (!this.roleFilter() || u.role === this.roleFilter())
-      && (!q || `${u.firstName} ${u.lastName} ${u.email} ${u.agencyName ?? ''}`.toLowerCase().includes(q)));
+  readonly sort = signal<'recent' | 'name'>('recent');
+  readonly actorLimit = signal(12);
+  /** Nombre de comptes par filtre (affiché dans les onglets). */
+  readonly counts = computed(() => {
+    const u = this.users();
+    return { '': u.length, ADMIN: u.filter(x => x.role === 'ADMIN').length, AGENT: u.filter(x => x.role === 'AGENT').length,
+      ACTEUR: u.filter(x => x.role === 'ACTEUR').length, OFF: u.filter(x => !x.enabled).length } as Record<string, number>;
   });
+  readonly shownUsers = computed(() => {
+    const q = this.search().trim().toLowerCase(), f = this.roleFilter();
+    const list = this.users().filter(u => (!f || (f === 'OFF' ? !u.enabled : u.role === f))
+      && (!q || `${u.firstName} ${u.lastName} ${u.email} ${u.agencyName ?? ''}`.toLowerCase().includes(q)));
+    return this.sort() === 'name'
+      ? [...list].sort((a, b) => `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`, 'fr'))
+      : [...list].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  });
+  /** Comptes regroupés : administrateurs, agents par agence, puis acteurs (affichés par paquets). */
+  readonly groups = computed(() => {
+    const list = this.shownUsers();
+    const out: { key: string; title: string; hint: string; users: UserRow[]; total: number }[] = [];
+    const admins = list.filter(u => u.role === 'ADMIN');
+    if (admins.length) out.push({ key: 'admin', title: 'Administrateurs', hint: 'Accès complet à la plateforme', users: admins, total: admins.length });
+    const byAgency = new Map<string, UserRow[]>();
+    for (const u of list.filter(x => x.role === 'AGENT')) {
+      const k = u.agencyName || 'Sans agence';
+      byAgency.set(k, [...(byAgency.get(k) ?? []), u]);
+    }
+    [...byAgency.entries()].sort(([a], [b]) => a === 'Sans agence' ? 1 : b === 'Sans agence' ? -1 : a.localeCompare(b, 'fr'))
+      .forEach(([k, us]) => out.push({ key: 'ag:' + k, title: k, hint: k === 'Sans agence' ? 'À rattacher à une agence pour travailler' : 'Agents de l’agence', users: us, total: us.length }));
+    const actors = list.filter(u => u.role === 'ACTEUR');
+    if (actors.length) out.push({ key: 'acteurs', title: 'Acteurs', hint: 'Comptes créés par les acteurs eux-mêmes ou par invitation', users: actors.slice(0, this.actorLimit()), total: actors.length });
+    return out;
+  });
+  /** Teinte stable par personne, pour reconnaître les comptes d'un coup d'œil. */
+  hue(u: UserRow): number { let h = 0; for (const ch of u.email) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
+  /** Découpe un texte pour surligner la recherche. */
+  hl(text: string): { t: string; m: boolean }[] {
+    const q = this.search().trim(); if (!q || !text) return [{ t: text ?? '', m: false }];
+    const i = text.toLowerCase().indexOf(q.toLowerCase()); if (i < 0) return [{ t: text, m: false }];
+    return [{ t: text.slice(0, i), m: false }, { t: text.slice(i, i + q.length), m: true }, { t: text.slice(i + q.length), m: false }];
+  }
+  /** Activer se fait d'un clic ; désactiver demande une confirmation. */
+  toggleEnabled(u: UserRow): void { if (u.enabled) this.confirming.set(u.id); else this.setEnabled(u, true); }
+  @HostListener('document:keydown', ['$event'])
+  slash(e: KeyboardEvent): void {
+    const t = e.target as HTMLElement;
+    if (e.key === '/' && this.tab() === 'equipe' && !/INPUT|TEXTAREA|SELECT/.test(t.tagName) && !t.isContentEditable) {
+      e.preventDefault(); (document.getElementById('team-search') as HTMLInputElement | null)?.focus();
+    }
+  }
 
   creating = false;
   newAgent = { firstName: '', lastName: '', email: '', role: 'AGENT', agencyId: '' };

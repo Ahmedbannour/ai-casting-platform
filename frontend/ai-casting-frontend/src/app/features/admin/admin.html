@@ -281,19 +281,27 @@
         </div>
       }
 
-      <div class="toolbar">
-        <div class="chips" role="radiogroup" aria-label="Filtrer par rôle">
+      <div class="team-head">
+        <div class="seg" role="group" aria-label="Filtrer les comptes">
           @for (f of filters; track f.value) {
-            <button type="button" role="radio" [attr.aria-checked]="roleFilter() === f.value" [class.on]="roleFilter() === f.value"
-                    (click)="roleFilter.set(f.value)">{{ f.label }}</button>
+            <button type="button" [attr.aria-pressed]="roleFilter() === f.value" [class.on]="roleFilter() === f.value"
+                    (click)="roleFilter.set(f.value); actorLimit.set(12)">{{ f.label }}<span class="cnt">{{ counts()[f.value] }}</span></button>
           }
         </div>
-        <label class="search">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Nom ou e-mail" aria-label="Rechercher un compte" />
-        </label>
-        <button type="button" class="btn-primary" (click)="openCreate()">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter un agent</button>
+        <div class="team-tools">
+          <label class="tsearch">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="team-search" [ngModel]="search()" (ngModelChange)="search.set($event); actorLimit.set(12)" placeholder="Rechercher un nom, un e-mail, une agence" aria-label="Rechercher un compte" />
+            @if (search()) { <button type="button" class="clear" (click)="search.set('')" aria-label="Effacer la recherche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button> }
+            @else { <kbd aria-hidden="true">/</kbd> }
+          </label>
+          <div class="sortby" role="radiogroup" aria-label="Trier">
+            <button type="button" role="radio" [attr.aria-checked]="sort() === 'recent'" [class.on]="sort() === 'recent'" (click)="sort.set('recent')">Récents</button>
+            <button type="button" role="radio" [attr.aria-checked]="sort() === 'name'" [class.on]="sort() === 'name'" (click)="sort.set('name')">A → Z</button>
+          </div>
+          <button type="button" class="btn-primary" (click)="openCreate()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter un agent</button>
+        </div>
       </div>
 
       @if (creating) {
@@ -326,41 +334,68 @@
       @if (userError()) { <p class="field-msg" role="alert">{{ userError() }}</p> }
 
       @if (usersLoading()) {
-        <div class="skel"></div>
+        <div class="team-skel" aria-hidden="true">@for (i of [1, 2, 3, 4]; track i) { <span></span> }</div>
       } @else {
-        <ul class="users">
-          @for (u of shownUsers(); track u.id) {
-            <li [class.off]="!u.enabled">
-              <span class="avatar" aria-hidden="true">{{ (u.firstName || '?')[0] }}{{ (u.lastName || '')[0] }}</span>
-              <div class="who">
-                <b>{{ u.firstName }} {{ u.lastName }}</b>
-                <small>{{ u.email }}@if (providerLabel(u.provider)) { · via {{ providerLabel(u.provider) }} } · depuis le {{ since(u.createdAt) }}</small>
-                @if (u.role === 'AGENT') {
-                  <app-select class="agency-pick" [options]="agencyOptions()" [ngModel]="u.agencyId" (ngModelChange)="setAgency(u, $event)"
-                              placeholder="Sans agence" [compact]="true" [ariaLabel]="'Agence de ' + u.firstName + ' ' + u.lastName" />
+        <div class="team">
+          @for (g of groups(); track g.key) {
+            <section class="grp" [attr.aria-label]="g.title">
+              <header class="grp-h">
+                <h3>{{ g.title }}</h3><span class="n">{{ g.total }}</span><span class="hint">{{ g.hint }}</span>
+              </header>
+              <ul class="rows">
+                @for (u of g.users; track u.id) {
+                  <li class="row" [class.off]="!u.enabled" [class.ask]="confirming() === u.id">
+                    <span class="av" [style.--h]="hue(u)" aria-hidden="true">{{ (u.firstName || '?')[0] }}{{ (u.lastName || '')[0] }}<i [class.on]="u.enabled"></i></span>
+                    <div class="id">
+                      <b>@for (p of hl(u.firstName + ' ' + u.lastName); track $index) { @if (p.m) { <mark>{{ p.t }}</mark> } @else { {{ p.t }} } }</b>
+                      <span class="mail">@for (p of hl(u.email); track $index) { @if (p.m) { <mark>{{ p.t }}</mark> } @else { {{ p.t }} } }</span>
+                      <span class="meta">
+                        @if (providerLabel(u.provider)) { <span class="prov" [class.g]="u.provider === 'GOOGLE'" [class.f]="u.provider === 'FACEBOOK'">{{ providerLabel(u.provider) }}</span> }
+                        <span>Depuis le {{ since(u.createdAt) }}</span>
+                        @if (!u.enabled) { <span class="offtag">Désactivé</span> }
+                      </span>
+                    </div>
+                    <div class="ctl">
+                      @if (u.role === 'ACTEUR') {
+                        <span class="pill">Acteur</span>
+                      } @else {
+                        <app-select class="role" [options]="roleOptions" [ngModel]="u.role" (ngModelChange)="setRole(u, $event)"
+                                    [compact]="true" [ariaLabel]="'Rôle de ' + u.firstName + ' ' + u.lastName" />
+                        @if (u.role === 'AGENT') {
+                          <app-select class="agency-pick" [options]="agencyOptions()" [ngModel]="u.agencyId" (ngModelChange)="setAgency(u, $event)"
+                                      placeholder="Sans agence" [compact]="true" [ariaLabel]="'Agence de ' + u.firstName + ' ' + u.lastName" />
+                        }
+                      }
+                    </div>
+                    <div class="act">
+                      <app-reset-link [userId]="u.id" [name]="u.firstName + ' ' + u.lastName" />
+                      @if (confirming() === u.id) {
+                        <span class="confirm" role="alertdialog" [attr.aria-label]="'Désactiver ' + u.firstName + ' ' + u.lastName">Désactiver ?
+                          <button type="button" class="yes" (click)="setEnabled(u, false)">Désactiver</button>
+                          <button type="button" (click)="confirming.set(null)">Annuler</button></span>
+                      } @else {
+                        <button type="button" class="sw" role="switch" [attr.aria-checked]="u.enabled" (click)="toggleEnabled(u)"
+                                [attr.aria-label]="'Compte de ' + u.firstName + ' ' + u.lastName + (u.enabled ? ' actif' : ' désactivé')"
+                                [title]="u.enabled ? 'Actif : cliquer pour désactiver' : 'Désactivé : cliquer pour réactiver'"><i></i></button>
+                      }
+                    </div>
+                  </li>
                 }
-              </div>
-              @if (u.role === 'ACTEUR') {
-                <span class="tag">Acteur</span>
-              } @else {
-                <app-select class="role" [options]="roleOptions" [ngModel]="u.role" (ngModelChange)="setRole(u, $event)"
-                            [compact]="true" [ariaLabel]="'Rôle de ' + u.firstName + ' ' + u.lastName" />
+              </ul>
+              @if (g.key === 'acteurs' && g.users.length < g.total) {
+                <button type="button" class="more" (click)="actorLimit.set(actorLimit() + 24)">Afficher {{ g.total - g.users.length < 24 ? g.total - g.users.length : 24 }} de plus
+                  <span>{{ g.users.length }} sur {{ g.total }}</span></button>
               }
-              <app-reset-link [userId]="u.id" [name]="u.firstName + ' ' + u.lastName" />
-              @if (confirming() === u.id) {
-                <span class="confirm">{{ u.enabled ? 'Désactiver ?' : 'Réactiver ?' }}
-                  <button type="button" [class.yes]="u.enabled" (click)="setEnabled(u, !u.enabled)">Oui</button>
-                  <button type="button" (click)="confirming.set(null)">Non</button></span>
-              } @else {
-                <button type="button" class="state" [class.on]="u.enabled" (click)="confirming.set(u.id)"
-                        [attr.aria-label]="(u.enabled ? 'Désactiver ' : 'Réactiver ') + u.firstName + ' ' + u.lastName">
-                  <i aria-hidden="true"></i>{{ u.enabled ? 'Actif' : 'Désactivé' }}</button>
-              }
-            </li>
+            </section>
           } @empty {
-            <li class="none">Aucun compte ne correspond.</li>
+            <div class="team-empty">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <b>Aucun compte ne correspond</b>
+              <p>Essayez un autre nom ou un autre filtre.</p>
+              <button type="button" class="btn-ghost sm" (click)="search.set(''); roleFilter.set('')">Tout afficher</button>
+            </div>
           }
-        </ul>
+        </div>
       }
     </section>
   }
