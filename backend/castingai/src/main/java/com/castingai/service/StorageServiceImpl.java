@@ -92,6 +92,13 @@ public class StorageServiceImpl implements StorageService {
         }
     }
 
+    @Override
+    public byte[] download(String key) throws Exception {
+        try (InputStream in = minioClient.getObject(GetObjectArgs.builder().bucket(minioConfig.getBucketName()).object(key).build())) {
+            return in.readAllBytes();
+        }
+    }
+
     private String buildUrl(String filename) {
         return minioConfig.getPublicBase() + "/" + minioConfig.getBucketName() + "/" + filename;
     }

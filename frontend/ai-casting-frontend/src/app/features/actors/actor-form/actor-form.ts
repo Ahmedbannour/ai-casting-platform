@@ -9,6 +9,7 @@ import { DateFieldComponent } from '../../../shared/components/date-field/date-f
 import { SelectFieldComponent, SelectOption } from '../../../shared/components/select-field/select-field';
 import { ageAt, frDate, todayIso } from '../../../shared/forms/dates';
 import { VisibilitySwitchComponent } from './visibility-switch';
+import { MyDataComponent } from './my-data';
 import { ProfileScoreComponent } from './profile-score';
 import { RULES, email, errorMessage, intBetween, noOverlap, notBlank, periodOrder, personName, phone, uniqueNames } from '../../../shared/forms/rules';
 
@@ -18,7 +19,7 @@ type SectionId = 'identite' | 'physique' | 'talents' | 'parcours' | 'dispos';
 @Component({
   selector: 'app-actor-form',
   standalone: true,
-  imports: [ReactiveFormsModule, DateFieldComponent, SelectFieldComponent, VisibilitySwitchComponent, ProfileScoreComponent],
+  imports: [ReactiveFormsModule, DateFieldComponent, SelectFieldComponent, VisibilitySwitchComponent, ProfileScoreComponent, MyDataComponent],
   templateUrl: './actor-form.html',
   styleUrl: './actor-form.scss'
 })

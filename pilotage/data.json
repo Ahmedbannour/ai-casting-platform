@@ -1965,8 +1965,8 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
-   "detail": "Depuis « Mon profil » : télécharger toutes ses données (fiche, photos, consultations) et supprimer son compte, avec effacement des photos. Loi tunisienne n° 2004-63 et RGPD.",
+   "statut": "fait",
+   "detail": "Dans « Mon profil › Mes données » : « Télécharger » donne une archive ZIP (donnees.json : compte, accords, fiche, compétences, langues, expériences, disponibilités, consultations des coordonnées, propositions de rôle ; photos/ et documents/ ; LISEZ-MOI). « Supprimer mon compte » : mot de passe (comptes e-mail) et mot « SUPPRIMER » exigés ; fiche, photos, documents et compte effacés ; journal sans donnée personnelle (adresse masquée). Comptes d'agence : supprimés par l'administrateur. Tests 63/63, recette 102/102.",
    "lot": "L2"
   },
   {
@@ -2033,8 +2033,8 @@
    "prio": "P1",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
-   "detail": "Solution choisie par le client (D-013) : Lien à usage unique généré par l'administrateur (au lieu d'un e-mail de vérification).",
+   "statut": "fait",
+   "detail": "Solution D-013, sans envoi d'e-mail : bouton enveloppe dans Administration › Équipe et comptes pour les comptes non vérifiés ; lien à usage unique valable 7 jours (1 heure aurait été trop court pour un acteur) ; la page /verification confirme l'adresse. Comptes Google/Facebook et administrateurs vérifiés d'office. Filtre « E-mail à vérifier » et rappel discret dans l'application. Tests 62/62, recette 97/97.",
    "lot": "L3",
    "solutions": [
     {
@@ -2318,8 +2318,8 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
-   "detail": "Solution choisie par le client (D-016) : Tunnel Cloudflare gratuit depuis votre PC.",
+   "statut": "en_cours",
+   "detail": "Prêt : cloudflared 2026.11.1 téléchargé (empreinte SHA-256 et signature Cloudflare vérifiées, hors Git) ; site autorisé pour *.trycloudflare.com ; adresse réelle des visiteurs lue derrière le tunnel pour les limites anti-abus. En attente : le client change le mot de passe administrateur de démonstration (lien de réinitialisation fourni), puis ouverture du tunnel. Connexion Google/Facebook indisponible sur l'adresse du tunnel (adresses autorisées chez Google et Meta).",
    "lot": "L8",
    "solutions": [
     {
@@ -2373,8 +2373,8 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
-   "detail": "Suppression des comptes et agences de test, vérification finale, ouverture aux premières agences.",
+   "statut": "en_cours",
+   "detail": "Fait : données de test supprimées avec l'accord du client (31 comptes et fiches de recette, 2 comptes @test.local, 13 messages, agences « Agence Test Recette », « aaaa », « aaer ») ; la recette efface désormais ce qu'elle crée (nettoyer-recette.sql) et utilise son propre compte administrateur. Reste : vérification finale et ouverture aux premières agences, après T-126 et la recette T-100.",
    "lot": "L8"
   },
   {
@@ -2526,38 +2526,39 @@
   }
  ],
  "maintenant": {
-  "titre": "P-042 · T-112 faite (mot de passe oublié) ; prochaine : T-113",
-  "etape": 38,
+  "titre": "P-047 · T-110 faite (export et suppression) ; T-126 attend le nouveau mot de passe administrateur",
+  "etape": 40,
   "agents": [
    {
-    "nom": "Hichem Jaziri",
-    "action": "T-112 livrée : lien de réinitialisation 1 h depuis l'Administration",
-    "court": "T-112"
+    "nom": "Antoine Roux",
+    "action": "T-110 livrée : export ZIP et suppression du compte",
+    "court": "T-110"
+   },
+   {
+    "nom": "Laura Blanc",
+    "action": "Tunnel prêt ; attend le nouveau mot de passe administrateur",
+    "court": "T-126"
    },
    {
     "nom": "Amel Kacem",
-    "action": "Recette navigateur : 91/91",
+    "action": "Recette navigateur : 102/102",
     "court": "recette"
    }
   ],
   "progres": {
-   "tache": "T-112",
-   "titre": "Mot de passe oublié",
+   "tache": "T-110",
+   "titre": "Mes données : export et suppression",
    "etapes": [
     {
      "t": "Serveur",
      "s": "fait"
     },
     {
-     "t": "Administration",
-     "s": "fait"
-    },
-    {
-     "t": "Page de réinitialisation",
-     "s": "fait"
-    },
-    {
      "t": "Tests serveur",
+     "s": "fait"
+    },
+    {
+     "t": "« Mon profil »",
      "s": "fait"
     },
     {
@@ -2571,8 +2572,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-17T22:20:00Z",
-   "texte": "T-112 terminée et poussée sur Git : 58/58 tests, 91/91 en navigateur"
+   "t": "2026-11-18T00:58:00Z",
+   "texte": "T-110 terminée et poussée : 63/63 tests, 102/102 en navigateur"
   }
  },
  "activite": [
@@ -2665,6 +2666,18 @@
    "nom": "Hichem Jaziri",
    "t": "2026-11-17T22:20:00Z",
    "texte": "T-112 livrée : l'administrateur crée un lien de réinitialisation (1 h, usage unique) ; les autres sessions sont fermées après le changement. 58/58 tests, 91/91 en navigateur."
+  },
+  {
+   "h": "J5",
+   "nom": "Hichem Jaziri",
+   "t": "2026-11-17T23:10:00Z",
+   "texte": "T-113 livrée : vérification de l'adresse e-mail par un lien de l'administrateur (7 jours, usage unique). Base nettoyée (T-127) ; tunnel Cloudflare prêt (T-126)."
+  },
+  {
+   "h": "J6",
+   "nom": "Antoine Roux",
+   "t": "2026-11-18T00:58:00Z",
+   "texte": "T-110 livrée : depuis « Mon profil », l'acteur télécharge toutes ses données (ZIP) ou supprime son compte avec ses photos. 63/63 tests, 102/102 en navigateur."
   }
  ],
  "plan": {

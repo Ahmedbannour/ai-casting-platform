@@ -235,6 +235,27 @@ async function audit(page, path, name, errors) {
       await p4.waitForTimeout(1300);
       check('Vitrine : arrivée sur la section choisie', Math.abs(await p4.evaluate(() => document.getElementById('methode').getBoundingClientRect().top) - 68) <= 6);
       await c4.close(); }
+  // T-110 · Mes données : export ZIP puis suppression du compte depuis « Mon profil »
+  { const rm = `recette.rgpd.${Date.now()}@exemple.tn`, rpw = 'Rgpd-' + Date.now();
+    await fetch('http://localhost:8080/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: rm, password: rpw, firstName: 'Recette', lastName: 'Donnees', acceptTerms: true, age: 'MAJEUR' }) });
+    const c7 = await browser.newContext({ viewport: { width: 1366, height: 860 }, locale: 'fr-FR', acceptDownloads: true }); const p7 = await c7.newPage();
+    await p7.goto(BASE + '/auth/login'); await p7.waitForTimeout(900);
+    await p7.fill('#email', rm); await p7.fill('#password', rpw); await p7.click('button.submit-btn');
+    await p7.waitForURL(u => u.pathname.startsWith('/mon-profil'), { timeout: 15000 }).catch(() => {});
+    await p7.locator('app-my-data').scrollIntoViewIfNeeded(); await p7.waitForTimeout(500);
+    const [dl] = await Promise.all([p7.waitForEvent('download', { timeout: 15000 }).catch(() => null), p7.getByRole('button', { name: /^Télécharger/ }).click()]);
+    check('T-110 : « Télécharger mes données » donne une archive ZIP', !!dl && /mes-donnees-ai-casting-.*\.zip$/.test(dl.suggestedFilename()), dl && dl.suggestedFilename());
+    await p7.getByRole('button', { name: /Supprimer mon compte/ }).click();
+    await p7.fill('#md-pw', rpw); await p7.fill('#md-ok', 'oui'); await p7.getByRole('button', { name: /Supprimer définitivement/ }).click(); await p7.waitForTimeout(300);
+    check('T-110 : suppression refusée sans « SUPPRIMER »', /SUPPRIMER/.test(await p7.locator('app-my-data [role=alert]').textContent().catch(() => '')));
+    await p7.fill('#md-ok', 'SUPPRIMER'); await p7.getByRole('button', { name: /Supprimer définitivement/ }).click(); await p7.waitForTimeout(1200);
+    check('T-110 : compte supprimé, message d\'au revoir', /supprimé/.test(await p7.locator('app-my-data .bye').textContent().catch(() => '')));
+    await p7.waitForURL(u => u.pathname === '/', { timeout: 6000 }).catch(() => {});
+    check('T-110 : retour à la vitrine après suppression', new URL(p7.url()).pathname === '/', p7.url());
+    const again = await fetch('http://localhost:8080/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: rm, password: rpw }) });
+    check('T-110 : connexion impossible après suppression', again.status === 401, again.status);
+    await c7.close(); }
   { const c3 = await browser.newContext({ viewport: { width: 1366, height: 860 }, locale: 'fr-FR' }); const p3 = await c3.newPage();
     await p3.goto(BASE + '/auth/login'); await p3.waitForTimeout(1000);
     await p3.fill('#email', QA.email); await p3.fill('#password', QA.password); await p3.click('button.submit-btn');

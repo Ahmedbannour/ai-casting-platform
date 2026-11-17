@@ -37,7 +37,7 @@ public class EmailVerificationService {
 
     public record Created(String token, long expiresAt) {}
     public record Result(String firstName, String email) {}
-    public record Status(String email, boolean verified) {}
+    public record Status(String email, boolean verified, String provider) {}
 
     public static boolean verified(User u) { return u.getEmailVerifiedAt() != null || !"LOCAL".equals(u.getAuthProvider()); }
 
@@ -76,7 +76,7 @@ public class EmailVerificationService {
         return new Result(u.getFirstName(), PasswordResetService.mask(u.getEmail()));
     }
 
-    public Status status(User u) { return new Status(u.getEmail(), verified(u)); }
+    public Status status(User u) { return new Status(u.getEmail(), verified(u), u.getAuthProvider()); }
 
     private ResourceNotFoundException invalid() {
         return new ResourceNotFoundException("Ce lien de vérification n'est plus valable : il a déjà servi, a expiré ou a été remplacé. Demandez un nouveau lien à votre administrateur.");

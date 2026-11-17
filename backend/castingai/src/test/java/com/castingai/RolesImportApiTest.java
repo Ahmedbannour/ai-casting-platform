@@ -643,4 +643,35 @@ class RolesImportApiTest {
         send("GET", "/api/me/email", me, null).andExpect(jsonPath("$.verified").value(true));
         send("POST", url, a, null).andExpect(status().isConflict());
     }
+
+    /** T-110 · Mes données : export ZIP complet, suppression du compte avec confirmation et mot de passe. */
+    @Test
+    void mesDonneesExportEtSuppression() throws Exception {
+        String me = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("email", "rgpd.acteur@test.local", "password", "Rgpd-12345",
+                "firstName", "Rania", "lastName", "Gdpr", "acceptTerms", true, "age", "MAJEUR")).andExpect(status().isCreated())).get("accessToken").asString();
+
+        var res = send("GET", "/api/me/export", me, null).andExpect(status().isOk()).andReturn().getResponse();
+        assertThat(res.getContentType()).startsWith("application/zip");
+        assertThat(res.getHeader("Content-Disposition")).contains("mes-donnees-ai-casting-");
+        java.util.Map<String, String> files = new java.util.HashMap<>();
+        try (var zip = new java.util.zip.ZipInputStream(new java.io.ByteArrayInputStream(res.getContentAsByteArray()))) {
+            for (var e = zip.getNextEntry(); e != null; e = zip.getNextEntry()) files.put(e.getName(), new String(zip.readAllBytes(), StandardCharsets.UTF_8));
+        }
+        assertThat(files).containsKeys("donnees.json", "LISEZ-MOI.txt");
+        JsonNode d = json.readTree(files.get("donnees.json"));
+        assertThat(d.get("compte").get("email").asString()).isEqualTo("rgpd.acteur@test.local");
+        assertThat(d.get("fiche").get("prenom").asString()).isEqualTo("Rania");
+        assertThat(d.get("consentements").size()).isEqualTo(2);
+
+        String ag = agentOf("Agence Rgpd", "agent.rgpd@test.local");
+        send("POST", "/api/me/delete", ag, Map.of("password", "motdepasse123", "confirm", "SUPPRIMER")).andExpect(status().isForbidden());
+        send("POST", "/api/me/delete", me, Map.of("password", "Rgpd-12345", "confirm", "oui")).andExpect(status().isBadRequest());
+        send("POST", "/api/me/delete", me, Map.of("password", "mauvais-mdp", "confirm", "SUPPRIMER")).andExpect(status().isBadRequest());
+        send("POST", "/api/me/delete", me, Map.of("password", "Rgpd-12345", "confirm", "supprimer")).andExpect(status().isNoContent());
+
+        login("rgpd.acteur@test.local", "Rgpd-12345").andExpect(status().isUnauthorized());
+        String a = admin();
+        for (JsonNode u : read(send("GET", "/api/admin/users", a, null))) assertThat(u.get("email").asString()).isNotEqualTo("rgpd.acteur@test.local");
+        send("GET", "/api/actors/search?search=Gdpr", a, null).andExpect(jsonPath("$.totalElements").value(0));
+    }
 }

@@ -22,6 +22,9 @@ public interface StorageService {
      */
     void delete(String filename) throws Exception;
 
+    /** T-110 · Lit un fichier stocké (export des données personnelles). */
+    byte[] download(String key) throws Exception;
+
     /**
      * Retrouve la clé de l'objet à partir de son URL publique ; null si l'URL n'est pas de ce stockage.
      */
