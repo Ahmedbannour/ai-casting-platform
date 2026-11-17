@@ -20,15 +20,15 @@ import { LEGAL_VERSION_LABEL } from './legal-page';
     <fieldset>
       <legend>Votre âge</legend>
       <div class="seg" role="radiogroup" aria-label="Votre âge">
-        <button type="button" role="radio" [attr.aria-checked]="age() === 'MAJEUR'" [class.on]="age() === 'MAJEUR'" (click)="age.set('MAJEUR')">18 ans ou plus</button>
-        <button type="button" role="radio" [attr.aria-checked]="age() === 'MINEUR'" [class.on]="age() === 'MINEUR'" (click)="age.set('MINEUR')">Moins de 18 ans</button>
+        <button type="button" role="radio" [attr.aria-checked]="age() === 'MAJEUR'" [class.on]="age() === 'MAJEUR'" (click)="age.set('MAJEUR'); error.set('')">18 ans ou plus</button>
+        <button type="button" role="radio" [attr.aria-checked]="age() === 'MINEUR'" [class.on]="age() === 'MINEUR'" (click)="age.set('MINEUR'); error.set('')">Moins de 18 ans</button>
       </div>
     </fieldset>
     @if (age() === 'MINEUR') {
       <label class="txt" for="g">Nom du parent ou représentant légal qui donne son accord</label>
       <input id="g" class="in" [(ngModel)]="guardian" maxlength="120" placeholder="Prénom et nom" />
     }
-    <label class="check"><input type="checkbox" [(ngModel)]="accept" /><span>J'accepte les conditions d'utilisation et la politique de confidentialité.</span></label>
+    <label class="check"><input type="checkbox" [(ngModel)]="accept" (change)="error.set('')" /><span>J'accepte les conditions d'utilisation et la politique de confidentialité.</span></label>
 
     @if (error()) { <div class="err" role="alert">{{ error() }}</div> }
     <div class="actions">

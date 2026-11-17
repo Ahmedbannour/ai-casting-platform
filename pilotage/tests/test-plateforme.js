@@ -111,6 +111,50 @@ async function audit(page, path, name, errors) {
     await ctx.close();
   }
 
+  // T-102 · invitation : l'administrateur crée un lien, l'acteur l'ouvre sans être connecté et crée son compte
+  { const api = 'http://localhost:8080/api';
+    const tk = (await (await fetch(api + '/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'ahmed@casting.com', password: 'password123' }) })).json()).accessToken;
+    const im = `recette.invit.${Date.now()}@exemple.tn`;
+    const act = await (await fetch(api + '/actors', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tk },
+      body: JSON.stringify({ firstName: 'Recette', lastName: 'Invitation', email: im }) })).json();
+    const c1 = await browser.newContext({ viewport: { width: 1366, height: 860 }, locale: 'fr-FR', permissions: ['clipboard-read', 'clipboard-write'] });
+    const p1 = await c1.newPage(); const e1 = []; p1.on('pageerror', e => e1.push(e.message));
+    await p1.goto(BASE + '/auth/login'); await p1.waitForTimeout(1200);
+    await p1.fill('#email', 'ahmed@casting.com'); await p1.fill('#password', 'password123'); await p1.click('button.submit-btn');
+    await p1.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 15000 }).catch(() => {});
+    await p1.goto(BASE + '/actors/' + act.id); await p1.waitForTimeout(1500);
+    const btn = p1.getByRole('button', { name: /Créer le lien d'invitation/ });
+    check('Invitation : bouton sur la fiche d\'un acteur sans compte', await btn.count() === 1);
+    await btn.click(); await p1.waitForTimeout(900);
+    const link = await p1.locator('app-invite-panel input').inputValue().catch(() => '');
+    check('Invitation : lien affiché une fois créé', /\/invitation\/[A-Za-z0-9_-]{30,}$/.test(link), link.replace(/[^/]+$/, '…'));
+    await p1.getByRole('button', { name: /Copier le lien/ }).click(); await p1.waitForTimeout(300);
+    check('Invitation : bouton « Copié » après copie', await p1.getByRole('button', { name: /^Copié/ }).count() === 1);
+    await p1.screenshot({ path: out + 'invitation-agence.png' });
+    check('Invitation (agence) : aucune erreur JavaScript', e1.length === 0, e1.slice(0, 3));
+    await c1.close();
+
+    const c2 = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
+    const p2 = await c2.newPage(); const e2 = []; p2.on('pageerror', e => e2.push(e.message));
+    await p2.goto(link); await p2.waitForTimeout(1300);
+    check('Invitation : page publique « Bonjour Recette » (mobile, sans connexion)', /Bonjour Recette/.test(await p2.locator('h1').textContent().catch(() => '')));
+    check('Invitation : e-mail de la fiche pré-rempli', await p2.locator('#e').inputValue() === im);
+    await p2.fill('#pw', 'Recette-' + Date.now()); await p2.getByRole('button', { name: /Créer mon compte/ }).click(); await p2.waitForTimeout(400);
+    check('Invitation : refusée sans âge ni accord', /âge/.test(await p2.locator('[role=alert]').textContent().catch(() => '')));
+    await p2.getByRole('radio', { name: /18 ans ou plus/ }).click(); await p2.locator('.check input').check();
+    const over = await p2.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
+    await p2.screenshot({ path: out + 'invitation-acteur.png', fullPage: true });
+    await p2.getByRole('button', { name: /Créer mon compte/ }).click();
+    await p2.waitForURL(u => u.pathname.startsWith('/mon-profil'), { timeout: 15000 }).catch(() => {});
+    check('Invitation : compte créé, arrivée sur « Mon profil » sans redemande d\'accord', p2.url().includes('/mon-profil'), p2.url());
+    check('Invitation : pas de débordement sur mobile', !over);
+    await p2.goto(link); await p2.waitForTimeout(1200);
+    check('Invitation : lien déjà utilisé → « Lien plus valable »', /plus valable/.test(await p2.locator('h1').textContent().catch(() => '')));
+    check('Invitation (acteur) : aucune erreur JavaScript', e2.length === 0, e2.slice(0, 3));
+    notes.push('Compte acteur de test créé par invitation : ' + im + ' (T-127)');
+    await c2.close(); }
+
   // Parcours acteur : inscription d'un compte de test
   const ctx = await browser.newContext({ viewport: { width: 1366, height: 820 }, locale: 'fr-FR' });
   const page = await ctx.newPage(); const errors = []; page.on('pageerror', e => errors.push(e.message));
@@ -154,4 +198,5 @@ async function audit(page, path, name, errors) {
   console.log('RÉUSSIS (' + ok.length + ')\n  ' + ok.join('\n  '));
   console.log('ÉCHECS (' + ko.length + ')\n  ' + ko.join('\n  '));
   console.log('NOTES\n  ' + notes.join('\n  '));
+  require('fs').writeFileSync(out + 'resultat.json', JSON.stringify({ reussis: ok.length, echecs: ko, notes, date: new Date().toISOString() }, null, 1));
 })().catch(e => { console.error('ERREUR', e); process.exit(1); });

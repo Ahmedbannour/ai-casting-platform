@@ -56,7 +56,7 @@ class RolesImportApiTest {
     private String admin() throws Exception { return token("ahmed@casting.com", "password123"); }
 
     private ResultActions send(String method, String url, String a, Object body) throws Exception {
-        var req = switch (method) { case "POST" -> post(url); case "PUT" -> put(url); case "PATCH" -> patch(url); default -> get(url); };
+        var req = switch (method) { case "POST" -> post(url); case "PUT" -> put(url); case "PATCH" -> patch(url); case "DELETE" -> delete(url); default -> get(url); };
         if (a != null) req.header("Authorization", a);
         if (body != null) req.contentType(MediaType.APPLICATION_JSON).content(body instanceof String s ? s : json.writeValueAsString(body));
         return mvc.perform(req);
@@ -506,5 +506,59 @@ class RolesImportApiTest {
 
         // Réservé à l'administrateur
         send("GET", "/api/admin/audit", agentOf("Agence Kappa", "agent.kappa@test.local"), null).andExpect(status().isForbidden());
+    }
+
+    /** T-102 · Invitation à usage unique : l'acteur reprend sa fiche et choisit agence ou vivier. */
+    @Test
+    void invitationActeurImporte() throws Exception {
+        String a = agentOf("Agence Invita", "agent.invita@test.local");
+        String b = agentOf("Agence Autre", "agent.autre@test.local");
+        String id = read(send("POST", "/api/actors", a, Map.of("firstName", "Nadia", "lastName", "Invitee",
+                "email", "nadia.invit@test.local", "phone", "+21655111222")).andExpect(status().isCreated())).get("id").asString();
+        String url = "/api/actors/" + id + "/invitation";
+
+        send("POST", url, b, null).andExpect(status().isNotFound());   // fiche d'une autre agence : invisible
+        send("GET", url, a, null).andExpect(status().isOk()).andExpect(jsonPath("$.canInvite").value(true))
+                .andExpect(jsonPath("$.pendingUntil").doesNotExist());
+        String t1 = read(send("POST", url, a, null).andExpect(status().isCreated())).get("token").asString();
+        send("GET", url, a, null).andExpect(jsonPath("$.pendingUntil").exists());
+        String t2 = read(send("POST", url, a, null).andExpect(status().isCreated())).get("token").asString();
+        send("GET", "/api/public/invitations/" + t1, null, null).andExpect(status().isNotFound());
+        send("GET", "/api/public/invitations/" + t2, null, null).andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName").value("Nadia")).andExpect(jsonPath("$.agencyName").value("Agence Invita"))
+                .andExpect(jsonPath("$.agencyActor").value(true));
+
+        String acc = "/api/public/invitations/" + t2 + "/accept";
+        send("POST", acc, null, Map.of("password", "Invitee-12345", "age", "MAJEUR", "joinPool", true)).andExpect(status().isBadRequest());
+        send("POST", acc, null, Map.of("password", "court", "acceptTerms", true, "age", "MAJEUR")).andExpect(status().isBadRequest());
+        send("POST", acc, null, Map.of("password", "Invitee-12345", "acceptTerms", true, "age", "MAJEUR", "joinPool", true))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.role").value("ACTEUR"));
+        send("POST", acc, null, Map.of("password", "Invitee-12345", "acceptTerms", true, "age", "MAJEUR")).andExpect(status().isNotFound());
+
+        String n = token("nadia.invit@test.local", "Invitee-12345");
+        send("GET", "/api/me/consent", n, null).andExpect(jsonPath("$.required").value(false));
+        send("GET", "/api/me", n, null).andExpect(status().isOk());
+        // Fiche passée au vivier : l'agence d'origine garde les coordonnées, l'autre agence doit les demander
+        send("GET", "/api/actors/" + id, a, null).andExpect(status().isOk()).andExpect(jsonPath("$.contactHidden").value(false));
+        send("GET", "/api/actors/" + id, b, null).andExpect(status().isOk()).andExpect(jsonPath("$.contactHidden").value(true));
+        send("GET", url, a, null).andExpect(jsonPath("$.hasAccount").value(true));
+        send("POST", url, a, null).andExpect(status().isConflict());
+
+        // Adresse déjà prise → 409 ; fiche gardée chez l'agence → invisible des autres agences
+        String id2 = read(send("POST", "/api/actors", a, Map.of("firstName", "Karim", "lastName", "Prive"))).get("id").asString();
+        String t3 = read(send("POST", "/api/actors/" + id2 + "/invitation", a, null)).get("token").asString();
+        send("POST", "/api/public/invitations/" + t3 + "/accept", null, Map.of("email", "nadia.invit@test.local",
+                "password", "Karim-12345", "acceptTerms", true, "age", "MAJEUR")).andExpect(status().isConflict());
+        send("POST", "/api/public/invitations/" + t3 + "/accept", null, Map.of("email", "karim.prive@test.local",
+                "password", "Karim-12345", "acceptTerms", true, "age", "MINEUR", "guardianName", "Samia Prive", "joinPool", false))
+                .andExpect(status().isCreated());
+        send("GET", "/api/actors/" + id2, b, null).andExpect(status().isNotFound());
+        token("karim.prive@test.local", "Karim-12345");
+
+        // Annulation d'un lien
+        String id3 = read(send("POST", "/api/actors", a, Map.of("firstName", "Lina", "lastName", "Annule"))).get("id").asString();
+        String t4 = read(send("POST", "/api/actors/" + id3 + "/invitation", a, null)).get("token").asString();
+        send("DELETE", "/api/actors/" + id3 + "/invitation", a, null).andExpect(status().isNoContent());
+        send("GET", "/api/public/invitations/" + t4, null, null).andExpect(status().isNotFound());
     }
 }

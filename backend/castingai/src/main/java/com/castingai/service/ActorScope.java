@@ -56,7 +56,8 @@ public class ActorScope {
         if (u == null) return false;
         if (u.getRole() == Role.ADMIN) return true;
         if (u.getRole() == Role.ACTEUR) return a.getAccount() != null && a.getAccount().getId().equals(u.getId());
-        return u.getAgency() != null && u.getAgency().getId().equals(a.getAgencyId());
+        return u.getAgency() != null && (u.getAgency().getId().equals(a.getAgencyId())
+                || u.getAgency().getId().equals(a.getOriginAgencyId()));
     }
 
     /** L'utilisateur connecté peut-il voir cette fiche ? (fiche inexistante : true, le 404 vient ensuite) */

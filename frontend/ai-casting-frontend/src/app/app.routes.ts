@@ -34,6 +34,12 @@ export const routes: Routes = [
     title: 'Politique de confidentialité · AI Casting'
   },
   {
+    // T-102 · lien d'invitation d'un acteur (public, à usage unique)
+    path: 'invitation/:token',
+    loadComponent: () => import('./features/legal/invitation-page').then(m => m.InvitationPageComponent),
+    title: 'Invitation · AI Casting'
+  },
+  {
     // T-101 · accord demandé quand il manque ou que les textes ont changé
     path: 'consentement',
     canActivate: [authGuard],

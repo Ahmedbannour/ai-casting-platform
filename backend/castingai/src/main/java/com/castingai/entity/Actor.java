@@ -77,6 +77,10 @@ public class Actor {
     @Column(name = "agency_id")
     private UUID agencyId;
 
+    /** T-102 · Agence d'origine d'une fiche passée au vivier : elle garde l'accès direct aux coordonnées. */
+    @Column(name = "origin_agency_id")
+    private UUID originAgencyId;
+
     /** VISIBLE : présent dans les recherches des agences ; PAUSE : retiré par l'acteur lui-même. */
     @Builder.Default
     @Column(name = "visibility", nullable = false, length = 10)

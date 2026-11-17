@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActorDetailService, ActorDetail } from '../../../core/services/actor-detail.service';
 import { frDate, todayIso } from '../../../shared/forms/dates';
+import { InvitePanelComponent } from './invite-panel';
 
 type Tab = 'profil' | 'photos' | 'parcours' | 'notes' | 'documents';
 type Period = { fromDate: string; toDate: string; note?: string; state: 'passee' | 'en-cours' | 'a-venir'; days: number };
@@ -15,7 +16,7 @@ const MAX_NOTE = 2000;
 @Component({
   selector: 'app-actor-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, InvitePanelComponent],
   templateUrl: './actor-detail.html',
   styleUrl: './actor-detail.scss'
 })

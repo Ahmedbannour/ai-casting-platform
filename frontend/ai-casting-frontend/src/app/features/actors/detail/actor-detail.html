@@ -80,6 +80,8 @@
       </div>
     </header>
 
+    <app-invite-panel [actorId]="a.id" />
+
     <!-- Onglets -->
     <div class="tabs" role="tablist" aria-label="Sections du dossier">
       @for (t of tabs(); track t.id) {
