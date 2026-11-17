@@ -91,6 +91,16 @@ const check = (name, cond, info) => { (cond ? ok : ko).push(name + (info !== und
   check('Tchat : bouton jamais grisé', !chat.sendDisabled);
   check('Tchat hors claude.ai : message clair + Réessayer', chat.retry === 2 && /claude\.ai/.test(chat.ag[0] || ''), chat.ag);
   await page.screenshot({ path: out + 'tchat-bureau.png' });
+  // Reproduction de la panne sur claude.ai : fils venus de la base = objets en lecture seule
+  const frozen = await page.evaluate(async () => {
+    CHATS = Object.freeze({ 'Claire Dubois': Object.freeze([Object.freeze({ at: new Date().toISOString(), r: 'me', x: 'ancien message' })]) });
+    const before = window.__errs = []; addEventListener('error', e => window.__errs.push(e.message));
+    chatOpen('Claire Dubois'); await new Promise(r => setTimeout(r, 200));
+    document.getElementById('ch-in').value = 'hi'; chatAsk(document.getElementById('ch-in').value);
+    await new Promise(r => setTimeout(r, 1200));
+    return { errs: window.__errs, me: [...document.querySelectorAll('#ch-msgs .wb.me .tx')].map(e => e.textContent), n: (CHATS['Claire Dubois'] || []).length };
+  });
+  check('Fil existant en lecture seule : envoi sans erreur', frozen.errs.length === 0 && frozen.me.includes('hi') && frozen.n >= 3, frozen);
   await page.fill('#wa-q', 'laura'); await page.waitForTimeout(150);
   check('Tchat : recherche d’agent', await page.locator('.wa-c').count() === 1);
 

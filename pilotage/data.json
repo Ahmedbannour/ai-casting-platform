@@ -643,6 +643,22 @@
     "Événements Google Calendar"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-036",
+   "date": "2026-11-17",
+   "titre": "Tests de la plateforme et autonomie",
+   "original": "tu on es ou dans le developpement d'idée et de design et fonctionnalité de notre platform ! peux tu faire les tests ! peux tu tester l'avancement sur ton navigateur ! / peux tu prendre les access nécessaire pour que ttu puisse le developpement d'une facon autonome !",
+   "ameliore": "Recette navigateur complète de la plateforme (bureau et mobile), défauts trouvés ajoutés au plan ; accès et règles pour travailler en autonomie (tests automatiques, commit et envoi sur la branche dédiée).",
+   "departements": [
+    "qa",
+    "dir"
+   ],
+   "livrables": [
+    "Recette 51/51",
+    "Règles d'autonomie"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -2399,6 +2415,45 @@
    "statut": "fait",
    "lot": "L6",
    "detail": "Signalé par le client : panneau rogné et transparent (le flou du menu latéral capturait sa position). Rendu désormais dans la couche « overlay » du CDK Angular, au-dessus de tout, fond opaque, icône par type, groupes « Aujourd'hui / Plus tôt », fermeture au clavier ; aligné à droite sur mobile. La barre « Enregistrer » ne flotte plus qu'avec des modifications non enregistrées. Vérifié bureau et mobile, aucune erreur console, compilation de production OK."
+  },
+  {
+   "id": "T-131",
+   "titre": "Recherche IA : score honnête quand un critère n'est pas rempli",
+   "dept": "ia",
+   "resp": "Nadia Ben Salem",
+   "phase": "PH2",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-036",
+   "statut": "a_faire",
+   "lot": "L5",
+   "detail": "Trouvé par la recette navigateur : « actrice à Tunis » propose une actrice du Havre à « 100 % de correspondance ». Le score doit baisser et la carte dire quel critère manque (ville, âge, langue) ; si aucun profil ne remplit tous les critères, le dire avant les cartes."
+  },
+  {
+   "id": "T-132",
+   "titre": "Mobile : la cloche ne recouvre plus le haut des pages",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "phase": "PH3",
+   "prio": "P1",
+   "jour": "J6",
+   "prompt": "P-036",
+   "statut": "a_faire",
+   "lot": "L6",
+   "detail": "Trouvé par la recette navigateur : sur téléphone, la cloche fixée en haut à droite recouvre les compteurs ✓/✕ de la recherche. Barre du haut dédiée (logo + cloche) ou marge réservée."
+  },
+  {
+   "id": "T-133",
+   "titre": "Recette navigateur automatique de la plateforme",
+   "dept": "qa",
+   "resp": "Amel Kacem",
+   "phase": "PH3",
+   "prio": "P0",
+   "jour": "J5",
+   "prompt": "P-036",
+   "statut": "fait",
+   "lot": "L7",
+   "detail": "Playwright + Edge sans fenêtre : connexion (Google, Facebook, mauvais mot de passe), administration, tableau de bord, projets, cloche, recherche IA, parcours acteur (inscription, mise en pause, photos, propositions), droits ; bureau et mobile. 51/51 ; correctif : message d'erreur de connexion annoncé aux lecteurs d'écran (role=alert)."
   }
  ],
  "journal": [
@@ -2476,12 +2531,6 @@
  "activite": [
   {
    "h": "J5",
-   "nom": "Marc Lefèvre",
-   "t": "2026-11-17T12:10:00Z",
-   "texte": "T-129 faite : Spring Boot 4.0.9 + Spring AI 2.0.2 (OpenRewrite). OSV-Scanner : 0 faille côté serveur. 48/48 tests."
-  },
-  {
-   "h": "J5",
    "nom": "Sarra Mansouri",
    "t": "2026-11-17T12:25:00Z",
    "texte": "T-130 (demande client) : panneau de notifications sorti du menu (overlay CDK), opaque, icônes par type ; barre d'enregistrement contextuelle. Vérifié bureau + mobile."
@@ -2527,6 +2576,18 @@
    "nom": "Sonia Mercier",
    "t": "2026-11-17T15:50:00Z",
    "texte": "Roadmap publiée dans Google Agenda (ahmed@d-service.sa) : 8 événements, un par lot, du 17/11/2026 au 08/01/2027, marqués « disponible »."
+  },
+  {
+   "h": "J5",
+   "nom": "Amel Kacem",
+   "t": "2026-11-17T16:10:00Z",
+   "texte": "Recette navigateur de la plateforme (Playwright + Edge, bureau et mobile) : 51/51. Deux défauts ajoutés au plan : score de la recherche IA trompeur (T-131), cloche qui recouvre le haut des pages sur mobile (T-132)."
+  },
+  {
+   "h": "J5",
+   "nom": "Sarra Mansouri",
+   "t": "2026-11-17T16:15:00Z",
+   "texte": "Messagerie des agents réparée : les fils venus de la base étaient en lecture seule (diagnostic live/diag). Test de non-régression ajouté."
   }
  ],
  "plan": {
@@ -2585,7 +2646,8 @@
     "titre": "Intelligence artificielle",
     "but": "Des résultats rapides, même sans carte graphique",
     "taches": [
-     "T-119"
+     "T-119",
+     "T-131"
     ]
    },
    {
@@ -2596,7 +2658,8 @@
      "T-104",
      "T-130",
      "T-120",
-     "T-121"
+     "T-121",
+     "T-132"
     ]
    },
    {
@@ -2604,6 +2667,7 @@
     "titre": "Qualité et exploitation",
     "but": "Testé automatiquement, déployable, sauvegardé",
     "taches": [
+     "T-133",
      "T-122",
      "T-123",
      "T-124",
@@ -2628,6 +2692,7 @@
    "T-129",
    "T-107",
    "T-108",
+   "T-132",
    "T-101",
    "T-102",
    "T-112",
@@ -2639,6 +2704,7 @@
    "T-117",
    "T-116",
    "T-118",
+   "T-131",
    "T-119",
    "T-120",
    "T-121",
@@ -2806,6 +2872,21 @@
    "T-115": {
     "debut": "2027-01-08",
     "fin": "2027-01-08",
+    "reel": false
+   },
+   "T-133": {
+    "debut": "2026-11-17",
+    "fin": "2026-11-17",
+    "reel": true
+   },
+   "T-132": {
+    "debut": "2026-11-18",
+    "fin": "2026-11-18",
+    "reel": false
+   },
+   "T-131": {
+    "debut": "2026-12-16",
+    "fin": "2026-12-16",
     "reel": false
    }
   },

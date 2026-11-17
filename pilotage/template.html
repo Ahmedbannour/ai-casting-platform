@@ -908,7 +908,7 @@ function chatDetect(){const cur=chatSnapshot();const acts=new Set((D.activite||[
   if(!chatDetect.armed){if(liveState==='on')chatDetect.armed=true;PREVAG=cur;PREVACT=acts;return;}
   for(const a of (D.activite||[])){const k=a.nom+'|'+a.texte;if(PREVACT&&!PREVACT.has(k)&&memberOf(a.nom)[0])chatPush(a.nom,{r:'sys',x:a.texte});}PREVACT=acts;
   if(PREVAG){for(const n in cur){for(const id in cur[n]){const was=PREVAG[n]&&PREVAG[n][id];if(was&&was!==cur[n][id]){const t=T.find(z=>z.id===id);chatPush(n,{r:'sys',x:`Mise à jour : ${id} « ${t?t.titre:''} » passe de « ${ST[was]||was} » à « ${ST[cur[n][id]]||cur[n][id]} ».`});}}}}PREVAG=cur;}
-function chatPush(n,m,save){m.at=m.at||new Date().toISOString();(CHATS[n]=CHATS[n]||[]).push(m);if(CHATS[n].length>60)CHATS[n]=CHATS[n].slice(-60);
+function chatPush(n,m,save){m.at=m.at||new Date().toISOString();if(!Object.isExtensible(CHATS))CHATS=JSON.parse(JSON.stringify(CHATS));if(!Array.isArray(CHATS[n])||Object.isFrozen(CHATS[n]))CHATS[n]=[...(CHATS[n]||[])];CHATS[n].push(m);if(CHATS[n].length>60)CHATS[n]=CHATS[n].slice(-60);
   if(!(CHAT.open&&CHAT.agent===n)&&m.r!=='me')UNREAD[n]=(UNREAD[n]||0)+1;if(save)chatSave();if(CHAT.open)chatRender();chatFab();}
 function chatFab(){const u=Object.values(UNREAD).reduce((a,b)=>a+b,0);const e=$('#fab-n');if(e){e.hidden=!u;e.textContent=u;}}
 let DIAG=[],diagRef=null,diagT=null,saveChain=Promise.resolve();
@@ -1003,7 +1003,7 @@ $('#wa-q').oninput=e=>{WAQ=e.target.value;chatList();};
 document.addEventListener('fullscreenchange',()=>{chatHost();});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-chat]');if(b){e.stopPropagation();chatOpen(b.dataset.chat);}},true);
 addEventListener('keydown',e=>{if(e.key==='Escape'&&CHAT.open&&!$('#modal').classList.contains('on')&&!document.fullscreenElement)chatClose();});
-(async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');diag('ouverture · db='+(db?'oui':'non'));if(db){chatRef=db.doc('live/chats');diagRef=db.doc('live/diag');try{chatRef.onSnapshot(sn=>{const v=val(sn);if(v&&v.items&&!Object.values(CHAT.busy).some(Boolean)){CHATS=v.items;if(CHAT.open)chatRender();}},()=>{});}catch(e){}}
+(async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');diag('ouverture · db='+(db?'oui':'non'));if(db){chatRef=db.doc('live/chats');diagRef=db.doc('live/diag');try{chatRef.onSnapshot(sn=>{const v=val(sn);if(v&&v.items&&!Object.values(CHAT.busy).some(Boolean)){CHATS=JSON.parse(JSON.stringify(v.items));if(CHAT.open)chatRender();}},()=>{});}catch(e){}}
   await getSample();diag('sample='+(sampleFn?'prêt':'absent'));if(CHAT.open)chatRender();}catch(e){}})();
 
 // ===== Roadmap (P-035) =====
@@ -1058,7 +1058,8 @@ setInterval(setLive,1000);
 (async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');if(!db)return;
   dbRef=db.doc('live/decisions');dbRef.onSnapshot(s=>{const v=val(s);DECS=(v&&v.items)||[];renderAll();},()=>{});
   const applyState=snap=>{const v=snap&&(snap.data?snap.data():snap);const p=v&&v.payload;if(!p)return;
-    try{const u=typeof p==='string'?JSON.parse(p):p;if(!u)return;
+    try{const u=typeof p==='string'?JSON.parse(p):JSON.parse(JSON.stringify(p));if(!u)return;   // copie : les données de la base sont en lecture seule
+
       if(u.meta)Object.assign(D.meta,u.meta);if(u.plan)D.plan=u.plan;if(u.maintenant)D.maintenant=u.maintenant;if(u.activite)D.activite=u.activite;
       const up=(arr,items,k)=>(items||[]).forEach(it=>{const i=arr.findIndex(z=>z[k]===it[k]);if(i>=0)Object.assign(arr[i],it);else arr.push(it)});
       up(D.taches,u.taches,'id');up(D.prompts,u.prompts,'id');up(D.journal,u.journal,'jour');up(D.phases,u.phases,'id');
