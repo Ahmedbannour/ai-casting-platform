@@ -20,7 +20,8 @@ const check = (name, cond, info) => { (cond ? ok : ko).push(name + (info !== und
     todayLine: !!document.querySelector('.rm-today'),
     scrolled: document.getElementById('rm-scroll').scrollLeft > 0
   }));
-  check('Roadmap : 31 barres de tâches', rm.bars === 31, rm.bars);
+  const planned = Object.keys(JSON.parse(require('fs').readFileSync(require('path').join(process.env.PILOTAGE || 'C:\\Users\\AhmedBannour\\ai-casting-platform\\pilotage', 'data.json'), 'utf8')).plan.calendrier || {}).length;
+  check('Roadmap : une barre par tâche planifiée (' + planned + ')', rm.bars === planned, rm.bars);
   check('Roadmap : 8 lots', rm.lots === 8, rm.lots);
   check('Roadmap : colonne du jour = 17', rm.today === String(new Date().getDate()), rm.today);
   check('Roadmap : ligne « aujourd’hui »', rm.todayLine);

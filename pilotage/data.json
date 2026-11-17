@@ -1991,7 +1991,7 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
+   "statut": "en_cours",
    "detail": "Solution choisie par le client (D-011) : Lien de réinitialisation donné par l'administrateur.",
    "lot": "L3",
    "solutions": [
@@ -2526,20 +2526,54 @@
   }
  ],
  "maintenant": {
-  "titre": "P-040 · Vitrine v3 : fiches à glisser, rideau de cinéma, contact et carte ; prochaine : T-112",
-  "etape": 36,
+  "titre": "P-041 · T-112 en cours : mot de passe oublié (lien donné par l'administrateur)",
+  "etape": 37,
   "agents": [
    {
-    "nom": "Yasmine Trabelsi",
-    "action": "Vitrine : fiches à glisser, faisceau 3D, rideau entre les scènes, contact et carte",
-    "court": "T-134"
+    "nom": "Hichem Jaziri",
+    "action": "Lien de réinitialisation à usage unique, créé par l'administrateur (D-011)",
+    "court": "T-112"
    },
    {
     "nom": "Amel Kacem",
-    "action": "Recette navigateur : 84/84",
+    "action": "Prépare la recette du parcours « mot de passe oublié »",
     "court": "recette"
    }
-  ]
+  ],
+  "progres": {
+   "tache": "T-112",
+   "titre": "Mot de passe oublié",
+   "etapes": [
+    {
+     "t": "Serveur",
+     "s": "en_cours"
+    },
+    {
+     "t": "Administration",
+     "s": "a_faire"
+    },
+    {
+     "t": "Page de réinitialisation",
+     "s": "a_faire"
+    },
+    {
+     "t": "Tests serveur",
+     "s": "a_faire"
+    },
+    {
+     "t": "Recette navigateur",
+     "s": "a_faire"
+    },
+    {
+     "t": "Git",
+     "s": "a_faire"
+    }
+   ]
+  },
+  "derniere": {
+   "t": "2026-11-17T21:49:13Z",
+   "texte": "Salle de pilotage : suivi en direct de la tâche en cours (étapes, avancement, notifications)"
+  }
  },
  "activite": [
   {

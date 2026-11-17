@@ -464,6 +464,27 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
  .modal .box{max-width:none;border-radius:16px 16px 0 0;max-height:92vh;padding:16px}
  .toast{left:14px;right:14px;transform:none;bottom:14px}
 }
+.prog{flex-basis:100%;display:grid;gap:8px;margin-top:4px}
+.prog-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:14px}
+.prog-top b{font-weight:600}.prog-top .pct{margin-left:auto;font-family:var(--f-mono);font-size:13px;color:var(--accent)}
+.prog-bar{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.prog-bar i{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .8s cubic-bezier(.3,.9,.3,1);position:relative}
+.prog-bar i::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);animation:shine 1.8s linear infinite}
+@keyframes shine{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.prog-steps{display:flex;gap:6px;flex-wrap:wrap}
+.prog-steps span{font-size:12.5px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.prog-steps .fait{color:var(--text);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.prog-steps .fait::before{content:'✓';color:var(--accent);font-weight:700}
+.prog-steps .en_cours{color:var(--text);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.prog-steps .en_cours::before{content:'';width:9px;height:9px;border-radius:50%;border:2px solid var(--accent);border-right-color:transparent;animation:spin .8s linear infinite}
+.prog-steps .a_faire::before{content:'○'}
+@keyframes spin{to{transform:rotate(360deg)}}
+.last-act{flex-basis:100%;font-size:13px;color:var(--muted)}.last-act b{color:var(--text);font-weight:500}
+#live-toast{position:fixed;right:18px;bottom:18px;z-index:90;display:grid;gap:8px;max-width:min(380px,calc(100vw - 36px))}
+#live-toast .t{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:13.5px;line-height:1.45;animation:tin .35s cubic-bezier(.2,.9,.3,1.2) both}
+#live-toast .t.out{animation:tout .3s ease forwards}
+@keyframes tin{from{opacity:0;transform:translateY(14px) scale(.96)}}@keyframes tout{to{opacity:0;transform:translateX(30px)}}
+@media (prefers-reduced-motion:reduce){.prog-bar i::after,.prog-steps .en_cours::before,#live-toast .t{animation:none}}
 </style>
 </head>
 <body>
@@ -711,8 +732,20 @@ let NOW=D.maintenant||{agents:[]};
 const memberOf=n=>{for(const x of D.departements){const m=x.membres.find(m=>m.nom===n);if(m)return [x,m]}return [null,null]};
 function renderNow(){
   $('#now').innerHTML=`<span class="lab"><span class="live" id="live"></span>En ce moment</span><span>${esc(NOW.titre||'')}</span><div class="agents">${NOW.agents.map(a=>{const [x]=memberOf(a.nom);return `<button type="button" class="ag" data-n="${esc(a.nom)}" title="${esc(a.action)}"><span class="av pulse" style="background:${x?x.couleur:'#888'}">${initials(a.nom)}</span>${esc(a.nom)} · ${esc(a.court||'')}<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></button>`}).join('')}</div>`;
+  const P=NOW.progres;
+  if(P&&P.etapes){const pct=Math.max(0,Math.min(100,Math.round(P.pct!=null?P.pct:100*P.etapes.filter(e=>e.s==='fait').length/P.etapes.length)));
+    $('#now').insertAdjacentHTML('beforeend',`<div class="prog" aria-label="Avancement de ${esc(P.tache||'')}"><div class="prog-top"><b>${esc(P.tache||'')}</b><span>${esc(P.titre||'')}</span><span class="pct">${pct} %</span></div>
+      <div class="prog-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
+      <div class="prog-steps">${P.etapes.map(e=>`<span class="${esc(e.s)}">${esc(e.t)}</span>`).join('')}</div></div>`);}
+  if(NOW.derniere&&NOW.derniere.texte){const t=Date.parse(NOW.derniere.t);const ago=isNaN(t)?'':' · il y a '+fmtAgo(Date.now()-t);
+    $('#now').insertAdjacentHTML('beforeend',`<div class="last-act">Dernière action${ago} : <b>${esc(NOW.derniere.texte)}</b></div>`);}
   document.querySelectorAll('.now .ag').forEach(b=>b.onclick=()=>chatOpen(b.dataset.n));
 }
+function fmtAgo(ms){const s=Math.max(0,Math.round(ms/1000));return s<60?s+' s':s<3600?Math.round(s/60)+' min':Math.round(s/3600)+' h';}
+function liveToast(txt){let box=$('#live-toast');if(!box){box=document.createElement('div');box.id='live-toast';box.setAttribute('role','status');box.setAttribute('aria-live','polite');document.body.appendChild(box);}
+  const el=document.createElement('div');el.className='t';el.textContent=txt;box.appendChild(el);while(box.children.length>3)box.firstChild.remove();
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),320);},6500);}
+setInterval(()=>{const la=document.querySelector('.last-act');if(la&&NOW&&NOW.derniere){const t=Date.parse(NOW.derniere.t);if(!isNaN(t))la.innerHTML=`Dernière action · il y a ${fmtAgo(Date.now()-t)} : <b>${esc(NOW.derniere.texte)}</b>`;}},5000);
 
 // ===== Résoudre les blocages =====
 let dbRef=null, DECS=[];
@@ -1060,7 +1093,10 @@ setInterval(setLive,1000);
   const applyState=snap=>{const v=snap&&(snap.data?snap.data():snap);const p=v&&v.payload;if(!p)return;
     try{const u=typeof p==='string'?JSON.parse(p):JSON.parse(JSON.stringify(p));if(!u)return;   // copie : les données de la base sont en lecture seule
 
-      if(u.meta)Object.assign(D.meta,u.meta);if(u.plan)D.plan=u.plan;if(u.maintenant)D.maintenant=u.maintenant;if(u.activite)D.activite=u.activite;
+      const prevDer=D.maintenant&&D.maintenant.derniere&&D.maintenant.derniere.t;
+      if(u.meta)Object.assign(D.meta,u.meta);if(u.plan)D.plan=u.plan;if(u.maintenant)D.maintenant=u.maintenant;
+      const der=u.maintenant&&u.maintenant.derniere;if(der&&der.t!==prevDer&&liveState==='on'&&!u.activite_add)liveToast(der.texte);if(u.activite)D.activite=u.activite;
+      if(u.activite_add){D.activite=D.activite||[];const seen=new Set(D.activite.map(a=>a.t+'|'+a.texte));for(const a of u.activite_add)if(!seen.has(a.t+'|'+a.texte)){D.activite.push(a);if(liveState==='on')liveToast(`${a.nom} : ${a.texte}`);}}
       const up=(arr,items,k)=>(items||[]).forEach(it=>{const i=arr.findIndex(z=>z[k]===it[k]);if(i>=0)Object.assign(arr[i],it);else arr.push(it)});
       up(D.taches,u.taches,'id');up(D.prompts,u.prompts,'id');up(D.journal,u.journal,'jour');up(D.phases,u.phases,'id');
       liveState='on';liveAt=Date.now();renderAll();}catch(e){}};
