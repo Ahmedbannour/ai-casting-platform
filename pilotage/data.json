@@ -2454,6 +2454,19 @@
    "statut": "fait",
    "lot": "L7",
    "detail": "Playwright + Edge sans fenêtre : connexion (Google, Facebook, mauvais mot de passe), administration, tableau de bord, projets, cloche, recherche IA, parcours acteur (inscription, mise en pause, photos, propositions), droits ; bureau et mobile. 51/51 ; correctif : message d'erreur de connexion annoncé aux lecteurs d'écran (role=alert)."
+  },
+  {
+   "id": "T-134",
+   "titre": "Page vitrine publique (marque et présentation)",
+   "dept": "back",
+   "resp": "Yasmine Trabelsi",
+   "phase": "PH2",
+   "prio": "P1",
+   "jour": "J5",
+   "prompt": "P-031",
+   "statut": "fait",
+   "lot": "L2",
+   "detail": "Page d'accueil / pour les visiteurs non connectés : planche contact interactive (le visiteur choisit un rôle, la description s'écrit, le crayon entoure les profils retenus et barre les écartés), méthode en 3 étapes, agences et acteurs, engagements sur les données, appel final. Couleurs et police de la marque, adaptée au mobile, mouvements réduits respectés. Un utilisateur connecté va directement à son espace. Recette navigateur 75/75."
   }
  ],
  "journal": [
@@ -2513,17 +2526,17 @@
   }
  ],
  "maintenant": {
-  "titre": "P-038 · T-102 faite (invitation des acteurs) ; prochaine : T-112",
-  "etape": 34,
+  "titre": "P-039 · Vitrine publique en ligne (T-134) ; prochaine : T-112",
+  "etape": 35,
   "agents": [
    {
-    "nom": "Hichem Jaziri",
-    "action": "T-102 livrée ; prochaine tâche : T-112, mot de passe oublié (D-011)",
-    "court": "T-102"
+    "nom": "Yasmine Trabelsi",
+    "action": "Vitrine publique livrée : planche contact animée et interactive",
+    "court": "T-134"
    },
    {
     "nom": "Amel Kacem",
-    "action": "Recette navigateur : 69/69, dont l'invitation de bout en bout",
+    "action": "Recette navigateur : 75/75",
     "court": "recette"
    }
   ]
@@ -2600,6 +2613,12 @@
    "nom": "Hichem Jaziri",
    "t": "2026-11-17T21:10:00Z",
    "texte": "T-102 livrée : l'agence crée un lien d'invitation sur la fiche d'un acteur ; l'acteur crée son compte, reprend sa fiche et choisit agence ou vivier. 56/56 tests, 69/69 en navigateur."
+  },
+  {
+   "h": "J5",
+   "nom": "Yasmine Trabelsi",
+   "t": "2026-11-17T21:15:00Z",
+   "texte": "T-134 livrée : page vitrine publique sur / — planche contact interactive, agences, acteurs, engagements. 75/75 en navigateur."
   }
  ],
  "plan": {

@@ -2,12 +2,21 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { homeRedirect, roleGuard } from './core/guards/role.guard';
 import { consentGuard } from './features/legal/consent.guard';
+import { visitorOnly } from './features/landing/visitor.guard';
 
 /** Pages de l'agence (agents et administrateurs). */
 const agence = roleGuard('ADMIN', 'AGENT');
 import { MainLayoutComponent } from './layout/main-layout/main-layout';
 
 export const routes: Routes = [
+  {
+    // Vitrine publique : visiteurs non connectés (un utilisateur connecté va à son espace)
+    path: '',
+    pathMatch: 'full',
+    canActivate: [visitorOnly],
+    loadComponent: () => import('./features/landing/landing').then(m => m.LandingComponent),
+    title: 'AI Casting · Décrivez le rôle, nous préparons la planche'
+  },
   {
     path: 'auth/login',
     loadComponent: () =>

@@ -192,7 +192,24 @@ async function audit(page, path, name, errors) {
       const over = await p2.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
       check(`Page publique ${u} (mobile, sans connexion)`, t.test(h || '') && !over && !p2.url().includes('/auth'), { h, over });
     }
+    // Vitrine publique
+    await p2.goto(BASE + '/'); await p2.waitForTimeout(4500);
+    check('Vitrine : affichée aux visiteurs (mobile)', /Décrivez le rôle/.test(await p2.locator('h1').textContent().catch(() => '')) && p2.url() === BASE + '/');
+    check('Vitrine : planche annotée (profils entourés et barrés)', await p2.locator('.frame.keep').count() >= 2 && await p2.locator('.frame.ko').count() >= 1);
+    await p2.getByRole('button', { name: /Rôle d’enfant/ }).click(); await p2.waitForTimeout(3500);
+    check('Vitrine : choisir un autre rôle rejoue la planche', /Garçon/.test(await p2.locator('.typed').textContent()));
+    check('Vitrine : pas de débordement sur mobile', !(await p2.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)));
+    await p2.locator('.burger').click(); await p2.getByRole('link', { name: /^Créer mon profil$/ }).first().click();
+    await p2.waitForURL(u => u.pathname.startsWith('/auth/inscription'), { timeout: 8000 }).catch(() => {});
+    check('Vitrine : menu mobile → inscription', p2.url().includes('/auth/inscription'), p2.url());
     await c2.close(); }
+  { const c3 = await browser.newContext({ viewport: { width: 1366, height: 860 }, locale: 'fr-FR' }); const p3 = await c3.newPage();
+    await p3.goto(BASE + '/auth/login'); await p3.waitForTimeout(1000);
+    await p3.fill('#email', 'ahmed@casting.com'); await p3.fill('#password', 'password123'); await p3.click('button.submit-btn');
+    await p3.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 15000 }).catch(() => {});
+    await p3.goto(BASE + '/'); await p3.waitForTimeout(1200);
+    check('Vitrine : un utilisateur connecté va directement à son espace', new URL(p3.url()).pathname !== '/', p3.url());
+    await c3.close(); }
   await browser.close();
 
   console.log('RÉUSSIS (' + ok.length + ')\n  ' + ok.join('\n  '));
