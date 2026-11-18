@@ -206,6 +206,8 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── Navigation : rideau de cinéma entre les scènes ──
   go(id: string, e?: Event): void {
     e?.preventDefault(); this.menu.set(false);
+    // Le menu montre tout de suite la section demandée et la garde pendant le déplacement
+    if (id !== 'contenu') { this.section.set(id); this.sectionLock = { id, until: Date.now() + 1600 }; }
     const el = document.getElementById(id);
     if (!el) return;
     const navH = (this.host.nativeElement as HTMLElement).querySelector('.nav')?.getBoundingClientRect().height ?? 64;
@@ -225,12 +227,30 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       .add(after);
   }
 
+  /**
+   * Section courante du menu : celle qui traverse la ligne à 45 % de l'écran.
+   * « Agences » et « Acteurs » sont côte à côte sur ordinateur : quand plusieurs sections sont sous la ligne,
+   * on garde la sélection actuelle (ou celle qu'on vient de cliquer) au lieu de prendre la dernière.
+   */
+  private sectionLock: { id: string; until: number } | null = null;
   private watchSections(): void {
-    const io = new IntersectionObserver(entries => {
-      for (const e of entries) if (e.isIntersecting) this.section.set(e.target.id);
-    }, { rootMargin: '-45% 0px -50% 0px' });
-    ['contenu', 'methode', 'agences', 'acteurs', 'engagements', 'contact'].forEach(id => { const el = document.getElementById(id); if (el) io.observe(el); });
-    this.cleanups.push(() => io.disconnect());
+    const ids = ['contenu', 'methode', 'agences', 'acteurs', 'engagements', 'contact'];
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      if (this.sectionLock && Date.now() < this.sectionLock.until) return;
+      this.sectionLock = null;
+      const line = window.innerHeight * 0.45;
+      const hits = ids.filter(id => { const r = document.getElementById(id)?.getBoundingClientRect(); return !!r && r.top <= line && r.bottom > line; });
+      if (!hits.length) return;
+      const cur = this.section();
+      if (!hits.includes(cur)) this.section.set(hits[0]);
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    update();
+    this.cleanups.push(() => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); if (raf) cancelAnimationFrame(raf); });
   }
 
   // ── Contact ─────────────────────────
