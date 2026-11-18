@@ -720,7 +720,7 @@ function renderCycle(){
   const s=D.cycle[cyS], p=D.prompts[cyP], dp=DEP[s.dept];
   let extra='';
   if(s.n===2) extra=`<div class="cmp" style="margin-top:12px"><div class="orig"><h4>Prompt reçu</h4>${esc(p.original)}</div><div class="amel"><h4>Prompt amélioré</h4>${esc(p.ameliore)}</div></div>`;
-  if(s.n===5) extra=`<div class="chips" style="margin-top:12px">${p.departements.map(dept).join('')}</div>`;
+  if(s.n===5) extra=`<div class="chips" style="margin-top:12px">${(p.departements||[]).map(dept).join('')}</div>`;
   if(s.n===7) extra=`<ul style="margin:12px 0 0;padding-left:18px">${p.livrables.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>`;
   $('#cy-detail').innerHTML=`<div><h3 style="margin-bottom:8px">${esc(s.titre)}</h3><p class="small" style="margin-bottom:12px">${esc(s.texte)}</p><div class="quote"><span class="small mono">${p.id} · ${esc(p.titre)}</span><p>${esc((p.trace||[])[cyS]||'')}</p></div>${extra}</div><div><h3 style="margin-bottom:10px">Intervenants · ${esc(dp.nom)}</h3><div class="people">${dp.membres.map(m=>`<div class="person"><span class="av" style="background:${dp.couleur}">${initials(m.nom)}</span><span>${esc(m.nom)}<small>${esc(m.role)} · ${esc(m.niveau)}</small></span></div>`).join('')}</div></div>`;
 }
@@ -763,7 +763,7 @@ function renderKan(){
 
 // prompts
 function renderPrompts(){
-  $('#plist').innerHTML=D.prompts.slice().reverse().map(p=>`<div class="panel pcard"><div class="phead" style="margin:0"><h2><span class="mono" style="color:var(--accent)">${p.id}</span> · ${esc(p.titre)}</h2><span class="sub">${fmtDate(p.date)} · ${st(p.statut==='Livré'?'fait':'en_cours')}</span></div><div class="cmp"><div class="orig"><h4>Ce que vous avez écrit</h4>${esc(p.original)}</div><div class="amel"><h4>Version améliorée par la Cellule IA</h4>${esc(p.ameliore)}</div></div><div class="chips"><span class="small">Départements mobilisés :</span>${p.departements.map(dept).join('')}</div><div class="small">Livrables : ${p.livrables.map(esc).join(' · ')}</div></div>`).join('');
+  $('#plist').innerHTML=D.prompts.slice().reverse().map(p=>`<div class="panel pcard"><div class="phead" style="margin:0"><h2><span class="mono" style="color:var(--accent)">${p.id}</span> · ${esc(p.titre)}</h2><span class="sub">${fmtDate(p.date)} · ${st(p.statut==='Livré'?'fait':'en_cours')}</span></div><div class="cmp"><div class="orig"><h4>Ce que vous avez écrit</h4>${esc(p.original)}</div><div class="amel"><h4>Version améliorée par la Cellule IA</h4>${esc(p.ameliore)}</div></div><div class="chips"><span class="small">Départements mobilisés :</span>${(p.departements||[]).map(dept).join('')}</div><div class="small">Livrables : ${(p.livrables||[]).map(esc).join(' · ')}</div></div>`).join('');
   $('#libs').innerHTML='<tr><th>Bibliothèque / outil</th><th>Version</th><th>Côté</th><th>Usage</th><th>Licence</th></tr>'+D.bibliotheques.map(b=>`<tr><td class="mono">${esc(b.nom)}</td><td>${esc(b.version)}</td><td>${esc(b.cote)}</td><td>${esc(b.usage)}</td><td>${esc(b.licence)}</td></tr>`).join('');
 }
 
@@ -1119,7 +1119,7 @@ function renderAll(){
   DEP=Object.fromEntries(D.departements.map(x=>[x.id,x]));T=D.taches;applyDecs();members=D.departements.reduce((a,x)=>a+x.membres.length,0);
   NOW=D.maintenant||{agents:[]};activeNames=new Set(NOW.agents.map(a=>a.nom));detectChanges();
   D.departements.forEach(x=>{if(x.membres.some(m=>activeNames.has(m.nom)))mmOpen.add(x.id)});
-  renderTop();renderNow();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();renderPlan();renderBlocages();renderBlk();renderRoadmap();chatDetect();if(CHAT.open)chatRender();
+  [renderTop,renderNow,renderCycle,renderOrg,renderJournal,renderKan,renderPrompts,renderPlan,renderBlocages,renderBlk,renderRoadmap,chatDetect].forEach(f=>{try{f()}catch(e){try{diag('erreur rendu '+f.name+' : '+e.message)}catch(_){}}});if(CHAT.open)try{chatRender()}catch(e){}
   if(location.hash==='#carte'){renderMM();const info=$('#mm-info');if(info&&info.innerHTML){if(mmFocus)showAgent(mmFocus);else if(infoKind==='projet')showProject();else if(infoKind&&infoKind.startsWith('dept:'))showDept(infoKind.slice(5));}}
   setLive();
 }
@@ -1183,7 +1183,7 @@ function route(){
   document.querySelectorAll('nav.tabs a').forEach(a=>a.setAttribute('aria-current',a.getAttribute('href')==='#'+v?'page':'false'));
   if(v==='organisation')renderOrg();if(v==='carte'){renderMM();if(mmFocus)showAgent(mmFocus);else if(!$('#mm-info').innerHTML)showProject();}
 }
-renderTop();renderNow();initFilters();renderCycle();renderOrg();renderJournal();renderKan();renderPrompts();renderPlan();renderBlocages();renderBlk();renderRoadmap();
+[renderTop,renderNow,initFilters,renderCycle,renderOrg,renderJournal,renderKan,renderPrompts,renderPlan,renderBlocages,renderBlk,renderRoadmap].forEach(f=>{try{f()}catch(e){try{diag('erreur rendu '+f.name+' : '+e.message)}catch(_){}}});
 chatDetect();
 addEventListener('hashchange',route);route();
 </script>

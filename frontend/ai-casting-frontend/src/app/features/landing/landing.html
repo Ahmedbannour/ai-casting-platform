@@ -1,3 +1,4 @@
+@if (splash()) { <app-splash (done)="onSplashDone()" /> }
 <div class="vitrine">
   <div #wipe class="wipe" aria-hidden="true">
     <div class="wipe-line"><span class="wipe-num">Scène {{ wipeNum() < 10 ? '0' + wipeNum() : wipeNum() }}</span></div>

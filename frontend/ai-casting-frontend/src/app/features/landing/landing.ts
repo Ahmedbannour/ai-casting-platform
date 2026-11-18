@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { LOCATION } from './map-scene';
+import { SplashComponent } from './splash';
 
 /** Profil fictif de la démonstration (aucune personne réelle). */
 interface Card { name: string; age: number; city: string; tags: string[]; match: boolean; why: string; tone: string; shape: 0 | 1 | 2; }
@@ -43,7 +44,7 @@ const SCENES: Record<string, string> = {
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, SplashComponent],
   templateUrl: './landing.html',
   styleUrl: './landing.scss'
 })
@@ -100,14 +101,26 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   private sx = 0; private sy = 0;
   readonly still = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /** Écran d'accueil animé : à chaque arrivée sur la vitrine (sauf lien direct vers une section ou animations réduites). */
+  readonly splash = signal(!this.still && !location.hash);
+
   ngOnInit(): void {
     this.pick(0, false);
     if (!this.still) {
       const el = this.host.nativeElement as HTMLElement;
       el.classList.add('motion');
-      const t = setTimeout(() => el.classList.remove('motion'), 2500);
-      this.cleanups.push(() => clearTimeout(t));
+      if (!this.splash()) {
+        const t = setTimeout(() => el.classList.remove('motion'), 2500);
+        this.cleanups.push(() => clearTimeout(t));
+      }
     }
+  }
+
+  /** Fin de l'écran d'accueil : la vitrine joue son entrée pendant l'ouverture à l'iris. */
+  onSplashDone(): void {
+    this.startMotion();
+    const t = setTimeout(() => this.splash.set(false), 1000);
+    this.cleanups.push(() => clearTimeout(t));
   }
 
   ngAfterViewInit(): void {
@@ -117,7 +130,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     const h = location.hash.slice(1);
     if (h && SCENES[h]) setTimeout(() => { const el = document.getElementById(h); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 67, behavior: 'instant' as ScrollBehavior }); }, 60);
     if (this.still) return;
-    this.startMotion();
+    if (!this.splash()) this.startMotion();
     const canvas = this.sceneRef?.nativeElement;
     const idle = (cb: () => void) => ('requestIdleCallback' in window ? (window as any).requestIdleCallback(cb, { timeout: 900 }) : setTimeout(cb, 250));
     if (canvas && this.webgl()) {

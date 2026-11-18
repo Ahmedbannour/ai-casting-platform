@@ -85,7 +85,8 @@ const check = (name, cond, info) => { (cond ? ok : ko).push(name + (info !== und
     input: document.getElementById('ch-in').value,
     list: document.querySelectorAll('.wa-c').length
   }));
-  check('Tchat : 24 agents dans la liste', chat.list === 24, chat.list);
+  const agents = JSON.parse(require('fs').readFileSync(require('path').join(process.env.PILOTAGE || 'C:\\Users\\AhmedBannour\\ai-casting-platform\\pilotage', 'data.json'), 'utf8')).departements.reduce((a, d) => a + d.membres.length, 0);
+  check(`Tchat : ${agents} agents dans la liste`, chat.list === agents, chat.list);
   check('Tchat : 2 messages envoyés à la suite', chat.me.length === 2, chat.me);
   check('Tchat : heure + coches sur mes messages', chat.ticks === 2, chat.ticks);
   check('Tchat : champ vidé après envoi', chat.input === '');

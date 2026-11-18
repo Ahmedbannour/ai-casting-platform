@@ -29,6 +29,13 @@ Une agence décrit un rôle en une phrase ; AI Casting trouve, classe et expliqu
 <br><sub>Vitrine → recherche IA → filtres du vivier → shortlist d’un rôle → agenda. Les photos des profils de démonstration sont floutées.</sub>
 </div>
 
+<details>
+<summary><b>🎞️ L’écran d’accueil animé</b> · cercle au crayon, planche contact, clap, ouverture à l’iris</summary>
+<br>
+<div align="center"><img src="docs/assets/accueil.gif" alt="Écran d’accueil animé qui s’ouvre à l’iris sur la vitrine" width="800"></div>
+<sub>À chaque arrivée sur la page d’accueil ; passable d’un clic ou d’une touche ; désactivé si le système demande de réduire les animations.</sub>
+</details>
+
 ## 💡 Pour qui ?
 
 | 🎯 Agence de casting | 🎭 Acteur ou actrice | 🎥 Réalisateur |

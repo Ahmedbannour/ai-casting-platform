@@ -702,9 +702,41 @@
    "titre": "Démo du label Startup et recrutements",
    "original": "ok , merci d'avancer le plus maximum possible , demain je vais presenter ca pour prendre une label de startup , peux tu annoncer ca a l'entreprise , faire les recrutements nécessaires au niveau des rh pour les postes ingénieur ui/ux expert angular , ainsi que des ingénieurs de backend spring java exprimenté , des ingénieurs devops et test QA , je dois allez le plus loins possible , merci de me donner vos meilleurs solutions (for free)",
    "ameliore": "Annoncer à toute l'entreprise la présentation de demain pour le label Startup (Startup Act tunisien : innovation et scalabilité). RH : recruter 2 UI/UX Angular experts, 2 Java Spring seniors, 1 DevOps, 2 QA. Priorité à la démo : plateforme stable et vérifiée, scénario de démo, présentation pour le comité ; tout en solutions gratuites.",
-   "departement": "dir",
-   "resp": "Karim Haddad",
-   "statut": "en_cours"
+   "statut": "Livré",
+   "departements": [
+    "dir",
+    "rh",
+    "back",
+    "front",
+    "qa",
+    "devops",
+    "prod"
+   ],
+   "livrables": [
+    "Annonce et 7 recrutements",
+    "T-116 agenda des auditions",
+    "Recette 104/104",
+    "Site rapide par l'adresse publique",
+    "Présentation du label (12 diapositives)",
+    "README animé, fusion dans master, profil GitHub"
+   ]
+  },
+  {
+   "id": "P-038",
+   "date": "2026-11-18",
+   "titre": "Écran d'accueil animé et salle en temps réel",
+   "original": "ok , je veux une splashscreen animé et moderner developper par un ingénieur ui et expert react native, pour données plus du valeur a notre brand et aussi une touche artistique qui navige avec animation vers la page de vitrine (avant login) / merci de mettre a jour la salle de pilotage et le rendre en temps réel / la salle de pilotage est bloquée, je ne peux pas ouvrir la carte mentale",
+   "ameliore": "Écran d'accueil animé aux couleurs de la marque (mise en scène cinéma : cercle du logo au crayon, planche contact, clap, ouverture à l'iris) qui mène à la vitrine, une fois par visite, passable, respectueux du réglage « réduire les animations ». Salle de pilotage : corriger le blocage et la tenir à jour en direct à chaque étape.",
+   "departements": [
+    "front",
+    "qa",
+    "dir"
+   ],
+   "livrables": [
+    "Écran d'accueil animé (T-138)",
+    "Correction du blocage de la salle (T-139)"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -2549,6 +2581,30 @@
    "prompt": "P-037",
    "jour": "J6",
    "detail": "Recette avant la démo : 70/70 tests serveur, 104/104 vérifications navigateur (ordinateur et mobile). Par l'adresse publique, le site de développement mettait plus de 30 s à charger : remplacé par la version compilée servie par scripts/serveur-demo.js (fichiers compressés, mis en cache), même adresse. Parcours vitrine → connexion → acteurs → agenda → projets mesuré en 1 à 4 s par étape, sans erreur ni image cassée (pilotage/tests/demo-public.js)."
+  },
+  {
+   "id": "T-138",
+   "titre": "Écran d'accueil animé avant la vitrine",
+   "dept": "front",
+   "resp": "Yanis Belhadj",
+   "prio": "P1",
+   "phase": "PH3",
+   "statut": "fait",
+   "prompt": "P-038",
+   "jour": "J6",
+   "detail": "Écran d'accueil animé avant la vitrine, mise en scène cinéma aux couleurs de la marque : le cercle du logo se dessine au crayon, trois photos de planche contact s'ouvrent en éventail, le nom se révèle lettre par lettre, le clap se referme sur « Action ! », puis une ouverture à l'iris centrée sur le cercle dévoile la vitrine, qui joue son entrée pendant l'ouverture. Environ 2,8 s, CSS et Web Animations sans bibliothèque. Rejoué à chaque arrivée sur la page d'accueil (demande du client) ; passable d'un clic, d'Échap, d'Entrée ou d'Espace ; absent avec « réduire les animations » ou un lien direct vers une section. Recette 104/104, ordinateur et mobile."
+  },
+  {
+   "id": "T-139",
+   "titre": "Salle de pilotage bloquée : une demande sans départements arrêtait la page",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "prio": "P0",
+   "phase": "PH3",
+   "statut": "fait",
+   "prompt": "P-038",
+   "jour": "J6",
+   "detail": "La fiche de la demande P-037 n'avait pas de liste de départements ni de livrables : l'affichage des prompts plantait et arrêtait le script (onglets, carte mentale). Fiche complétée ; la page tolère désormais un champ manquant ; le chargement de chaque vue est isolé."
   }
  ],
  "journal": [
@@ -2608,54 +2664,58 @@
   }
  ],
  "maintenant": {
-  "titre": "P-055 · Démo prête : recette verte, site rapide par l'adresse publique, présentation du label",
-  "etape": 48,
+  "titre": "P-058 · Écran d’accueil livré ; salle débloquée et en direct",
+  "etape": 52,
   "agents": [
    {
-    "nom": "Amel Kacem",
-    "action": "Recette 104/104 et parcours public chronométré",
-    "court": "T-137"
+    "nom": "Yanis Belhadj",
+    "action": "Écran d’accueil animé livré",
+    "court": "T-138"
    },
    {
-    "nom": "Bilel Ferchichi",
-    "action": "Version compilée servie au tunnel : de plus de 30 s à 3 s",
-    "court": "DevOps"
+    "nom": "Sarra Mansouri",
+    "action": "Salle débloquée, vues isolées",
+    "court": "T-139"
    },
    {
-    "nom": "Élodie Martin",
-    "action": "Présentation pour le comité du label",
-    "court": "T-136"
+    "nom": "Rania Jlassi",
+    "action": "Recette 104/104 avec l’écran d’accueil",
+    "court": "QA"
    }
   ],
   "progres": {
-   "tache": "T-135",
-   "titre": "Démo du label Startup",
+   "tache": "T-138",
+   "titre": "Écran d’accueil animé",
    "etapes": [
+    {
+     "t": "Mise en scène",
+     "s": "fait"
+    },
+    {
+     "t": "Enchaînement vitrine",
+     "s": "fait"
+    },
+    {
+     "t": "À chaque visite",
+     "s": "fait"
+    },
     {
      "t": "Recette 104/104",
      "s": "fait"
     },
     {
-     "t": "Site rapide en public",
+     "t": "Captures Navigateur",
      "s": "fait"
     },
     {
-     "t": "Présentation",
+     "t": "Git",
      "s": "fait"
-    },
-    {
-     "t": "Lancement en une commande",
-     "s": "fait"
-    },
-    {
-     "t": "Crochets et répétition (client)",
-     "s": "en_cours"
     }
    ]
   },
   "derniere": {
-   "t": "2026-11-18T03:35:00Z",
-   "texte": "Démo prête : chargement public de plus de 30 s à 3 s ; recette 104/104"
+   "t": "2026-11-18T05:00:00Z",
+   "texte": "Écran d’accueil livré ; recette 104/104"
   }
  },
  "activite": [
@@ -2820,6 +2880,18 @@
    "nom": "Élodie Martin",
    "t": "2026-11-18T03:35:00Z",
    "texte": "Présentation pour le comité du label Startup prête (12 diapositives) ; quelques chiffres à compléter par le client."
+  },
+  {
+   "h": "J6",
+   "nom": "Sarra Mansouri",
+   "t": "2026-11-18T04:50:00Z",
+   "texte": "Salle débloquée : la fiche de la demande P-037 n’avait pas de départements et arrêtait la page (carte mentale, onglets). Corrigé ; chaque vue est désormais isolée pour qu’une erreur n’en bloque plus d’autre."
+  },
+  {
+   "h": "J6",
+   "nom": "Yanis Belhadj",
+   "t": "2026-11-18T05:00:00Z",
+   "texte": "T-138 livrée : écran d’accueil animé (crayon, planche contact, clap, iris) à chaque visite de la page d’accueil ; animation visible dans l’onglet Navigateur."
   }
  ],
  "plan": {
