@@ -58,10 +58,17 @@ async function audit(page, path, name, errors) {
     }
     if (!logged) { await ctx.close(); continue; }
 
-    // T-143 · Accueil de l'agent ouvert à la connexion
-    check(P + 'T-143 : arrivée sur l’Accueil après connexion', new URL(page.url()).pathname === '/accueil', page.url());
-    await audit(page, '/accueil', P + 'Accueil agent', errors);
-    check(P + 'T-143 : Accueil avec ses 4 repères', await page.locator('.tiles .tile:not(.skel)').count() === 4);
+    // T-143/T-144 · Accueil ouvert à la connexion (l'administrateur a le sien)
+    check(P + 'T-144 : arrivée sur l’Accueil après connexion', new URL(page.url()).pathname === '/accueil', page.url());
+    await audit(page, '/accueil', P + 'Accueil administrateur', errors);
+    check(P + 'T-144 : Accueil administrateur (à traiter, pouls 14 jours, agences, journal)',
+      await page.locator('app-admin-home .todo').count() === 1 && await page.locator('app-admin-home .pulse .tile').count() === 4
+      && await page.locator('app-admin-home .bars .col').count() === 14);
+    { const btn = page.locator('app-admin-home .pulse .tile >> nth=1'); if (await btn.count()) { await btn.click(); await page.waitForTimeout(300);
+      check(P + 'T-144 : choix de l’indicateur du graphique', /Recherches IA/.test(await page.locator('#h-chart').textContent().catch(() => ''))); } }
+    { const link = page.locator('app-admin-home a', { hasText: 'Gérer les agences' }); if (await link.count()) { await link.click(); await page.waitForTimeout(900);
+      check(P + 'T-144 : lien direct vers l’onglet Agences', (await page.locator('[role=tab][aria-selected=true]').first().textContent().catch(() => '')).includes('Agences'));
+      await page.goto(BASE + '/accueil'); await page.waitForTimeout(800); } }
     // Pages agence / administration
     await audit(page, '/admin', P + 'Administration', errors);
     for (const tab of ['Agences', 'Journal']) {

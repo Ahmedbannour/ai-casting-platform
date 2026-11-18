@@ -1,7 +1,7 @@
 import { HostListener, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   AdminService, AgencyRequest, AgencyStats, Bucket, Delta, ImportPreview, ImportResult, ImportRow, PlatformStats, ProjectStats, UserRow, AuditEntry } from '../../core/services/admin.service';
 import { SelectFieldComponent } from '../../shared/components/select-field/select-field';
@@ -309,7 +309,16 @@ export class AdminComponent implements OnInit {
   });
   readonly selectedCount = computed(() => this.selected().size);
 
+  private readonly route = inject(ActivatedRoute);
+
   ngOnInit(): void {
+    // T-144 · Liens directs depuis l'accueil : ?onglet=agences|messages|journal|equipe, ?filtre=UNVERIF, ?action=CONNEXION_BLOQUEE
+    const q = this.route.snapshot.queryParamMap;
+    const onglet = q.get('onglet') as Tab | null;
+    if (onglet && this.tabs.some(t => t.id === onglet)) this.tab.set(onglet);
+    const filtre = q.get('filtre'); if (filtre && this.filters.some(f => f.value === filtre)) this.roleFilter.set(filtre);
+    const action = q.get('action'); if (action) this.auditFilter.set(action);
+    if (onglet === 'journal') this.loadAudit();
     this.loadStats();
     this.loadAgencies();
     this.loadProjects();

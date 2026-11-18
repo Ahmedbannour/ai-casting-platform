@@ -136,8 +136,8 @@ export const routes: Routes = [
         path: 'accueil',
         canActivate: [agence],
         loadComponent: () =>
-          import('./features/espace/agent-home')
-            .then(m => m.AgentHomeComponent)
+          import('./features/espace/accueil')
+            .then(m => m.AccueilComponent)
       },
       {
         path: 'chat',

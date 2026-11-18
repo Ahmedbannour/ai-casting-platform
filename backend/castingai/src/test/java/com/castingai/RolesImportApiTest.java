@@ -505,6 +505,23 @@ class RolesImportApiTest {
     }
 
     @Test
+    void accueilDeLAdministrateur() throws Exception {
+        String a = admin();
+        String d = agentOf("Agence Tableau Admin", "agent.tableau.admin@test.local");
+        send("GET", "/api/admin/home", d, null).andExpect(status().isForbidden());
+        long avant = read(send("GET", "/api/admin/home", a, null).andExpect(status().isOk())).get("alerts").get("unreadMessages").asLong();
+        send("POST", "/api/public/contact", null, Map.of("name", "Studio Carthage", "email", "contact@carthage.tn", "profile", "AGENCE",
+                "message", "Bonjour, nous aimerions une démonstration.")).andExpect(status().isCreated());
+        JsonNode h = read(send("GET", "/api/admin/home", a, null).andExpect(status().isOk()));
+        assertThat(h.get("alerts").get("unreadMessages").asLong()).isEqualTo(avant + 1);
+        assertThat(h.get("days").size()).isEqualTo(14);
+        assertThat(h.get("agencies").size()).isPositive();
+        assertThat(h.get("recent").size()).isPositive();
+        assertThat(h.get("actors").asLong()).isGreaterThanOrEqualTo(100);
+        jdbc.update("delete from contact_messages where email = 'contact@carthage.tn'");   // n'influence pas les autres tests
+    }
+
+    @Test
     void notificationsDeLaCloche() throws Exception {
         String d = agentOf("Agence Epsilon", "agent.epsilon@test.local");
         String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "rita.notif@test.local",

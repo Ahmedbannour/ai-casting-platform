@@ -36,6 +36,7 @@ public class AdminController {
     private final UserRepository users;
     private final com.castingai.service.AuditService audit;
     private final ActorRepository actors;
+    private final com.castingai.service.AdminHomeService adminHome;
     private final PasswordEncoder passwordEncoder;
     private final ActorImportService importService;
     private final com.castingai.repository.AgencyRepository agencyRepository;
@@ -72,6 +73,10 @@ public class AdminController {
     public record Overview(long agents, long admins, long actorAccounts, long actors,
                            long actorsAgence, long actorsInscription, long actorsImport) {}
     public record ImportRequest(@NotNull @Valid List<ActorCreateRequest> rows) {}
+
+    /** T-144 · Accueil de l'administrateur. */
+    @GetMapping("/home")
+    public com.castingai.service.AdminHomeService.Home home() { return adminHome.home(); }
 
     @GetMapping("/overview")
     public Overview overview() {

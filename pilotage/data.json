@@ -756,6 +756,22 @@
     "Accueil de l'agent (T-143)"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-040",
+   "date": "2026-11-18",
+   "titre": "Accueil de l'administrateur",
+   "original": "ok tu peux passer a l’accueil de l’administrateur (agences, contrats, activité de la plateforme)",
+   "ameliore": "Accueil opérationnel de l'administrateur, complémentaire du tableau de bord statistique existant : ce qui demande une action (contrats échus ou à renouveler, messages non lus, connexions bloquées, comptes non vérifiés, agences inactives), pouls de la plateforme sur 14 jours, agences et contrats, dernières actions du journal ; liens directs vers le bon onglet de l'administration.",
+   "departements": [
+    "back",
+    "front",
+    "qa"
+   ],
+   "livrables": [
+    "Accueil de l'administrateur (T-144)"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -2672,6 +2688,18 @@
    "prompt": "P-039",
    "jour": "J7",
    "detail": "Nouvel accueil de l'agent et de l'administrateur, ouvert à la connexion (/accueil) : auditions des 7 jours (confirmées ou à confirmer), réponses attendues des acteurs avec leur ancienneté (en rouge au-delà de 3 jours), rôles à pourvoir avec l'avancement de leur shortlist (présélection, audition, rappel, choisi) et le compte à rebours du tournage, dernières réponses avec le mot de l'acteur, alerte de fin de contrat de l'agence. Raccourcis : nouvelle recherche, recherche IA préremplie pour un rôle, mes projets. Résumé serveur en un appel (/api/agency/home), limité aux projets de l'équipe ; test dédié, 71/71 ; recette navigateur 115/115."
+  },
+  {
+   "id": "T-144",
+   "titre": "Accueil de l’administrateur : agences, contrats, activité de la plateforme",
+   "dept": "front",
+   "resp": "Mariem Gharbi",
+   "prio": "P1",
+   "phase": "PH3",
+   "statut": "fait",
+   "prompt": "P-040",
+   "jour": "J6",
+   "detail": "À la connexion, l'administrateur arrive sur son accueil : « À traiter » (contrats échus avec agents encore actifs, contrats à renouveler sous 30 jours, messages de contact non lus, connexions bloquées en 24 h, comptes sans adresse vérifiée, agences sans activité depuis 30 jours), chacun avec un lien direct vers le bon onglet et le bon filtre de l'administration ; pouls sur 14 jours (inscriptions, recherches IA, propositions, réponses) en mini-courbes et graphique au choix ; agences avec l'état de leur contrat ; dernières actions du journal ; date de la dernière purge. /api/admin/home, test dédié (72/72) ; recette navigateur 119/119."
   }
  ],
  "journal": [
@@ -2731,29 +2759,33 @@
   }
  ],
  "maintenant": {
-  "titre": "P-060 · T-143 livrée : accueil de l’agent",
-  "etape": 57,
+  "titre": "P-061 · T-144 livrée : accueil de l’administrateur",
+  "etape": 59,
   "agents": [
    {
-    "nom": "Walid Khemiri",
-    "action": "Résumé de l’agence côté serveur (71/71)",
-    "court": "T-143"
+    "nom": "Sophie Laurent",
+    "action": "Résumé de la plateforme côté serveur (72/72)",
+    "court": "T-144"
    },
    {
-    "nom": "Yanis Belhadj",
-    "action": "Accueil de l’agent livré",
-    "court": "T-143"
+    "nom": "Mariem Gharbi",
+    "action": "Accueil de l’administrateur livré",
+    "court": "T-144"
    },
    {
-    "nom": "Rania Jlassi",
+    "nom": "Nicolas Perrin",
     "action": "Recette complète",
     "court": "QA"
    }
   ],
   "progres": {
-   "tache": "T-143",
-   "titre": "Accueil de l’agent",
+   "tache": "T-144",
+   "titre": "Accueil de l’administrateur",
    "etapes": [
+    {
+     "t": "Inventaire de l’existant",
+     "s": "fait"
+    },
     {
      "t": "Résumé serveur",
      "s": "fait"
@@ -2763,15 +2795,11 @@
      "s": "fait"
     },
     {
-     "t": "Tests serveur 71/71",
+     "t": "Tests 72/72",
      "s": "fait"
     },
     {
-     "t": "Recette 115/115",
-     "s": "fait"
-    },
-    {
-     "t": "Capture Navigateur",
+     "t": "Recette 119/119",
      "s": "fait"
     },
     {
@@ -2781,8 +2809,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-18T05:25:00Z",
-   "texte": "Accueil de l’agent livré ; recette 115/115"
+   "t": "2026-11-18T05:40:00Z",
+   "texte": "Accueil de l’administrateur livré ; recette 119/119"
   }
  },
  "activite": [
@@ -2983,6 +3011,12 @@
    "nom": "Amel Kacem",
    "t": "2026-11-18T05:25:00Z",
    "texte": "Correction de la recette : les deux passages précédents s’étaient arrêtés (l’acteur arrive désormais sur « Mon espace ») et l’ancien résultat 104/104 avait été relu par erreur. Recette mise à jour (Mon espace, Accueil de l’agent), ancien résultat effacé avant chaque passage : 115/115."
+  },
+  {
+   "h": "J6",
+   "nom": "Mariem Gharbi",
+   "t": "2026-11-18T05:35:00Z",
+   "texte": "T-144 livrée : accueil de l’administrateur (à traiter, pouls de la plateforme sur 14 jours, agences et contrats, dernières actions), avec liens directs vers l’administration."
   }
  ],
  "plan": {
