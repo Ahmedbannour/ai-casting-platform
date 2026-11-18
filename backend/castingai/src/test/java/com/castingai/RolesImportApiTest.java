@@ -612,6 +612,7 @@ class RolesImportApiTest {
 
         String pr = "/api/public/password-reset/" + t2;
         send("POST", pr, null, Map.of("password", "court")).andExpect(status().isBadRequest());
+        send("POST", pr, null, Map.of("password", "password123")).andExpect(status().isBadRequest());   // mot de passe de démonstration refusé
         send("POST", pr, null, Map.of("password", "NouveauMdp-2026")).andExpect(status().isNoContent());
         send("POST", pr, null, Map.of("password", "EncoreUn-2026")).andExpect(status().isNotFound());   // usage unique
 

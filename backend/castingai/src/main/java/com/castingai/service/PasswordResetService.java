@@ -30,6 +30,9 @@ import java.util.UUID;
 public class PasswordResetService {
 
     public static final int MINUTES = 60;
+    /** Mots de passe refusés : celui de démonstration et les plus courants. */
+    private static final java.util.Set<String> WEAK = java.util.Set.of("password123", "password", "motdepasse", "motdepasse123", "123456789",
+            "12345678", "1234567890", "azerty123", "azertyuiop", "qwerty123", "admin123", "administrateur", "casting123", "aicasting123", "password1234");
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final JdbcTemplate jdbc;
@@ -69,6 +72,10 @@ public class PasswordResetService {
         if (password == null || password.length() < 8 || password.length() > 100)
             throw new IllegalArgumentException("Choisissez un mot de passe de 8 caractères au moins.");
         User u = users.findById((UUID) r.get("user_id")).orElseThrow(this::invalid);
+        if (u.getRole() == com.castingai.entity.Role.ADMIN && password.length() < 12)
+            throw new IllegalArgumentException("Pour un compte administrateur, choisissez un mot de passe de 12 caractères au moins.");
+        if (WEAK.contains(password.toLowerCase(java.util.Locale.ROOT)) || password.equalsIgnoreCase(u.getEmail()))
+            throw new IllegalArgumentException("Ce mot de passe est trop connu (mot de passe de démonstration ou très courant). Choisissez-en un autre.");
         u.setPassword(passwordEncoder.encode(password));
         users.saveAndFlush(u);
         jdbc.update("update password_resets set used_at = now() where id = ?", r.get("id"));
