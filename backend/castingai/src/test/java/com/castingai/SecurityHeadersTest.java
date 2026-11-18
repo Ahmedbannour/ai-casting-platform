@@ -55,5 +55,12 @@ class SecurityHeadersTest {
                         .header("Access-Control-Request-Method", "GET"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:4200"));
+        // T-126 · adresse du tunnel Cloudflare acceptée en développement ; un faux sous-domaine non
+        mvc.perform(options("/api/auth/login").header("Origin", "https://touched-angel-skins-thats.trycloudflare.com")
+                        .header("Access-Control-Request-Method", "POST"))
+                .andExpect(status().isOk());
+        mvc.perform(options("/api/auth/login").header("Origin", "https://trycloudflare.com.site-malveillant.example")
+                        .header("Access-Control-Request-Method", "POST"))
+                .andExpect(status().isForbidden());
     }
 }

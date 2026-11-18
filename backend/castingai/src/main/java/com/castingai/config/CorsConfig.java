@@ -18,13 +18,13 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Value("${casting.cors.allowed-origins:http://localhost:4200}")
+    @Value("${casting.cors.allowed-origins:http://localhost:4200,https://*.trycloudflare.com}")   // dev : site local et tunnel Cloudflare (T-126) ; production : liste exacte
     private String allowedOrigins;
 
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.stream(allowedOrigins.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList());
+        config.setAllowedOriginPatterns(Arrays.stream(allowedOrigins.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         config.setAllowCredentials(false);

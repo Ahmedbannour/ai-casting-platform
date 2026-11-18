@@ -2318,8 +2318,8 @@
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "en_cours",
-   "detail": "Prêt : cloudflared 2026.11.1 téléchargé (empreinte SHA-256 et signature Cloudflare vérifiées, hors Git) ; site autorisé pour *.trycloudflare.com ; adresse réelle des visiteurs lue derrière le tunnel pour les limites anti-abus. En attente : le client change le mot de passe administrateur de démonstration (lien de réinitialisation fourni), puis ouverture du tunnel. Connexion Google/Facebook indisponible sur l'adresse du tunnel (adresses autorisées chez Google et Meta).",
+   "statut": "fait",
+   "detail": "Tunnel Cloudflare gratuit ouvert (D-016) : https://touched-angel-skins-thats.trycloudflare.com (l'adresse change à chaque relance ; scripts/tunnel.ps1 la relance en une commande). Vérifié de l'extérieur : vitrine, connexion, fiches, photos signées, aucune erreur. Préalables : mot de passe administrateur changé par le client (mot de passe de démonstration désormais refusé), adresse réelle des visiteurs pour les limites anti-abus, origines *.trycloudflare.com autorisées en développement seulement. Limites : le PC doit rester allumé ; connexion Google/Facebook indisponible sur cette adresse (adresses à déclarer chez Google et Meta).",
    "lot": "L8",
    "solutions": [
     {
@@ -2526,47 +2526,42 @@
   }
  ],
  "maintenant": {
-  "titre": "P-051 · T-111 faite (conservation et purge) ; T-126 attend le nouveau mot de passe administrateur",
-  "etape": 42,
+  "titre": "P-052 · T-126 faite : plateforme ouverte aux testeurs par le tunnel Cloudflare",
+  "etape": 43,
   "agents": [
    {
-    "nom": "Mehdi Amrani",
-    "action": "T-111 livrée : purge de conservation chaque nuit",
-    "court": "T-111"
-   },
-   {
     "nom": "Laura Blanc",
-    "action": "Tunnel prêt ; attend le nouveau mot de passe administrateur",
+    "action": "Tunnel ouvert et vérifié de l'extérieur",
     "court": "T-126"
    },
    {
-    "nom": "Amel Kacem",
-    "action": "Recette navigateur : 104/104",
-    "court": "recette"
+    "nom": "Karim Haddad",
+    "action": "Prépare l'ouverture aux premières agences (fin de T-127)",
+    "court": "T-127"
    }
   ],
   "progres": {
-   "tache": "T-111",
-   "titre": "Conservation et purge automatique",
+   "tache": "T-126",
+   "titre": "Mise en ligne par tunnel",
    "etapes": [
     {
-     "t": "Règles et purge de nuit",
+     "t": "cloudflared vérifié",
      "s": "fait"
     },
     {
-     "t": "Tests serveur",
+     "t": "Mot de passe admin",
      "s": "fait"
     },
     {
-     "t": "Encart Administration",
+     "t": "Origines et adresses",
      "s": "fait"
     },
     {
-     "t": "Politique de confidentialité",
+     "t": "Tunnel ouvert",
      "s": "fait"
     },
     {
-     "t": "Recette navigateur",
+     "t": "Vérifié de l'extérieur",
      "s": "fait"
     },
     {
@@ -2576,8 +2571,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-18T01:22:00Z",
-   "texte": "T-111 terminée et poussée : 68/68 tests, 104/104 en navigateur"
+   "t": "2026-11-18T01:40:00Z",
+   "texte": "Plateforme en ligne : https://touched-angel-skins-thats.trycloudflare.com"
   }
  },
  "activite": [
@@ -2694,6 +2689,12 @@
    "nom": "Mehdi Amrani",
    "t": "2026-11-18T01:22:00Z",
    "texte": "T-111 livrée : les données qui dépassent leur durée de conservation sont effacées chaque nuit ; encart dans Administration › Journal. 68/68 tests, 104/104 en navigateur."
+  },
+  {
+   "h": "J6",
+   "nom": "Laura Blanc",
+   "t": "2026-11-18T01:40:00Z",
+   "texte": "T-126 livrée : la plateforme est accessible aux testeurs par un tunnel Cloudflare gratuit ; vérifiée de l'extérieur (connexion, fiches, photos)."
   }
  ],
  "plan": {
