@@ -1,10 +1,10 @@
-import { Component, OnInit, signal, ViewChild, ElementRef, AfterViewChecked, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AiSearchAngularService, SearchResponse } from '../../core/services/ai-search.service';
-import { SwipeDeckComponent, SwipeEvent } from '../../shared/components/swipe-deck/swipe-deck';
+import { DeckMemory, SwipeDeckComponent, SwipeEvent } from '../../shared/components/swipe-deck/swipe-deck';
 import { CastingRole, CastingService } from '../../core/services/casting.service';
 import { RouterLink } from '@angular/router';
 
@@ -15,6 +15,8 @@ export interface ChatMessage {
   loading?: boolean;
   explaining?: boolean;
   loadingMore?: boolean;
+  /** Position et décisions dans la pile de cette recherche. */
+  memory?: DeckMemory;
   timestamp: Date;
 }
 
@@ -25,9 +27,7 @@ export interface ChatMessage {
   templateUrl: './chat.html',
   styleUrl: './chat.scss'
 })
-export class ChatComponent implements OnInit, AfterViewChecked {
-
-  @ViewChild('messagesEnd') messagesEnd!: ElementRef;
+export class ChatComponent implements OnInit {
 
   messages = signal<ChatMessage[]>([]);
   input = '';
@@ -96,25 +96,40 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     this.messages.set([]);
     this.input = '';
     this.loading.set(false);
+    this.views.set(new Map());
   }
 
-  ngAfterViewChecked(): void { /* plus de défilement forcé à chaque rafraîchissement : voir scrollToLatest() */ }
+  // ── Conversation ──
+  /** Affichage choisi pour chaque réponse : cartes (par défaut) ou liste. */
+  private readonly views = signal<Map<number, 'cartes' | 'liste'>>(new Map());
+  viewOf(i: number): 'cartes' | 'liste' { return this.views().get(i) ?? 'cartes'; }
+  setView(i: number, v: 'cartes' | 'liste'): void { this.views.update(m => new Map(m).set(i, v)); }
 
-  /** Recherches précédentes dépliées par l'utilisateur (les autres sont résumées en une ligne). */
-  readonly expanded = signal<Set<number>>(new Set());
-  toggleOld(i: number): void { this.expanded.update(s => { const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i); return n; }); }
+  /** « Critères compris : Femme · Comédie — 52 profil(s) trouvé(s) » → [Femme, Comédie] */
+  criteria(interp: string): string[] {
+    if (!interp) return [];
+    let t = interp.includes(':') ? interp.slice(interp.indexOf(':') + 1) : interp;
+    t = t.split('—')[0];
+    return t.split('·').map(x => x.trim()).filter(x => x && !/profil/i.test(x)).slice(0, 6);
+  }
 
-  /** Place la dernière demande en haut de la zone, les propositions en dessous ; une seule fois par recherche. */
-  private scrollToLatest(): void {
+  retry(i: number): void { const q = this.messages()[i - 1]?.content; if (q) this.send(q); }
+
+  /**
+   * Défilement, une seule fois par étape (jamais à chaque rafraîchissement) :
+   *  - à l'envoi : la demande arrive en haut de la zone ;
+   *  - à la réponse : la réponse se cale dans la zone visible, fiche et boutons entiers.
+   * Ensuite l'utilisateur fait défiler librement toute la conversation.
+   */
+  private scrollTo(i: number, where: 'start' | 'answer'): void {
     setTimeout(() => {
       const list = document.querySelector('.messages-list') as HTMLElement | null;
-      // La réponse en haut (la demande juste au-dessus reste accessible en remontant) : fiche et boutons entiers à l'écran
-      const answers = list?.querySelectorAll('.assistant-message');
-      const last = answers?.[answers.length - 1] as HTMLElement | undefined;
-      if (!list || !last) return;
-      const top = last.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop - 12;
+      const el = list?.querySelector(`[data-i="${i}"]`) as HTMLElement | null;
+      if (!list || !el) return;
+      const top = el.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
+      const target = where === 'start' ? top - 12 : top + el.offsetHeight - list.clientHeight + 8;
       const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      list.scrollTo({ top: Math.max(0, top), behavior: still ? 'auto' : 'smooth' });
+      list.scrollTo({ top: Math.max(0, where === 'answer' ? Math.min(target, top - 8) : target), behavior: still ? 'auto' : 'smooth' });
     }, 60);
   }
 
@@ -130,7 +145,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     this.messages.update(m => [...m, {
       role: 'assistant', loading: true, timestamp: new Date()
     }]);
-    this.scrollToLatest();
+    this.scrollTo(this.messages().length - 2, 'start');
 
     this.aiService.search(text).subscribe({
       next: (response) => {
@@ -141,11 +156,12 @@ export class ChatComponent implements OnInit, AfterViewChecked {
             ? { ...response, results: response.results.filter(r => !this.inShortlist.has(r.id)) }
             : response;
           updated[updated.length - 1] = {
-            role: 'assistant', response: visible, loading: false, timestamp: new Date()
+            role: 'assistant', response: visible, loading: false, timestamp: new Date(),
+            memory: { index: 0, history: [] }
           };
           return updated;
         });
-        this.scrollToLatest();
+        this.scrollTo(this.messages().length - 1, 'answer');
         const shown = this.messages()[this.messages().length - 1].response?.results ?? [];
         this.explain(this.messages().length - 1, text, shown.slice(0, 5).map(r => r.id));
         this.aiService.historyChanged.next();
@@ -249,10 +265,6 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     if (p >= 75) return 'Excellent';
     if (p >= 50) return 'Bon';
     return 'Partiel';
-  }
-
-  private scrollToBottom(): void {
-    try { this.messagesEnd?.nativeElement?.scrollIntoView({ behavior: 'smooth' }); } catch {}
   }
 
   get isEmpty(): boolean { return this.messages().length === 0; }

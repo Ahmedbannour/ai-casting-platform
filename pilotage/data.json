@@ -2736,6 +2736,30 @@
    "prompt": "P-043",
    "jour": "J6",
    "detail": "Signalé par le client. La zone redescendait toute seule à chaque rendu (défilement forcé) : supprimé. Après une recherche, la réponse se cale en haut et la fiche avec ses boutons ✕ / ✓ tient entière à l'écran (bureau 1366×768 et mobile 390×844, mesuré). Anciennes recherches repliées en résumé avec « Revoir ces propositions ». En-tête de résultat compact sur mobile. Recette 120/120."
+  },
+  {
+   "id": "T-148",
+   "titre": "Recherche IA refaite : conversation qui défile, grandes fiches photo",
+   "dept": "front",
+   "resp": "Mariem Gharbi",
+   "prio": "P0",
+   "phase": "PH3",
+   "statut": "fait",
+   "prompt": "P-044",
+   "jour": "J6",
+   "detail": "Demande du client : la fiche était coupée et la photo trop petite. Toute la conversation défile ; chaque réponse est calée sur la hauteur visible, la fiche et ses boutons sont toujours entiers (mesuré sur ordinateur 1366×768 et mobile 390×844). Fiche plein cadre : la photo occupe toute la carte, nom, critères ✓/✗ et avis de l'IA posés dessus, détail dépliable dans la fiche. Geste avec GSAP Draggable + InertiaPlugin (vitesse réelle du lancer, retour élastique), tampons Retenu/Écarté, annulation qui ramène la fiche du bon côté, démonstration du geste à la première visite, annonces pour lecteur d'écran (Angular CDK). Chaque recherche garde sa position et ses décisions. Recette 120/120."
+  },
+  {
+   "id": "T-149",
+   "titre": "Connexion Facebook : importer ses photos dans le profil acteur",
+   "dept": "back",
+   "resp": "",
+   "prio": "P2",
+   "phase": "PH3",
+   "statut": "a_faire",
+   "prompt": "P-045",
+   "jour": "J6",
+   "detail": "Question du client. Photo de profil disponible sans démarche. Les autres photos demandent la permission user_photos, donc une revue de l'application par Meta, plus une vérification de l'entreprise (gratuite, structure déclarée). En développement, ça fonctionne pour les comptes testeurs. Proposition : écran « Importer mes photos » où l'acteur choisit ses photos, copiées une fois dans notre stockage. En attente de l'accord du client pour lancer la revue Meta."
   }
  ],
  "journal": [

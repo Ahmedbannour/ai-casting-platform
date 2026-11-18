@@ -20,11 +20,20 @@ const OUT = 'C:\\Users\\AhmedBannour\\ai-casting-platform\\pilotage\\nav';
     await p.fill('textarea', 'Comédienne qui chante'); await p.keyboard.press('Enter'); await p.waitForTimeout(5000);
     const vis = await p.evaluate(() => {
       const l = document.querySelector('.messages-list').getBoundingClientRect();
-      const decks = document.querySelectorAll('app-swipe-deck'); const d = decks[decks.length - 1]?.querySelector('.deck')?.getBoundingClientRect();
-      const ctrl = decks[decks.length - 1]?.querySelector('.act')?.getBoundingClientRect();
-      const users = document.querySelectorAll('.user-message'); const u = users[users.length - 1].getBoundingClientRect();
-      return { demandeEnHaut: Math.round(u.top - l.top), carteHaut: d && Math.round(d.top - l.top), carteBas: d && Math.round(l.bottom - d.bottom), boutonsVisibles: !!ctrl && ctrl.bottom <= l.bottom + 1, hauteurCarte: d && Math.round(d.height), resumes: document.querySelectorAll('.older').length };
+      const decks = document.querySelectorAll('app-swipe-deck'); const dk = decks[decks.length - 1];
+      const c = dk?.querySelector('.card.top')?.getBoundingClientRect();
+      const acts = [...(dk?.querySelectorAll('.act') ?? [])].map(e => e.getBoundingClientRect());
+      const inside = r => r && r.top >= l.top - 1 && r.bottom <= l.bottom + 1;
+      return { ficheEntiere: inside(c), boutonsVisibles: acts.length > 0 && acts.every(inside), carte: c && (Math.round(c.width) + 'x' + Math.round(c.height)),
+        decks: decks.length, defilable: document.querySelector('.messages-list').scrollHeight > document.querySelector('.messages-list').clientHeight };
     });
+    // Glisser une fiche à la souris : elle doit partir et la suivante arriver
+    const avant = await p.evaluate(() => document.querySelectorAll('app-swipe-deck')[document.querySelectorAll('app-swipe-deck').length - 1]?.querySelector('.count b')?.textContent);
+    const cb = await p.evaluate(() => { const dks = document.querySelectorAll('app-swipe-deck'); const r = dks[dks.length - 1].querySelector('.card.top').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height * 0.3 }; });
+    await p.mouse.move(cb.x, cb.y); await p.mouse.down(); for (let k = 1; k <= 12; k++) { await p.mouse.move(cb.x + k * 22, cb.y + k * 2); await p.waitForTimeout(12); } await p.mouse.up();
+    await p.waitForTimeout(900);
+    const apres = await p.evaluate(() => document.querySelectorAll('app-swipe-deck')[document.querySelectorAll('app-swipe-deck').length - 1]?.querySelector('.count b')?.textContent);
+    vis.glisse = avant + '→' + apres;
     const m = await p.evaluate(() => {
       const se = document.scrollingElement; const scrollers = [...document.querySelectorAll('*')].filter(e => { const s = getComputedStyle(e); return /(auto|scroll)/.test(s.overflowY) && e.scrollHeight > e.clientHeight + 2; })
         .map(e => (e.className && typeof e.className === 'string' ? e.className.split(' ')[0] : e.tagName) + ':' + e.scrollHeight + '/' + e.clientHeight + '@' + e.scrollTop);
