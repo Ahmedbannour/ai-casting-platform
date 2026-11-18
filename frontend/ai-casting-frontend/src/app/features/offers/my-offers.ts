@@ -30,7 +30,8 @@ import { frDate } from '../../shared/forms/dates';
               <h3>{{ o.roleName }}</h3>
               <p class="proj">{{ o.projectTitle }}{{ o.city ? ' · ' + o.city : '' }}</p>
               <dl>
-                @if (o.auditionDate) { <div><dt>Audition</dt><dd>{{ frDate(o.auditionDate) }}</dd></div> }
+                @if (o.auditionDate) { <div><dt>Audition</dt><dd>{{ frDate(o.auditionDate) }}@if (o.auditionTime) { à {{ o.auditionTime.slice(0, 5).replace(':', 'h') }} }</dd></div> }
+                @if (o.auditionPlace) { <div><dt>Lieu</dt><dd>{{ o.auditionPlace }}</dd></div> }
                 @if (o.shootStart) { <div><dt>Tournage</dt><dd>{{ frDate(o.shootStart) }}@if (o.shootEnd) { au {{ frDate(o.shootEnd) }} }</dd></div> }
               </dl>
               @if (o.roleDescription) { <p class="desc">{{ o.roleDescription }}</p> }

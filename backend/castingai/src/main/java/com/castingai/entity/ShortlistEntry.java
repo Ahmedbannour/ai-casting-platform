@@ -42,6 +42,13 @@ public class ShortlistEntry {
     @Column(name = "audition_date")
     private LocalDate auditionDate;
 
+    /** T-116 · Heure et lieu de l'audition. */
+    @Column(name = "audition_time")
+    private java.time.LocalTime auditionTime;
+
+    @Column(name = "audition_place", length = 200)
+    private String auditionPlace;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "added_by")
     private User addedBy;

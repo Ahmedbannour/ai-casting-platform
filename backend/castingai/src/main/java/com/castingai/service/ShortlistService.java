@@ -93,7 +93,7 @@ public class ShortlistService {
             event(e, from, me);
         }
         if (req.note() != null) e.setNote(req.note().isBlank() ? null : req.note().trim());
-        if (Boolean.TRUE.equals(req.clearAudition())) e.setAuditionDate(null);
+        if (Boolean.TRUE.equals(req.clearAudition())) { e.setAuditionDate(null); e.setAuditionTime(null); e.setAuditionPlace(null); }
         else if (req.auditionDate() != null) e.setAuditionDate(req.auditionDate());
         ShortlistEntry saved = entryRepository.saveAndFlush(e);
         refreshFilled(saved.getRole());

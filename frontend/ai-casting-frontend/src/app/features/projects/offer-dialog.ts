@@ -27,6 +27,16 @@ import { todayIso } from '../../shared/forms/dates';
         <app-date-field inputId="od-date" name="date" [(ngModel)]="date" [min]="today" [max]="shootEnd()" [openAt]="shootStart()"
                         maxMessage="Après la fin du tournage." minMessage="Date déjà passée." ariaLabel="Date de l'audition" />
       </div>
+      <div class="row2">
+        <div class="f">
+          <label for="od-time">Heure</label>
+          <input id="od-time" name="time" type="time" step="900" [(ngModel)]="time" />
+        </div>
+        <div class="f grow">
+          <label for="od-place">Lieu</label>
+          <input id="od-place" name="place" [(ngModel)]="place" maxlength="200" placeholder="Ex. Studio 2, 12 avenue Habib Bourguiba, Tunis" autocomplete="street-address" />
+        </div>
+      </div>
     }
     <div class="f">
       <label for="od-msg">Message <span class="opt">facultatif</span></label>
@@ -52,6 +62,9 @@ import { todayIso } from '../../shared/forms/dates';
   .seg button { flex: 1; height: 36px; border: none; border-radius: 999px; background: none; color: var(--text-muted); font-size: 13.5px; font-weight: 600; cursor: pointer;
     &[aria-checked="true"] { background: var(--accent); color: var(--on-accent); } }
   .f { display: flex; flex-direction: column; gap: 6px; label { font-size: 13px; color: var(--text-muted); } .opt { color: var(--text-subtle); } }
+  .row2 { display: flex; gap: 10px; } .grow { flex: 1; min-width: 0; }
+  input[type=time], #od-place { height: 40px; padding: 0 10px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--glass);
+    color: var(--text-primary); font: inherit; font-size: 14px; color-scheme: light dark; &:focus { outline: none; border-color: var(--accent); } }
   textarea { width: 100%; padding: 8px 10px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--glass); color: var(--text-primary);
     font: inherit; font-size: 14px; resize: vertical; &:focus { outline: none; border-color: var(--accent); } }
   .actions { display: flex; justify-content: flex-end; gap: 8px; }
@@ -60,7 +73,7 @@ import { todayIso } from '../../shared/forms/dates';
   .btn-ghost { border: 1px solid var(--border); background: var(--glass); color: var(--text-primary); }
   @keyframes fade { from { opacity: 0; } }
   @keyframes pop { from { opacity: 0; transform: translateY(16px) scale(.97); } }
-  @media (max-width: 560px) { .seg button { font-size: 12.5px; } .actions button { flex: 1; } }
+  @media (max-width: 560px) { .seg button { font-size: 12.5px; } .actions button { flex: 1; } .row2 { flex-direction: column; } }
   `]
 })
 export class OfferDialogComponent {
@@ -77,6 +90,8 @@ export class OfferDialogComponent {
   readonly busy = signal(false);
   readonly error = signal('');
   date = '';
+  time = '';
+  place = '';
   message = '';
 
   /** Échap ferme la fenêtre, sauf quand il sert à refermer le calendrier. */
@@ -87,9 +102,12 @@ export class OfferDialogComponent {
 
   send(): void {
     if (this.kind() === 'AUDITION' && !this.date) { this.error.set('Indiquez la date de l’audition.'); return; }
+    if (this.kind() === 'AUDITION' && !this.time) { this.error.set('Indiquez l’heure de l’audition.'); return; }
+    if (this.kind() === 'AUDITION' && !this.place.trim()) { this.error.set('Indiquez le lieu de l’audition.'); return; }
     this.busy.set(true);
     this.error.set('');
-    this.api.send(this.entryId(), this.kind(), this.message.trim(), this.kind() === 'AUDITION' ? this.date : null).subscribe({
+    const aud = this.kind() === 'AUDITION';
+    this.api.send(this.entryId(), this.kind(), this.message.trim(), aud ? this.date : null, aud ? this.time : null, aud ? this.place.trim() : null).subscribe({
       next: o => { this.busy.set(false); this.sent.emit(o); },
       error: (e: HttpErrorResponse) => {
         this.busy.set(false);

@@ -421,6 +421,52 @@ class RolesImportApiTest {
     }
 
     @Test
+    void agendaDesAuditionsEtRappelLaVeille() throws Exception {
+        String d = agentOf("Agence Agenda Sud", "agent.agenda.sud@test.local");
+        String autre = agentOf("Agence Agenda Nord", "agent.agenda.nord@test.local");
+        String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "nour.agenda@test.local",
+                "password", "motdepasse123", "firstName", "Nour", "lastName", "Agenda")).andExpect(status().isCreated()))
+                .get("accessToken").asString();
+        String actorId = read(send("GET", "/api/me", f, null)).get("actorId").asString();
+        java.time.LocalDate demain = java.time.LocalDate.now().plusDays(1);
+        String p = read(send("POST", "/api/projects", d, Map.of("title", "Le Port", "type", "LONG_METRAGE"))).get("id").asString();
+        String r = read(send("POST", "/api/projects/" + p + "/roles", d, Map.of("name", "Nour, pêcheuse",
+                "shootStart", demain.plusDays(10).toString(), "shootEnd", demain.plusDays(40).toString()))).get("id").asString();
+        String e = read(send("POST", "/api/roles/" + r + "/shortlist", d, Map.of("actorId", actorId))).get("id").asString();
+
+        // Convocation avec date, heure et lieu : visible « en attente » dans l'agenda de l'agent
+        send("POST", "/api/shortlist/" + e + "/offers", d, Map.of("kind", "AUDITION", "auditionDate", demain.toString(),
+                "auditionTime", "14:30", "auditionPlace", "Studio 2, avenue Habib Bourguiba, Tunis")).andExpect(status().isCreated());
+        JsonNode ag = read(send("GET", "/api/me/agenda", d, null).andExpect(status().isOk()));
+        assertThat(ag.size()).isEqualTo(1);
+        assertThat(ag.get(0).get("pending").asBoolean()).isTrue();
+        assertThat(ag.get(0).get("time").asString()).startsWith("14:30");
+
+        // L'acteur accepte : l'audition est confirmée, avec l'heure et le lieu, dans les deux agendas
+        JsonNode mine = read(send("GET", "/api/me/offers", f, null));
+        assertThat(mine.get(0).get("auditionPlace").asString()).isEqualTo("Studio 2, avenue Habib Bourguiba, Tunis");
+        send("PUT", "/api/me/offers/" + mine.get(0).get("id").asString(), f, Map.of("answer", "ACCEPTEE")).andExpect(status().isNoContent());
+        JsonNode act = read(send("GET", "/api/me/agenda", f, null).andExpect(status().isOk()));
+        assertThat(act.size()).isEqualTo(1);
+        assertThat(act.get(0).get("pending").asBoolean()).isFalse();
+        assertThat(act.get(0).get("place").asString()).contains("Studio 2");
+        assertThat(act.get(0).get("agencyName").asString()).isEqualTo("Agence Agenda Sud");
+        assertThat(read(send("GET", "/api/me/agenda", d, null)).get(0).get("roleName").asString()).isEqualTo("Nour, pêcheuse");
+
+        // Une autre agence ne voit rien de ce projet
+        assertThat(read(send("GET", "/api/me/agenda", autre, null)).size()).isZero();
+
+        // Rappel la veille : l'acteur et l'agent sont prévenus, une seule fois
+        send("POST", "/api/admin/agenda/rappels?day=" + demain, d, null).andExpect(status().isForbidden());
+        int envoyes = read(send("POST", "/api/admin/agenda/rappels?day=" + demain, admin(), null).andExpect(status().isOk())).get("envoyes").asInt();
+        assertThat(envoyes).isGreaterThanOrEqualTo(1);
+        send("GET", "/api/me/notifications", f, null).andExpect(jsonPath("$.items[0].title").value("Rappel : audition demain pour « Nour, pêcheuse »"))
+                .andExpect(jsonPath("$.items[0].link").value("/agenda"));
+        send("GET", "/api/me/notifications", d, null).andExpect(jsonPath("$.items[0].title").value("Demain : audition de Nour Agenda"));
+        assertThat(read(send("POST", "/api/admin/agenda/rappels?day=" + demain, admin(), null)).get("envoyes").asInt()).isZero();
+    }
+
+    @Test
     void notificationsDeLaCloche() throws Exception {
         String d = agentOf("Agence Epsilon", "agent.epsilon@test.local");
         String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "rita.notif@test.local",

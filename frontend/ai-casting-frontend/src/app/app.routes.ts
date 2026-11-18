@@ -109,6 +109,13 @@ export const routes: Routes = [
           import('./features/offers/my-offers')
             .then(m => m.MyOffersComponent)
       },
+      // ── Agenda des auditions (T-116) : agence et acteur ──
+      {
+        path: 'agenda',
+        loadComponent: () =>
+          import('./features/agenda/agenda')
+            .then(m => m.AgendaComponent)
+      },
       // ── Administration ──
       {
         path: 'admin',

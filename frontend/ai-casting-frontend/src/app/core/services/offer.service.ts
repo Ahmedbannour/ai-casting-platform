@@ -20,6 +20,7 @@ export interface MyOffer {
   id: string; kind: OfferKind; message: string | null; auditionDate: string | null; status: OfferStatus; createdAt: number;
   answerNote: string | null; projectTitle: string; projectType: string | null; roleName: string; roleDescription: string | null;
   shootStart: string | null; shootEnd: string | null; city: string | null; agencyName: string;
+  auditionTime: string | null; auditionPlace: string | null;
 }
 
 /** T-095 · Propositions de rôle et convocations. */
@@ -28,8 +29,9 @@ export class OfferService {
   private readonly http = inject(HttpClient);
   private readonly api = environment.apiUrl;
 
-  send(entryId: string, kind: OfferKind, message: string, auditionDate: string | null): Observable<OfferRow> {
-    return this.http.post<OfferRow>(`${this.api}/shortlist/${entryId}/offers`, { kind, message, auditionDate });
+  send(entryId: string, kind: OfferKind, message: string, auditionDate: string | null,
+       auditionTime: string | null = null, auditionPlace: string | null = null): Observable<OfferRow> {
+    return this.http.post<OfferRow>(`${this.api}/shortlist/${entryId}/offers`, { kind, message, auditionDate, auditionTime, auditionPlace });
   }
   forRole(roleId: string): Observable<OfferRow[]> { return this.http.get<OfferRow[]>(`${this.api}/roles/${roleId}/offers`); }
   cancel(id: string): Observable<void> { return this.http.delete<void>(`${this.api}/offers/${id}`); }

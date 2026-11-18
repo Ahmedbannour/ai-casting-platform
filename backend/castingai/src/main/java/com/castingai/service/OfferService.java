@@ -42,7 +42,8 @@ public class OfferService {
 
     public record MyOffer(UUID id, String kind, String message, LocalDate auditionDate, String status, long createdAt,
                           String answerNote, String projectTitle, String projectType, String roleName, String roleDescription,
-                          LocalDate shootStart, LocalDate shootEnd, String city, String agencyName) {}
+                          LocalDate shootStart, LocalDate shootEnd, String city, String agencyName,
+                          java.time.LocalTime auditionTime, String auditionPlace) {}
 
     private static final String MS = "(extract(epoch from (%s at time zone current_setting('TimeZone'))) * 1000)::bigint";
 
@@ -50,6 +51,12 @@ public class OfferService {
 
     @Transactional
     public OfferRow send(String email, UUID entryId, String kind, String message, LocalDate auditionDate) {
+        return send(email, entryId, kind, message, auditionDate, null, null);
+    }
+
+    @Transactional
+    public OfferRow send(String email, UUID entryId, String kind, String message, LocalDate auditionDate,
+                         java.time.LocalTime auditionTime, String auditionPlace) {
         User me = access.user(email);
         ShortlistEntry e = shortlist.visibleEntry(me, entryId);
         if (kind == null || !KINDS.contains(kind)) throw new IllegalArgumentException("Type attendu : PROPOSITION ou AUDITION");
@@ -65,13 +72,16 @@ public class OfferService {
             LocalDate end = e.getRole().getShootEnd();
             if (end != null && auditionDate.isAfter(end)) throw new IllegalArgumentException("L'audition doit avoir lieu avant la fin du tournage");
         }
+        String place = auditionPlace == null || auditionPlace.isBlank() ? null : auditionPlace.trim();
+        if (place != null && place.length() > 200) throw new IllegalArgumentException("Lieu : 200 caractères au plus");
         String msg = message == null || message.isBlank() ? null : message.trim();
         if (msg != null && msg.length() > 1000) throw new IllegalArgumentException("Message : 1000 caractères au plus");
         Integer pending = jdbc.queryForObject("select count(*) from role_offers where entry_id = ? and status = 'ENVOYEE'", Integer.class, entryId);
         if (pending != null && pending > 0) throw new ConflictException("Une proposition attend déjà la réponse de cet acteur");
         UUID id = UUID.randomUUID();
-        jdbc.update("insert into role_offers (id, entry_id, kind, message, audition_date, sent_by) values (?, ?, ?, ?, ?, ?)",
-                id, entryId, kind, msg, "AUDITION".equals(kind) ? auditionDate : null, me.getId());
+        boolean aud = "AUDITION".equals(kind);
+        jdbc.update("insert into role_offers (id, entry_id, kind, message, audition_date, audition_time, audition_place, sent_by) values (?, ?, ?, ?, ?, ?, ?, ?)",
+                id, entryId, kind, msg, aud ? auditionDate : null, aud ? auditionTime : null, aud ? place : null, me.getId());
         // T-096 : l'acteur est prévenu
         notifications.push(e.getActor().getAccount().getId(), "PROPOSITION",
                 ("AUDITION".equals(kind) ? "Convocation à une audition : " : "Proposition de rôle : ") + e.getRole().getName(),
@@ -111,7 +121,7 @@ public class OfferService {
         return jdbc.query("""
             select o.id, o.kind, o.message, o.audition_date, o.status, %s, o.answer_note,
                    p.title, p.type, r.name, r.description, r.shoot_start, r.shoot_end, r.city,
-                   coalesce(ag.name, 'La plateforme')
+                   coalesce(ag.name, 'La plateforme'), o.audition_time, o.audition_place
               from role_offers o
               join shortlist_entries e on e.id = o.entry_id
               join actors a on a.id = e.actor_id
@@ -124,7 +134,8 @@ public class OfferService {
             """.formatted(MS.formatted("o.created_at")), (rs, i) -> new MyOffer(
                 (UUID) rs.getObject(1), rs.getString(2), rs.getString(3), date(rs, 4), rs.getString(5), rs.getLong(6),
                 rs.getString(7), rs.getString(8), rs.getString(9), rs.getString(10), rs.getString(11),
-                date(rs, 12), date(rs, 13), rs.getString(14), rs.getString(15)), me.getId());
+                date(rs, 12), date(rs, 13), rs.getString(14), rs.getString(15),
+                rs.getObject(16, java.time.LocalTime.class), rs.getString(17)), me.getId());
     }
 
     @Transactional
@@ -134,10 +145,11 @@ public class OfferService {
         String n = note == null || note.isBlank() ? null : note.trim();
         if (n != null && n.length() > 500) throw new IllegalArgumentException("Mot pour l'agence : 500 caractères au plus");
         var found = jdbc.query("""
-            select o.entry_id, o.kind, o.audition_date, o.status from role_offers o
+            select o.entry_id, o.kind, o.audition_date, o.status, o.audition_time, o.audition_place from role_offers o
               join shortlist_entries e on e.id = o.entry_id join actors a on a.id = e.actor_id
              where o.id = ? and a.user_id = ?
-            """, (rs, i) -> new Object[]{ rs.getObject(1), rs.getString(2), date(rs, 3), rs.getString(4) }, offerId, me.getId());
+            """, (rs, i) -> new Object[]{ rs.getObject(1), rs.getString(2), date(rs, 3), rs.getString(4),
+                    rs.getObject(5, java.time.LocalTime.class), rs.getString(6) }, offerId, me.getId());
         if (found.isEmpty()) throw new ResourceNotFoundException("Proposition introuvable");
         Object[] o = found.get(0);
         if (!"ENVOYEE".equals(o[3])) throw new ConflictException("Cette proposition a déjà reçu une réponse ou a été retirée");
@@ -157,6 +169,8 @@ public class OfferService {
             entries.findById((UUID) o[0]).ifPresent(e -> {
                 if (e.getStatus() == ShortlistEntry.Status.PRESELECTIONNE) e.setStatus(ShortlistEntry.Status.AUDITION);
                 e.setAuditionDate((LocalDate) o[2]);
+                e.setAuditionTime((java.time.LocalTime) o[4]);
+                e.setAuditionPlace((String) o[5]);
                 entries.save(e);
             });
         }

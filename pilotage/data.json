@@ -148,6 +148,16 @@
      "nom": "Antoine Roux",
      "role": "Ingénieur Java Spring Boot",
      "niveau": "Confirmé"
+    },
+    {
+     "nom": "Walid Khemiri",
+     "role": "Ingénieur Java Spring senior (recruté J6)",
+     "niveau": "Senior"
+    },
+    {
+     "nom": "Sophie Laurent",
+     "role": "Ingénieure Java Spring senior (recrutée J6)",
+     "niveau": "Senior"
     }
    ]
   },
@@ -170,6 +180,16 @@
     {
      "nom": "Julien Petit",
      "role": "Ingénieur Angular",
+     "niveau": "Senior"
+    },
+    {
+     "nom": "Yanis Belhadj",
+     "role": "Ingénieur UI/UX Angular · expert (recruté J6)",
+     "niveau": "Senior"
+    },
+    {
+     "nom": "Mariem Gharbi",
+     "role": "Ingénieure UI/UX Angular · experte (recrutée J6)",
      "niveau": "Senior"
     }
    ]
@@ -194,6 +214,16 @@
      "nom": "Thomas Girard",
      "role": "Ingénieur automatisation de tests",
      "niveau": "Confirmé"
+    },
+    {
+     "nom": "Rania Jlassi",
+     "role": "Ingénieure QA · recette et accessibilité (recrutée J6)",
+     "niveau": "Confirmé"
+    },
+    {
+     "nom": "Nicolas Perrin",
+     "role": "Ingénieur QA · performance et charge (recruté J6)",
+     "niveau": "Senior"
     }
    ]
   },
@@ -217,6 +247,11 @@
      "nom": "Laura Blanc",
      "role": "Ingénieure sécurité applicative",
      "niveau": "Senior"
+    },
+    {
+     "nom": "Bilel Ferchichi",
+     "role": "Ingénieur DevOps · CI/CD et mise en ligne (recruté J6)",
+     "niveau": "Senior"
     }
    ]
   },
@@ -228,7 +263,8 @@
    "missions": [
     "Affecte les ingénieurs aux phases (plan de charge)",
     "Onboarding des nouveaux profils",
-    "Suivi des compétences"
+    "Suivi des compétences",
+    "Recrute les renforts : UI/UX Angular, Java Spring senior, DevOps, QA (J6)"
    ],
    "membres": [
     {
@@ -659,6 +695,16 @@
     "Règles d'autonomie"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-037",
+   "date": "2026-11-18",
+   "titre": "Démo du label Startup et recrutements",
+   "original": "ok , merci d'avancer le plus maximum possible , demain je vais presenter ca pour prendre une label de startup , peux tu annoncer ca a l'entreprise , faire les recrutements nécessaires au niveau des rh pour les postes ingénieur ui/ux expert angular , ainsi que des ingénieurs de backend spring java exprimenté , des ingénieurs devops et test QA , je dois allez le plus loins possible , merci de me donner vos meilleurs solutions (for free)",
+   "ameliore": "Annoncer à toute l'entreprise la présentation de demain pour le label Startup (Startup Act tunisien : innovation et scalabilité). RH : recruter 2 UI/UX Angular experts, 2 Java Spring seniors, 1 DevOps, 2 QA. Priorité à la démo : plateforme stable et vérifiée, scénario de démo, présentation pour le comité ; tout en solutions gratuites.",
+   "departement": "dir",
+   "resp": "Karim Haddad",
+   "statut": "en_cours"
   }
  ],
  "bibliotheques": [
@@ -2130,8 +2176,8 @@
    "prio": "P1",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
-   "detail": "Convocation avec date, heure et lieu ; vue agenda pour l'agent et l'acteur ; rappel dans la cloche la veille.",
+   "statut": "fait",
+   "detail": "Convocation avec date, heure et lieu (obligatoires à l'écran) ; l'acteur les voit dans Propositions. Nouvelle page Agenda (menu, Alt+4) pour l'agent (projets de son équipe, convocations en attente comprises), l'administrateur (tout) et l'acteur (ses auditions) : vue 7 jours, 30 jours ou 3 mois, lieu ouvrable dans une carte, bouton « + Calendrier » (fichier .ics pour Google Agenda, Outlook ou téléphone, alarme la veille). Rappel dans la cloche la veille à 18 h, pour l'acteur et l'agent, une seule fois (migration V30). Test serveur dédié ; 70/70.",
    "lot": "L4"
   },
   {
@@ -2467,6 +2513,39 @@
    "statut": "fait",
    "lot": "L2",
    "detail": "Page d'accueil / pour les visiteurs non connectés, plein écran : fiches d'acteurs fictifs à faire glisser (droite = retenir, gauche = écarter, aussi au clavier et par boutons) avec la suggestion de l'IA et un résumé en mini-planche ; faisceau de projecteur en Three.js ; animations GSAP ; rideau « Scène 02 » au clic sur le menu ; contact (formulaire enregistré, lu dans l'Administration, e-mail affiché au clic) ; carte MapLibre/OpenFreeMap qui vole vers Tunis (adresse à confirmer). Mobile, clavier et mouvements réduits pris en compte. Recette navigateur 84/84."
+  },
+  {
+   "id": "T-135",
+   "titre": "Préparer la démo du label Startup (scénario, données propres, adresse stable)",
+   "dept": "dir",
+   "resp": "Karim Haddad",
+   "prio": "P0",
+   "phase": "PH3",
+   "statut": "a_faire",
+   "prompt": "P-037",
+   "jour": "J6"
+  },
+  {
+   "id": "T-136",
+   "titre": "Présentation pour le comité du label (innovation, scalabilité, marché)",
+   "dept": "prod",
+   "resp": "Élodie Martin",
+   "prio": "P0",
+   "phase": "PH3",
+   "statut": "a_faire",
+   "prompt": "P-037",
+   "jour": "J6"
+  },
+  {
+   "id": "T-137",
+   "titre": "Recette complète avant la démo (bureau et mobile, par l'adresse publique)",
+   "dept": "qa",
+   "resp": "Amel Kacem",
+   "prio": "P0",
+   "phase": "PH3",
+   "statut": "a_faire",
+   "prompt": "P-037",
+   "jour": "J6"
   }
  ],
  "journal": [
@@ -2526,42 +2605,43 @@
   }
  ],
  "maintenant": {
-  "titre": "P-054 · T-117 faite : vivier à 100 000 fiches ; nouvel onglet Navigateur",
-  "etape": 45,
+  "titre": "P-055 · T-116 faite : agenda des auditions ; recette avant la démo",
+  "etape": 47,
   "agents": [
    {
-    "nom": "Karim Haddad",
-    "action": "Filtres taille, langues, compétences ; tenue à 100 000 fiches",
-    "court": "T-117"
+    "nom": "Walid Khemiri",
+    "action": "Heure, lieu, agenda et rappel la veille côté serveur",
+    "court": "T-116"
+   },
+   {
+    "nom": "Yanis Belhadj",
+    "action": "Page Agenda (ordinateur et mobile)",
+    "court": "T-116"
    },
    {
     "nom": "Amel Kacem",
-    "action": "Captures du site dans l'onglet Navigateur",
-    "court": "Navigateur"
+    "action": "Recette complète avant la démo",
+    "court": "T-137"
    }
   ],
   "progres": {
-   "tache": "T-117",
-   "titre": "Vivier à grande échelle",
+   "tache": "T-116",
+   "titre": "Agenda des auditions",
    "etapes": [
     {
-     "t": "Filtres serveur",
+     "t": "Modèle et API",
      "s": "fait"
     },
     {
-     "t": "Index",
+     "t": "Rappel la veille",
      "s": "fait"
     },
     {
-     "t": "Écran Acteurs",
+     "t": "Écran agenda",
      "s": "fait"
     },
     {
-     "t": "Mesure 100 000 fiches",
-     "s": "fait"
-    },
-    {
-     "t": "Tests 69/69",
+     "t": "Tests 70/70",
      "s": "fait"
     },
     {
@@ -2575,8 +2655,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-18T02:55:00Z",
-   "texte": "T-117 livrée : 6 filtres combinés en 54 ms sur 100 102 fiches"
+   "t": "2026-11-18T03:20:00Z",
+   "texte": "T-116 livrée : agenda des auditions avec rappel la veille"
   }
  },
  "activite": [
@@ -2705,6 +2785,24 @@
    "nom": "Karim Haddad",
    "t": "2026-11-18T02:55:00Z",
    "texte": "T-117 livrée : filtres taille, langues et compétences ; 100 102 fiches filtrées en 54 ms. Capture visible dans l'onglet Navigateur."
+  },
+  {
+   "h": "J6",
+   "nom": "Karim Haddad",
+   "t": "2026-11-18T03:05:00Z",
+   "texte": "Annonce à toute l'entreprise : demain, le client présente AI Casting pour obtenir le label Startup. Priorité absolue à une démo stable, vérifiée et convaincante."
+  },
+  {
+   "h": "J6",
+   "nom": "Fatma Zouari",
+   "t": "2026-11-18T03:06:00Z",
+   "texte": "Recrutements : Yanis Belhadj et Mariem Gharbi (UI/UX Angular experts), Walid Khemiri et Sophie Laurent (Java Spring seniors), Bilel Ferchichi (DevOps), Rania Jlassi et Nicolas Perrin (QA). L’équipe passe de 24 à 31 personnes."
+  },
+  {
+   "h": "J6",
+   "nom": "Walid Khemiri",
+   "t": "2026-11-18T03:20:00Z",
+   "texte": "T-116 livrée : convocation avec heure et lieu, page Agenda (agent et acteur), export vers le calendrier du téléphone, rappel dans la cloche la veille. 70/70 tests."
   }
  ],
  "plan": {

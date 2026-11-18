@@ -26,7 +26,9 @@ public class OfferController {
 
     public record SendRequest(@NotBlank(message = "Choisissez : proposition de rôle ou convocation") String kind,
                               @Size(max = 1000, message = "Message : 1000 caractères au plus") String message,
-                              LocalDate auditionDate) {}
+                              LocalDate auditionDate,
+                              java.time.LocalTime auditionTime,
+                              @Size(max = 200, message = "Lieu : 200 caractères au plus") String auditionPlace) {}
 
     public record AnswerRequest(@NotBlank(message = "Répondez : ACCEPTEE ou DECLINEE") String answer,
                                 @Size(max = 500, message = "Mot pour l'agence : 500 caractères au plus") String note) {}
@@ -35,7 +37,7 @@ public class OfferController {
     public ResponseEntity<OfferRow> send(@AuthenticationPrincipal UserDetails me, @PathVariable UUID entryId,
                                          @Valid @RequestBody SendRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(offers.send(me.getUsername(), entryId, req.kind(), req.message(), req.auditionDate()));
+                .body(offers.send(me.getUsername(), entryId, req.kind(), req.message(), req.auditionDate(), req.auditionTime(), req.auditionPlace()));
     }
 
     @GetMapping("/api/roles/{roleId}/offers")
