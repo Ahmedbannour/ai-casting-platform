@@ -50,8 +50,10 @@ export async function startMap(el: HTMLElement, still: boolean, onError: () => v
     fly: () => {
       if (flown || still) return;
       flown = true;
-      const go = () => map.flyTo({ center: [LOCATION.lng, LOCATION.lat], zoom: 12.6, pitch: 52, bearing: -18, speed: 0.55, curve: 1.6, essential: true });
-      if (map.loaded()) go(); else map.once('load', go);
+      let gone = false;
+      const go = () => !gone && (gone = true) && map.flyTo({ center: [LOCATION.lng, LOCATION.lat], zoom: 12.6, pitch: 52, bearing: -18, speed: 0.55, curve: 1.6, essential: true });
+      // « load » peut être déjà passé (style prêt, tuiles en cours) : on part dès que le style est chargé
+      if (map.isStyleLoaded()) go(); else { map.once('load', go); map.once('styledata', () => { if (!map.isMoving()) go(); }); }
     },
     destroy: () => { clearTimeout(spin); map.remove(); },
   };

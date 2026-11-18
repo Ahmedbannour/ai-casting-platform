@@ -2712,6 +2712,18 @@
    "prompt": "P-041",
    "jour": "J7",
    "detail": "Proposé au client : remplacer nomic-embed-text (entraîné surtout en anglais) par bge-m3 pour le français et l'arabe, ajouter un reclassement par bge-reranker-v2-m3, et un modèle Qwen pour comprendre la demande en JSON ; tout en local et gratuit. En attente de son accord."
+  },
+  {
+   "id": "T-146",
+   "titre": "Vitrine : la carte du contact ne s’affichait plus",
+   "dept": "devops",
+   "resp": "Bilel Ferchichi",
+   "prio": "P0",
+   "phase": "PH3",
+   "statut": "fait",
+   "prompt": "P-042",
+   "jour": "J6",
+   "detail": "Signalé par le client. Deux causes : (1) depuis le passage à la version compilée pour la démo, le petit serveur envoyait le module de la carte (.mjs) sans type JavaScript : le navigateur refusait de l'exécuter (« Worker failed to load ») ; type ajouté (et .wasm, .pbf, polices, vidéos) ; (2) le rapprochement sur Tunis attendait un événement déjà passé quand on arrivait directement sur Contact : il part dès que le style est prêt. Vérifié en local et par l'adresse publique ; vérification de la carte ajoutée à la recette."
   }
  ],
  "journal": [
@@ -2771,58 +2783,58 @@
   }
  ],
  "maintenant": {
-  "titre": "P-062 · T-131 livrée : score honnête de la recherche IA",
-  "etape": 61,
+  "titre": "P-063 · Carte du contact réparée",
+  "etape": 63,
   "agents": [
    {
-    "nom": "Nadia Ben Salem",
-    "action": "Score honnête : villes, langues, compétences du vivier",
-    "court": "T-131"
+    "nom": "Bilel Ferchichi",
+    "action": "Serveur de démo : type du module de la carte",
+    "court": "T-146"
    },
    {
-    "nom": "Walid Khemiri",
-    "action": "Critères ✓/✗ sur chaque carte",
-    "court": "T-131"
+    "nom": "Mariem Gharbi",
+    "action": "Zoom sur Tunis à l’arrivée sur Contact",
+    "court": "T-146"
    },
    {
     "nom": "Nicolas Perrin",
-    "action": "Recette complète",
+    "action": "Recette avec la carte",
     "court": "QA"
    }
   ],
   "progres": {
-   "tache": "T-131",
-   "titre": "Score honnête",
+   "tache": "T-146",
+   "titre": "Carte du contact",
    "etapes": [
     {
      "t": "Diagnostic",
      "s": "fait"
     },
     {
-     "t": "Correction du score",
+     "t": "Type .mjs",
      "s": "fait"
     },
     {
-     "t": "Carte : critères manquants",
+     "t": "Zoom sur Tunis",
      "s": "fait"
     },
     {
-     "t": "Tests 73/73",
+     "t": "Vérifié en public",
      "s": "fait"
     },
     {
-     "t": "Recette 119/119",
-     "s": "fait"
+     "t": "Recette",
+     "s": "en_cours"
     },
     {
      "t": "Git",
-     "s": "fait"
+     "s": "a_faire"
     }
    ]
   },
   "derniere": {
-   "t": "2026-11-18T05:55:00Z",
-   "texte": "Recherche IA : 82 % au lieu de 100 % quand la ville ne correspond pas"
+   "t": "2026-11-18T06:08:00Z",
+   "texte": "Carte du contact réparée"
   }
  },
  "activite": [
@@ -3035,6 +3047,12 @@
    "nom": "Nadia Ben Salem",
    "t": "2026-11-18T05:55:00Z",
    "texte": "T-131 livrée : le score de la recherche IA ne cache plus un critère manquant ; chaque carte affiche ce qui correspond (✓) et ce qui manque (✗)."
+  },
+  {
+   "h": "J6",
+   "nom": "Bilel Ferchichi",
+   "t": "2026-11-18T06:08:00Z",
+   "texte": "Carte du contact réparée : le serveur de démo n’envoyait pas le module de la carte en JavaScript, et le zoom sur Tunis ne partait pas en arrivant directement sur Contact. Vérification ajoutée à la recette."
   }
  ],
  "plan": {

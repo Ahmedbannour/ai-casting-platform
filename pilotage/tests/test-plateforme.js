@@ -248,6 +248,14 @@ async function audit(page, path, name, errors) {
       await p4.waitForTimeout(1300);
       check('Vitrine : arrivée sur la section choisie', Math.abs(await p4.evaluate(() => document.getElementById('methode').getBoundingClientRect().top) - 68) <= 6);
       await c4.close(); }
+  // Carte de la section Contact : chargée (module de la carte servi en JavaScript) et rapprochée sur Tunis
+  { const cm = await browser.newContext({ viewport: { width: 1366, height: 860 } }); const pm = await cm.newPage(); const merr = [];
+    pm.on('console', m => { if (m.type() === 'error') merr.push(m.text().slice(0, 120)); });
+    await pm.goto(BASE + '/'); await pm.waitForSelector('app-splash .skip', { timeout: 15000 }).catch(() => {}); await pm.keyboard.press('Escape'); await pm.waitForTimeout(1200);
+    await pm.click('#menu-mobile a[href="#contact"]').catch(() => {}); await pm.waitForTimeout(9000);
+    const carte = await pm.evaluate(() => ({ canvas: !!document.querySelector('.map-wrap canvas'), erreur: /ne peut pas s.afficher/.test(document.querySelector('.map-wrap')?.textContent || '') }));
+    check('Vitrine : la carte du contact s’affiche', carte.canvas && !carte.erreur && !merr.some(e => /Worker/.test(e)), JSON.stringify({ ...carte, merr: merr.slice(0, 2) }));
+    await cm.close(); }
   // T-110 · Mes données : export ZIP puis suppression du compte depuis « Mon profil »
   { const rm = `recette.rgpd.${Date.now()}@exemple.tn`, rpw = 'Rgpd-' + Date.now();
     await fetch('http://localhost:8080/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' },

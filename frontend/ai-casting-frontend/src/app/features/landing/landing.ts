@@ -323,6 +323,9 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
           const m = await import('./map-scene');
           api = await m.startMap(el, this.still, () => this.mapState.set('error'));
           this.mapState.set('ready');
+          // Arrivée directe sur Contact : la carte est déjà à l'écran quand elle finit de se créer
+          const r = el.getBoundingClientRect();
+          if (r.top < innerHeight * 0.6 && r.bottom > innerHeight * 0.3) api.fly();
           this.cleanups.push(() => api?.destroy());
         } catch { this.mapState.set('error'); }
       }

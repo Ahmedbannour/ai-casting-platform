@@ -4,10 +4,10 @@ const http = require('http'), fs = require('fs'), path = require('path'), zlib =
 const PORT = +(process.argv[2] || 4200);
 const ROOT = path.join(__dirname, '..', 'frontend', 'ai-casting-frontend', 'dist', 'ai-casting-frontend', 'browser');
 const PROXY = [['/api', 8080], ['/casting-media', 9000]];
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.map': 'application/json', '.css': 'text/css; charset=utf-8',
   '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
   '.webp': 'image/webp', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff', '.txt': 'text/plain; charset=utf-8',
-  '.webmanifest': 'application/manifest+json', '.glb': 'model/gltf-binary' };
+  '.webmanifest': 'application/manifest+json', '.glb': 'model/gltf-binary', '.wasm': 'application/wasm', '.pbf': 'application/x-protobuf', '.ttf': 'font/ttf', '.gif': 'image/gif', '.mp4': 'video/mp4', '.webm': 'video/webm' };
 const INDEX = ['index.csr.html', 'index.html'].map(f => path.join(ROOT, f)).find(f => fs.existsSync(f));
 const cache = new Map();   // fichiers compressés en mémoire
 
@@ -21,7 +21,7 @@ function relay(req, res, port) {
 
 function send(req, res, file, immutable) {
   const ext = path.extname(file).toLowerCase(), type = TYPES[ext] || 'application/octet-stream';
-  const gz = /gzip/.test(req.headers['accept-encoding'] || '') && /text|javascript|json|svg|manifest/.test(type);
+  const gz = /gzip/.test(req.headers['accept-encoding'] || '') && /text|javascript|json|svg|manifest|wasm/.test(type);
   const key = file + (gz ? '.gz' : '');
   let body = cache.get(key);
   if (!body) { body = fs.readFileSync(file); if (gz) body = zlib.gzipSync(body, { level: 9 }); if (immutable) cache.set(key, body); }
