@@ -467,6 +467,44 @@ class RolesImportApiTest {
     }
 
     @Test
+    void accueilDeLAgentResumeSonActivite() throws Exception {
+        String d = agentOf("Agence Accueil Est", "agent.accueil.est@test.local");
+        String autre = agentOf("Agence Accueil Ouest", "agent.accueil.ouest@test.local");
+        String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "ines.accueil@test.local",
+                "password", "motdepasse123", "firstName", "Ines", "lastName", "Accueil")).andExpect(status().isCreated()))
+                .get("accessToken").asString();
+        String actorId = read(send("GET", "/api/me", f, null)).get("actorId").asString();
+        String p = read(send("POST", "/api/projects", d, Map.of("title", "La Médina", "type", "SERIE"))).get("id").asString();
+        String r = read(send("POST", "/api/projects/" + p + "/roles", d, Map.of("name", "Ines, libraire", "importance", "PRINCIPAL"))).get("id").asString();
+        String e = read(send("POST", "/api/roles/" + r + "/shortlist", d, Map.of("actorId", actorId))).get("id").asString();
+        send("POST", "/api/shortlist/" + e + "/offers", d, Map.of("kind", "PROPOSITION")).andExpect(status().isCreated());
+
+        // L'agent voit son rôle à pourvoir, l'avancement de la shortlist et la demande en attente
+        JsonNode h = read(send("GET", "/api/agency/home", d, null).andExpect(status().isOk()));
+        assertThat(h.get("activeProjects").asInt()).isEqualTo(1);
+        assertThat(h.get("openRoles").asInt()).isEqualTo(1);
+        assertThat(h.get("pendingCount").asInt()).isEqualTo(1);
+        assertThat(h.get("rolesToFill").get(0).get("name").asString()).isEqualTo("Ines, libraire");
+        assertThat(h.get("rolesToFill").get(0).get("preselected").asInt()).isEqualTo(1);
+        assertThat(h.get("pending").get(0).get("actorName").asString()).isEqualTo("Ines Accueil");
+
+        // Une autre agence ne voit rien ; l'acteur n'a pas accès à ce résumé
+        JsonNode o = read(send("GET", "/api/agency/home", autre, null).andExpect(status().isOk()));
+        assertThat(o.get("openRoles").asInt()).isZero();
+        assertThat(o.get("pending").size()).isZero();
+        send("GET", "/api/agency/home", f, null).andExpect(status().isForbidden());
+
+        // Réponse de l'acteur : elle apparaît dans les réponses reçues
+        String offer = read(send("GET", "/api/me/offers", f, null)).get(0).get("id").asString();
+        send("PUT", "/api/me/offers/" + offer, f, Map.of("answer", "ACCEPTEE", "note", "Avec joie")).andExpect(status().isNoContent());
+        JsonNode h2 = read(send("GET", "/api/agency/home", d, null));
+        assertThat(h2.get("pendingCount").asInt()).isZero();
+        assertThat(h2.get("answers7d").asInt()).isEqualTo(1);
+        assertThat(h2.get("answers").get(0).get("status").asString()).isEqualTo("ACCEPTEE");
+        assertThat(h2.get("answers").get(0).get("note").asString()).isEqualTo("Avec joie");
+    }
+
+    @Test
     void notificationsDeLaCloche() throws Exception {
         String d = agentOf("Agence Epsilon", "agent.epsilon@test.local");
         String f = "Bearer " + read(send("POST", "/api/auth/register", null, Map.of("acceptTerms", true, "age", "MAJEUR", "email", "rita.notif@test.local",

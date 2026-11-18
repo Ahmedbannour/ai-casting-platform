@@ -70,12 +70,13 @@ export class SidebarComponent implements OnInit, AfterViewInit {
       ];
     }
     const items: NavItem[] = [
-      { path: '/chat', label: 'Recherche IA', key: 'Alt+1', icon: this.icon('search') },
-      { path: '/projects', label: 'Projets', key: 'Alt+2', icon: this.icon('projects') },
-      { path: '/dashboard', label: 'Acteurs', key: 'Alt+3', icon: this.icon('actors') },
-      { path: '/agenda', label: 'Agenda', key: 'Alt+4', icon: this.icon('agenda') }
+      { path: '/accueil', label: 'Accueil', key: 'Alt+1', icon: this.icon('home') },
+      { path: '/chat', label: 'Recherche IA', key: 'Alt+2', icon: this.icon('search') },
+      { path: '/projects', label: 'Projets', key: 'Alt+3', icon: this.icon('projects') },
+      { path: '/dashboard', label: 'Acteurs', key: 'Alt+4', icon: this.icon('actors') },
+      { path: '/agenda', label: 'Agenda', key: 'Alt+5', icon: this.icon('agenda') }
     ];
-    if (this.role() === 'ADMIN') items.push({ path: '/admin', label: 'Administration', key: 'Alt+5', icon: this.icon('admin') });
+    if (this.role() === 'ADMIN') items.push({ path: '/admin', label: 'Administration', key: 'Alt+6', icon: this.icon('admin') });
     return items;
   });
 

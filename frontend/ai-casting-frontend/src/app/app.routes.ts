@@ -133,6 +133,13 @@ export const routes: Routes = [
       },
       // ── Agence ──
       {
+        path: 'accueil',
+        canActivate: [agence],
+        loadComponent: () =>
+          import('./features/espace/agent-home')
+            .then(m => m.AgentHomeComponent)
+      },
+      {
         path: 'chat',
         canActivate: [agence],
         loadComponent: () =>

@@ -89,6 +89,10 @@ import { EmailBannerComponent } from './email-banner';
         Propositions
       </a>
       } @else {
+      <a class="tab" routerLink="/accueil" routerLinkActive="active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+        Accueil
+      </a>
       <a class="tab" routerLink="/chat" routerLinkActive="active">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         Recherche
