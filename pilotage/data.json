@@ -1978,8 +1978,8 @@
    "prio": "P1",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
-   "detail": "Durées définies pour le journal d'audit, les consultations de coordonnées, les notifications ; purge planifiée chaque nuit.",
+   "statut": "fait",
+   "detail": "Purge automatique chaque nuit à 3 h 30 (et à la demande dans Administration › Journal). Durées : journal 12 mois, consultations des coordonnées 12 mois, messages de contact 12 mois, recherches des agences 12 mois, notifications 6 mois, sessions expirées aussitôt, liens à usage unique 30 jours après usage ou expiration. Chaque purge non vide est notée au journal. Politique de confidentialité mise à jour (durées exactes, « Mes données », liens signés). Tests 68/68, recette 104/104.",
    "lot": "L2"
   },
   {
@@ -2526,13 +2526,13 @@
   }
  ],
  "maintenant": {
-  "titre": "P-049 · T-109 faite (photos par liens signés) ; T-126 attend le nouveau mot de passe administrateur",
-  "etape": 41,
+  "titre": "P-051 · T-111 faite (conservation et purge) ; T-126 attend le nouveau mot de passe administrateur",
+  "etape": 42,
   "agents": [
    {
-    "nom": "Rami Saidi",
-    "action": "T-109 livrée : stockage privé, liens signés 1 h",
-    "court": "T-109"
+    "nom": "Mehdi Amrani",
+    "action": "T-111 livrée : purge de conservation chaque nuit",
+    "court": "T-111"
    },
    {
     "nom": "Laura Blanc",
@@ -2541,24 +2541,16 @@
    },
    {
     "nom": "Amel Kacem",
-    "action": "Recette navigateur : 102/102",
+    "action": "Recette navigateur : 104/104",
     "court": "recette"
    }
   ],
   "progres": {
-   "tache": "T-109",
-   "titre": "Liens signés pour les médias",
+   "tache": "T-111",
+   "titre": "Conservation et purge automatique",
    "etapes": [
     {
-     "t": "Signature et service /api/media",
-     "s": "fait"
-    },
-    {
-     "t": "Stockage privé",
-     "s": "fait"
-    },
-    {
-     "t": "Adresses signées dans les réponses",
+     "t": "Règles et purge de nuit",
      "s": "fait"
     },
     {
@@ -2566,7 +2558,15 @@
      "s": "fait"
     },
     {
-     "t": "Recette navigateur (photos visibles)",
+     "t": "Encart Administration",
+     "s": "fait"
+    },
+    {
+     "t": "Politique de confidentialité",
+     "s": "fait"
+    },
+    {
+     "t": "Recette navigateur",
      "s": "fait"
     },
     {
@@ -2576,8 +2576,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-18T01:35:00Z",
-   "texte": "T-109 terminée et poussée : accès direct aux photos refusé, liens signés valables ; 67/67 tests, 102/102 en navigateur"
+   "t": "2026-11-18T01:22:00Z",
+   "texte": "T-111 terminée et poussée : 68/68 tests, 104/104 en navigateur"
   }
  },
  "activite": [
@@ -2688,6 +2688,12 @@
    "nom": "Rami Saidi",
    "t": "2026-11-18T01:35:00Z",
    "texte": "T-109 livrée : le stockage des photos est privé ; chaque photo s'ouvre par un lien signé valable environ 1 h. 67/67 tests, 102/102 en navigateur."
+  },
+  {
+   "h": "J6",
+   "nom": "Mehdi Amrani",
+   "t": "2026-11-18T01:22:00Z",
+   "texte": "T-111 livrée : les données qui dépassent leur durée de conservation sont effacées chaque nuit ; encart dans Administration › Journal. 68/68 tests, 104/104 en navigateur."
   }
  ],
  "plan": {

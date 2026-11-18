@@ -407,6 +407,7 @@
 
   @if (tab() === 'journal') {
     <section class="pane">
+      <app-retention-panel />
       <div class="toolbar">
         <p class="intro">Chaque action sensible de l'administration est enregistrée : qui l'a faite, sur quoi, et quand. Le journal ne peut pas être modifié.</p>
         <app-select class="audit-filter" [options]="auditOptions" [ngModel]="auditFilter()" (ngModelChange)="loadAudit($event)" ariaLabel="Filtrer les actions" [compact]="true" />

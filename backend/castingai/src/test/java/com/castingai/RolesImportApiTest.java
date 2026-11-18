@@ -682,4 +682,24 @@ class RolesImportApiTest {
         send("GET", "/api/media/photos/inexistant.jpg?e=9999999999&s=faux", null, null).andExpect(status().isForbidden());
         send("GET", "/api/media/../secret?e=9999999999&s=x", null, null).andExpect(status().is4xxClientError());   // rejeté à l'entrée
     }
+
+    @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    /** T-111 · Purge : efface ce qui dépasse la durée annoncée, garde le reste ; réservée à l'administrateur. */
+    @Test
+    void purgeDesDonneesPerimees() throws Exception {
+        String a = admin();
+        jdbc.update("insert into audit_log (id, actor_label, action, target, details, created_at) values (gen_random_uuid(), 'Ancien', 'TEST_PURGE', 'vieux', null, now() - interval '13 months')");
+        jdbc.update("insert into audit_log (id, actor_label, action, target, details, created_at) values (gen_random_uuid(), 'Recent', 'TEST_PURGE', 'recent', null, now() - interval '11 months')");
+        jdbc.update("insert into contact_messages (id, name, email, profile, message, created_at) values (gen_random_uuid(), 'Ancien', 'vieux@test.local', 'AUTRE', 'message ancien de test', now() - interval '400 days')");
+        String ag = agentOf("Agence Purge", "agent.purge@test.local");
+        send("POST", "/api/admin/retention/run", ag, null).andExpect(status().isForbidden());
+        send("GET", "/api/admin/retention", a, null).andExpect(status().isOk()).andExpect(jsonPath("$.rules.length()").value(7));
+        JsonNode r = read(send("POST", "/api/admin/retention/run", a, null).andExpect(status().isOk()));
+        assertThat(r.get("deleted").get("audit").asInt()).isGreaterThanOrEqualTo(1);
+        assertThat(r.get("deleted").get("contact").asInt()).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from audit_log where action = 'TEST_PURGE'", Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select target from audit_log where action = 'TEST_PURGE'", String.class)).isEqualTo("recent");
+        send("GET", "/api/admin/retention", a, null).andExpect(jsonPath("$.last.total").exists());
+    }
 }

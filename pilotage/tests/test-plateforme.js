@@ -306,6 +306,11 @@ async function audit(page, path, name, errors) {
     await c6.close();
     await p3.reload(); await p3.waitForTimeout(1200); await p3.getByRole('tab', { name: /Équipe et comptes/ }).click(); await p3.waitForTimeout(800);
     check('T-113 : le compte n\'est plus « non vérifié »', await p3.locator('.row').filter({ hasText: mail }).locator('.unverif').count() === 0);
+    // T-111 · conservation des données : encart dans le Journal, purge à la demande
+    await p3.getByRole('tab', { name: /^Journal/ }).click(); await p3.waitForTimeout(900);
+    check('T-111 : règles de conservation affichées (7)', await p3.locator('app-retention-panel li').count() === 7);
+    await p3.getByRole('button', { name: /Lancer la purge maintenant/ }).click(); await p3.waitForTimeout(1200);
+    check('T-111 : purge lancée, résultat affiché', /Dernière purge/.test(await p3.locator('app-retention-panel .last').textContent().catch(() => '')));
     await c3.close(); }
   await browser.close();
 

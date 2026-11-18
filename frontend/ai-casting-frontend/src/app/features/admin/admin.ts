@@ -11,6 +11,7 @@ import { EMAIL_RE } from '../../shared/forms/rules';
 import { frDate, todayIso } from '../../shared/forms/dates';
 import { ContactInboxComponent } from './contact-inbox';
 import { ResetLinkComponent } from './reset-link';
+import { RetentionPanelComponent } from './retention-panel';
 
 type Tab = 'tableau' | 'agences' | 'projets' | 'acteurs' | 'equipe' | 'import' | 'journal' | 'messages';
 type RowFilter = 'tous' | 'OK' | 'ERREUR' | 'DOUBLON' | 'remarques';
@@ -26,7 +27,7 @@ const STATUS_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, RouterLink, SelectFieldComponent, DateFieldComponent, StackedColumnsComponent, AreaSparkComponent, HBarsComponent, ContactInboxComponent, ResetLinkComponent],
+  imports: [FormsModule, RouterLink, SelectFieldComponent, DateFieldComponent, StackedColumnsComponent, AreaSparkComponent, HBarsComponent, ContactInboxComponent, ResetLinkComponent, RetentionPanelComponent],
   templateUrl: './admin.html',
   styleUrl: './admin.scss'
 })

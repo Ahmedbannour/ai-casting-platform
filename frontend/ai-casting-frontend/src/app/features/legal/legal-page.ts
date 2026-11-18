@@ -56,12 +56,12 @@ const DOCS: Record<string, Doc> = {
         'Un acteur apporté par une agence reste visible de cette seule agence, sauf s’il choisit de rejoindre le vivier commun. Les coordonnées d’un acteur du vivier sont masquées : une agence doit les demander, la demande est enregistrée et l’acteur la voit.',
         'Un réalisateur ne voit que les profils qu’une agence lui présente, par un lien qu’elle peut retirer. Aucune donnée n’est vendue.' ] },
       { id: 'duree', h: 'Durées de conservation', p: [
-        'Profil et compte : tant que le compte est actif, puis effacement à la suppression du compte. Journal d’audit et journaux de sécurité : 12 mois. Consultations des coordonnées : 12 mois. Notifications : 6 mois. Les durées exactes et la purge automatique sont précisées avant le lancement.' ] },
+        'Profil, photos et compte : tant que le compte est actif, puis effacement à la suppression du compte. Journal d’administration et de sécurité : 12 mois. Consultations des coordonnées : 12 mois. Messages du formulaire de contact : 12 mois. Historique des recherches des agences : 12 mois. Notifications : 6 mois. Liens à usage unique (invitation, vérification, mot de passe) : 30 jours après usage ou expiration. Une purge automatique efface chaque nuit ce qui a dépassé ces durées.' ] },
       { id: 'droits', h: 'Vos droits', p: [
-        'Vous pouvez accéder à vos données, les corriger, vous opposer à leur traitement, retirer votre accord, en obtenir une copie et demander leur suppression : depuis « Mon profil » (modification, mise en pause ; export et suppression du compte en préparation) ou en écrivant à ' + CONTACT + '.',
+        'Vous pouvez accéder à vos données, les corriger, vous opposer à leur traitement, retirer votre accord, en obtenir une copie et demander leur suppression : depuis « Mon profil » (modification, mise en pause, et dans « Mes données » : téléchargement de vos données et suppression du compte) ou en écrivant à ' + CONTACT + '.',
         'Vous pouvez aussi saisir l’Instance nationale de protection des données personnelles (INPDP) en Tunisie, ou l’autorité de protection des données de votre pays.' ] },
       { id: 'securite', h: 'Sécurité', p: [
-        'Mots de passe chiffrés, connexions protégées, accès limité selon le rôle, journal des actions de l’administration, limitation des essais de connexion. Les photos seront servies par des liens à durée limitée avant le lancement.' ] },
+        'Mots de passe chiffrés, connexions protégées, accès limité selon le rôle, journal des actions de l’administration, limitation des essais de connexion. Les photos et documents ne s’ouvrent que par des liens signés, valables environ une heure.' ] },
       { id: 'cookies', h: 'Cookies et stockage local', p: [
         'La plateforme n’utilise ni publicité ni pistage. Elle garde dans votre navigateur le jeton de session et vos préférences d’affichage (thème, menu replié). Les boutons Google et Facebook ne sont chargés que sur la page de connexion.' ] },
       { id: 'modifs', h: 'Modifications', p: [
