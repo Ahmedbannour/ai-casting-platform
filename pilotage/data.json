@@ -1926,8 +1926,8 @@
    "prio": "P1",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
-   "detail": "Le stockage est aujourd'hui public. Lien signé valable quelques minutes, délivré seulement à qui a le droit de voir la fiche.",
+   "statut": "fait",
+   "detail": "Stockage MinIO rendu privé (au démarrage). Photos et documents servis par /api/media avec un lien signé (HMAC), valable environ 1 h et stable 30 min pour le cache du navigateur ; lien modifié, expiré ou sans signature : 403. Les adresses sont signées au moment de la réponse (annotation sur chaque champ), y compris sur la page publique du réalisateur. Tests 67/67, recette 102/102 (aucune image cassée).",
    "lot": "L1"
   },
   {
@@ -2526,13 +2526,13 @@
   }
  ],
  "maintenant": {
-  "titre": "P-047 · T-110 faite (export et suppression) ; T-126 attend le nouveau mot de passe administrateur",
-  "etape": 40,
+  "titre": "P-049 · T-109 faite (photos par liens signés) ; T-126 attend le nouveau mot de passe administrateur",
+  "etape": 41,
   "agents": [
    {
-    "nom": "Antoine Roux",
-    "action": "T-110 livrée : export ZIP et suppression du compte",
-    "court": "T-110"
+    "nom": "Rami Saidi",
+    "action": "T-109 livrée : stockage privé, liens signés 1 h",
+    "court": "T-109"
    },
    {
     "nom": "Laura Blanc",
@@ -2546,11 +2546,19 @@
    }
   ],
   "progres": {
-   "tache": "T-110",
-   "titre": "Mes données : export et suppression",
+   "tache": "T-109",
+   "titre": "Liens signés pour les médias",
    "etapes": [
     {
-     "t": "Serveur",
+     "t": "Signature et service /api/media",
+     "s": "fait"
+    },
+    {
+     "t": "Stockage privé",
+     "s": "fait"
+    },
+    {
+     "t": "Adresses signées dans les réponses",
      "s": "fait"
     },
     {
@@ -2558,11 +2566,7 @@
      "s": "fait"
     },
     {
-     "t": "« Mon profil »",
-     "s": "fait"
-    },
-    {
-     "t": "Recette navigateur",
+     "t": "Recette navigateur (photos visibles)",
      "s": "fait"
     },
     {
@@ -2572,8 +2576,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-18T00:58:00Z",
-   "texte": "T-110 terminée et poussée : 63/63 tests, 102/102 en navigateur"
+   "t": "2026-11-18T01:35:00Z",
+   "texte": "T-109 terminée et poussée : accès direct aux photos refusé, liens signés valables ; 67/67 tests, 102/102 en navigateur"
   }
  },
  "activite": [
@@ -2678,6 +2682,12 @@
    "nom": "Antoine Roux",
    "t": "2026-11-18T00:58:00Z",
    "texte": "T-110 livrée : depuis « Mon profil », l'acteur télécharge toutes ses données (ZIP) ou supprime son compte avec ses photos. 63/63 tests, 102/102 en navigateur."
+  },
+  {
+   "h": "J6",
+   "nom": "Rami Saidi",
+   "t": "2026-11-18T01:35:00Z",
+   "texte": "T-109 livrée : le stockage des photos est privé ; chaque photo s'ouvre par un lien signé valable environ 1 h. 67/67 tests, 102/102 en navigateur."
   }
  ],
  "plan": {

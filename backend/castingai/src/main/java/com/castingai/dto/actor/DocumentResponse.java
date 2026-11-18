@@ -13,7 +13,7 @@ public class DocumentResponse {
     private String name;
     private String originalName;
     private String type;
-    private String url;
+    @tools.jackson.databind.annotation.JsonSerialize(using = com.castingai.storage.MediaUrls.Signed.class) private String url;
     private Long size;
     private LocalDateTime createdAt;
 }

@@ -37,7 +37,7 @@ public class ShareService {
                            boolean active, long votes, long oui, long peutEtre, long non) {}
     public record VoteRow(UUID entryId, String vote, String comment, String voterName, LocalDateTime updatedAt, String shareLabel) {}
     public record PublicCandidate(UUID entryId, String firstName, String lastName, Integer age, String gender, String city,
-                                  Integer height, String photoUrl, String bio, List<String> languages, List<String> skills,
+                                  Integer height, @tools.jackson.databind.annotation.JsonSerialize(using = com.castingai.storage.MediaUrls.Signed.class) String photoUrl, String bio, List<String> languages, List<String> skills,
                                   List<String> experiences, String vote, String comment) {}
     public record PublicShare(String projectTitle, String projectType, String roleName, String roleDescription, String criteria,
                               LocalDate shootStart, LocalDate shootEnd, String label, LocalDateTime expiresAt, String voterName,

@@ -72,23 +72,18 @@ public class StorageServiceImpl implements StorageService {
             minioClient.makeBucket(
                     MakeBucketArgs.builder().bucket(minioConfig.getBucketName()).build()
             );
-            // Make bucket public
-            String policy = """
-                {
-                  "Version": "2012-10-17",
-                  "Statement": [{
-                    "Effect": "Allow",
-                    "Principal": {"AWS": ["*"]},
-                    "Action": ["s3:GetObject"],
-                    "Resource": ["arn:aws:s3:::%s/*"]
-                  }]
-                }
-                """.formatted(minioConfig.getBucketName());
+            // T-109 : le stockage reste privé ; les fichiers sont servis par des liens signés (/api/media).
+        }
+    }
 
-            minioClient.setBucketPolicy(SetBucketPolicyArgs.builder()
-                    .bucket(minioConfig.getBucketName())
-                    .config(policy)
-                    .build());
+    /** T-109 · Au démarrage : retire l'accès public éventuel du stockage (anciennes installations). */
+    @jakarta.annotation.PostConstruct
+    void makePrivate() {
+        try {
+            if (minioClient.bucketExists(BucketExistsArgs.builder().bucket(minioConfig.getBucketName()).build()))
+                minioClient.deleteBucketPolicy(DeleteBucketPolicyArgs.builder().bucket(minioConfig.getBucketName()).build());
+        } catch (Exception e) {
+            log.warn("Stockage injoignable au démarrage : accès public non vérifié ({})", e.getMessage());
         }
     }
 

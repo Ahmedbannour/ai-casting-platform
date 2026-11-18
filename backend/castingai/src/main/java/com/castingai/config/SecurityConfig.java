@@ -63,6 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         // Page de partage au réalisateur : accès par lien secret, sans compte
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/media/**").permitAll()   // T-109 : la signature du lien fait foi
                         // Administration : comptes des agents, import de fichiers
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Espace personnel : tout compte connecté (l'acteur freelance n'a accès qu'à ceci)

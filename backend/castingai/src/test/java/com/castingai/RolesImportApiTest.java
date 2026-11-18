@@ -674,4 +674,12 @@ class RolesImportApiTest {
         for (JsonNode u : read(send("GET", "/api/admin/users", a, null))) assertThat(u.get("email").asString()).isNotEqualTo("rgpd.acteur@test.local");
         send("GET", "/api/actors/search?search=Gdpr", a, null).andExpect(jsonPath("$.totalElements").value(0));
     }
+
+    /** T-109 · Le stockage n'est lisible que par un lien signé valable. */
+    @Test
+    void mediaSansSignatureRefuse() throws Exception {
+        send("GET", "/api/media/photos/inexistant.jpg", null, null).andExpect(status().isForbidden());
+        send("GET", "/api/media/photos/inexistant.jpg?e=9999999999&s=faux", null, null).andExpect(status().isForbidden());
+        send("GET", "/api/media/../secret?e=9999999999&s=x", null, null).andExpect(status().is4xxClientError());   // rejeté à l'entrée
+    }
 }

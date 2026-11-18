@@ -33,7 +33,7 @@ public class ActorDetailResponse {
     private Integer weight;
     private String eyeColor;
     private String hairColor;
-    private String mainPhotoUrl;
+    @tools.jackson.databind.annotation.JsonSerialize(using = com.castingai.storage.MediaUrls.Signed.class) private String mainPhotoUrl;
     private List<PhotoResponse> photos;
     private List<SkillDto> skills;
     private List<LanguageDto> languages;

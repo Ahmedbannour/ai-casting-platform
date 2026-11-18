@@ -19,8 +19,8 @@ public class ActorSearchResult {
     private String country;
     private String gender;
     private Integer age;
-    private String mainPhotoUrl;
-    private List<String> photoUrls;
+    @tools.jackson.databind.annotation.JsonSerialize(using = com.castingai.storage.MediaUrls.Signed.class) private String mainPhotoUrl;
+    @tools.jackson.databind.annotation.JsonSerialize(contentUsing = com.castingai.storage.MediaUrls.Signed.class) private List<String> photoUrls;
     private List<String> skills;
     private List<String> languages;
     private double score;

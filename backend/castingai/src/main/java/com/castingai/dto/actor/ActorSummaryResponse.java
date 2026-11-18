@@ -17,5 +17,5 @@ public class ActorSummaryResponse {
     private String eyeColor;
     private String hairColor;
     private Integer age;           // ← nouveau
-    private String mainPhotoUrl;   // ← nouveau
+    @tools.jackson.databind.annotation.JsonSerialize(using = com.castingai.storage.MediaUrls.Signed.class) private String mainPhotoUrl;   // ← nouveau
 }

@@ -72,7 +72,7 @@ public final class CastingDtos {
             Integer age,
             String city,
             String gender,
-            String photoUrl,
+            @tools.jackson.databind.annotation.JsonSerialize(using = com.castingai.storage.MediaUrls.Signed.class) String photoUrl,
             ShortlistEntry.Status status,
             String note,
             LocalDate auditionDate,

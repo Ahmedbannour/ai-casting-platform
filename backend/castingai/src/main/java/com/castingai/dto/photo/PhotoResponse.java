@@ -10,8 +10,8 @@ import java.util.UUID;
 @Builder
 public class PhotoResponse {
     private UUID id;
-    private String url;
-    private String thumbnailUrl;
+    @tools.jackson.databind.annotation.JsonSerialize(using = com.castingai.storage.MediaUrls.Signed.class) private String url;
+    @tools.jackson.databind.annotation.JsonSerialize(using = com.castingai.storage.MediaUrls.Signed.class) private String thumbnailUrl;
     private String originalName;
     private Long size;
     private boolean isMain;
