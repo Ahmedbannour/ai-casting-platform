@@ -153,7 +153,8 @@ export interface SwipeEvent {
   .tally { display: flex; gap: 12px; font-weight: 600; }
   .t-ok { color: var(--keep); } .t-ko { color: var(--reject); }
 
-  .deck { position: relative; height: 500px; }
+  /* Hauteur selon la place disponible dans la zone de résultats (conteneur « chatlist ») */
+  .deck { position: relative; height: 500px; height: clamp(280px, calc(100cqh - 250px), 520px); }
   .card { position: absolute; inset: 0; border-radius: var(--radius-m); overflow: hidden; background: var(--bg-surface);
     border: 1px solid var(--border); box-shadow: var(--shadow); touch-action: none;
     transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s; display: flex; flex-direction: column; will-change: transform; }
@@ -235,7 +236,7 @@ export interface SwipeEvent {
   .pill.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
   .pill.primary:hover { background: var(--accent-hover); }
   @media (prefers-reduced-motion: reduce) { .card, .act { transition: none; } .shimmer { animation: none; color: var(--text-muted); } }
-  @container page (max-width: 480px) { .deck { height: 440px; } }
+  @container page (max-width: 480px) { .deck { height: clamp(260px, calc(100cqh - 200px), 460px); } .deck-head { margin-bottom: 6px; } .actions { margin-top: 10px; gap: 14px; } .act.ko, .act.ok { width: 54px; height: 54px; } .hint { display: none; } }
   `]
 })
 export class SwipeDeckComponent {

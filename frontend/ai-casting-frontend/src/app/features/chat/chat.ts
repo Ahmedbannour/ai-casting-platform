@@ -98,8 +98,24 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     this.loading.set(false);
   }
 
-  ngAfterViewChecked(): void {
-    this.scrollToBottom();
+  ngAfterViewChecked(): void { /* plus de défilement forcé à chaque rafraîchissement : voir scrollToLatest() */ }
+
+  /** Recherches précédentes dépliées par l'utilisateur (les autres sont résumées en une ligne). */
+  readonly expanded = signal<Set<number>>(new Set());
+  toggleOld(i: number): void { this.expanded.update(s => { const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i); return n; }); }
+
+  /** Place la dernière demande en haut de la zone, les propositions en dessous ; une seule fois par recherche. */
+  private scrollToLatest(): void {
+    setTimeout(() => {
+      const list = document.querySelector('.messages-list') as HTMLElement | null;
+      // La réponse en haut (la demande juste au-dessus reste accessible en remontant) : fiche et boutons entiers à l'écran
+      const answers = list?.querySelectorAll('.assistant-message');
+      const last = answers?.[answers.length - 1] as HTMLElement | undefined;
+      if (!list || !last) return;
+      const top = last.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop - 12;
+      const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      list.scrollTo({ top: Math.max(0, top), behavior: still ? 'auto' : 'smooth' });
+    }, 60);
   }
 
   send(query?: string): void {
@@ -114,6 +130,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     this.messages.update(m => [...m, {
       role: 'assistant', loading: true, timestamp: new Date()
     }]);
+    this.scrollToLatest();
 
     this.aiService.search(text).subscribe({
       next: (response) => {
@@ -128,6 +145,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
           };
           return updated;
         });
+        this.scrollToLatest();
         const shown = this.messages()[this.messages().length - 1].response?.results ?? [];
         this.explain(this.messages().length - 1, text, shown.slice(0, 5).map(r => r.id));
         this.aiService.historyChanged.next();

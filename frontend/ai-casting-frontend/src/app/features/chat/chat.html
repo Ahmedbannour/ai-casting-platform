@@ -46,7 +46,15 @@
                 </div>
               }
 
-              @if (!msg.loading && msg.response) {
+              @if (!msg.loading && msg.response && !isLastAssistant($index) && !expanded().has($index)) {
+                <div class="older">
+                  <span class="older-txt"><b>{{ msg.response.totalResults }} profil{{ msg.response.totalResults > 1 ? 's' : '' }}</b> · {{ msg.response.interpretation }}</span>
+                  <button type="button" class="older-btn" (click)="toggleOld($index)" [attr.aria-expanded]="false">Revoir ces propositions</button>
+                </div>
+              }
+
+              @if (!msg.loading && msg.response && (isLastAssistant($index) || expanded().has($index))) {
+                @if (!isLastAssistant($index)) { <button type="button" class="older-btn fold" (click)="toggleOld($index)" [attr.aria-expanded]="true">Replier</button> }
 
                 <div class="interpretation">
                   <span class="interp-label">Recherche :</span>

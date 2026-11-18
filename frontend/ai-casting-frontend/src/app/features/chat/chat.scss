@@ -79,7 +79,22 @@
   overflow-y: auto;
   min-height: 0;
   padding: 24px 24px 16px;
+  /* La hauteur de la zone sert à dimensionner le paquet de fiches (100cqh) */
+  container-type: size;
+  container-name: chatlist;
+  overscroll-behavior: contain;
+  scroll-padding-top: 12px;
 }
+
+/* Recherches précédentes : une ligne, dépliable */
+.older { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 14px;
+  border-radius: 12px; border: 1px solid var(--border); background: var(--glass); font-size: 13px; color: var(--text-muted);
+  b { color: var(--text-primary); } }
+.older-txt { min-width: 0; flex: 1; }
+.older-btn { height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-primary);
+  font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  &:hover { border-color: var(--accent); } &:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  &.fold { margin-bottom: 8px; } }
 
 .message {
   max-width: 760px;
@@ -426,3 +441,18 @@
 .rb-close { margin-left: auto; width: 28px; height: 28px; border: none; border-radius: 50%; background: transparent;
   color: var(--text-muted); font-size: 18px; cursor: pointer; }
 .rb-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+/* Mobile : place gagnée pour le paquet de fiches */
+@container page (max-width: 560px) {
+  .messages-list { padding: 14px 12px 10px; }
+  .input-area { padding: 8px 12px 10px; }
+  .input-hint { display: none; }
+  .message { margin-bottom: 12px; }
+  /* Résultat compact : avatar masqué, critères sur une ligne, bascule resserrée -> fiche + boutons tiennent à l'écran */
+  .assistant-message .assistant-avatar { display: none; }
+  .interpretation { font-size: 12px; line-height: 1.35; margin-bottom: 6px; gap: 6px; flex-wrap: nowrap; }
+  .interpretation .interp-label { display: none; }
+  .interp-count { flex-shrink: 0; padding: 1px 8px; }
+  .view-toggle { margin: 2px 0 8px; }
+  .view-toggle button { padding: 4px 12px; }
+}
