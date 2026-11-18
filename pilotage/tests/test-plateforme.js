@@ -58,6 +58,10 @@ async function audit(page, path, name, errors) {
     }
     if (!logged) { await ctx.close(); continue; }
 
+    // T-143 · Accueil de l'agent ouvert à la connexion
+    check(P + 'T-143 : arrivée sur l’Accueil après connexion', new URL(page.url()).pathname === '/accueil', page.url());
+    await audit(page, '/accueil', P + 'Accueil agent', errors);
+    check(P + 'T-143 : Accueil avec ses 4 repères', await page.locator('.tiles .tile:not(.skel)').count() === 4);
     // Pages agence / administration
     await audit(page, '/admin', P + 'Administration', errors);
     for (const tab of ['Agences', 'Journal']) {
@@ -171,8 +175,10 @@ async function audit(page, path, name, errors) {
   check('Inscription : mineur sans représentant légal → refusée', page.url().includes('/auth/inscription') && await page.locator('#guardianName').count() === 1);
   await page.getByRole('radio', { name: /18 ans ou plus/i }).click();
   check('Inscription : champ représentant masqué pour un majeur', await page.locator('#guardianName').count() === 0);
-  await page.click('button.submit-btn'); await page.waitForURL(u => u.pathname.startsWith('/mon-profil'), { timeout: 15000 }).catch(() => {});
-  check('Acteur : inscription puis arrivée sur « Mon profil »', page.url().includes('/mon-profil'), page.url());
+  await page.click('button.submit-btn'); await page.waitForURL(u => u.pathname.startsWith('/mon-espace'), { timeout: 15000 }).catch(() => {});
+  check('Acteur : inscription puis arrivée sur « Mon espace »', page.url().includes('/mon-espace'), page.url());
+  await page.waitForTimeout(1200);
+  check('T-141 : « Mon espace » affiche les 3 repères et le score du profil', await page.locator('.tile').count() === 3 && await page.locator('app-profile-score .gauge').count() === 1);
   await page.waitForTimeout(800);
   check('T-113 : rappel « adresse non vérifiée » pour un nouveau compte', /pas encore vérifiée/.test(await page.locator('app-email-banner .eb').textContent().catch(() => '')));
   notes.push('Compte acteur de test créé : ' + mail + ' (effacé en fin de recette)');
@@ -242,7 +248,8 @@ async function audit(page, path, name, errors) {
     const c7 = await browser.newContext({ viewport: { width: 1366, height: 860 }, locale: 'fr-FR', acceptDownloads: true }); const p7 = await c7.newPage();
     await p7.goto(BASE + '/auth/login'); await p7.waitForTimeout(900);
     await p7.fill('#email', rm); await p7.fill('#password', rpw); await p7.click('button.submit-btn');
-    await p7.waitForURL(u => u.pathname.startsWith('/mon-profil'), { timeout: 15000 }).catch(() => {});
+    await p7.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 15000 }).catch(() => {});
+    await p7.goto(BASE + '/mon-profil'); await p7.waitForTimeout(1200);
     await p7.locator('app-my-data').scrollIntoViewIfNeeded(); await p7.waitForTimeout(500);
     const [dl] = await Promise.all([p7.waitForEvent('download', { timeout: 15000 }).catch(() => null), p7.getByRole('button', { name: /^Télécharger/ }).click()]);
     check('T-110 : « Télécharger mes données » donne une archive ZIP', !!dl && /mes-donnees-ai-casting-.*\.zip$/.test(dl.suggestedFilename()), dl && dl.suggestedFilename());

@@ -2671,7 +2671,7 @@
    "statut": "fait",
    "prompt": "P-039",
    "jour": "J7",
-   "detail": "Nouvel accueil de l'agent et de l'administrateur, ouvert à la connexion (/accueil) : auditions des 7 jours (confirmées ou à confirmer), réponses attendues des acteurs avec leur ancienneté (en rouge au-delà de 3 jours), rôles à pourvoir avec l'avancement de leur shortlist (présélection, audition, rappel, choisi) et le compte à rebours du tournage, dernières réponses avec le mot de l'acteur, alerte de fin de contrat de l'agence. Raccourcis : nouvelle recherche, recherche IA préremplie pour un rôle, mes projets. Résumé serveur en un appel (/api/agency/home), limité aux projets de l'équipe ; test dédié, 71/71."
+   "detail": "Nouvel accueil de l'agent et de l'administrateur, ouvert à la connexion (/accueil) : auditions des 7 jours (confirmées ou à confirmer), réponses attendues des acteurs avec leur ancienneté (en rouge au-delà de 3 jours), rôles à pourvoir avec l'avancement de leur shortlist (présélection, audition, rappel, choisi) et le compte à rebours du tournage, dernières réponses avec le mot de l'acteur, alerte de fin de contrat de l'agence. Raccourcis : nouvelle recherche, recherche IA préremplie pour un rôle, mes projets. Résumé serveur en un appel (/api/agency/home), limité aux projets de l'équipe ; test dédié, 71/71 ; recette navigateur 115/115."
   }
  ],
  "journal": [
@@ -2767,8 +2767,8 @@
      "s": "fait"
     },
     {
-     "t": "Recette navigateur",
-     "s": "en_cours"
+     "t": "Recette 115/115",
+     "s": "fait"
     },
     {
      "t": "Capture Navigateur",
@@ -2776,13 +2776,13 @@
     },
     {
      "t": "Git",
-     "s": "a_faire"
+     "s": "fait"
     }
    ]
   },
   "derniere": {
-   "t": "2026-11-18T05:20:00Z",
-   "texte": "Accueil de l’agent livré ; recette en cours"
+   "t": "2026-11-18T05:25:00Z",
+   "texte": "Accueil de l’agent livré ; recette 115/115"
   }
  },
  "activite": [
@@ -2977,6 +2977,12 @@
    "nom": "Yanis Belhadj",
    "t": "2026-11-18T05:20:00Z",
    "texte": "T-143 livrée : accueil de l’agent (auditions de la semaine, réponses attendues, rôles à pourvoir avec l’avancement de la shortlist, dernières réponses). Ouvert à la connexion."
+  },
+  {
+   "h": "J6",
+   "nom": "Amel Kacem",
+   "t": "2026-11-18T05:25:00Z",
+   "texte": "Correction de la recette : les deux passages précédents s’étaient arrêtés (l’acteur arrive désormais sur « Mon espace ») et l’ancien résultat 104/104 avait été relu par erreur. Recette mise à jour (Mon espace, Accueil de l’agent), ancien résultat effacé avant chaque passage : 115/115."
   }
  ],
  "plan": {
