@@ -263,3 +263,10 @@ figcaption { margin-top: 10px !important; }
   .deck { --h: min(470px, 118vw); }
 }
 @media (prefers-reduced-motion: reduce) { .deck.hint .card.top, .summary { animation: none; } }
+
+.card .face { transition: box-shadow .25s ease; }
+.card.drag { cursor: grabbing; }
+.card.drag .face { box-shadow: 0 34px 70px rgba(0,0,0,.5); }
+.card .stamp { transition: transform .18s ease; }
+.card.drag .stamp.keep { transform: rotate(-12deg) scale(1.08); }
+.card.drag .stamp.ko { transform: rotate(10deg) scale(1.08); }

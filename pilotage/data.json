@@ -737,6 +737,24 @@
     "Correction du blocage de la salle (T-139)"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-039",
+   "date": "2026-11-18",
+   "titre": "Tableaux de bord par rôle, menu de la vitrine, glissement plus fluide",
+   "original": "y a t il des choses a ajouter dans le home page !! des proposition de ta part !! si non , merci de travailler sur les différents dashboard , tel que les offres pour un acteur , les propostions , ..... de cout il faut amiliorer et allez plus loin dans le developpement et au meme temps données la meilleurs experience pour l'utilisateur (quelque sois leur role) , autre remarque, si je click sur agence dans le navbar (dans le home) , cela ne fonceionne pas convenablement (il m'affiche les agences mais dans le navbar il selectionne les acteurs !!) / merci de remettre l'animation de swipe plus smooth et sympa",
+   "ameliore": "Corriger la sélection du menu de la vitrine (Agences/Acteurs côte à côte). Donner à chaque rôle un accueil utile : d'abord l'acteur (demandes à traiter, prochaine audition, visibilité, intérêt des agences, profil à compléter, activité), puis l'agent et l'administrateur. Rendre le glissement des fiches plus fluide (lancer, inclinaison selon la prise, rebond) sur la vitrine et dans la recherche IA. Proposer des ajouts pour la page d'accueil.",
+   "departements": [
+    "front",
+    "prod",
+    "qa"
+   ],
+   "livrables": [
+    "Menu de la vitrine corrigé (T-140)",
+    "Mon espace de l'acteur (T-141)",
+    "Glissement des fiches plus fluide (T-142)"
+   ],
+   "statut": "en_cours"
   }
  ],
  "bibliotheques": [
@@ -2605,6 +2623,53 @@
    "prompt": "P-038",
    "jour": "J6",
    "detail": "La fiche de la demande P-037 n'avait pas de liste de départements ni de livrables : l'affichage des prompts plantait et arrêtait le script (onglets, carte mentale). Fiche complétée ; la page tolère désormais un champ manquant ; le chargement de chaque vue est isolé."
+  },
+  {
+   "id": "T-140",
+   "titre": "Vitrine : « Agences » dans le menu sélectionne « Acteurs »",
+   "dept": "front",
+   "resp": "Mariem Gharbi",
+   "prio": "P0",
+   "phase": "PH3",
+   "statut": "fait",
+   "prompt": "P-039",
+   "jour": "J6",
+   "detail": "Les blocs Agences et Acteurs sont côte à côte sur ordinateur : le suivi de section prenait le dernier. Section suivie par une ligne à 45 % de l'écran, sélection gardée si plusieurs sections la traversent, section cliquée verrouillée pendant le déplacement. Vérifié sur ordinateur et mobile (5 clics)."
+  },
+  {
+   "id": "T-141",
+   "titre": "Tableau de bord de l’acteur « Mon espace »",
+   "dept": "front",
+   "resp": "Yanis Belhadj",
+   "prio": "P1",
+   "phase": "PH3",
+   "statut": "fait",
+   "prompt": "P-039",
+   "jour": "J6",
+   "detail": "Nouvel accueil de l'acteur, ouvert à la connexion : demandes à traiter (avec « Répondre »), prochaine audition (confirmée ou à confirmer), visibilité du profil, consultations de ses coordonnées sur 30 jours, score du profil avec liens directs vers la rubrique à compléter, activité récente. Menu et barre mobile mis à jour. Vérifié avec un acteur de recette convoqué (effacé ensuite)."
+  },
+  {
+   "id": "T-142",
+   "titre": "Glissement des fiches plus fluide (vitrine et recherche IA)",
+   "dept": "front",
+   "resp": "Mariem Gharbi",
+   "prio": "P1",
+   "phase": "PH3",
+   "statut": "fait",
+   "prompt": "P-039",
+   "jour": "J6",
+   "detail": "Lancer selon la vitesse du geste (plus besoin d'aller jusqu'au bout), sortie dans le prolongement du geste, inclinaison selon l'endroit saisi, fiche soulevée pendant la prise, retour avec rebond, vibration au seuil sur mobile, fiche suivante qui monte avec un léger ressort."
+  },
+  {
+   "id": "T-143",
+   "titre": "Accueil de l’agent : auditions, réponses attendues, rôles à pourvoir",
+   "dept": "front",
+   "resp": "Yanis Belhadj",
+   "prio": "P1",
+   "phase": "PH3",
+   "statut": "a_faire",
+   "prompt": "P-039",
+   "jour": "J7"
   }
  ],
  "journal": [
@@ -2664,58 +2729,54 @@
   }
  ],
  "maintenant": {
-  "titre": "P-058 · Écran d’accueil livré ; salle débloquée et en direct",
-  "etape": 52,
+  "titre": "P-059 · Menu corrigé, Mon espace de l’acteur, glissement plus fluide",
+  "etape": 55,
   "agents": [
    {
     "nom": "Yanis Belhadj",
-    "action": "Écran d’accueil animé livré",
-    "court": "T-138"
+    "action": "Mon espace de l’acteur livré",
+    "court": "T-141"
    },
    {
-    "nom": "Sarra Mansouri",
-    "action": "Salle débloquée, vues isolées",
-    "court": "T-139"
+    "nom": "Mariem Gharbi",
+    "action": "Glissement des fiches plus fluide",
+    "court": "T-142"
    },
    {
     "nom": "Rania Jlassi",
-    "action": "Recette 104/104 avec l’écran d’accueil",
+    "action": "Recette complète",
     "court": "QA"
    }
   ],
   "progres": {
-   "tache": "T-138",
-   "titre": "Écran d’accueil animé",
+   "tache": "T-141",
+   "titre": "Espaces par rôle",
    "etapes": [
     {
-     "t": "Mise en scène",
+     "t": "Menu vitrine",
      "s": "fait"
     },
     {
-     "t": "Enchaînement vitrine",
+     "t": "Mon espace acteur",
      "s": "fait"
     },
     {
-     "t": "À chaque visite",
+     "t": "Glissement fluide",
      "s": "fait"
     },
     {
-     "t": "Recette 104/104",
-     "s": "fait"
+     "t": "Recette",
+     "s": "en_cours"
     },
     {
-     "t": "Captures Navigateur",
-     "s": "fait"
-    },
-    {
-     "t": "Git",
-     "s": "fait"
+     "t": "Accueil agent",
+     "s": "a_faire"
     }
    ]
   },
   "derniere": {
-   "t": "2026-11-18T05:00:00Z",
-   "texte": "Écran d’accueil livré ; recette 104/104"
+   "t": "2026-11-18T05:10:00Z",
+   "texte": "Mon espace de l’acteur et glissement plus fluide livrés"
   }
  },
  "activite": [
@@ -2892,6 +2953,18 @@
    "nom": "Yanis Belhadj",
    "t": "2026-11-18T05:00:00Z",
    "texte": "T-138 livrée : écran d’accueil animé (crayon, planche contact, clap, iris) à chaque visite de la page d’accueil ; animation visible dans l’onglet Navigateur."
+  },
+  {
+   "h": "J6",
+   "nom": "Yanis Belhadj",
+   "t": "2026-11-18T05:08:00Z",
+   "texte": "T-141 livrée : « Mon espace » de l’acteur (demandes à traiter, prochaine audition, visibilité, intérêt des agences, profil, activité)."
+  },
+  {
+   "h": "J6",
+   "nom": "Mariem Gharbi",
+   "t": "2026-11-18T05:10:00Z",
+   "texte": "T-142 livrée : glissement des fiches plus fluide (lancer, inclinaison selon la prise, rebond), sur la vitrine et dans la recherche IA."
   }
  ],
  "plan": {

@@ -1,6 +1,8 @@
 /** Utilitaires de dates « calendaires » (sans fuseau) au format ISO AAAA-MM-JJ. */
 
 export const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+/** Abréviations usuelles des mois. */
+export const MONTHS_SHORT_FR = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 export const DAYS_FR = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 
 const pad = (n: number) => String(n).padStart(2, '0');

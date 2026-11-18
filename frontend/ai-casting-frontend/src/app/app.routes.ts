@@ -87,6 +87,13 @@ export const routes: Routes = [
     children: [
       // ── Espace de l'acteur freelance ──
       {
+        path: 'mon-espace',
+        canActivate: [roleGuard('ACTEUR')],
+        loadComponent: () =>
+          import('./features/espace/actor-home')
+            .then(m => m.ActorHomeComponent)
+      },
+      {
         path: 'mon-profil',
         canActivate: [roleGuard('ACTEUR')],
         loadComponent: () =>

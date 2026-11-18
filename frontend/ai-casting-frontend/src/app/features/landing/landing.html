@@ -49,7 +49,7 @@
            aria-label="Profils proposés. Flèche droite pour retenir, flèche gauche pour écarter.">
         @for (cd of cards(); track active() + cd.name; let i = $index) {
           @if (i >= idx() && i < idx() + 3) {
-            <article class="card" [class.top]="i === idx()" [style]="cardStyle(i)" [attr.aria-hidden]="i !== idx()"
+            <article class="card" [class.top]="i === idx()" [class.drag]="i === idx() && dragging()" [style]="cardStyle(i)" [attr.aria-hidden]="i !== idx()"
                      (pointerdown)="i === idx() && down($event)" (pointermove)="move($event)" (pointerup)="up()" (pointercancel)="up()">
               <div class="face" [style.--tone]="cd.tone">
                 <svg class="person" viewBox="0 0 100 100" aria-hidden="true">

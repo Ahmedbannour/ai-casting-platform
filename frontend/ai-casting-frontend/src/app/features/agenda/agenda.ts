@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { AgendaItem, AgendaService } from '../../core/services/agenda.service';
 import { MeService } from '../../core/services/me.service';
 import { AuthService } from '../../core/services/auth.service';
-import { DAYS_FR, MONTHS_FR, addDays, fromIso, todayIso } from '../../shared/forms/dates';
+import { DAYS_FR, MONTHS_FR, MONTHS_SHORT_FR, addDays, fromIso, todayIso } from '../../shared/forms/dates';
 
 interface Day { iso: string; items: AgendaItem[]; }
 
@@ -159,7 +159,7 @@ export class AgendaComponent implements OnInit {
   }
 
   dayNum(iso: string): number { return fromIso(iso)!.getDate(); }
-  monthShort(iso: string): string { return MONTHS_FR[fromIso(iso)!.getMonth()].slice(0, 4).replace(/\.$/, ''); }
+  monthShort(iso: string): string { return MONTHS_SHORT_FR[fromIso(iso)!.getMonth()]; }
   dayLabel(iso: string): string {
     const d = fromIso(iso)!;
     const label = `${DAYS_FR[(d.getDay() + 6) % 7]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]}`;

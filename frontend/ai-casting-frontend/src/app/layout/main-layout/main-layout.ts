@@ -76,13 +76,13 @@ import { EmailBannerComponent } from './email-banner';
     <!-- Barre d'onglets (mobile uniquement) -->
     <nav class="tabbar" aria-label="Navigation">
       @if (role() === 'ACTEUR') {
+      <a class="tab" routerLink="/mon-espace" routerLinkActive="active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+        Accueil
+      </a>
       <a class="tab" routerLink="/mon-profil" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
         Profil
-      </a>
-      <a class="tab" routerLink="/mon-profil/photos" routerLinkActive="active">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 8"/></svg>
-        Photos
       </a>
       <a class="tab" routerLink="/mes-propositions" routerLinkActive="active">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>

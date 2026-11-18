@@ -41,6 +41,8 @@ export interface SwipeEvent {
                [class.leaving-right]="k === 0 && leaving() === 'RETENU'"
                [class.leaving-left]="k === 0 && leaving() === 'ECARTE'"
                [class.dragging]="k === 0 && dragging()"
+               [class.spring]="k === 0 && springing()"
+               [style.--exit]="exitMs + 'ms'"
                [style.z-index]="10 - k"
                [style.transform]="k === 0 ? topTransform() : backTransform(k)"
                (pointerdown)="k === 0 && onDown($event)"
@@ -152,8 +154,9 @@ export interface SwipeEvent {
     transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s; display: flex; flex-direction: column; will-change: transform; }
   .card.top { cursor: grab; }
   .card.dragging { transition: none; cursor: grabbing; }
-  .card.leaving-right { transform: translateX(160%) rotate(22deg) !important; opacity: 0; }
-  .card.leaving-left { transform: translateX(-160%) rotate(-22deg) !important; opacity: 0; }
+  .card.dragging { box-shadow: 0 34px 70px rgba(0,0,0,.45); }
+  .card.spring { transition: transform .5s cubic-bezier(.34,1.56,.64,1), opacity .35s; }
+  .card.leaving-right, .card.leaving-left { opacity: 0; transition: transform var(--exit, 320ms) cubic-bezier(.22,.61,.36,1), opacity var(--exit, 320ms) ease-in; }
 
   .photo { position: relative; flex: 1; min-height: 0; background: #3A3C43; }
   .photo img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
@@ -245,6 +248,12 @@ export class SwipeDeckComponent {
   private startX = 0;
   private startY = 0;
   private moved = false;
+  // Geste : inclinaison selon l'endroit saisi, lancer selon la vitesse, retour avec rebond
+  private grabTop = true;
+  private trail: { x: number; t: number }[] = [];
+  private armed = false;
+  exitMs = 320;
+  springing = signal(false);
 
   current = computed(() => this.results[this.index()] ?? null);
   kept = computed(() => this.history().filter(h => h.decision === 'RETENU').map(h => h.actor));
@@ -274,11 +283,14 @@ export class SwipeDeckComponent {
   pct(score: number): number { return Math.round(score * 100); }
 
   topTransform(): string {
-    return `translate(${this.dx()}px, ${this.dy() * 0.3}px) rotate(${this.dx() / 18}deg)`;
+    const tilt = (this.dx() / 17) * (this.grabTop ? 1 : -1);
+    const y = this.leaving() ? this.dy() : this.dy() * 0.3;
+    const lift = this.dragging() ? 1.03 : 1;
+    return `translate3d(${this.dx()}px, ${y}px, 0) rotate(${tilt}deg) scale(${lift})`;
   }
 
   backTransform(k: number): string {
-    const lift = Math.min(1, Math.abs(this.dx()) / 140);
+    const lift = this.leaving() ? 1 : Math.min(1, Math.abs(this.dx()) / 140);
     const s = 1 - k * 0.05 + lift * 0.05 * (k === 1 ? 1 : 0);
     const y = k * 14 - lift * 14 * (k === 1 ? 1 : 0);
     return `translateY(${y}px) scale(${s})`;
@@ -286,9 +298,13 @@ export class SwipeDeckComponent {
 
   onDown(e: PointerEvent): void {
     if (this.leaving()) return;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    const el = e.currentTarget as HTMLElement;
+    el.setPointerCapture(e.pointerId);
+    const r = el.getBoundingClientRect();
+    this.grabTop = e.clientY < r.top + r.height / 2;
     this.startX = e.clientX; this.startY = e.clientY; this.moved = false;
-    this.dragging.set(true);
+    this.trail = [{ x: e.clientX, t: e.timeStamp }]; this.armed = false;
+    this.springing.set(false); this.dragging.set(true);
   }
 
   onMove(e: PointerEvent): void {
@@ -296,15 +312,21 @@ export class SwipeDeckComponent {
     const dx = e.clientX - this.startX, dy = e.clientY - this.startY;
     if (Math.abs(dx) > 6 || Math.abs(dy) > 6) this.moved = true;
     this.dx.set(dx); this.dy.set(dy);
+    this.trail.push({ x: e.clientX, t: e.timeStamp }); if (this.trail.length > 6) this.trail.shift();
+    const over = Math.abs(dx) > 110;
+    if (over !== this.armed) { this.armed = over; if (over) navigator.vibrate?.(6); }
   }
 
   onUp(e: PointerEvent): void {
     if (!this.dragging()) return;
     this.dragging.set(false);
     if (!this.moved) { this.tapPhoto(e); this.reset(); return; }
-    if (this.dx() > 110) this.swipe('RETENU');
-    else if (this.dx() < -110) this.swipe('ECARTE');
-    else this.reset();
+    const a = this.trail[0], b = this.trail[this.trail.length - 1];
+    const v = a && b && b.t > a.t ? (b.x - a.x) / (b.t - a.t) : 0;   // px/ms
+    const d = this.dx(), fling = Math.abs(v) > 0.55 && Math.sign(v) === Math.sign(d) && Math.abs(d) > 24;
+    if (d > 110 || (fling && d > 0)) this.swipe('RETENU', v);
+    else if (d < -110 || (fling && d < 0)) this.swipe('ECARTE', v);
+    else { this.springing.set(true); this.reset(); setTimeout(() => this.springing.set(false), 520); }
   }
 
   reset(): void { this.dragging.set(false); this.dx.set(0); this.dy.set(0); }
@@ -317,9 +339,17 @@ export class SwipeDeckComponent {
     this.photoIndex.set((this.photoIndex() + next + n) % n);
   }
 
-  swipe(decision: 'RETENU' | 'ECARTE'): void {
+  swipe(decision: 'RETENU' | 'ECARTE', v = 0): void {
     const a = this.current();
     if (!a || this.leaving()) return;
+    // La fiche part dans le prolongement du geste, d'autant plus vite que le lancer est rapide
+    const speed = Math.min(2.4, Math.max(0.6, Math.abs(v)));
+    this.exitMs = Math.round(Math.max(200, Math.min(360, 400 - speed * 85)));
+    const dir = decision === 'RETENU' ? 1 : -1;
+    const ratio = Math.abs(this.dx()) > 20 ? this.dy() / Math.abs(this.dx()) : 0.08;
+    this.dragging.set(false); this.springing.set(false);
+    this.dx.set(dir * 760); this.dy.set(Math.max(-240, Math.min(240, ratio * 760)) + 30);
+    navigator.vibrate?.(10);
     this.leaving.set(decision);
     setTimeout(() => {
       this.history.update(h => [...h, { actor: a, decision }]);
@@ -328,7 +358,7 @@ export class SwipeDeckComponent {
       this.photoIndex.set(0);
       this.leaving.set(null);
       this.reset();
-    }, 300);
+    }, this.exitMs);
   }
 
   undo(): void {

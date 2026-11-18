@@ -154,36 +154,61 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.later(step, user ? 60 : 500);
   }
 
+  // Geste : la fiche suit le doigt, penche selon l'endroit saisi, part à la vitesse du lancer, revient avec un rebond.
+  private grabTop = true;
+  private trail: { x: number; t: number }[] = [];
+  private armed = false;
+  private exitMs = 330;
+  readonly springing = signal(false);
+
   down(e: PointerEvent): void {
     if (this.leaving() || this.done()) return;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    this.sx = e.clientX; this.sy = e.clientY; this.dragging.set(true); this.touched.set(true);
+    const el = e.currentTarget as HTMLElement;
+    el.setPointerCapture(e.pointerId);
+    const r = el.getBoundingClientRect();
+    this.grabTop = e.clientY < r.top + r.height / 2;
+    this.sx = e.clientX; this.sy = e.clientY; this.trail = [{ x: e.clientX, t: e.timeStamp }]; this.armed = false;
+    this.springing.set(false); this.dragging.set(true); this.touched.set(true);
   }
   move(e: PointerEvent): void {
     if (!this.dragging()) return;
     this.dx.set(e.clientX - this.sx); this.dy.set(e.clientY - this.sy);
+    this.trail.push({ x: e.clientX, t: e.timeStamp }); if (this.trail.length > 6) this.trail.shift();
+    const over = Math.abs(this.dx()) > 100;
+    if (over !== this.armed) { this.armed = over; if (over) navigator.vibrate?.(6); }
   }
   up(): void {
     if (!this.dragging()) return;
     this.dragging.set(false);
+    const a = this.trail[0], b = this.trail[this.trail.length - 1];
+    const v = a && b && b.t > a.t ? (b.x - a.x) / (b.t - a.t) : 0;   // px/ms
     const d = this.dx();
-    if (Math.abs(d) > 100) this.decide(d > 0 ? 'keep' : 'ko');
-    else { this.dx.set(0); this.dy.set(0); }
+    if (Math.abs(d) > 100 || (Math.abs(v) > 0.55 && Math.sign(v) === Math.sign(d) && Math.abs(d) > 24)) {
+      this.decide(d > 0 ? 'keep' : 'ko', v);
+    } else {
+      this.springing.set(true); this.dx.set(0); this.dy.set(0);
+      this.later(() => this.springing.set(false), 520);
+    }
   }
   key(e: KeyboardEvent): void {
     if (e.key === 'ArrowRight') { e.preventDefault(); this.decide('keep'); }
     if (e.key === 'ArrowLeft') { e.preventDefault(); this.decide('ko'); }
   }
-  decide(k: Choice): void {
+  decide(k: Choice, v = 0): void {
     if (this.leaving() || this.done()) return;
     this.touched.set(true);
+    // Un lancer rapide part plus vite ; la trajectoire prolonge le geste
+    const speed = Math.min(2.4, Math.max(0.6, Math.abs(v)));
+    this.exitMs = Math.round(Math.max(200, Math.min(380, 420 - speed * 90)));
     this.leaving.set(k);
-    this.dx.set(k === 'keep' ? 640 : -640); this.dy.set(this.dy() + 40);
-    navigator.vibrate?.(8);
+    const dir = k === 'keep' ? 1 : -1;
+    const ratio = Math.abs(this.dx()) > 20 ? this.dy() / Math.abs(this.dx()) : 0.08;
+    this.dx.set(dir * 720); this.dy.set(Math.max(-220, Math.min(220, ratio * 720)) + 30);
+    navigator.vibrate?.(10);
     this.later(() => {
       this.choices.set([...this.choices(), k]); this.idx.set(this.idx() + 1);
       this.leaving.set(null); this.dx.set(0); this.dy.set(0);
-    }, this.still ? 0 : 330);
+    }, this.still ? 0 : this.exitMs);
   }
   replay(): void { this.pick(this.active()); }
   next(): void { this.pick((this.active() + 1) % BRIEFS.length); }
@@ -192,12 +217,19 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   cardStyle(i: number): Record<string, string> {
     const depth = i - this.idx();
     if (depth === 0) {
-      const anim = this.dragging() ? 'none' : 'transform .33s cubic-bezier(.2,.8,.3,1)';
-      return { transform: `translate(${this.dx()}px, ${this.dy() * 0.35}px) rotate(${this.dx() * 0.05}deg)`, transition: anim, zIndex: '5' };
+      const anim = this.dragging() ? 'none'
+        : this.leaving() ? `transform ${this.exitMs}ms cubic-bezier(.22,.61,.36,1), opacity ${this.exitMs}ms ease-in`
+        : this.springing() ? 'transform .5s cubic-bezier(.34,1.56,.64,1)'
+        : 'transform .33s cubic-bezier(.2,.8,.3,1)';
+      const tilt = this.dx() * 0.06 * (this.grabTop ? 1 : -1);
+      const lift = this.dragging() ? 1.03 : 1;
+      const y = this.leaving() ? this.dy() : this.dy() * 0.35;
+      return { transform: `translate3d(${this.dx()}px, ${y}px, 0) rotate(${tilt}deg) scale(${lift})`, transition: anim, zIndex: '5',
+        opacity: this.leaving() ? '0' : '1' };
     }
     const p = Math.min(1, Math.abs(this.lean()));
     const d = Math.max(0, depth - p);
-    return { transform: `translateY(${d * 14}px) scale(${1 - d * 0.05})`, transition: 'transform .33s ease', zIndex: String(5 - depth) };
+    return { transform: `translate3d(0, ${d * 14}px, 0) scale(${1 - d * 0.05})`, transition: this.dragging() ? 'transform .12s linear' : 'transform .42s cubic-bezier(.34,1.4,.64,1)', zIndex: String(5 - depth) };
   }
 
   private later(fn: () => void, ms: number): void { this.timers.push(setTimeout(fn, ms)); }

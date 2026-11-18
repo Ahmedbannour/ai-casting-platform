@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { MeService } from '../../../core/services/me.service';
 import { todayIso } from '../../../shared/forms/dates';
@@ -101,13 +101,28 @@ export class ProfileScoreComponent implements OnInit {
           { key: 'dispo', label: 'Déclarer vos disponibilités', tip: 'Elles sont comparées aux dates de tournage.', weight: 6, ok: (x.availabilities ?? []).some((v: any) => v.toDate >= today), section: 'dispos' }
         ]);
         this.loaded.set(true);
+        this.scrollToFragment();
       },
       error: () => this.loaded.set(false)
     });
   }
 
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
   goTo(section?: string): void {
     if (!section) return;
-    document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const el = document.getElementById(section);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else this.router.navigate(['/mon-profil'], { fragment: section });   // depuis « Mon espace »
+  }
+
+  /** Arrivée sur le formulaire avec une rubrique demandée (#physique, #talents…). */
+  private scrolled = false;
+  private scrollToFragment(): void {
+    if (this.scrolled) return;
+    this.scrolled = true;
+    const f = this.route.snapshot.fragment;
+    if (f) setTimeout(() => document.getElementById(f)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
   }
 }
