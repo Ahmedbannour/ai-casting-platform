@@ -149,22 +149,45 @@ public class ActorServiceImpl implements ActorService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ActorSummaryResponse> searchAdvanced(
-            String search, String gender,
-            Integer minAge, Integer maxAge,
-            String city, Pageable pageable) {
+    public Page<ActorSummaryResponse> searchAdvanced(Filters f, Pageable pageable) {
         ActorScope.Scope s = actorScope.current();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        int lo = f.minAge() == null ? 0 : Math.max(0, f.minAge());
+        int hi = f.maxAge() == null ? 150 : Math.min(150, f.maxAge());
+        boolean ageFilter = f.minAge() != null || f.maxAge() != null;
+        var langs = norm(f.languages());
+        var skills = norm(f.skills());
         Page<ActorSummaryResponse> page = actorRepository.searchAdvanced(
-                        search == null ? "" : search.trim(),
-                        gender == null ? "" : gender,
-                        minAge == null ? 0 : minAge,
-                        maxAge == null ? 150 : maxAge,
-                        city == null ? "" : city.trim(),
+                        f.search() == null ? "" : f.search().trim(),
+                        f.gender() == null ? "" : f.gender(),
+                        f.city() == null ? "" : f.city().trim(),
+                        ageFilter,
+                        today.minusYears(lo),            // a au moins lo ans
+                        today.minusYears(hi + 1L),       // a au plus hi ans
+                        f.minHeight() == null ? 0 : f.minHeight(),
+                        f.maxHeight() == null ? 999 : f.maxHeight(),
+                        langs.isEmpty() ? java.util.List.of("") : langs, langs.size(),
+                        skills.isEmpty() ? java.util.List.of("") : skills, skills.size(),
                         s.all(), s.agency(),
                         pageable)
                 .map(actorMapper::toSummary);
         attachMainPhotos(page.getContent());
         return page;
+    }
+
+    /** Liste en minuscules, sans vides ni doublons (au plus 10 valeurs). */
+    private static java.util.List<String> norm(java.util.List<String> in) {
+        if (in == null) return java.util.List.of();
+        return in.stream().filter(v -> v != null && !v.isBlank()).map(v -> v.trim().toLowerCase(java.util.Locale.ROOT))
+                .distinct().limit(10).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.Map<String, java.util.List<String>> facets() {
+        ActorScope.Scope s = actorScope.current();
+        return java.util.Map.of("languages", actorRepository.topLanguages(s.all(), s.agency()),
+                "skills", actorRepository.topSkills(s.all(), s.agency()));
     }
 
     /** Ajoute la miniature de la photo principale à une page d'acteurs, en une seule requête. */

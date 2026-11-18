@@ -485,6 +485,32 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
 #live-toast .t.out{animation:tout .3s ease forwards}
 @keyframes tin{from{opacity:0;transform:translateY(14px) scale(.96)}}@keyframes tout{to{opacity:0;transform:translateX(30px)}}
 @media (prefers-reduced-motion:reduce){.prog-bar i::after,.prog-steps .en_cours::before,#live-toast .t{animation:none}}
+.nav-wrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+@media (max-width:980px){.nav-wrap{grid-template-columns:1fr}}
+.bz{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);box-shadow:0 18px 50px rgba(15,20,45,.12)}
+.bz-bar{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border-bottom:1px solid var(--line)}
+.bz-dots{display:flex;gap:6px}.bz-dots i{width:11px;height:11px;border-radius:50%;background:var(--line)}
+.bz-url{flex:1;min-width:0;display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bz-url b{color:var(--ink);font-weight:500}
+.bz-live{font-size:12px;font-weight:600;color:var(--accent);display:inline-flex;align-items:center;gap:6px}
+.bz-live::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+.bz-view{position:relative;background:var(--bg);display:grid;place-items:center;min-height:320px}
+.bz-view img{display:block;width:100%;height:auto;transition:opacity .35s}
+.bz-view.mob img{width:min(390px,100%);border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.bz-view.swap img{opacity:.25}
+.bz-empty{padding:60px 20px;color:var(--muted);text-align:center}
+.bz-cap{display:flex;gap:12px;align-items:baseline;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.bz-cap small{color:var(--muted)}
+.bz-tl{display:grid;gap:8px;max-height:640px;overflow:auto}
+.bz-tl button{all:unset;cursor:pointer;display:grid;grid-template-columns:86px 1fr;gap:10px;align-items:center;padding:7px;border-radius:10px;border:1px solid transparent}
+.bz-tl button:hover{background:var(--surface2)}.bz-tl button[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft)}
+.bz-tl button:focus-visible{outline:2px solid var(--accent)}
+.bz-tl img{width:86px;height:54px;object-fit:cover;object-position:top;border-radius:6px;border:1px solid var(--line);background:var(--bg)}
+.bz-tl span{font-size:13px;line-height:1.35}.bz-tl small{display:block;color:var(--muted);font-size:12px}
+.bz-seg{display:inline-flex;border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.bz-seg button{all:unset;cursor:pointer;padding:4px 12px;font-size:12.5px;color:var(--muted)}.bz-seg button[aria-pressed=true]{background:var(--accent);color:#fff}
+@media (prefers-reduced-motion:reduce){.bz-live::before{animation:none}}
 </style>
 </head>
 <body>
@@ -494,7 +520,7 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
   <div class="right"><span class="chip" id="h-day"></span><span class="chip" id="h-maj"></span><span class="chip" id="h-live" hidden></span></div>
 </div></header>
 <nav class="tabs" aria-label="Sections"><div class="wrap">
-  <a href="#plan">Plan produit final</a><a href="#roadmap">Roadmap</a><a href="#blocages">Blocages<span class="cnt" id="blk-cnt"></span></a><a href="#synthese">Synthèse</a><a href="#carte">Carte mentale</a><a href="#cycle">Cycle des prompts</a><a href="#organisation">Organisation</a><a href="#journal">Journal quotidien</a><a href="#taches">Tâches</a><a href="#prompts">Prompts &amp; outils</a>
+  <a href="#plan">Plan produit final</a><a href="#roadmap">Roadmap</a><a href="#blocages">Blocages<span class="cnt" id="blk-cnt"></span></a><a href="#synthese">Synthèse</a><a href="#carte">Carte mentale</a><a href="#cycle">Cycle des prompts</a><a href="#organisation">Organisation</a><a href="#journal">Journal quotidien</a><a href="#taches">Tâches</a><a href="#prompts">Prompts &amp; outils</a><a href="#navigateur">Navigateur</a>
 </div></nav>
 <main><div class="wrap">
 <div class="now" id="now"></div>
@@ -577,6 +603,21 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
 <section class="view" id="v-organisation">
   <div class="panel"><div class="phead"><h2>Organigramme</h2><span class="sub" id="org-count"></span></div><div class="org" id="org"></div></div>
   <div class="panel" id="org-side"></div>
+</section>
+
+<section class="view" id="v-navigateur">
+  <div class="panel">
+    <div class="phead"><h2>Navigateur · le site en direct</h2>
+      <div class="filters"><span class="bz-seg" role="group" aria-label="Appareil"><button type="button" data-dev="bureau" aria-pressed="true">Ordinateur</button><button type="button" data-dev="mobile" aria-pressed="false">Mobile</button></span>
+      <a class="small" id="bz-open" href="#" target="_blank" rel="noopener" hidden>Ouvrir le site ↗</a></div></div>
+    <p class="small" style="margin:0 0 14px;color:var(--muted)">Après chaque changement, l’équipe ouvre la plateforme dans un vrai navigateur et la capture apparaît ici d’elle-même.</p>
+    <div class="nav-wrap">
+      <div class="bz"><div class="bz-bar"><span class="bz-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="bz-url" id="bz-url">—</span><span class="bz-live" id="bz-live" hidden>En direct</span></div>
+        <div class="bz-view" id="bz-view"><div class="bz-empty">Aucune capture pour l’instant.</div></div>
+        <div class="bz-cap"><span id="bz-titre"></span><small id="bz-when"></small></div></div>
+      <div class="bz-tl" id="bz-tl" aria-label="Captures précédentes"></div>
+    </div>
+  </div>
 </section>
 
 <section class="view" id="v-journal">
@@ -1115,8 +1156,27 @@ setInterval(setLive,1000);
  document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&$('#modal').parentNode!==document.body)document.body.appendChild($('#modal'));sync();});
  addEventListener('keydown',e=>{if(e.key==='Escape'&&w.classList.contains('fs'))exit()});})();
 
+// Navigateur : captures du site après chaque changement (live/navigateur ; images servies avec la page)
+(function(){let NAV={shots:[]},sel=null,dev='bureau',liveT=0;
+ const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const when=t=>{try{return new Date(t).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return ''}};
+ function draw(){const L=NAV.shots||[];const cur=L.find(x=>x.id===sel)||L[0];const v=$('#bz-view');
+  const o=$('#bz-open');if(NAV.site){o.href=NAV.site;o.hidden=false;}
+  $('#bz-live').hidden=!(Date.now()-liveT<600000);
+  if(!cur){v.innerHTML='<div class="bz-empty">Aucune capture pour l’instant.</div>';$('#bz-tl').innerHTML='';return;}
+  const f=dev==='mobile'&&cur.mobile?cur.mobile:cur.bureau;v.classList.toggle('mob',dev==='mobile'&&!!cur.mobile);
+  const img=v.querySelector('img');if(img&&img.getAttribute('src')===f){}else{v.classList.add('swap');const n=new Image();n.alt='Capture : '+(cur.titre||'');n.onload=()=>{v.innerHTML='';v.appendChild(n);v.classList.remove('swap');};n.onerror=()=>{v.innerHTML='<div class="bz-empty">Capture en cours de publication…</div>';v.classList.remove('swap');};n.src=f;}
+  $('#bz-url').innerHTML='<b>'+esc((cur.url||'').replace(/^https?:\/\//,''))+'</b>';$('#bz-titre').textContent=cur.titre||'';$('#bz-when').textContent=(cur.tache?cur.tache+' · ':'')+when(cur.t);
+  $('#bz-tl').innerHTML=L.map(x=>`<button type="button" data-id="${esc(x.id)}" aria-pressed="${x===cur}"><img src="${esc(x.bureau)}" alt="" loading="lazy"><span>${esc(x.titre)}<small>${esc(x.tache||'')} · ${when(x.t)}</small></span></button>`).join('');}
+ document.addEventListener('click',e=>{const b=e.target.closest('#bz-tl button');if(b){sel=b.dataset.id;draw();}const d=e.target.closest('.bz-seg button');if(d){dev=d.dataset.dev;document.querySelectorAll('.bz-seg button').forEach(x=>x.setAttribute('aria-pressed',x===d));draw();}});
+ (async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');if(!db)return;const r=db.doc('live/navigateur');
+  const on=s=>{const v=val(s);if(!v)return;const first=!NAV.shots.length;const top=NAV.shots[0]&&NAV.shots[0].id;NAV=v;if(!first&&NAV.shots[0]&&NAV.shots[0].id!==top){sel=null;liveT=Date.now();if(typeof liveToast==='function')liveToast('Navigateur : '+NAV.shots[0].titre);}else if(first&&NAV.shots[0]&&Date.now()-new Date(NAV.shots[0].t)<600000)liveT=Date.now();draw();};
+  try{r.onSnapshot(on,()=>{});}catch(e){}setInterval(async()=>{try{on(await r.get());}catch(e){}},20000);try{on(await r.get());}catch(e){}}catch(e){}})();
+ setInterval(()=>{if(location.hash==='#navigateur')$('#bz-live').hidden=!(Date.now()-liveT<600000);},30000);
+})();
+
 // routing
-const VIEWS=['plan','roadmap','blocages','synthese','carte','cycle','organisation','journal','taches','prompts'];
+const VIEWS=['plan','roadmap','blocages','synthese','carte','cycle','organisation','journal','taches','prompts','navigateur'];
 function route(){
   const h=location.hash.slice(1); const v=VIEWS.includes(h)?h:'plan';
   VIEWS.forEach(x=>$('#v-'+x).classList.toggle('on',x===v));

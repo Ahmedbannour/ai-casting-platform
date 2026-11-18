@@ -2143,8 +2143,8 @@
    "prio": "P1",
    "jour": "J6",
    "prompt": "P-031",
-   "statut": "a_faire",
-   "detail": "Pagination côté serveur, filtres combinés (ville, âge, taille, langues, compétences), tri ; tenue à 100 000 fiches.",
+   "statut": "fait",
+   "detail": "Vivier : pagination côté serveur bornée à 100 fiches par page ; filtres combinés genre, âge (bornes de date de naissance, indexées), ville, taille (index V29), langues et compétences (la fiche doit toutes les avoir) ; suggestions des filtres tirées du vivier (orthographe la plus fréquente). Panneau « Plus de filtres » dans Acteurs, pastilles retirables. Mesuré à 100 102 fiches (charge annulée ensuite) : page 1 en 0,7 ms + total 14 ms, page 2 000 en 30 ms, six filtres combinés en 54 ms, recherche par nom 10 ms, suggestions 65-83 ms. 69/69 tests.",
    "lot": "L4"
   },
   {
@@ -2319,7 +2319,7 @@
    "jour": "J6",
    "prompt": "P-031",
    "statut": "fait",
-   "detail": "Tunnel Cloudflare gratuit ouvert (D-016) : https://touched-angel-skins-thats.trycloudflare.com (l'adresse change à chaque relance ; scripts/tunnel.ps1 la relance en une commande). Vérifié de l'extérieur : vitrine, connexion, fiches, photos signées, aucune erreur. Préalables : mot de passe administrateur changé par le client (mot de passe de démonstration désormais refusé), adresse réelle des visiteurs pour les limites anti-abus, origines *.trycloudflare.com autorisées en développement seulement. Limites : le PC doit rester allumé ; connexion Google/Facebook indisponible sur cette adresse (adresses à déclarer chez Google et Meta).",
+   "detail": "Tunnel Cloudflare gratuit ouvert (D-016) : https://teens-psychology-decor-pit.trycloudflare.com (relancée après la coupure du PC) (l'adresse change à chaque relance ; scripts/tunnel.ps1 la relance en une commande). Vérifié de l'extérieur : vitrine, connexion, fiches, photos signées, aucune erreur. Préalables : mot de passe administrateur changé par le client (mot de passe de démonstration désormais refusé), adresse réelle des visiteurs pour les limites anti-abus, origines *.trycloudflare.com autorisées en développement seulement. Limites : le PC doit rester allumé ; connexion Google/Facebook indisponible sur cette adresse (adresses à déclarer chez Google et Meta).",
    "lot": "L8",
    "solutions": [
     {
@@ -2526,42 +2526,46 @@
   }
  ],
  "maintenant": {
-  "titre": "P-052 · T-126 faite : plateforme ouverte aux testeurs par le tunnel Cloudflare",
-  "etape": 43,
+  "titre": "P-054 · T-117 faite : vivier à 100 000 fiches ; nouvel onglet Navigateur",
+  "etape": 45,
   "agents": [
    {
-    "nom": "Laura Blanc",
-    "action": "Tunnel ouvert et vérifié de l'extérieur",
-    "court": "T-126"
+    "nom": "Karim Haddad",
+    "action": "Filtres taille, langues, compétences ; tenue à 100 000 fiches",
+    "court": "T-117"
    },
    {
-    "nom": "Karim Haddad",
-    "action": "Prépare l'ouverture aux premières agences (fin de T-127)",
-    "court": "T-127"
+    "nom": "Amel Kacem",
+    "action": "Captures du site dans l'onglet Navigateur",
+    "court": "Navigateur"
    }
   ],
   "progres": {
-   "tache": "T-126",
-   "titre": "Mise en ligne par tunnel",
+   "tache": "T-117",
+   "titre": "Vivier à grande échelle",
    "etapes": [
     {
-     "t": "cloudflared vérifié",
+     "t": "Filtres serveur",
      "s": "fait"
     },
     {
-     "t": "Mot de passe admin",
+     "t": "Index",
      "s": "fait"
     },
     {
-     "t": "Origines et adresses",
+     "t": "Écran Acteurs",
      "s": "fait"
     },
     {
-     "t": "Tunnel ouvert",
+     "t": "Mesure 100 000 fiches",
      "s": "fait"
     },
     {
-     "t": "Vérifié de l'extérieur",
+     "t": "Tests 69/69",
+     "s": "fait"
+    },
+    {
+     "t": "Capture Navigateur",
      "s": "fait"
     },
     {
@@ -2571,8 +2575,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-18T01:40:00Z",
-   "texte": "Plateforme en ligne : https://touched-angel-skins-thats.trycloudflare.com"
+   "t": "2026-11-18T02:55:00Z",
+   "texte": "T-117 livrée : 6 filtres combinés en 54 ms sur 100 102 fiches"
   }
  },
  "activite": [
@@ -2695,6 +2699,12 @@
    "nom": "Laura Blanc",
    "t": "2026-11-18T01:40:00Z",
    "texte": "T-126 livrée : la plateforme est accessible aux testeurs par un tunnel Cloudflare gratuit ; vérifiée de l'extérieur (connexion, fiches, photos)."
+  },
+  {
+   "h": "J6",
+   "nom": "Karim Haddad",
+   "t": "2026-11-18T02:55:00Z",
+   "texte": "T-117 livrée : filtres taille, langues et compétences ; 100 102 fiches filtrées en 54 ms. Capture visible dans l'onglet Navigateur."
   }
  ],
  "plan": {

@@ -8,7 +8,7 @@ import { DashboardService, DashboardStats } from '../../core/services/dashboard.
 import { ActorService, ActorSummary } from '../../core/services/actor.service';
 
 type View = 'grille' | 'liste';
-interface Chip { key: 'search' | 'gender' | 'age' | 'city'; label: string; }
+interface Chip { key: 'search' | 'gender' | 'age' | 'city' | 'height' | 'lang' | 'skill'; label: string; value?: string; }
 
 @Component({
   selector: 'app-dashboard',
@@ -37,6 +37,21 @@ export class DashboardComponent implements OnInit {
   minAge: number | null = null;
   maxAge: number | null = null;
   city = '';
+  // T-117 · Filtres avancés
+  minHeight: number | null = null;
+  maxHeight: number | null = null;
+  languages = signal<string[]>([]);
+  skills = signal<string[]>([]);
+  facetLangs = signal<string[]>([]);
+  facetSkills = signal<string[]>([]);
+  skillQuery = signal('');
+  moreOpen = signal(false);
+  moreCount = computed(() => this.languages().length + this.skills().length);
+  shownSkills = computed(() => {
+    const q = this.skillQuery().trim().toLowerCase();
+    const all = this.facetSkills();
+    return (q ? all.filter(s => s.toLowerCase().includes(q)) : all).slice(0, q ? 40 : 18);
+  });
   private readonly typing = new Subject<void>();
 
   // Tri et pagination
@@ -70,7 +85,27 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.dashboardService.getStats().subscribe({ next: s => this.stats.set(s), error: () => {} });
     this.typing.pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef)).subscribe(() => this.applyFilters());
+    this.actorService.facets().subscribe({ next: f => { this.facetLangs.set(f.languages); this.facetSkills.set(f.skills); }, error: () => {} });
     this.loadActors();
+  }
+
+  toggleMore(): void { this.moreOpen.update(v => !v); }
+
+  toggleTag(kind: 'lang' | 'skill', v: string): void {
+    const s = kind === 'lang' ? this.languages : this.skills;
+    s.update(l => l.includes(v) ? l.filter(x => x !== v) : [...l, v].slice(0, 10));
+    this.applyFilters();
+  }
+
+  isOn(kind: 'lang' | 'skill', v: string): boolean { return (kind === 'lang' ? this.languages() : this.skills()).includes(v); }
+
+  /** Message si la tranche de taille saisie ne peut pas filtrer. */
+  heightError(): string {
+    const lo = this.ageValue(this.minHeight), hi = this.ageValue(this.maxHeight);
+    const bad = (n?: number) => n !== undefined && (!Number.isInteger(n) || n < 50 || n > 250);
+    if (bad(lo) || bad(hi)) return 'Taille : entre 50 et 250 cm';
+    if (lo !== undefined && hi !== undefined && lo > hi) return 'Taille minimum supérieure au maximum';
+    return '';
   }
 
   get sortKey(): string { return `${this.sortBy}:${this.sortDir}`; }
@@ -91,7 +126,12 @@ export class DashboardComponent implements OnInit {
       this.ageError() ? undefined : this.ageValue(this.minAge),
       this.ageError() ? undefined : this.ageValue(this.maxAge),
       this.city.trim() || undefined,
-      this.page, this.size, this.sortBy, this.sortDir
+      this.page, this.size, this.sortBy, this.sortDir,
+      {
+        minHeight: this.heightError() ? undefined : this.ageValue(this.minHeight),
+        maxHeight: this.heightError() ? undefined : this.ageValue(this.maxHeight),
+        languages: this.languages(), skills: this.skills()
+      }
     ).subscribe({
       next: (page) => {
         this.actors.set(page.content);
@@ -136,11 +176,17 @@ export class DashboardComponent implements OnInit {
     if (key === 'gender') this.gender = '';
     if (key === 'age') { this.minAge = null; this.maxAge = null; }
     if (key === 'city') this.city = '';
+    if (key === 'height') { this.minHeight = null; this.maxHeight = null; }
     this.applyFilters();
+  }
+
+  removeTagChip(c: Chip): void {
+    if (c.key === 'lang' || c.key === 'skill') this.toggleTag(c.key, c.value!); else this.removeChip(c.key);
   }
 
   resetFilters(): void {
     this.search = ''; this.gender = ''; this.minAge = null; this.maxAge = null; this.city = '';
+    this.minHeight = null; this.maxHeight = null; this.languages.set([]); this.skills.set([]);
     this.applyFilters();
   }
 
@@ -222,6 +268,11 @@ export class DashboardComponent implements OnInit {
       c.push({ key: 'age', label: `${lo} à ${hi} ans` });
     }
     if (this.city.trim()) c.push({ key: 'city', label: this.city.trim() });
+    if (this.minHeight != null || this.maxHeight != null) {
+      c.push({ key: 'height', label: `${this.minHeight ?? '…'} à ${this.maxHeight ?? '…'} cm` });
+    }
+    for (const l of this.languages()) c.push({ key: 'lang', label: l, value: l });
+    for (const k of this.skills()) c.push({ key: 'skill', label: k, value: k });
     return c;
   }
 }

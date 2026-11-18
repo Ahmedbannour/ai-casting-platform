@@ -45,6 +45,10 @@ public class ActorController {
             @RequestParam(required = false) Integer minAge,
             @RequestParam(required = false) Integer maxAge,
             @RequestParam(required = false) String city,
+            @RequestParam(required = false) Integer minHeight,
+            @RequestParam(required = false) Integer maxHeight,
+            @RequestParam(required = false) java.util.List<String> languages,
+            @RequestParam(required = false) java.util.List<String> skills,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "lastName") String sortBy,
@@ -58,10 +62,17 @@ public class ActorController {
             default -> "lastName";
         };
         Sort sort = desc ? Sort.by(field).descending() : Sort.by(field).ascending();
-        PageRequest pageable = PageRequest.of(page, size, sort);
+        // Taille de page bornée : le vivier peut compter 100 000 fiches
+        PageRequest pageable = PageRequest.of(Math.max(0, page), Math.min(Math.max(size, 1), 100), sort.and(Sort.by("id")));
 
-        return ResponseEntity.ok(actorService.searchAdvanced(
-                search, gender, minAge, maxAge, city, pageable));
+        return ResponseEntity.ok(actorService.searchAdvanced(new com.castingai.service.ActorService.Filters(
+                search, gender, minAge, maxAge, city, minHeight, maxHeight, languages, skills), pageable));
+    }
+
+    /** T-117 · Suggestions des filtres du vivier. */
+    @GetMapping("/facets")
+    public ResponseEntity<java.util.Map<String, java.util.List<String>>> facets() {
+        return ResponseEntity.ok(actorService.facets());
     }
 
 

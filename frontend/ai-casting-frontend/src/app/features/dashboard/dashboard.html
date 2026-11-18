@@ -46,6 +46,12 @@
       <input [(ngModel)]="city" (ngModelChange)="onTyping()" placeholder="Ville" aria-label="Ville" />
     </label>
 
+    <button type="button" class="more-btn" [class.on]="moreOpen() || moreCount()" (click)="toggleMore()"
+            [attr.aria-expanded]="moreOpen()" aria-controls="more-filters">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+      Plus de filtres @if (moreCount()) { <b>{{ moreCount() }}</b> }
+    </button>
+
     <div class="toolbar-end">
       <app-select class="sort" [options]="sorts" [(ngModel)]="sortKey" ariaLabel="Trier" />
       <div class="segmented icons" role="radiogroup" aria-label="Affichage">
@@ -61,12 +67,46 @@
     </div>
   </div>
 
+  <!-- Filtres avancés (T-117) -->
+  @if (moreOpen()) {
+    <div class="more" id="more-filters">
+      <div class="more-row">
+        <span class="more-h">Taille</span>
+        <div class="field age" [class.invalid]="heightError()">
+          <input type="number" min="50" max="250" step="1" inputmode="numeric" [(ngModel)]="minHeight" (ngModelChange)="onTyping()" placeholder="min" aria-label="Taille minimum en cm" />
+          <span class="to">à</span>
+          <input type="number" min="50" max="250" step="1" inputmode="numeric" [(ngModel)]="maxHeight" (ngModelChange)="onTyping()" placeholder="max" aria-label="Taille maximum en cm" />
+          <span class="field-label">cm</span>
+          @if (heightError(); as m) { <small class="age-msg" role="alert">{{ m }}</small> }
+        </div>
+      </div>
+      <div class="more-row">
+        <span class="more-h">Langues</span>
+        <div class="tags" role="group" aria-label="Langues parlées">
+          @for (l of facetLangs(); track l) {
+            <button type="button" class="tag" [class.on]="isOn('lang', l)" [attr.aria-pressed]="isOn('lang', l)" (click)="toggleTag('lang', l)">{{ l }}</button>
+          } @empty { <span class="tags-empty">Aucune langue renseignée dans le vivier</span> }
+        </div>
+      </div>
+      <div class="more-row">
+        <span class="more-h">Compétences</span>
+        <div class="tags" role="group" aria-label="Compétences">
+          <label class="tag-search"><input [value]="skillQuery()" (input)="skillQuery.set($any($event.target).value)" placeholder="Chercher une compétence" aria-label="Chercher une compétence" /></label>
+          @for (k of shownSkills(); track k) {
+            <button type="button" class="tag" [class.on]="isOn('skill', k)" [attr.aria-pressed]="isOn('skill', k)" (click)="toggleTag('skill', k)">{{ k }}</button>
+          } @empty { <span class="tags-empty">Aucune compétence trouvée</span> }
+        </div>
+      </div>
+      <p class="more-note">Langues et compétences : seules les fiches qui les ont toutes sont affichées.</p>
+    </div>
+  }
+
   <!-- Filtres actifs -->
   @if (hasFilters()) {
     <div class="chips">
       <span class="chips-count">{{ totalElements }} résultat{{ totalElements > 1 ? 's' : '' }}</span>
-      @for (c of chips(); track c.key) {
-        <button type="button" class="chip" (click)="removeChip(c.key)" [attr.aria-label]="'Retirer le filtre ' + c.label">
+      @for (c of chips(); track c.key + (c.value ?? '')) {
+        <button type="button" class="chip" (click)="removeTagChip(c)" [attr.aria-label]="'Retirer le filtre ' + c.label">
           {{ c.label }} <span aria-hidden="true">×</span>
         </button>
       }

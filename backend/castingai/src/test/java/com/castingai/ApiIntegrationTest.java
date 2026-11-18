@@ -72,6 +72,27 @@ class ApiIntegrationTest {
     }
 
     @Test
+    void vivierFiltresCombinesEtPagesBornees() throws Exception {
+        String auth = bearer();
+        JsonNode facets = getJson("/api/actors/facets", auth);
+        assertThat(facets.get("languages").size()).isGreaterThan(0);
+        assertThat(facets.get("skills").size()).isGreaterThan(0);
+        int tous = getJson("/api/actors/search?size=1", auth).get("totalElements").asInt();
+        int fr = getJson("/api/actors/search?size=1&languages=français", auth).get("totalElements").asInt();
+        int frEtDanse = getJson("/api/actors/search?size=1&languages=Français&skills=Danse", auth).get("totalElements").asInt();
+        int inconnue = getJson("/api/actors/search?size=1&languages=klingon", auth).get("totalElements").asInt();
+        assertThat(fr).isPositive().isLessThanOrEqualTo(tous);
+        assertThat(frEtDanse).isPositive().isLessThanOrEqualTo(fr);
+        assertThat(inconnue).isZero();
+        JsonNode grands = getJson("/api/actors/search?size=100&minHeight=175&maxHeight=185&minAge=20&maxAge=40", auth).get("content");
+        for (JsonNode a : grands) {
+            assertThat(a.get("height").asInt()).isBetween(175, 185);
+            assertThat(a.get("age").asInt()).isBetween(20, 40);
+        }
+        assertThat(getJson("/api/actors/search?size=5000", auth).get("size").asInt()).isEqualTo(100);
+    }
+
+    @Test
     void triParAgeCroissant() throws Exception {
         JsonNode content = getJson("/api/actors/search?sortBy=age&sortDir=asc&size=30", bearer()).get("content");
         int previous = 0;

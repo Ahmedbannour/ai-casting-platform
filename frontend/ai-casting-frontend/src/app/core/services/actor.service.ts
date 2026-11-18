@@ -85,6 +85,11 @@ export class ActorService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  /** T-117 · Langues et compétences présentes dans le vivier (suggestions des filtres). */
+  facets(): Observable<{ languages: string[]; skills: string[] }> {
+    return this.http.get<{ languages: string[]; skills: string[] }>(`${this.apiUrl}/facets`);
+  }
+
   searchAdvanced(
     search?: string,
     gender?: string,
@@ -94,7 +99,8 @@ export class ActorService {
     page = 0,
     size = 20,
     sortBy = 'lastName',
-    sortDir = 'asc'
+    sortDir = 'asc',
+    more: { minHeight?: number; maxHeight?: number; languages?: string[]; skills?: string[] } = {}
   ): Observable<PageResponse<ActorSummary>> {
     let params = new HttpParams()
       .set('page', page)
@@ -106,6 +112,10 @@ export class ActorService {
     if (minAge != null) params = params.set('minAge', minAge);
     if (maxAge != null) params = params.set('maxAge', maxAge);
     if (city) params = params.set('city', city);
+    if (more.minHeight != null) params = params.set('minHeight', more.minHeight);
+    if (more.maxHeight != null) params = params.set('maxHeight', more.maxHeight);
+    for (const l of more.languages ?? []) params = params.append('languages', l);
+    for (const k of more.skills ?? []) params = params.append('skills', k);
     return this.http.get<PageResponse<ActorSummary>>(
       `${this.apiUrl}/search`, { params });
   }

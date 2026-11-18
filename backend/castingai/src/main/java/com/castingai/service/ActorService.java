@@ -25,10 +25,14 @@ public interface ActorService {
 
     ActorResponse update(UUID id, ActorUpdateRequest request);
 
-    Page<ActorSummaryResponse> searchAdvanced(
-            String search, String gender,
-            Integer minAge, Integer maxAge,
-            String city, Pageable pageable);
+    /** T-117 · Filtres combinés du vivier (tous facultatifs). */
+    record Filters(String search, String gender, Integer minAge, Integer maxAge, String city,
+                   Integer minHeight, Integer maxHeight, java.util.List<String> languages, java.util.List<String> skills) {}
+
+    Page<ActorSummaryResponse> searchAdvanced(Filters f, Pageable pageable);
+
+    /** Suggestions des filtres : langues et compétences présentes dans le vivier visible. */
+    java.util.Map<String, java.util.List<String>> facets();
 
 
     void delete(UUID id);

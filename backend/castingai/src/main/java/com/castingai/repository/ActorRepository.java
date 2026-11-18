@@ -61,6 +61,12 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
     @Query("SELECT a FROM Actor a WHERE a.id = :id")
     Optional<Actor> findByIdSimple(@Param("id") UUID id);
 
+    /**
+     * T-117 · Vivier : filtres combinés, tous facultatifs. Valeurs neutres plutôt que null (PostgreSQL ne type pas null) :
+     * '' pour les textes, 0..999 pour la taille, liste [''] et nombre 0 pour langues et compétences.
+     * L'âge est converti en bornes de date de naissance (index sur birth_date) ; une fiche sans date n'est exclue que si l'âge est filtré.
+     * Langues et compétences : la fiche doit avoir toutes celles demandées.
+     */
     @Query("""
     SELECT a FROM Actor a
     WHERE a.visibility = 'VISIBLE'
@@ -70,20 +76,43 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
            LOWER(a.lastName) LIKE LOWER(CONCAT('%', :search, '%')))
     AND (:gender = '' OR a.gender = :gender)
     AND (:city = '' OR LOWER(a.city) LIKE LOWER(CONCAT('%', :city, '%')))
-    AND ((:minAge = 0 AND :maxAge = 150) OR
-         (FUNCTION('date_part', 'year', FUNCTION('age', a.birthDate)) >= :minAge AND
-          FUNCTION('date_part', 'year', FUNCTION('age', a.birthDate)) <= :maxAge))
+    AND (:ageFilter = false OR (a.birthDate <= :bornBefore AND a.birthDate > :bornAfter))
+    AND (:minHeight = 0 OR a.height >= :minHeight)
+    AND (:maxHeight = 999 OR a.height <= :maxHeight)
+    AND (:nLang = 0 OR (SELECT COUNT(DISTINCT LOWER(l.name)) FROM ActorLanguage l
+                        WHERE l.actor = a AND LOWER(l.name) IN :langs) = :nLang)
+    AND (:nSkill = 0 OR (SELECT COUNT(DISTINCT LOWER(k.name)) FROM ActorSkill k
+                         WHERE k.actor = a AND LOWER(k.name) IN :skills) = :nSkill)
     """)
-    // Jamais de paramètre null (PostgreSQL ne sait pas le typer) : valeurs neutres '' et 0..150
     Page<Actor> searchAdvanced(
             @Param("search") String search,
             @Param("gender") String gender,
-            @Param("minAge") Integer minAge,
-            @Param("maxAge") Integer maxAge,
             @Param("city") String city,
+            @Param("ageFilter") boolean ageFilter,
+            @Param("bornBefore") java.time.LocalDate bornBefore,
+            @Param("bornAfter") java.time.LocalDate bornAfter,
+            @Param("minHeight") int minHeight,
+            @Param("maxHeight") int maxHeight,
+            @Param("langs") java.util.Collection<String> langs,
+            @Param("nLang") long nLang,
+            @Param("skills") java.util.Collection<String> skills,
+            @Param("nSkill") long nSkill,
             @Param("all") boolean all,
             @Param("agency") UUID agency,
             Pageable pageable);
+
+    /** Langues et compétences présentes dans le vivier visible, les plus fréquentes d'abord (suggestions des filtres). */
+    @NativeQuery("""
+        SELECT n FROM (SELECT mode() WITHIN GROUP (ORDER BY l.name) n, count(*) c FROM actor_languages l JOIN actors a ON a.id = l.actor_id
+          WHERE a.visibility = 'VISIBLE' AND (:all OR a.agency_id IS NULL OR a.agency_id = :agency)
+          GROUP BY lower(l.name)) t ORDER BY c DESC, n LIMIT 40""")
+    List<String> topLanguages(@Param("all") boolean all, @Param("agency") UUID agency);
+
+    @NativeQuery("""
+        SELECT n FROM (SELECT mode() WITHIN GROUP (ORDER BY k.name) n, count(*) c FROM actor_skills k JOIN actors a ON a.id = k.actor_id
+          WHERE a.visibility = 'VISIBLE' AND (:all OR a.agency_id IS NULL OR a.agency_id = :agency)
+          GROUP BY lower(k.name)) t ORDER BY c DESC, n LIMIT 60""")
+    List<String> topSkills(@Param("all") boolean all, @Param("agency") UUID agency);
 
 
 
