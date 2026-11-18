@@ -2521,9 +2521,10 @@
    "resp": "Karim Haddad",
    "prio": "P0",
    "phase": "PH3",
-   "statut": "a_faire",
+   "statut": "en_cours",
    "prompt": "P-037",
-   "jour": "J6"
+   "jour": "J6",
+   "detail": "Fait : scripts/lancer-demo.ps1 relance tout en une commande (conteneurs, serveur, site compilé, adresse publique). Reste au client : compléter les crochets de la présentation, répéter le parcours de démo, garder le PC allumé et branché."
   },
   {
    "id": "T-136",
@@ -2532,9 +2533,10 @@
    "resp": "Élodie Martin",
    "prio": "P0",
    "phase": "PH3",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-037",
-   "jour": "J6"
+   "jour": "J6",
+   "detail": "Présentation pour le comité du label (12 diapositives) : problème, solution, démo en 4 gestes, innovation (IA locale, recherche par le sens, décision humaine, vie privée), scalabilité (mesures à 100 102 fiches), produit testé, modèle, marché, feuille de route, critères du Startup Act. Les chiffres non vérifiés sont laissés entre crochets, à compléter par le client."
   },
   {
    "id": "T-137",
@@ -2543,9 +2545,10 @@
    "resp": "Amel Kacem",
    "prio": "P0",
    "phase": "PH3",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-037",
-   "jour": "J6"
+   "jour": "J6",
+   "detail": "Recette avant la démo : 70/70 tests serveur, 104/104 vérifications navigateur (ordinateur et mobile). Par l'adresse publique, le site de développement mettait plus de 30 s à charger : remplacé par la version compilée servie par scripts/serveur-demo.js (fichiers compressés, mis en cache), même adresse. Parcours vitrine → connexion → acteurs → agenda → projets mesuré en 1 à 4 s par étape, sans erreur ni image cassée (pilotage/tests/demo-public.js)."
   }
  ],
  "journal": [
@@ -2605,58 +2608,54 @@
   }
  ],
  "maintenant": {
-  "titre": "P-055 · T-116 faite : agenda des auditions ; recette avant la démo",
-  "etape": 47,
+  "titre": "P-055 · Démo prête : recette verte, site rapide par l'adresse publique, présentation du label",
+  "etape": 48,
   "agents": [
    {
-    "nom": "Walid Khemiri",
-    "action": "Heure, lieu, agenda et rappel la veille côté serveur",
-    "court": "T-116"
-   },
-   {
-    "nom": "Yanis Belhadj",
-    "action": "Page Agenda (ordinateur et mobile)",
-    "court": "T-116"
-   },
-   {
     "nom": "Amel Kacem",
-    "action": "Recette complète avant la démo",
+    "action": "Recette 104/104 et parcours public chronométré",
     "court": "T-137"
+   },
+   {
+    "nom": "Bilel Ferchichi",
+    "action": "Version compilée servie au tunnel : de plus de 30 s à 3 s",
+    "court": "DevOps"
+   },
+   {
+    "nom": "Élodie Martin",
+    "action": "Présentation pour le comité du label",
+    "court": "T-136"
    }
   ],
   "progres": {
-   "tache": "T-116",
-   "titre": "Agenda des auditions",
+   "tache": "T-135",
+   "titre": "Démo du label Startup",
    "etapes": [
     {
-     "t": "Modèle et API",
+     "t": "Recette 104/104",
      "s": "fait"
     },
     {
-     "t": "Rappel la veille",
+     "t": "Site rapide en public",
      "s": "fait"
     },
     {
-     "t": "Écran agenda",
+     "t": "Présentation",
      "s": "fait"
     },
     {
-     "t": "Tests 70/70",
+     "t": "Lancement en une commande",
      "s": "fait"
     },
     {
-     "t": "Capture Navigateur",
-     "s": "fait"
-    },
-    {
-     "t": "Git",
-     "s": "fait"
+     "t": "Crochets et répétition (client)",
+     "s": "en_cours"
     }
    ]
   },
   "derniere": {
-   "t": "2026-11-18T03:20:00Z",
-   "texte": "T-116 livrée : agenda des auditions avec rappel la veille"
+   "t": "2026-11-18T03:35:00Z",
+   "texte": "Démo prête : chargement public de plus de 30 s à 3 s ; recette 104/104"
   }
  },
  "activite": [
@@ -2803,6 +2802,24 @@
    "nom": "Walid Khemiri",
    "t": "2026-11-18T03:20:00Z",
    "texte": "T-116 livrée : convocation avec heure et lieu, page Agenda (agent et acteur), export vers le calendrier du téléphone, rappel dans la cloche la veille. 70/70 tests."
+  },
+  {
+   "h": "J6",
+   "nom": "Bilel Ferchichi",
+   "t": "2026-11-18T03:30:00Z",
+   "texte": "Le site passait par le tunnel en mode développement (plus de 30 s de chargement). Il est désormais servi en version compilée : 1 à 4 s par écran, même adresse publique."
+  },
+  {
+   "h": "J6",
+   "nom": "Amel Kacem",
+   "t": "2026-11-18T03:32:00Z",
+   "texte": "Recette avant la démo : 70/70 tests serveur, 104/104 en navigateur, parcours public sans erreur sur ordinateur et mobile."
+  },
+  {
+   "h": "J6",
+   "nom": "Élodie Martin",
+   "t": "2026-11-18T03:35:00Z",
+   "texte": "Présentation pour le comité du label Startup prête (12 diapositives) ; quelques chiffres à compléter par le client."
   }
  ],
  "plan": {

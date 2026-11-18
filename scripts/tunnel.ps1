@@ -1,4 +1,4 @@
-# T-126 : ouvre la plateforme aux testeurs par un tunnel Cloudflare gratuit (adresse https://....trycloudflare.com).
+﻿# T-126 : ouvre la plateforme aux testeurs par un tunnel Cloudflare gratuit (adresse https://....trycloudflare.com).
 # Le site (port 4200) et le serveur (port 8080) doivent tourner. L'adresse change a chaque lancement.
 # Arret : Stop-Process -Name cloudflared
 $exe = Join-Path $PSScriptRoot '..\outils\cloudflared.exe'
