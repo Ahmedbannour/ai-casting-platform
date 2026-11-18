@@ -94,6 +94,11 @@ export interface SwipeEvent {
                 @for (l of a.languages.slice(0, 3); track l) { <span class="tag lang">{{ l }}</span> }
                 @for (s of a.skills.slice(0, 2); track s) { <span class="tag skill">{{ s }}</span> }
               </div>
+              @if (a.checks?.length) {
+                <ul class="checks" [attr.aria-label]="'Critères de la demande pour ' + a.firstName">
+                  @for (c of a.checks; track c.label) { <li [class.ko]="!c.ok"><span aria-hidden="true">{{ c.ok ? '✓' : '✗' }}</span>{{ c.label }}<span class="sr">{{ c.ok ? ' : rempli' : ' : non rempli' }}</span></li> }
+                </ul>
+              }
               @if (explaining && index() + k < 5) {
                 <div class="reason shimmer">L’IA analyse ce profil…</div>
               } @else {
@@ -189,6 +194,13 @@ export interface SwipeEvent {
   .tags { display: flex; gap: 6px; flex-wrap: wrap; }
   .tag { font-size: 11.5px; padding: 1px 8px; border-radius: var(--radius-s); background: var(--bg-hover); color: var(--text-muted); }
   .tag.lang { color: var(--text-primary); }
+  .checks { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-wrap: wrap; gap: 4px;
+    li { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+      background: color-mix(in srgb, var(--series-3, #3fb950) 16%, transparent); color: var(--text-primary); }
+    li span:first-child { color: var(--series-3, #3fb950); }
+    li.ko { background: color-mix(in srgb, var(--danger, #e4685d) 14%, transparent); color: var(--text-muted); }
+    li.ko span:first-child { color: var(--danger, #e4685d); }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
   .reason { font-size: 13px; line-height: 1.45; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .shimmer { background: linear-gradient(90deg, var(--text-subtle) 25%, var(--text-primary) 50%, var(--text-subtle) 75%); background-size: 200% 100%;
     -webkit-background-clip: text; background-clip: text; color: transparent; animation: sh 1.6s linear infinite; }

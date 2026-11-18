@@ -25,4 +25,8 @@ public class ActorSearchResult {
     private List<String> languages;
     private double score;
     private String reason;
+    /** T-131 · Critères de la demande, remplis (ok) ou non, avec le détail affiché sur la carte. */
+    private List<Check> checks;
+
+    public record Check(boolean ok, String label) {}
 }

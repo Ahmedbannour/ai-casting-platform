@@ -46,6 +46,52 @@ public class AiSearchServiceImpl implements AiSearchService {
     private final com.castingai.repository.AiFeedbackRepository feedbackRepository;
     private final com.castingai.service.ShortlistService shortlistService;
     private final ObjectMapper objectMapper;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    /** T-131 · Vocabulaire du vivier (villes, langues, compétences) pour comprendre la demande ; relu toutes les 10 min. */
+    private volatile Vocabulary vocab;
+    private record Vocabulary(List<String> cities, List<String> languages, List<String> skills, long at) {}
+
+    private Vocabulary vocabulary() {
+        Vocabulary v = vocab;
+        if (v != null && System.currentTimeMillis() - v.at() < 600_000) return v;
+        java.util.function.Function<String, List<String>> load = sql -> {
+            try { return jdbc.queryForList(sql, String.class).stream().filter(x -> x != null && x.trim().length() >= 3)
+                    .sorted(Comparator.comparingInt(String::length).reversed()).toList(); }
+            catch (Exception e) { return List.of(); }
+        };
+        v = new Vocabulary(
+                load.apply("select min(city) from actors where city is not null group by lower(city) limit 400"),
+                load.apply("select min(name) from actor_languages group by lower(name) limit 100"),
+                load.apply("select min(name) from actor_skills group by lower(name) limit 300"),
+                System.currentTimeMillis());
+        vocab = v;
+        return v;
+    }
+
+    /** Minuscules sans accents, pour comparer « Comédie » et « comedie ». */
+    /** Villes de référence (Tunisie d'abord, puis Maghreb et francophonie), du nom le plus long au plus court. */
+    private static final List<String> KNOWN_CITIES = java.util.stream.Stream.of(
+            "Tunis", "Sfax", "Sousse", "Monastir", "Nabeul", "Bizerte", "Gabès", "Kairouan", "Hammamet", "Djerba", "Ariana", "La Marsa",
+            "Carthage", "Mahdia", "Tozeur", "Gafsa", "Le Kef", "Béja", "Jendouba", "Kasserine", "Médenine", "Zarzis", "Tabarka", "Ben Arous",
+            "Manouba", "Sidi Bou Saïd", "Hammam-Lif", "Alger", "Oran", "Casablanca", "Rabat", "Marrakech", "Tanger", "Fès", "Tripoli",
+            "Paris", "Lyon", "Marseille", "Nice", "Toulouse", "Bordeaux", "Lille", "Nantes", "Strasbourg", "Montpellier", "Rennes",
+            "Bruxelles", "Genève", "Montréal", "Rome", "Milan", "Madrid", "Barcelone", "Londres", "Dubaï")
+            .sorted(Comparator.comparingInt(String::length).reversed()).toList();
+
+    private static String norm(String s) {
+        return java.text.Normalizer.normalize(s == null ? "" : s, java.text.Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT);
+    }
+
+    /** Premier terme du vocabulaire présent comme mot (ou début de mot : « danse » dans « danser ») dans la demande. */
+    private static String findTerm(String q, List<String> terms) {
+        for (String t : terms) {
+            String n = norm(t).trim();
+            if (n.length() < 3) continue;
+            if (Pattern.compile("(^|[^\\p{L}])" + Pattern.quote(n) + "").matcher(q).find()) return t;
+        }
+        return null;
+    }
 
     private static final int MAX_CANDIDATES = 12;
 
@@ -337,16 +383,21 @@ public class AiSearchServiceImpl implements AiSearchService {
         else if (q.contains("homme") || q.contains("man") ||
                 q.contains("comédien") || q.contains("acteur")) c.setGender("Homme");
 
-        if (q.contains("français") || q.contains("french")) c.setLanguage("Français");
+        String nq = norm(query);
+        Vocabulary v = vocabulary();
+        // Langue, compétence et ville : d'abord le vocabulaire réel du vivier (« Tunis », « Arts martiaux »…)
+        String lang = findTerm(nq, v.languages());
+        if (lang != null) c.setLanguage(lang);
+        else if (q.contains("français") || q.contains("french")) c.setLanguage("Français");
         else if (q.contains("anglais") || q.contains("english")) c.setLanguage("Anglais");
         else if (q.contains("espagnol") || q.contains("spanish")) c.setLanguage("Espagnol");
         else if (q.contains("arabe") || q.contains("arabic")) c.setLanguage("Arabe");
         else if (q.contains("italien") || q.contains("italian")) c.setLanguage("Italien");
         else if (q.contains("allemand") || q.contains("german")) c.setLanguage("Allemand");
 
-        if (q.contains("paris")) c.setCity("Paris");
-        else if (q.contains("lyon")) c.setCity("Lyon");
-        else if (q.contains("marseille")) c.setCity("Marseille");
+        String city = findTerm(nq, v.cities());
+        if (city == null) city = findTerm(nq, KNOWN_CITIES);   // ville demandée même si aucune fiche n'y est encore
+        if (city != null) c.setCity(city);
 
         Matcher rangeMatcher = Pattern.compile("entre (\\d+) et (\\d+)").matcher(q);
         if (rangeMatcher.find()) {
@@ -361,7 +412,9 @@ public class AiSearchServiceImpl implements AiSearchService {
             }
         }
 
-        if (q.contains("danse")) c.setSkill("Danse");
+        String skill = findTerm(nq, v.skills());
+        if (skill != null) c.setSkill(skill);
+        else if (q.contains("danse")) c.setSkill("Danse");
         else if (q.contains("chant")) c.setSkill("Chant");
         else if (q.contains("comédie")) c.setSkill("Comédie");
         else if (q.contains("sport")) c.setSkill("Sport");
@@ -385,8 +438,7 @@ public class AiSearchServiceImpl implements AiSearchService {
         if (criteria.getLanguage() != null) {
             totalWeight += 30;
             boolean hasLang = actor.getLanguages().stream()
-                    .anyMatch(l -> l.getName().toLowerCase()
-                            .contains(criteria.getLanguage().toLowerCase()));
+                    .anyMatch(l -> norm(l.getName()).contains(norm(criteria.getLanguage())));
             if (hasLang) score += 30;
         }
 
@@ -408,24 +460,21 @@ public class AiSearchServiceImpl implements AiSearchService {
             }
         }
 
-        if (criteria.getCity() != null && actor.getCity() != null) {
-            totalWeight += 10;
-            if (actor.getCity().toLowerCase().contains(criteria.getCity().toLowerCase()))
-                score += 10;
+        if (criteria.getCity() != null) {
+            totalWeight += 15;   // une ville demandée compte, même si la fiche n'en indique pas
+            if (actor.getCity() != null && norm(actor.getCity()).contains(norm(criteria.getCity()))) score += 15;
         }
 
         if (criteria.getSkill() != null) {
             boolean hasSkill = actor.getSkills().stream()
-                    .anyMatch(s -> s.getName().toLowerCase()
-                            .contains(criteria.getSkill().toLowerCase()));
+                    .anyMatch(s -> norm(s.getName()).contains(norm(criteria.getSkill())));
             totalWeight += 15;
             if (hasSkill) score += 15;
         }
 
-        if (criteria.getHairColor() != null && actor.getHairColor() != null) {
+        if (criteria.getHairColor() != null) {
             totalWeight += 5;
-            if (actor.getHairColor().toLowerCase()
-                    .contains(criteria.getHairColor().toLowerCase())) score += 5;
+            if (actor.getHairColor() != null && norm(actor.getHairColor()).contains(norm(criteria.getHairColor()))) score += 5;
         }
 
         if (totalWeight == 0) return 0.5;
@@ -437,30 +486,39 @@ public class AiSearchServiceImpl implements AiSearchService {
         int age = actor.getBirthDate() != null
                 ? Period.between(actor.getBirthDate(), LocalDate.now()).getYears() : 0;
 
-        List<String> reasons = new ArrayList<>();
-        if (criteria.getGender() != null &&
-                criteria.getGender().equalsIgnoreCase(actor.getGender()))
-            reasons.add("✓ Genre correspondant");
-        if (criteria.getLanguage() != null)
-            actor.getLanguages().stream()
-                    .filter(l -> l.getName().toLowerCase()
-                            .contains(criteria.getLanguage().toLowerCase()))
-                    .findFirst()
-                    .ifPresent(l -> reasons.add("✓ Parle " + l.getName()
-                            + (l.getLevel() != null ? " (" + l.getLevel() + ")" : "")));
-        if (criteria.getCity() != null && actor.getCity() != null &&
-                actor.getCity().toLowerCase().contains(criteria.getCity().toLowerCase()))
-            reasons.add("✓ Basé à " + actor.getCity());
-        if (criteria.getSkill() != null)
-            actor.getSkills().stream()
-                    .filter(s -> s.getName().toLowerCase()
-                            .contains(criteria.getSkill().toLowerCase()))
-                    .findFirst()
-                    .ifPresent(s -> reasons.add("✓ " + s.getName()));
-        if (criteria.getMinAge() != null && actor.getBirthDate() != null) {
-            int actorAge = Period.between(actor.getBirthDate(), LocalDate.now()).getYears();
-            reasons.add("✓ " + actorAge + " ans");
+        // T-131 · Chaque critère demandé est montré, rempli ou non : le score ne cache plus ce qui manque
+        List<ActorSearchResult.Check> checks = new ArrayList<>();
+        if (criteria.getGender() != null) {
+            boolean ok = criteria.getGender().equalsIgnoreCase(actor.getGender());
+            checks.add(new ActorSearchResult.Check(ok, ok ? criteria.getGender() : "Genre : " + (actor.getGender() == null ? "non renseigné" : actor.getGender())));
         }
+        if (criteria.getMinAge() != null || criteria.getMaxAge() != null) {
+            String range = (criteria.getMinAge() == null ? "…" : criteria.getMinAge()) + " à " + (criteria.getMaxAge() == null ? "…" : criteria.getMaxAge()) + " ans";
+            if (age <= 0) checks.add(new ActorSearchResult.Check(false, "Âge non renseigné"));
+            else {
+                boolean ok = (criteria.getMinAge() == null || age >= criteria.getMinAge()) && (criteria.getMaxAge() == null || age <= criteria.getMaxAge());
+                checks.add(new ActorSearchResult.Check(ok, ok ? age + " ans" : age + " ans (demandé " + range + ")"));
+            }
+        }
+        if (criteria.getCity() != null) {
+            boolean ok = actor.getCity() != null && norm(actor.getCity()).contains(norm(criteria.getCity()));
+            checks.add(new ActorSearchResult.Check(ok, ok ? actor.getCity()
+                    : actor.getCity() == null ? "Ville non renseignée" : actor.getCity() + ", pas " + criteria.getCity()));
+        }
+        if (criteria.getLanguage() != null) {
+            var l = actor.getLanguages().stream().filter(x -> norm(x.getName()).contains(norm(criteria.getLanguage()))).findFirst();
+            checks.add(new ActorSearchResult.Check(l.isPresent(), l.map(x -> x.getName() + (x.getLevel() != null ? " (" + x.getLevel().toLowerCase() + ")" : ""))
+                    .orElse(criteria.getLanguage() + " non renseigné")));
+        }
+        if (criteria.getSkill() != null) {
+            var k = actor.getSkills().stream().filter(x -> norm(x.getName()).contains(norm(criteria.getSkill()))).findFirst();
+            checks.add(new ActorSearchResult.Check(k.isPresent(), k.map(x -> x.getName()).orElse(criteria.getSkill() + " non renseigné")));
+        }
+        if (criteria.getHairColor() != null) {
+            boolean ok = actor.getHairColor() != null && norm(actor.getHairColor()).contains(norm(criteria.getHairColor()));
+            checks.add(new ActorSearchResult.Check(ok, ok ? "Cheveux " + actor.getHairColor().toLowerCase() : "Cheveux : " + (actor.getHairColor() == null ? "non renseigné" : actor.getHairColor().toLowerCase())));
+        }
+        List<String> reasons = checks.stream().map(x -> (x.ok() ? "✓ " : "✗ ") + x.label()).toList();
 
         return ActorSearchResult.builder()
                 .id(actor.getId())
@@ -476,6 +534,7 @@ public class AiSearchServiceImpl implements AiSearchService {
                 .score(score)
                 .reason(reasons.isEmpty() ? "Profil potentiellement compatible"
                         : String.join(" · ", reasons))
+                .checks(checks)
                 .build();
     }
 

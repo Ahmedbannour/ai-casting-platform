@@ -135,7 +135,7 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
                   AND lower(l.name) LIKE '%' || lower(:language) || '%') THEN 30 ELSE 0 END)
           + (CASE WHEN :skill <> '' AND EXISTS (SELECT 1 FROM actor_skills s WHERE s.actor_id = a.id
                   AND lower(s.name) LIKE '%' || lower(:skill) || '%') THEN 15 ELSE 0 END)
-          + (CASE WHEN :city <> '' AND lower(a.city) LIKE '%' || lower(:city) || '%' THEN 10 ELSE 0 END)
+          + (CASE WHEN :city <> '' AND lower(a.city) LIKE '%' || lower(:city) || '%' THEN 15 ELSE 0 END)
           + (CASE WHEN :hair <> '' AND lower(a.hair_color) LIKE '%' || lower(:hair) || '%' THEN 5 ELSE 0 END)
         ) DESC, a.last_name, a.id
         """,

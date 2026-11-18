@@ -17,6 +17,8 @@ export interface ActorSearchResult {
   languages: string[];
   score: number;
   reason: string;
+  /** T-131 · Critères de la demande, remplis ou non. */
+  checks?: { ok: boolean; label: string }[];
 }
 
 export interface SearchResponse {

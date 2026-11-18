@@ -119,6 +119,29 @@ class ApiIntegrationTest {
     }
 
     @Test
+    void rechercheIaScoreHonnete() throws Exception {
+        // T-131 · Une ville du vivier est comprise ; une fiche d'une autre ville n'a jamais 100 % et le dit
+        String auth = bearer();
+        JsonNode one = getJson("/api/actors/search?size=1&sortBy=city", auth).get("content").get(0);
+        String ville = one.get("city").asString();
+        String q = "{\"query\":\"actrice qui parle anglais à " + ville.toLowerCase() + "\",\"page\":0,\"size\":30}";
+        JsonNode r = json.readTree(mvc.perform(post("/api/ai/search").header("Authorization", auth)
+                .contentType(MediaType.APPLICATION_JSON).content(q)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertThat(r.get("results").size()).isPositive();
+        boolean ailleurs = false;
+        for (JsonNode a : r.get("results")) {
+            boolean memeVille = a.get("city").asString().equalsIgnoreCase(ville);
+            JsonNode villeCheck = null;
+            for (JsonNode c : a.get("checks")) if (c.get("label").asString().contains(ville) || c.get("label").asString().contains("Ville")) villeCheck = c;
+            assertThat(villeCheck).as("critère de ville affiché").isNotNull();
+            assertThat(villeCheck.get("ok").asBoolean()).isEqualTo(memeVille);
+            if (!memeVille) { ailleurs = true; assertThat(a.get("score").asDouble()).isLessThan(1.0); }
+        }
+        // Une fiche de la ville demandée qui remplit tout est à 100 % ; les autres le disent
+        assertThat(ailleurs).as("au moins une fiche d'une autre ville, signalée").isTrue();
+    }
+
+    @Test
     void rechercheIaPagineeEtFiltree() throws Exception {
         String auth = bearer();
         String q = "{\"query\":\"femme entre 25 et 35 ans parlant anglais\",\"page\":0,\"size\":5}";

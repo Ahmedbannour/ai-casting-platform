@@ -2538,9 +2538,9 @@
    "prio": "P1",
    "jour": "J6",
    "prompt": "P-036",
-   "statut": "a_faire",
+   "statut": "fait",
    "lot": "L5",
-   "detail": "Trouvé par la recette navigateur : « actrice à Tunis » propose une actrice du Havre à « 100 % de correspondance ». Le score doit baisser et la carte dire quel critère manque (ville, âge, langue) ; si aucun profil ne remplit tous les critères, le dire avant les cartes."
+   "detail": "Cause : seules Paris, Lyon et Marseille étaient reconnues comme villes ; « Tunis » était ignorée et le score montait à 100 %. Une information absente de la fiche retirait aussi le critère du calcul. Corrigé : villes, langues et compétences reconnues à partir du vivier réel (sans tenir compte des accents) et d'une liste de villes de référence (Tunisie d'abord) ; tout critère demandé compte, même si la fiche ne le renseigne pas ; poids de la ville aligné (15) entre le score et le classement. Chaque carte affiche les critères remplis (✓) et manquants (✗, ex. « Monastir, pas Tunis », « 41 ans (demandé 20 à 35 ans) »), qui restent visibles après l'explication de l'IA. « Actrice à Tunis qui parle anglais » : 82 % au lieu de 100 % pour une actrice de Monastir. Test dédié ; 73/73 ; recette 119/119."
   },
   {
    "id": "T-132",
@@ -2700,6 +2700,18 @@
    "prompt": "P-040",
    "jour": "J6",
    "detail": "À la connexion, l'administrateur arrive sur son accueil : « À traiter » (contrats échus avec agents encore actifs, contrats à renouveler sous 30 jours, messages de contact non lus, connexions bloquées en 24 h, comptes sans adresse vérifiée, agences sans activité depuis 30 jours), chacun avec un lien direct vers le bon onglet et le bon filtre de l'administration ; pouls sur 14 jours (inscriptions, recherches IA, propositions, réponses) en mini-courbes et graphique au choix ; agences avec l'état de leur contrat ; dernières actions du journal ; date de la dernière purge. /api/admin/home, test dédié (72/72) ; recette navigateur 119/119."
+  },
+  {
+   "id": "T-145",
+   "titre": "IA : modèles multilingues gratuits (bge-m3, reclassement bge-reranker-v2-m3, Qwen)",
+   "dept": "ia",
+   "resp": "Nadia Ben Salem",
+   "prio": "P1",
+   "phase": "PH2",
+   "statut": "a_faire",
+   "prompt": "P-041",
+   "jour": "J7",
+   "detail": "Proposé au client : remplacer nomic-embed-text (entraîné surtout en anglais) par bge-m3 pour le français et l'arabe, ajouter un reclassement par bge-reranker-v2-m3, et un modèle Qwen pour comprendre la demande en JSON ; tout en local et gratuit. En attente de son accord."
   }
  ],
  "journal": [
@@ -2759,18 +2771,18 @@
   }
  ],
  "maintenant": {
-  "titre": "P-061 · T-144 livrée : accueil de l’administrateur",
-  "etape": 59,
+  "titre": "P-062 · T-131 livrée : score honnête de la recherche IA",
+  "etape": 61,
   "agents": [
    {
-    "nom": "Sophie Laurent",
-    "action": "Résumé de la plateforme côté serveur (72/72)",
-    "court": "T-144"
+    "nom": "Nadia Ben Salem",
+    "action": "Score honnête : villes, langues, compétences du vivier",
+    "court": "T-131"
    },
    {
-    "nom": "Mariem Gharbi",
-    "action": "Accueil de l’administrateur livré",
-    "court": "T-144"
+    "nom": "Walid Khemiri",
+    "action": "Critères ✓/✗ sur chaque carte",
+    "court": "T-131"
    },
    {
     "nom": "Nicolas Perrin",
@@ -2779,23 +2791,23 @@
    }
   ],
   "progres": {
-   "tache": "T-144",
-   "titre": "Accueil de l’administrateur",
+   "tache": "T-131",
+   "titre": "Score honnête",
    "etapes": [
     {
-     "t": "Inventaire de l’existant",
+     "t": "Diagnostic",
      "s": "fait"
     },
     {
-     "t": "Résumé serveur",
+     "t": "Correction du score",
      "s": "fait"
     },
     {
-     "t": "Écran",
+     "t": "Carte : critères manquants",
      "s": "fait"
     },
     {
-     "t": "Tests 72/72",
+     "t": "Tests 73/73",
      "s": "fait"
     },
     {
@@ -2809,8 +2821,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-18T05:40:00Z",
-   "texte": "Accueil de l’administrateur livré ; recette 119/119"
+   "t": "2026-11-18T05:55:00Z",
+   "texte": "Recherche IA : 82 % au lieu de 100 % quand la ville ne correspond pas"
   }
  },
  "activite": [
@@ -3017,6 +3029,12 @@
    "nom": "Mariem Gharbi",
    "t": "2026-11-18T05:35:00Z",
    "texte": "T-144 livrée : accueil de l’administrateur (à traiter, pouls de la plateforme sur 14 jours, agences et contrats, dernières actions), avec liens directs vers l’administration."
+  },
+  {
+   "h": "J6",
+   "nom": "Nadia Ben Salem",
+   "t": "2026-11-18T05:55:00Z",
+   "texte": "T-131 livrée : le score de la recherche IA ne cache plus un critère manquant ; chaque carte affiche ce qui correspond (✓) et ce qui manque (✗)."
   }
  ],
  "plan": {
