@@ -653,6 +653,90 @@
    "prompt": "",
    "jour": "J1",
    "detail": "« Voir le panier · total » au-dessus de la navigation, qui rebondit à chaque ajout."
+  },
+  {
+   "id": "Z-025",
+   "titre": "Carte vectorielle OpenFreeMap aux couleurs du local",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Tuiles gratuites sans clé, style sombre recoloré (routes dorées, eau bleu nuit), repères Safi Jacob / Chez toi, trajet en pointillés, caméra qui suit."
+  },
+  {
+   "id": "Z-026",
+   "titre": "Scène « le chef compose ta commande »",
+   "dept": "front",
+   "resp": "Nour Hamdi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Remplace la photo sur la plancha : pain ouvert sur la plancha, ingrédients qui tombent un à un ; la pizza va au four."
+  },
+  {
+   "id": "Z-027",
+   "titre": "Composeur sur la forme du vrai produit",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Pizza ronde garnie de dessus, chapati en couches, makloub/mlawi/libanais/tacos pliés, baguette en long."
+  },
+  {
+   "id": "Z-028",
+   "titre": "Notifications système et bannières dans l’app",
+   "dept": "front",
+   "resp": "Nour Hamdi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Gratuites, locales, à chaque étape de la commande."
+  },
+  {
+   "id": "Z-029",
+   "titre": "Écran Félicitations, reçu complet et historique",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Confettis, reçu à code-barres, note, « Recommander », section Historique."
+  },
+  {
+   "id": "Z-030",
+   "titre": "Écran de connexion et transitions Material motion",
+   "dept": "front",
+   "resp": "Nour Hamdi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Photos en fondu, logo, Google/Facebook ; onglets en fondu, pages sur axe partagé."
+  },
+  {
+   "id": "Z-031",
+   "titre": "Feedback client enregistré côté serveur",
+   "dept": "back",
+   "resp": "Walid Khemiri",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "a_faire",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Sprint 2."
   }
  ],
  "journal": [
@@ -750,6 +834,27 @@
   "objectif": "Zanqa : commander sa street food tunisienne, réserver au stand et suivre son livreur ; les chefs gèrent leur cuisine, l'admin toute la plateforme.",
   "version": "Plan v0 · 19/11/2026",
   "lots": [
+   {
+    "id": "ZS1",
+    "titre": "Sprint 1 · Commande et suivi",
+    "but": "Carte, cuisine, composeur, transitions",
+    "taches": [
+     "Z-025",
+     "Z-026",
+     "Z-027",
+     "Z-028",
+     "Z-029",
+     "Z-030"
+    ]
+   },
+   {
+    "id": "ZS2",
+    "titre": "Sprint 2 · Après la commande",
+    "but": "Feedback, historique",
+    "taches": [
+     "Z-031"
+    ]
+   },
    {
     "id": "ZL1",
     "titre": "Socle",
