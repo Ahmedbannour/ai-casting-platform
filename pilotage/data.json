@@ -7,7 +7,7 @@
   "debut": "2026-11-15",
   "maj": "2026-11-19",
   "jour": "J7",
-  "avancement": 78,
+  "avancement": 79,
   "avancement_veille": 97,
   "phase_courante": "PH4"
  },
@@ -963,6 +963,23 @@
    "livrables": [
     "T-156",
     "T-157"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-057",
+   "date": "2026-11-19",
+   "titre": "Sprint 2 : demande et V0",
+   "original": "ok , lance le sprint suivant",
+   "ameliore": "Lancer le sprint 2 du cahier v2 : T-158 (demande de publicité et V0 artistique) et T-159 (étapes, notifications, journal), avec recette dans le navigateur.",
+   "departements": [
+    "back",
+    "front",
+    "qa"
+   ],
+   "livrables": [
+    "T-158",
+    "T-159"
    ],
    "statut": "Livré"
   }
@@ -3059,10 +3076,10 @@
    "resp": "Antoine Roux",
    "prio": "P0",
    "phase": "PH4",
-   "statut": "en_cours",
-   "prompt": "P-046",
+   "statut": "fait",
+   "prompt": "P-057",
    "jour": "J7",
-   "detail": "Sprint 2 (30/11 → 06/12). Demande (titre, produit, objectif, cible, message, date de diffusion ; pas de budget) ; V0 = fichier artistique (PDF, Word, PowerPoint, 20 Mo) et/ou texte libre ; choix de l'agence."
+   "detail": "Livré : la marque crée une demande (titre, produit, objectif, cible, message clé, date de diffusion ; pas de budget), écrit sa V0 et/ou dépose un fichier (PDF, Word, PowerPoint, Keynote, image ; 20 Mo), choisit l'agence marketing et l'envoie. La V0 est figée à l'envoi. Migration V34, API /api/demandes, DemandeApiTest. Recette navigateur test-demandes : création, dépôt et téléchargement du PDF, envoi, lecture par l'agence. Commit 1690957."
   },
   {
    "id": "T-159",
@@ -3071,10 +3088,10 @@
    "resp": "Hichem Jaziri",
    "prio": "P0",
    "phase": "PH4",
-   "statut": "a_faire",
-   "prompt": "P-046",
+   "statut": "fait",
+   "prompt": "P-057",
    "jour": "J7",
-   "detail": "Sprint 2. Étapes brouillon → V0 envoyée → … → PPM → acteurs validés ; notification et ligne au journal à chaque passage ; renvoi en révision avec commentaire."
+   "detail": "Livré : suivi des étapes (brouillon → V0 envoyée → V1 → V2 → casting → PPM → acteurs validés), notification à l'agence avec lien vers la demande, journal daté de chaque action, annulation par la marque. Recette : notification reçue par l'agence, journal à 3 lignes. Le renvoi en révision avec commentaire passe au sprint 3, avec la V1 (T-161)."
   },
   {
    "id": "T-160",
@@ -3083,7 +3100,7 @@
    "resp": "Yosra Ghorbel",
    "prio": "P0",
    "phase": "PH4",
-   "statut": "a_faire",
+   "statut": "en_cours",
    "prompt": "P-046",
    "jour": "J7",
    "detail": "Sprint 3 (07/12 → 13/12). Accepter ou refuser une demande ; résumé de la V0, points manquants et questions suggérées, par l'IA locale. Reprise par Yosra Ghorbel (recrutée le 19/11)."
@@ -3098,7 +3115,7 @@
    "statut": "a_faire",
    "prompt": "P-046",
    "jour": "J7",
-   "detail": "Sprint 3. Rédaction de la V1 (fichier et texte), questions à la marque, versions figées (V1.1…), choix de la boîte de production."
+   "detail": "Sprint 3. Rédaction de la V1 (fichier et texte), questions à la marque, versions figées (V1.1…), choix de la boîte de production. Inclut le renvoi en révision avec commentaire (reporté de T-159)."
   },
   {
    "id": "T-162",
@@ -3287,18 +3304,18 @@
   }
  ],
  "maintenant": {
-  "titre": "P-056 · Sprint 1 terminé, sprint 2 lancé",
-  "etape": 56,
+  "titre": "P-057 · Sprint 2 terminé, sprint 3 prêt",
+  "etape": 57,
   "agents": [
    {
-    "nom": "Antoine Roux",
-    "action": "Demande de publicité et dépôt de la V0",
-    "court": "T-158"
+    "nom": "Yosra Ghorbel",
+    "action": "Espace agence et résumé IA de la V0",
+    "court": "T-160"
    },
    {
-    "nom": "Hichem Jaziri",
-    "action": "Étapes et notifications d'une demande",
-    "court": "T-159"
+    "nom": "Amel Kacem",
+    "action": "Recette du sprint 2",
+    "court": "QA"
    },
    {
     "nom": "Sami Kefi",
@@ -3307,23 +3324,19 @@
    }
   ],
   "progres": {
-   "tache": "T-158",
-   "titre": "Demande et V0 artistique",
+   "tache": "T-160",
+   "titre": "Espace agence et résumé IA",
    "etapes": [
     {
-     "t": "Modèle de données",
-     "s": "en_cours"
-    },
-    {
-     "t": "API",
+     "t": "Accepter ou refuser",
      "s": "a_faire"
     },
     {
-     "t": "Écran marque",
+     "t": "Résumé IA de la V0",
      "s": "a_faire"
     },
     {
-     "t": "Dépôt du fichier",
+     "t": "Questions suggérées",
      "s": "a_faire"
     },
     {
@@ -3337,8 +3350,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-19T12:55:00Z",
-   "texte": "Sprint 1 terminé : six rôles, intention, figuration, inscription des professionnels"
+   "t": "2026-11-19T13:20:00Z",
+   "texte": "Sprint 2 terminé : demande de publicité, V0 (texte et fichier), envoi à l'agence, notification et journal"
   }
  },
  "activite": [
@@ -3665,6 +3678,24 @@
    "nom": "Amel Kacem",
    "t": "2026-11-19T12:55:00Z",
    "texte": "Recette du sprint 1 : 73 tests serveur verts, inscription pro et figuration vérifiées dans le navigateur."
+  },
+  {
+   "h": "J7",
+   "nom": "Antoine Roux",
+   "t": "2026-11-19T13:05:00Z",
+   "texte": "T-158 livré : demande de publicité et V0 (texte ou fichier), envoi à l'agence."
+  },
+  {
+   "h": "J7",
+   "nom": "Hichem Jaziri",
+   "t": "2026-11-19T13:10:00Z",
+   "texte": "T-159 livré : étapes, notification à l'agence, journal de la demande."
+  },
+  {
+   "h": "J7",
+   "nom": "Amel Kacem",
+   "t": "2026-11-19T13:20:00Z",
+   "texte": "Recette du sprint 2 : 75 tests serveur verts ; parcours marque → agence vérifié dans le navigateur, avec un vrai PDF."
   }
  ],
  "plan": {
@@ -3826,8 +3857,6 @@
    }
   ],
   "file": [
-   "T-158",
-   "T-159",
    "T-160",
    "T-161",
    "T-162",
@@ -3850,7 +3879,7 @@
    "T-100",
    "T-127"
   ],
-  "courante": "T-158",
+  "courante": "T-160",
   "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages ».",
   "calendrier": {
    "T-103": {
@@ -4064,12 +4093,14 @@
     "reel": true
    },
    "T-158": {
-    "debut": "2026-11-20",
-    "fin": "2026-12-04"
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
    },
    "T-159": {
-    "debut": "2026-11-30",
-    "fin": "2026-12-04"
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
    },
    "T-160": {
     "debut": "2026-12-07",
