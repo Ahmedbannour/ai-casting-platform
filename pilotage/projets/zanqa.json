@@ -1,0 +1,883 @@
+{
+ "meta": {
+  "entreprise": "Prisme Ingénierie",
+  "statut": "Entreprise fictive de sous-traitance, simulée par Claude",
+  "projet": "Safi Jacob · street food",
+  "client": "Vous, porteur du projet (donneur d’ordre)",
+  "debut": "2026-11-19",
+  "maj": "2026-11-19",
+  "jour": "J1",
+  "avancement": 35,
+  "avancement_veille": 0,
+  "phase_courante": "ZPH0"
+ },
+ "phases": [
+  {
+   "id": "ZPH0",
+   "nom": "Version 0 · tout le parcours",
+   "semaines": "J1",
+   "avancement": 85
+  },
+  {
+   "id": "ZPH1",
+   "nom": "Version 1 · vrais comptes, GPS, push",
+   "semaines": "S1–S2",
+   "avancement": 0
+  },
+  {
+   "id": "ZPH2",
+   "nom": "Version 2 · paiement, lancement",
+   "semaines": "S3–S5",
+   "avancement": 0
+  }
+ ],
+ "departements": [
+  {
+   "id": "dir",
+   "nom": "Direction générale",
+   "court": "Direction",
+   "couleur": "#3D4A7A",
+   "missions": [
+    "Arbitre les priorités et le périmètre",
+    "Valide chaque livraison avant envoi au client",
+    "Pilote le planning (PMO)"
+   ],
+   "membres": [
+    {
+     "nom": "Karim Haddad",
+     "role": "Directeur général",
+     "niveau": "Direction"
+    },
+    {
+     "nom": "Sonia Mercier",
+     "role": "Directrice de projet / PMO",
+     "niveau": "Senior"
+    }
+   ],
+   "partage": true
+  },
+  {
+   "id": "ia",
+   "nom": "Safi Jacob · Cellule IA",
+   "court": "Cellule IA",
+   "couleur": "#7A3DB8",
+   "equipe": "Safi Jacob",
+   "missions": [
+    "Reçoit chaque prompt du client pour Safi Jacob",
+    "Reformule le besoin en critères d’acceptation mobiles",
+    "Vérifie que chaque service utilisé reste gratuit"
+   ],
+   "membres": [
+    {
+     "nom": "Selim Bouzid",
+     "role": "AI Engineer · prompts mobile",
+     "niveau": "Senior"
+    }
+   ]
+  },
+  {
+   "id": "prod",
+   "nom": "Safi Jacob · Produit & UX",
+   "court": "Produit",
+   "couleur": "#B8743D",
+   "equipe": "Safi Jacob",
+   "missions": [
+    "Parcours client puis livreur, espace par espace",
+    "Références Dribbble, charte noir et jaune",
+    "Carte réelle et prix du local"
+   ],
+   "membres": [
+    {
+     "nom": "Rim Ayari",
+     "role": "Product Owner mobile",
+     "niveau": "Senior"
+    },
+    {
+     "nom": "Lina Cherni",
+     "role": "UX/UI Designer mobile · dark mode",
+     "niveau": "Confirmée"
+    }
+   ]
+  },
+  {
+   "id": "back",
+   "nom": "Safi Jacob · Backend",
+   "court": "Backend",
+   "couleur": "#2F6FB3",
+   "equipe": "Safi Jacob",
+   "missions": [
+    "API Spring Boot 4 : commandes, réservations, livraisons",
+    "Base PostgreSQL et migrations Flyway",
+    "Connexion Google et Facebook côté serveur"
+   ],
+   "membres": [
+    {
+     "nom": "Walid Khemiri",
+     "role": "Lead Java Spring Boot",
+     "niveau": "Senior"
+    },
+    {
+     "nom": "Sophie Laurent",
+     "role": "Ingénieure Java Spring Boot",
+     "niveau": "Senior"
+    }
+   ]
+  },
+  {
+   "id": "front",
+   "nom": "Safi Jacob · Mobile Flutter",
+   "court": "Flutter",
+   "couleur": "#1F8A8A",
+   "equipe": "Safi Jacob",
+   "missions": [
+    "Application Flutter : espace client puis livreur",
+    "Animations street food, écran de démarrage",
+    "Cartes OpenStreetMap et suivi du livreur"
+   ],
+   "membres": [
+    {
+     "nom": "Aymen Dridi",
+     "role": "Lead Flutter UI/UX · 10 ans d’expérience",
+     "niveau": "Expert"
+    },
+    {
+     "nom": "Nour Hamdi",
+     "role": "Ingénieure Flutter · animations (motion)",
+     "niveau": "Expert"
+    }
+   ]
+  },
+  {
+   "id": "qa",
+   "nom": "Safi Jacob · Tests mobile",
+   "court": "QA",
+   "couleur": "#3D8A4F",
+   "equipe": "Safi Jacob",
+   "missions": [
+    "Recette sur téléphone Android réel",
+    "Captures écran par écran à chaque version",
+    "Tests de parcours côté API"
+   ],
+   "membres": [
+    {
+     "nom": "Skander Mejri",
+     "role": "Testeur mobile · Android et iOS",
+     "niveau": "Senior"
+    }
+   ]
+  },
+  {
+   "id": "devops",
+   "nom": "Safi Jacob · DevOps",
+   "court": "DevOps",
+   "couleur": "#5A6B7D",
+   "equipe": "Safi Jacob",
+   "missions": [
+    "Build APK et installation sur le téléphone",
+    "Docker PostgreSQL, scripts de lancement",
+    "Dépôt GitHub Ahmedbannour/zanqa-street-food"
+   ],
+   "membres": [
+    {
+     "nom": "Hamza Toumi",
+     "role": "Ingénieur DevOps mobile",
+     "niveau": "Confirmé"
+    }
+   ]
+  },
+  {
+   "id": "rh",
+   "nom": "Ressources humaines",
+   "court": "RH",
+   "couleur": "#B33D6B",
+   "missions": [
+    "Affecte les ingénieurs aux phases (plan de charge)",
+    "Onboarding des nouveaux profils",
+    "Suivi des compétences",
+    "Recrute les renforts : UI/UX Angular, Java Spring senior, DevOps, QA (J6)",
+    "Répartit les ingénieurs en deux équipes, une par projet (J7)"
+   ],
+   "membres": [
+    {
+     "nom": "Fatma Zouari",
+     "role": "Responsable RH",
+     "niveau": "Senior"
+    }
+   ],
+   "partage": true
+  },
+  {
+   "id": "admin",
+   "nom": "Administratif",
+   "court": "Admin",
+   "couleur": "#8A7A3D",
+   "missions": [
+    "Compte rendu quotidien (ce journal)",
+    "Archivage des documents du projet",
+    "Organisation des points client"
+   ],
+   "membres": [
+    {
+     "nom": "Céline Robert",
+     "role": "Assistante de direction",
+     "niveau": "Confirmée"
+    }
+   ],
+   "partage": true
+  },
+  {
+   "id": "jur",
+   "nom": "Juridique",
+   "court": "Juridique",
+   "couleur": "#6B3D3D",
+   "missions": [
+    "Contrat de sous-traitance et propriété intellectuelle",
+    "Licences des bibliothèques open source",
+    "Conformité RGPD (données des acteurs)"
+   ],
+   "membres": [
+    {
+     "nom": "Mehdi Amrani",
+     "role": "Juriste contrats & PI",
+     "niveau": "Senior"
+    },
+    {
+     "nom": "Aurélie Fontaine",
+     "role": "DPO · RGPD",
+     "niveau": "Senior"
+    }
+   ],
+   "partage": true
+  },
+  {
+   "id": "fin",
+   "nom": "Finance",
+   "court": "Finance",
+   "couleur": "#2E7A6B",
+   "missions": [
+    "Budget en jours-homme par phase",
+    "Coûts d’infrastructure et d’IA",
+    "Facturation au client"
+   ],
+   "membres": [
+    {
+     "nom": "Philippe Garnier",
+     "role": "Directeur administratif et financier",
+     "niveau": "Senior"
+    }
+   ],
+   "partage": true
+  },
+  {
+   "id": "client",
+   "nom": "Relation client",
+   "court": "Client",
+   "couleur": "#A3456B",
+   "missions": [
+    "Interlocuteur unique du client",
+    "Demande les validations (commit, périmètre, budget)",
+    "Présente le rapport de fin de cycle"
+   ],
+   "membres": [
+    {
+     "nom": "Leila Bouaziz",
+     "role": "Account manager",
+     "niveau": "Senior"
+    }
+   ],
+   "partage": true
+  }
+ ],
+ "cycle": [],
+ "prompts": [
+  {
+   "id": "Z-P-001",
+   "date": "2026-11-19",
+   "titre": "Application Flutter de street food, version 0",
+   "original": "créer une application flutter dans le thème street food : réservations en cours, commandes, gestion des commandes, des utilisateurs, des chefs, suivi de livraison avec contact du livreur (map Tunisie), login Google et Facebook, backend Spring Boot, git, base de données et API internes et externes, moderne, animée, innovante, version 0 lancée sur mon smartphone",
+   "ameliore": "Créer Zanqa, deuxième projet, séparé d'AI Casting : app Flutter (Android) aux rôles client, chef, livreur et admin ; API Spring Boot 4 + PostgreSQL avec JWT et vérification Google/Facebook ; suivi du livreur sur l'itinéraire réel (OSRM) sur fond OpenStreetMap ; appel et messages au livreur ; version 0 testée et installée sur le téléphone du client, dépôt GitHub privé, salle de pilotage renommée « ahmedRoom » avec les deux projets séparés.",
+   "departements": [
+    "prod",
+    "back",
+    "front",
+    "qa",
+    "devops"
+   ],
+   "livrables": [
+    "API Zanqa (Z-002)",
+    "App Flutter v0 (Z-005 à Z-008)",
+    "Installation sur le téléphone (Z-009)",
+    "Dépôt GitHub (Z-010)"
+   ],
+   "statut": "En cours",
+   "trace": []
+  }
+ ],
+ "bibliotheques": [
+  {
+   "nom": "Flutter",
+   "version": "3.44",
+   "cote": "App",
+   "usage": "Application Android et web",
+   "licence": "BSD-3-Clause"
+  },
+  {
+   "nom": "flutter_map + latlong2",
+   "version": "8.3",
+   "cote": "App",
+   "usage": "Carte de Tunisie (OpenStreetMap)",
+   "licence": "BSD-3-Clause"
+  },
+  {
+   "nom": "flutter_animate",
+   "version": "4.5",
+   "cote": "App",
+   "usage": "Animations d'entrée et de rebond",
+   "licence": "BSD-3-Clause"
+  },
+  {
+   "nom": "google_fonts",
+   "version": "8.2",
+   "cote": "App",
+   "usage": "Bricolage Grotesque, Inter",
+   "licence": "Apache-2.0"
+  },
+  {
+   "nom": "Spring Boot",
+   "version": "4.0.9",
+   "cote": "API",
+   "usage": "API, sécurité, JPA, Flyway",
+   "licence": "Apache-2.0"
+  },
+  {
+   "nom": "jjwt",
+   "version": "0.12.6",
+   "cote": "API",
+   "usage": "Jetons de session",
+   "licence": "Apache-2.0"
+  },
+  {
+   "nom": "OSRM (service public)",
+   "version": "v1",
+   "cote": "API externe",
+   "usage": "Itinéraire routier stand → client",
+   "licence": "BSD-2 · données ODbL"
+  }
+ ],
+ "taches": [
+  {
+   "id": "Z-001",
+   "titre": "Base PostgreSQL et schéma (Flyway)",
+   "dept": "back",
+   "resp": "Walid Khemiri",
+   "prio": "P0",
+   "phase": "ZPH0",
+   "statut": "fait",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Conteneur zanqa-postgres (port 5433), 8 tables : utilisateurs, stands, menu, commandes, lignes, réservations, livraisons, messages. Données de démo : 3 stands tunisiens, 12 plats, un compte par rôle."
+  },
+  {
+   "id": "Z-002",
+   "titre": "API Spring Boot : commandes, réservations, chefs, livraisons",
+   "dept": "back",
+   "resp": "Sophie Laurent",
+   "prio": "P0",
+   "phase": "ZPH0",
+   "statut": "fait",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Spring Boot 4 / Java 21, JWT, règles de passage d'état par rôle, documentation OpenAPI sur /docs. 2 tests de parcours complets passent sur une vraie base."
+  },
+  {
+   "id": "Z-003",
+   "titre": "Suivi du livreur sur la vraie route (OSRM)",
+   "dept": "back",
+   "resp": "Walid Khemiri",
+   "prio": "P0",
+   "phase": "ZPH0",
+   "statut": "fait",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Itinéraire routier réel via l'API gratuite OSRM, livreur qui avance le long de la route en démo (une minute de trajet), position envoyée par le livreur sinon."
+  },
+  {
+   "id": "Z-004",
+   "titre": "Connexion Google et Facebook côté serveur",
+   "dept": "back",
+   "resp": "Sophie Laurent",
+   "prio": "P1",
+   "phase": "ZPH0",
+   "statut": "fait",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Jetons revérifiés auprès de Google (tokeninfo) et de Facebook (Graph API + appsecret_proof). Comptes de démonstration par rôle en v0."
+  },
+  {
+   "id": "Z-005",
+   "titre": "App Flutter : identité « marché de nuit » et animations",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P0",
+   "phase": "ZPH0",
+   "statut": "fait",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Bricolage Grotesque + Inter, encre, harissa, curcuma, menthe ; vapeur animée, ticket de cuisine dentelé, entrées décalées (flutter_animate)."
+  },
+  {
+   "id": "Z-006",
+   "titre": "Client : stands, menu, panier, commande, réservation",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P0",
+   "phase": "ZPH0",
+   "statut": "fait",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Liste ou carte des stands, menu par catégorie, panier d'un seul stand, livraison (point posé sur la carte) ou à emporter, réservation avec date et nombre de personnes."
+  },
+  {
+   "id": "Z-007",
+   "titre": "Suivi de commande en direct + appel et messages au livreur",
+   "dept": "front",
+   "resp": "Nour Hamdi",
+   "prio": "P0",
+   "phase": "ZPH0",
+   "statut": "fait",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Ticket à étapes, carte de Tunisie avec l'itinéraire, livreur qui glisse d'une position à l'autre, bouton Appeler (tel:) et messagerie de la commande."
+  },
+  {
+   "id": "Z-008",
+   "titre": "Chef, livreur, admin",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P0",
+   "phase": "ZPH0",
+   "statut": "fait",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Chef : cuisine en direct, réservations en cours, menu, ouverture du stand. Livreur : courses. Admin : chiffres du jour, commandes, utilisateurs (rôle, désactivation)."
+  },
+  {
+   "id": "Z-009",
+   "titre": "Installation sur le téléphone (Samsung A24, Android 16)",
+   "dept": "devops",
+   "resp": "Hamza Toumi",
+   "prio": "P0",
+   "phase": "ZPH0",
+   "statut": "en_cours",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "APK release installée par USB ; le téléphone joint l'API du PC par adb reverse."
+  },
+  {
+   "id": "Z-010",
+   "titre": "Dépôt GitHub zanqa-street-food",
+   "dept": "devops",
+   "resp": "Hamza Toumi",
+   "prio": "P0",
+   "phase": "ZPH0",
+   "statut": "en_cours",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Dépôt privé, README avec architecture, API et lancement."
+  },
+  {
+   "id": "Z-011",
+   "titre": "Activer les boutons Google et Facebook dans l'app",
+   "dept": "back",
+   "resp": "Sophie Laurent",
+   "prio": "P1",
+   "phase": "ZPH1",
+   "statut": "bloque",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Brancher google_sign_in et flutter_facebook_auth.",
+   "bloquant": "Il faut créer le client OAuth Android (Google Cloud) et l'app Meta pour le paquet tn.zanqa.zanqa : action du client."
+  },
+  {
+   "id": "Z-012",
+   "titre": "Position GPS réelle du livreur",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P1",
+   "phase": "ZPH1",
+   "statut": "a_faire",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "geolocator : position envoyée toutes les 5 s pendant une course."
+  },
+  {
+   "id": "Z-013",
+   "titre": "Notifications push (commande prête, livreur proche)",
+   "dept": "back",
+   "resp": "Sophie Laurent",
+   "prio": "P1",
+   "phase": "ZPH1",
+   "statut": "a_faire",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Firebase Cloud Messaging (gratuit)."
+  },
+  {
+   "id": "Z-014",
+   "titre": "Paiement à la livraison puis en ligne",
+   "dept": "back",
+   "resp": "Walid Khemiri",
+   "prio": "P2",
+   "phase": "ZPH2",
+   "statut": "a_faire",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "D'abord espèces à la livraison ; paiement en ligne tunisien à étudier (e-dinar, Konnect, Flouci)."
+  },
+  {
+   "id": "Z-015",
+   "titre": "Mise en ligne de l'API (hébergement)",
+   "dept": "devops",
+   "resp": "Hamza Toumi",
+   "prio": "P1",
+   "phase": "ZPH1",
+   "statut": "a_faire",
+   "prompt": "Z-P-001",
+   "jour": "J1",
+   "detail": "Pour que l'app marche hors du câble USB : tunnel en v0, hébergeur ensuite."
+  },
+  {
+   "id": "Z-016",
+   "titre": "Écran de démarrage : logo vectoriel animé (sans fond noir)",
+   "dept": "front",
+   "resp": "Nour Hamdi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Logo Safi Jacob redessiné dans l’app (spatules, SAFI, JACOB, FOOD, barre) : fond transparent, chaque pièce animée, braises et vapeur, fondu vers l’app."
+  },
+  {
+   "id": "Z-017",
+   "titre": "Photos HD libres (Unsplash) pour chaque catégorie",
+   "dept": "prod",
+   "resp": "Lina Cherni",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "12 photos Unsplash (licence gratuite, usage commercial) : chapati, chapati omelette, makloub, mlawi, baguette, pizza, tacos, libanais, frites, œuf, bannière, broche."
+  },
+  {
+   "id": "Z-018",
+   "titre": "Espace client en dark mode noir et jaune",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Accueil (carrousel d’offres, livraison / à emporter, catégories, le local), fiche plat, local, panier, suivi, commandes, profil, carte sombre."
+  },
+  {
+   "id": "Z-019",
+   "titre": "Animations street food dans l’app",
+   "dept": "front",
+   "resp": "Nour Hamdi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Bouton + qui grésille, braises, poêle sur le feu, ticket qui s’imprime, sac prêt, ✓ final, chargement en reflet."
+  },
+  {
+   "id": "Z-020",
+   "titre": "Espace livreur en dark mode",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "a_faire",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Après validation de l’espace client."
+  },
+  {
+   "id": "Z-021",
+   "titre": "Application multilingue FR / AR / EN",
+   "dept": "front",
+   "resp": "Nour Hamdi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "a_faire",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Arabe de droite à gauche ; choix de la langue dans le profil."
+  },
+  {
+   "id": "Z-022",
+   "titre": "Notifications locales à chaque étape de la commande",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "a_faire",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Gratuites, sans compte Firebase."
+  }
+ ],
+ "journal": [
+  {
+   "date": "2026-11-19",
+   "jour": "J1",
+   "resume": "Démarrage de Safi Jacob (ex-Zanqa) : base, API (2 tests de parcours passent), app Flutter complète pour les quatre rôles, suivi du livreur sur l'itinéraire réel. Installation sur le téléphone en cours.",
+   "decisions": [
+    "Comptes de démonstration et commandes qui avancent seules en v0",
+    "Connexion Google/Facebook prête côté serveur, activation après création des apps chez Google et Meta",
+    "Deux équipes d'ingénieurs : Safi Jacob a sa propre équipe (Flutter, Spring Boot, QA mobile, DevOps, produit) ; direction, RH, juridique, finance et relation client restent communs.",
+    "Espace client refait en dark mode noir et jaune, logo vectoriel animé, photos HD Unsplash."
+   ],
+   "risques": [
+    "Sans hébergement, l'app ne joint l'API que par le câble USB ou un tunnel"
+   ]
+  }
+ ],
+ "maintenant": {
+  "titre": "Z-P-001 · Zanqa version 0",
+  "etape": 6,
+  "agents": [
+   {
+    "nom": "Aymen Dridi",
+    "action": "App Flutter sur le téléphone",
+    "court": "Z-009"
+   },
+   {
+    "nom": "Rami Saidi",
+    "action": "Dépôt GitHub",
+    "court": "Z-010"
+   },
+   {
+    "nom": "Amel Kacem",
+    "action": "Recette sur le téléphone",
+    "court": "QA"
+   }
+  ],
+  "progres": {
+   "tache": "Z-009",
+   "titre": "Version 0 sur le téléphone",
+   "etapes": [
+    {
+     "t": "Base et API",
+     "s": "fait"
+    },
+    {
+     "t": "Tests API",
+     "s": "fait"
+    },
+    {
+     "t": "App Flutter",
+     "s": "fait"
+    },
+    {
+     "t": "APK",
+     "s": "en_cours"
+    },
+    {
+     "t": "Téléphone",
+     "s": "a_faire"
+    },
+    {
+     "t": "Git",
+     "s": "a_faire"
+    }
+   ]
+  },
+  "derniere": {
+   "t": "2026-11-19T09:00:00Z",
+   "texte": "Zanqa : API et app prêtes, installation sur le téléphone"
+  }
+ },
+ "activite": [
+  {
+   "h": "J1",
+   "nom": "Hichem Jaziri",
+   "t": "2026-11-19T08:20:00Z",
+   "texte": "Base Zanqa créée (8 tables, 3 stands, 12 plats)."
+  },
+  {
+   "h": "J1",
+   "nom": "Claire Dubois",
+   "t": "2026-11-19T08:40:00Z",
+   "texte": "API Zanqa : 2 tests de parcours complets passent."
+  },
+  {
+   "h": "J1",
+   "nom": "Aymen Dridi",
+   "t": "2026-11-19T09:00:00Z",
+   "texte": "App Flutter : quatre rôles, suivi du livreur sur la carte, aucune erreur d'analyse."
+  }
+ ],
+ "plan": {
+  "objectif": "Zanqa : commander sa street food tunisienne, réserver au stand et suivre son livreur ; les chefs gèrent leur cuisine, l'admin toute la plateforme.",
+  "version": "Plan v0 · 19/11/2026",
+  "lots": [
+   {
+    "id": "ZL1",
+    "titre": "Socle",
+    "but": "Base, API, sécurité",
+    "taches": [
+     "Z-001",
+     "Z-002",
+     "Z-003",
+     "Z-004"
+    ]
+   },
+   {
+    "id": "ZL2",
+    "titre": "Application",
+    "but": "Les quatre rôles, animés",
+    "taches": [
+     "Z-005",
+     "Z-006",
+     "Z-007",
+     "Z-008"
+    ]
+   },
+   {
+    "id": "ZL5",
+    "titre": "Espace client",
+    "but": "Dark mode, photos HD, animations",
+    "taches": [
+     "Z-016",
+     "Z-017",
+     "Z-018",
+     "Z-019"
+    ]
+   },
+   {
+    "id": "ZL3",
+    "titre": "Livrer",
+    "but": "Sur le téléphone, sur GitHub",
+    "taches": [
+     "Z-009",
+     "Z-010",
+     "Z-015"
+    ]
+   },
+   {
+    "id": "ZL4",
+    "titre": "Version 1",
+    "but": "Vrais comptes, GPS, push, paiement",
+    "taches": [
+     "Z-011",
+     "Z-012",
+     "Z-013",
+     "Z-014"
+    ]
+   },
+   {
+    "id": "ZL6",
+    "titre": "Espace livreur et langues",
+    "but": "Livreur, FR/AR/EN, notifications",
+    "taches": [
+     "Z-020",
+     "Z-021",
+     "Z-022"
+    ]
+   }
+  ],
+  "file": [
+   "Z-009",
+   "Z-010",
+   "Z-011",
+   "Z-012",
+   "Z-013",
+   "Z-015",
+   "Z-014"
+  ],
+  "courante": "Z-009",
+  "regle": "Une tâche à la fois. Chaque tâche est testée avant d'être marquée « fait ».",
+  "calendrier": {
+   "Z-001": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "Z-002": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "Z-003": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "Z-004": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "Z-005": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "Z-006": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "Z-007": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "Z-008": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "Z-009": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "Z-010": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "Z-015": {
+    "debut": "2026-11-20",
+    "fin": "2026-11-23",
+    "reel": false
+   },
+   "Z-011": {
+    "debut": "2026-11-24",
+    "fin": "2026-11-25",
+    "reel": false
+   },
+   "Z-012": {
+    "debut": "2026-11-26",
+    "fin": "2026-11-27",
+    "reel": false
+   },
+   "Z-013": {
+    "debut": "2026-11-30",
+    "fin": "2026-12-02",
+    "reel": false
+   },
+   "Z-014": {
+    "debut": "2026-12-03",
+    "fin": "2026-12-10",
+    "reel": false
+   }
+  }
+ }
+}

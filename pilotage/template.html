@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Salle de pilotage AI Casting</title>
+<title>Salle de pilotage ahmedRoom</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -423,7 +423,21 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
 .rm-wrap.fs .rm-scroll,.rm-wrap:fullscreen .rm-scroll{max-height:none;flex:1}
 .rm-grid{position:relative;display:grid}
 .rm-lab{position:sticky;left:0;z-index:3;background:var(--surface);border-right:1px solid var(--line);padding:0 10px;display:flex;align-items:center;gap:8px;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-.rm-lab.lot{font-weight:700;background:var(--surface2);cursor:default}
+.rm-lab.lot{all:unset;box-sizing:border-box;position:sticky;left:0;z-index:3;display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--surface2);border-right:1px solid var(--line);cursor:pointer;min-width:0}
+.rm-lab.lot:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.rm-lab.lot .chev{color:var(--muted);width:12px;flex:none}
+.rm-lab.lot .lt{display:flex;flex-direction:column;min-width:0;flex:1}
+.rm-lab.lot .lt b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rm-lab.lot .lt small{font-size:12px;color:var(--muted)}
+.rm-lab.lot .avs{display:flex;flex:none}
+.rm-lab.lot .avs i{font-style:normal;width:26px;height:26px;letter-spacing:-.3px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;margin-left:-6px;border:2px solid var(--surface2)}
+.rm-lab.sub{padding-left:34px;font-size:13px;color:var(--muted)}
+.rm-lotbar{all:unset;box-sizing:border-box;position:absolute;height:28px;border-radius:8px;background:color-mix(in srgb,#8A93AD 30%,transparent);overflow:hidden;cursor:pointer;display:flex;align-items:center;gap:8px;padding:0 10px;font-size:12px;color:var(--ink)}
+.rm-lotbar>i{position:absolute;left:0;top:0;bottom:0;background:var(--ok);opacity:.85}
+.rm-lotbar.run>i{background:var(--run)}.rm-lotbar.ko{box-shadow:inset 0 0 0 2px var(--ko)}.rm-lotbar.ko>i{background:var(--ko)}
+.rm-lotbar span,.rm-lotbar b{position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm-lotbar span{flex:1}.rm-lotbar b{flex:none}
+.rm-lotbar:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .rm-lab .id{font-family:var(--f-mono);font-size:12px;color:var(--accent);flex:none}
 .rm-hd{position:sticky;top:0;z-index:4;background:var(--surface)}
 .rm-corner{position:sticky;left:0;top:0;z-index:5;background:var(--surface);border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;align-items:flex-end;padding:6px 10px;font-size:12px;color:var(--muted)}
@@ -495,6 +509,12 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
 .bz-live{font-size:12px;font-weight:600;color:var(--accent);display:inline-flex;align-items:center;gap:6px}
 .bz-live::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.25}}
+.proj{display:flex;gap:6px;flex-wrap:wrap;margin-left:18px}
+.proj button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:99px;border:1px solid color-mix(in srgb,currentColor 30%,transparent);font-size:13.5px;font-weight:600}
+.proj button small{font-weight:500;opacity:.7;font-size:12px}
+.proj button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.proj button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:760px){.proj{margin-left:0;width:100%;order:3}}
 .bz-view{position:relative;background:var(--bg);display:grid;place-items:center;min-height:320px}
 .bz-view img{display:block;width:100%;height:auto;transition:opacity .35s}
 .bz-view.mob img{width:min(390px,100%);border-left:1px solid var(--line);border-right:1px solid var(--line)}
@@ -517,6 +537,7 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
 <header class="top"><div class="wrap">
   <div class="logo" aria-hidden="true">P</div>
   <div class="brand"><h1 id="h-name"></h1><p id="h-sub"></p></div>
+  <div class="proj" id="h-proj" role="group" aria-label="Projet affiché"></div>
   <div class="right"><span class="chip" id="h-day"></span><span class="chip" id="h-maj"></span><span class="chip" id="h-live" hidden></span></div>
 </div></header>
 <nav class="tabs" aria-label="Sections"><div class="wrap">
@@ -537,9 +558,9 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
 </section>
 <section class="view" id="v-roadmap">
   <div class="panel">
-    <div class="phead"><h2>Roadmap : qui fait quoi, et quand</h2><div class="rm-tools"><div class="seg" role="group" aria-label="Échelle"><button type="button" class="btn" id="rm-z-d" aria-pressed="true">Jours</button><button type="button" class="btn" id="rm-z-w" aria-pressed="false">Semaines</button></div><button type="button" class="btn" id="rm-today">Aujourd'hui</button><button type="button" class="btn" id="rm-fs">⛶ Plein écran</button></div></div>
+    <div class="phead"><h2>Roadmap : qui fait quoi, et quand</h2><div class="rm-tools"><div class="seg" role="group" aria-label="Échelle"><button type="button" class="btn" id="rm-z-d" aria-pressed="true">Jours</button><button type="button" class="btn" id="rm-z-w" aria-pressed="false">Semaines</button></div><button type="button" class="btn" id="rm-all">Tout déplier</button><button type="button" class="btn" id="rm-today">Aujourd'hui</button><button type="button" class="btn" id="rm-fs">⛶ Plein écran</button></div></div>
     <p class="small" id="rm-note" style="margin-bottom:10px"></p>
-    <div class="rm-wrap" id="rm-wrap"><div class="rm-fsbar"><b>Roadmap AI Casting</b><span class="small" id="rm-fsinfo"></span><span style="flex:1"></span><button type="button" class="btn" id="rm-exit">Quitter le plein écran (Échap)</button></div><div class="rm-scroll" id="rm-scroll"><div class="rm-grid" id="rm-grid"></div></div></div>
+    <div class="rm-wrap" id="rm-wrap"><div class="rm-fsbar"><b id="rm-fstitle">Roadmap</b><span class="small" id="rm-fsinfo"></span><span style="flex:1"></span><button type="button" class="btn" id="rm-exit">Quitter le plein écran (Échap)</button></div><div class="rm-scroll" id="rm-scroll"><div class="rm-grid" id="rm-grid"></div></div></div>
     <div class="rm-legend" style="margin-top:10px"><span><i style="background:var(--ok)"></i>Fait</span><span><i style="background:var(--run)"></i>En cours</span><span><i style="background:#8A93AD"></i>À faire (prévisionnel)</span><span><i style="background:var(--ko)"></i>Bloqué</span><span><i style="background:var(--accent);opacity:.55"></i>Durée du lot</span><span><i style="background:var(--ko);width:2px"></i>Aujourd'hui</span></div>
   </div>
 </section>
@@ -663,7 +684,14 @@ footer{color:var(--muted);font-size:13px;padding:24px 0}
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="m-title"><div class="box" id="m-box"></div></div>
 <script id="data" type="application/json">__DATA__</script>
 <script>
-let D=JSON.parse(document.getElementById('data').textContent);
+// Salle de pilotage ahmedRoom : plusieurs projets, chacun avec ses données et ses documents en direct
+const ALL=JSON.parse(document.getElementById('data').textContent);
+const PROJ=ALL.projets||[{id:'ai-casting',nom:'AI Casting',emoji:'🎬',data:ALL}];
+let PID='ai-casting';try{PID=localStorage.getItem('ahmedroom.projet')||PID}catch(e){}
+if(!PROJ.some(p=>p.id===PID))PID=PROJ[0].id;
+let D=PROJ.find(p=>p.id===PID).data;
+const LV=PID==='ai-casting'?'live/':'live/'+PID+'-';   // documents en direct propres au projet
+function switchProject(id){try{localStorage.setItem('ahmedroom.projet',id)}catch(e){}location.reload();}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let DEP=Object.fromEntries(D.departements.map(x=>[x.id,x]));
@@ -680,8 +708,10 @@ let members=D.departements.reduce((a,x)=>a+x.membres.length,0);
 let last,nextDay;
 function renderTop(){
 // header
-$('#h-name').textContent=D.meta.entreprise+' · salle de pilotage';
-$('#h-sub').textContent=`Projet ${D.meta.projet} · client : ${D.meta.client} · ${D.meta.statut}`;
+$('#h-name').textContent='Salle de pilotage ahmedRoom';
+$('#h-proj').innerHTML=PROJ.map(p=>`<button type="button" aria-pressed="${p.id===PID}" data-proj="${p.id}"><span aria-hidden="true">${p.emoji}</span>${esc(p.nom)}<small>${p.data.meta.avancement} %</small></button>`).join('');
+document.querySelectorAll('#h-proj button').forEach(b=>b.onclick=()=>{if(b.dataset.proj!==PID)switchProject(b.dataset.proj);});
+$('#h-sub').textContent=`${D.meta.entreprise} · projet ${D.meta.projet} · client : ${D.meta.client}`;
 last=D.journal[D.journal.length-1];
 $('#h-day').textContent=`${D.meta.jour||last.jour} · ${fmtDate(D.meta.maj||last.date)}`;
 {const pm=((D.maintenant||{}).titre||'').match(/P-\d{3}/);$('#h-maj').textContent=`Mis à jour après ${pm?pm[0]:D.prompts[D.prompts.length-1].id}`;}
@@ -727,10 +757,10 @@ function renderCycle(){
 
 // org
 let orgSel='ia';
-const TIERS=[['Direction',['dir']],['Porte d’entrée de chaque prompt',['ia','client']],['Produit et technique',['prod','back','front','qa','devops']],['Fonctions support',['rh','admin','jur','fin']]];
+const TIERS=()=>[['Direction · commune aux deux projets',['dir']],['Porte d’entrée de chaque prompt',['ia','client']],[`Équipe d’ingénieurs ${D.meta.projet.split(' ·')[0]} · dédiée à ce projet`,['prod','back','front','qa','devops']],['Fonctions support · communes aux deux projets',['rh','admin','jur','fin']]];
 function renderOrg(){
   $('#org-count').textContent=`${members} personnes · ${D.departements.length} départements`;
-  $('#org').innerHTML=TIERS.map(([lab,ids])=>`<div class="tier"><span class="lab">${lab}</span><div class="dgrid">${ids.map(id=>{const x=DEP[id];const n=T.filter(t=>t.dept===id&&t.statut!=='fait').length;return `<button type="button" class="dcard ${id==='ia'?'gate':''}" style="--c:${x.couleur}" data-id="${id}" aria-pressed="${id===orgSel}"><h3>${esc(x.nom)}</h3><span class="cnt">${x.membres.length} personne${x.membres.length>1?'s':''} · ${n} tâche${n>1?'s':''} ouverte${n>1?'s':''}</span><span class="small">${esc(x.membres[0].nom)} · ${esc(x.membres[0].role)}</span></button>`}).join('')}</div></div>`).join('');
+  $('#org').innerHTML=TIERS().map(([lab,ids])=>`<div class="tier"><span class="lab">${lab}</span><div class="dgrid">${ids.map(id=>{const x=DEP[id];const n=T.filter(t=>t.dept===id&&t.statut!=='fait').length;return `<button type="button" class="dcard ${id==='ia'?'gate':''}" style="--c:${x.couleur}" data-id="${id}" aria-pressed="${id===orgSel}"><h3>${esc(x.nom)}</h3>${x.partage?'<span class="small" style="opacity:.75">Commun aux deux projets</span>':''}<span class="cnt">${x.membres.length} personne${x.membres.length>1?'s':''} · ${n} tâche${n>1?'s':''} ouverte${n>1?'s':''}</span><span class="small">${esc(x.membres[0].nom)} · ${esc(x.membres[0].role)}</span></button>`}).join('')}</div></div>`).join('');
   document.querySelectorAll('.dcard').forEach(b=>b.onclick=()=>{orgSel=b.dataset.id;renderOrg();$('#org-side').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});});
   const x=DEP[orgSel], ts=T.filter(t=>t.dept===orgSel).sort((a,b)=>ORDER.indexOf(a.statut)-ORDER.indexOf(b.statut));
   $('#org-side').innerHTML=`<div class="phead"><h2><span class="dept" style="font-size:inherit;color:inherit"><i style="background:${x.couleur};width:14px;height:14px"></i>${esc(x.nom)}</span></h2><span class="sub">${ts.filter(t=>t.statut==='fait').length} faite(s) sur ${ts.length}</span></div><div class="side"><div><h3>Équipe</h3><div class="people" style="margin-top:10px">${x.membres.map(m=>`<div class="person"><span class="av" style="background:${x.couleur}">${initials(m.nom)}</span><span>${esc(m.nom)}<small>${esc(m.role)} · ${esc(m.niveau)}</small></span></div>`).join('')}</div><h3 style="margin-top:18px">Missions</h3><ul class="mis">${x.missions.map(m=>`<li>${esc(m)}</li>`).join('')}</ul></div><div><h3>Tâches</h3><ul class="tl" style="margin-top:6px">${ts.map(task).join('')||'<li class="empty">Aucune tâche pour l’instant</li>'}</ul></div></div>`;
@@ -835,7 +865,7 @@ function renderMM(){
   const c=el('g',{class:'node'+(PING.has('__centre')?' changed':''),tabindex:0,role:'button','aria-label':'Projet'},gN);
   if(liveState==='on')el('circle',{r:70,class:'live-ring'},c);
   el('circle',{r:62,fill:'var(--accent)',class:'main'},c);
-  const tc=el('text',{'text-anchor':'middle',y:-6,style:'fill:#fff;stroke:none;font-family:var(--f-display);font-weight:600;font-size:15px'},c);tc.textContent='AI Casting';
+  const tc=el('text',{'text-anchor':'middle',y:-6,style:'fill:#fff;stroke:none;font-family:var(--f-display);font-weight:600;font-size:15px'},c);tc.textContent=(D.meta.projet||'').split(' ·')[0];
   const t2=el('text',{'text-anchor':'middle',y:14,style:'fill:#fff;stroke:none;font-size:12px'},c);t2.textContent=`${D.meta.avancement} % · ${D.meta.jour}`;
   const t3=el('text',{'text-anchor':'middle',y:32,style:'fill:#fff;stroke:none;font-size:11px;opacity:.85'},c);t3.textContent=(D.phases.find(p=>p.id===D.meta.phase_courante)||D.phases[0]).nom.split('·')[0].trim();
   c.onclick=()=>showProject();
@@ -903,7 +933,7 @@ function showAgent(n){infoKind='agent';const [x,m]=memberOf(n);if(!x)return;cons
 function showDept(id){infoKind='dept:'+id;const x=DEP[id];const ts=T.filter(t=>t.dept===id).sort((p,q)=>ORDER.indexOf(p.statut)-ORDER.indexOf(q.statut));
   infoBox(`<h3 style="margin-bottom:4px"><span class="dept" style="font-size:inherit;color:inherit"><i style="background:${x.couleur}"></i>${esc(x.nom)}</span></h3><p class="small" style="margin-bottom:8px">${esc(x.missions.join(' · '))}</p>${tlist(ts)}`);}
 function showProject(){infoKind='projet';const cur=D.cycle.find(c=>c.n===NOW.etape)||D.cycle[0];
-  infoBox(`<h3>AI Casting Platform</h3><p class="small" style="margin:4px 0 10px">${esc(D.meta.client)}</p><div class="bar"><i style="width:${D.meta.avancement}%"></i></div><p class="small">${D.meta.avancement} % du MVP · ${D.meta.jour}</p><div class="quote" style="margin:10px 0"><span class="small mono">ÉTAPE ${cur.n} DU CYCLE</span><p>${esc(cur.titre)} · ${esc(NOW.titre||'')}</p></div>${D.phases.map(p=>`<div class="rowbar" style="grid-template-columns:1fr 70px 36px"><span class="small">${esc(p.nom)}</span><div class="bar"><i style="width:${p.avancement}%"></i></div><span class="v">${p.avancement}%</span></div>`).join('')}`);}
+  infoBox(`<h3>${esc(D.meta.projet)}</h3><p class="small" style="margin:4px 0 10px">${esc(D.meta.client)}</p><div class="bar"><i style="width:${D.meta.avancement}%"></i></div><p class="small">${D.meta.avancement} % du MVP · ${D.meta.jour}</p><div class="quote" style="margin:10px 0"><span class="small mono">ÉTAPE ${cur.n} DU CYCLE</span><p>${esc(cur.titre)} · ${esc(NOW.titre||'')}</p></div>${D.phases.map(p=>`<div class="rowbar" style="grid-template-columns:1fr 70px 36px"><span class="small">${esc(p.nom)}</span><div class="bar"><i style="width:${p.avancement}%"></i></div><span class="v">${p.avancement}%</span></div>`).join('')}`);}
 // zoom / pan
 (function(){const svg=$('#mm');let drag=null;
  svg.addEventListener('wheel',e=>{e.preventDefault();const r=svg.getBoundingClientRect();const px=view.x+(e.clientX-r.left)/r.width*view.w,py=view.y+(e.clientY-r.top)/r.height*view.h;const f=e.deltaY>0?1.12:1/1.12;const nw=Math.min(2400,Math.max(300,view.w*f)),k=nw/view.w;view={x:px-(px-view.x)*k,y:py-(py-view.y)*k,w:nw,h:view.h*k};svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)},{passive:false});
@@ -1027,7 +1057,7 @@ function chatContext(n){const [x,mb]=memberOf(n),s=agentState(n);const P=D.plan|
   const file=(P.file||[]).map((id,i)=>byId[id]?`${i+1}. ${id} [${ST[byId[id].statut]}] ${byId[id].titre} (${byId[id].resp})`:'').filter(Boolean).join('\n');
   const blk=T.filter(t=>t.statut==='bloque').map(t=>`- ${t.id} ${t.titre} : ${t.bloquant||''}`).join('\n');
   const act=(D.activite||[]).slice(-10).map(a=>`- ${a.nom} : ${a.texte}`).join('\n');
-  return `Tu es ${n}, ${mb?mb.role:''}${mb&&mb.niveau?' ('+mb.niveau+')':''}, département « ${x?x.nom:''} » de Prisme Ingénierie, entreprise de sous-traitance (simulée) qui développe la plateforme AI Casting pour le client. Le client te parle depuis la salle de pilotage.
+  return `Tu es ${n}, ${mb?mb.role:''}${mb&&mb.niveau?' ('+mb.niveau+')':''}, département « ${x?x.nom:''} » de Prisme Ingénierie, entreprise de sous-traitance (simulée) qui développe le projet ${D.meta.projet} pour le client. Le client te parle depuis la salle de pilotage.
 Règles : réponds en français, à la première personne, en 2 à 6 phrases claires, sans titres ni listes longues. Appuie-toi UNIQUEMENT sur l'état en direct ci-dessous ; n'invente ni avancement, ni chiffres, ni dates ; si l'information manque, dis-le simplement. Si le client te demande de faire ou de changer quelque chose, réponds que sa demande est notée dans ce fil et que l'équipe la traitera au prochain passage, dans l'ordre de la file. Ne parle que du projet.
 
 ÉTAT EN DIRECT (${D.meta.maj||''}, ${D.meta.jour||''}) :
@@ -1077,32 +1107,46 @@ $('#wa-q').oninput=e=>{WAQ=e.target.value;chatList();};
 document.addEventListener('fullscreenchange',()=>{chatHost();});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-chat]');if(b){e.stopPropagation();chatOpen(b.dataset.chat);}},true);
 addEventListener('keydown',e=>{if(e.key==='Escape'&&CHAT.open&&!$('#modal').classList.contains('on')&&!document.fullscreenElement)chatClose();});
-(async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');diag('ouverture · db='+(db?'oui':'non'));if(db){chatRef=db.doc('live/chats');diagRef=db.doc('live/diag');try{chatRef.onSnapshot(sn=>{const v=val(sn);if(v&&v.items&&!Object.values(CHAT.busy).some(Boolean)){CHATS=JSON.parse(JSON.stringify(v.items));if(CHAT.open)chatRender();}},()=>{});}catch(e){}}
+(async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');diag('ouverture · db='+(db?'oui':'non'));if(db){chatRef=db.doc(LV+'chats');diagRef=db.doc(LV+'diag');try{chatRef.onSnapshot(sn=>{const v=val(sn);if(v&&v.items&&!Object.values(CHAT.busy).some(Boolean)){CHATS=JSON.parse(JSON.stringify(v.items));if(CHAT.open)chatRender();}},()=>{});}catch(e){}}
   await getSample();diag('sample='+(sampleFn?'prêt':'absent'));if(CHAT.open)chatRender();}catch(e){}})();
 
 // ===== Roadmap (P-035) =====
 let RMZ='d';
 const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-function renderRoadmap(){const P=D.plan;const G=$('#rm-grid');if(!P||!P.calendrier||!G)return;const C=P.calendrier;const byId=Object.fromEntries(T.map(t=>[t.id,t]));
-  $('#rm-note').textContent=P.calendrier_note||'';
+// Roadmap : une ligne par lot (période, avancement, équipe) ; on déplie un lot pour voir ses tâches.
+let RMOPEN=new Set();
+function renderRoadmap(){const P=D.plan;const G=$('#rm-grid');if(!G)return;
+  if(!P||!P.calendrier){G.innerHTML='<p class="small" style="padding:16px">Calendrier en cours de préparation.</p>';return}
+  const C=P.calendrier;const byId=Object.fromEntries(T.map(t=>[t.id,t]));
+  $('#rm-note').textContent=P.calendrier_note||'Une ligne par lot. Touchez un lot pour voir ses tâches et qui les porte.';
+  $('#rm-fstitle').textContent='Roadmap · '+D.meta.projet;
   const days=Object.values(C).flatMap(v=>[v.debut,v.fin]).sort();const d0=new Date(days[0]+'T00:00:00');d0.setDate(d0.getDate()-2);const d1=new Date(days[days.length-1]+'T00:00:00');d1.setDate(d1.getDate()+4);
-  const N=Math.round((d1-d0)/864e5)+1;const W=RMZ==='d'?34:12;const LW=Math.min(330,Math.max(220,innerWidth*.28));const RH=30;
+  const N=Math.round((d1-d0)/864e5)+1;const W=RMZ==='d'?34:12;const LW=Math.min(360,Math.max(240,innerWidth*.28));
   const idx=iso=>Math.round((new Date(iso+'T00:00:00')-d0)/864e5);
-  const todayIso=ymd(new Date());
-  const rows=[];P.lots.forEach(l=>{const ids=l.taches.filter(i=>C[i]);if(!ids.length)return;rows.push({lot:l,ids});ids.forEach(i=>rows.push({t:byId[i],c:C[i]}));});
-  G.style.gridTemplateColumns=`${LW}px repeat(${N},${W}px)`;G.style.gridTemplateRows=`26px 24px repeat(${rows.length},${RH}px)`;
-  const h=[];h.push(`<div class="rm-corner" style="grid-row:1/3;grid-column:1">Tâche · responsable</div>`);
+  const todayIso=ymd(new Date());const fr=x=>new Date(x+'T00:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+  const rows=[];P.lots.forEach(l=>{const ids=l.taches.filter(i=>C[i]&&byId[i]);if(!ids.length)return;rows.push({lot:l,ids,h:46});if(RMOPEN.has(l.id))ids.forEach(i=>rows.push({t:byId[i],c:C[i],h:30}));});
+  G.style.gridTemplateColumns=`${LW}px repeat(${N},${W}px)`;G.style.gridTemplateRows=`26px 24px ${rows.map(r=>r.h+'px').join(' ')}`;
+  const h=[];h.push(`<div class="rm-corner" style="grid-row:1/3;grid-column:1">${RMOPEN.size?'Lot · tâches':'Lot'}</div>`);
   let m=-1;for(let k=0;k<N;k++){const d=new Date(d0);d.setDate(d.getDate()+k);if(d.getMonth()!==m){m=d.getMonth();let span=0;const e=new Date(d);while(e.getMonth()===m&&span<N-k){span++;e.setDate(e.getDate()+1);}h.push(`<div class="rm-month rm-hd" style="grid-row:1;grid-column:${k+2}/span ${span}">${d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</div>`);}
     const iso=ymd(d);const we=d.getDay()===0||d.getDay()===6;const show=RMZ==='d'||d.getDay()===1;
     h.push(`<div class="rm-day rm-hd ${we?'we':''} ${iso===todayIso?'today':''}" style="grid-row:2;grid-column:${k+2}" title="${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}">${show?d.getDate():''}</div>`);}
-  rows.forEach((r,ri)=>{const row=ri+3;if(r.lot){const ds=r.ids.map(i=>C[i]);const a=Math.min(...ds.map(x=>idx(x.debut))),b=Math.max(...ds.map(x=>idx(x.fin)));
-      h.push(`<div class="rm-lab lot" style="grid-row:${row};grid-column:1">${esc(r.lot.id)} · ${esc(r.lot.titre)}</div><div class="rm-cell lot" style="grid-row:${row};grid-column:2/span ${N}"></div>`);
-      h.push(`<div class="rm-bar lotbar" style="left:${LW+a*W+2}px;top:${(row-3)*RH+50+11}px;width:${(b-a+1)*W-4}px" title="${esc(r.lot.titre)} : du ${ds.map(x=>x.debut).sort()[0]} au ${ds.map(x=>x.fin).sort().pop()}"></div>`);}
-    else{const t=r.t,a=idx(r.c.debut),b=idx(r.c.fin);const lab=`${t.id} ${t.titre}`;const fr=x=>new Date(x+'T00:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
-      h.push(`<div class="rm-lab" style="grid-row:${row};grid-column:1" data-task="${t.id}" title="${esc(lab)} · ${esc(t.resp||'')}"><span class="id">${t.id}</span><span style="overflow:hidden;text-overflow:ellipsis">${esc(t.titre)}</span></div><div class="rm-cell" style="grid-row:${row};grid-column:2/span ${N}"></div>`);
-      h.push(`<button type="button" class="rm-bar ${t.statut}" data-task="${t.id}" style="left:${LW+a*W+2}px;top:${(row-3)*RH+50+5}px;width:${Math.max(W-4,(b-a+1)*W-4)}px" title="${esc(lab)} — ${esc(t.resp||'')} — ${r.c.debut===r.c.fin?fr(r.c.debut):'du '+fr(r.c.debut)+' au '+fr(r.c.fin)}${r.c.reel?' (réel)':' (prévu)'}">${(b-a+1)*W>90?esc((t.resp||'').split(' ')[0]):''}</button>`);}});
+  let y=50;
+  rows.forEach((r,ri)=>{const row=ri+3;
+    if(r.lot){const ts=r.ids.map(i=>byId[i]),ds=r.ids.map(i=>C[i]);const a=Math.min(...ds.map(x=>idx(x.debut))),b=Math.max(...ds.map(x=>idx(x.fin)));
+      const done=ts.filter(t=>t.statut==='fait').length,blk=ts.some(t=>t.statut==='bloque'),run=ts.some(t=>t.statut==='en_cours');const pct=Math.round(done/ts.length*100);
+      const who=[...new Set(ts.map(t=>t.resp).filter(Boolean))];const open=RMOPEN.has(r.lot.id);
+      const deb=ds.map(x=>x.debut).sort()[0],fin=ds.map(x=>x.fin).sort().pop();
+      h.push(`<button type="button" class="rm-lab lot" data-lot="${r.lot.id}" aria-expanded="${open}" style="grid-row:${row};grid-column:1"><span class="chev" aria-hidden="true">${open?'▾':'▸'}</span><span class="lt"><b>${esc(r.lot.titre)}</b><small>${done}/${ts.length} faites · ${fr(deb)} → ${fr(fin)}</small></span><span class="avs" aria-label="${esc(who.join(', '))}">${who.slice(0,3).map(n=>`<i title="${esc(n)}">${initials(n)}</i>`).join('')}${who.length>3?`<i>+${who.length-3}</i>`:''}</span></button><div class="rm-cell lot" style="grid-row:${row};grid-column:2/span ${N}"></div>`);
+      const w=(b-a+1)*W-4;
+      h.push(`<button type="button" class="rm-lotbar ${blk?'ko':run?'run':pct===100?'ok':''}" data-lot="${r.lot.id}" style="left:${LW+a*W+2}px;top:${y+9}px;width:${w}px" title="${esc(r.lot.titre)} : ${pct} % · du ${fr(deb)} au ${fr(fin)}${blk?' · un blocage':''}"><i style="width:${pct}%"></i><span>${w>120?esc(r.lot.but||r.lot.titre):''}</span>${w>=64?`<b>${pct} %</b>`:''}</button>`);}
+    else{const t=r.t,a=idx(r.c.debut),b=idx(r.c.fin);
+      h.push(`<div class="rm-lab sub" style="grid-row:${row};grid-column:1" data-task="${t.id}" title="${esc(t.id+' '+t.titre)} · ${esc(t.resp||'')}"><span class="id">${t.id}</span><span style="overflow:hidden;text-overflow:ellipsis">${esc(t.titre)}</span></div><div class="rm-cell" style="grid-row:${row};grid-column:2/span ${N}"></div>`);
+      h.push(`<button type="button" class="rm-bar ${t.statut}" data-task="${t.id}" style="left:${LW+a*W+2}px;top:${y+5}px;width:${Math.max(W-4,(b-a+1)*W-4)}px" title="${esc(t.titre)} — ${esc(t.resp||'')} — ${r.c.debut===r.c.fin?fr(r.c.debut):'du '+fr(r.c.debut)+' au '+fr(r.c.fin)}${r.c.reel?' (réel)':' (prévu)'}">${(b-a+1)*W>90?esc((t.resp||'').split(' ')[0]):''}</button>`);}
+    y+=r.h;});
   const ti=idx(todayIso);if(ti>=0&&ti<N)h.push(`<div class="rm-today" style="left:${LW+ti*W+W/2}px"></div>`);
   G.innerHTML=h.join('');G.style.position='relative';
+  G.querySelectorAll('[data-lot]').forEach(el=>el.onclick=e=>{e.stopPropagation();const id=el.dataset.lot;RMOPEN.has(id)?RMOPEN.delete(id):RMOPEN.add(id);renderRoadmap();});
+  const all=$('#rm-all');if(all){all.textContent=RMOPEN.size?'Tout replier':'Tout déplier';all.onclick=()=>{RMOPEN=RMOPEN.size?new Set():new Set(P.lots.map(l=>l.id));renderRoadmap();};}
   const fin=Object.values(C).map(v=>v.fin).sort().pop();$('#rm-fsinfo').textContent=`Fin prévue : ${new Date(fin+'T00:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}`;
   if(!renderRoadmap.done){renderRoadmap.done=true;setTimeout(()=>rmToday(),60);}}
 function rmToday(){const sc=$('#rm-scroll');const td=document.querySelector('#rm-grid .rm-day.today');if(sc&&td){const lw=parseFloat(getComputedStyle($('#rm-grid')).gridTemplateColumns)||300;sc.scrollLeft=Math.max(0,td.offsetLeft-lw-td.offsetWidth*3);}}
@@ -1130,7 +1174,7 @@ function setLive(){const hl=$('#h-live');if(hl){if(liveState==='on'){const s=Mat
   else{el.className='live';el.textContent='';}}
 setInterval(setLive,1000);
 (async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');if(!db)return;
-  dbRef=db.doc('live/decisions');dbRef.onSnapshot(s=>{const v=val(s);DECS=(v&&v.items)||[];renderAll();},()=>{});
+  dbRef=db.doc(LV+'decisions');dbRef.onSnapshot(s=>{const v=val(s);DECS=(v&&v.items)||[];renderAll();},()=>{});
   const applyState=snap=>{const v=snap&&(snap.data?snap.data():snap);const p=v&&v.payload;if(!p)return;
     try{const u=typeof p==='string'?JSON.parse(p):JSON.parse(JSON.stringify(p));if(!u)return;   // copie : les données de la base sont en lecture seule
 
@@ -1141,7 +1185,7 @@ setInterval(setLive,1000);
       const up=(arr,items,k)=>(items||[]).forEach(it=>{const i=arr.findIndex(z=>z[k]===it[k]);if(i>=0)Object.assign(arr[i],it);else arr.push(it)});
       up(D.taches,u.taches,'id');up(D.prompts,u.prompts,'id');up(D.journal,u.journal,'jour');up(D.phases,u.phases,'id');
       liveState='on';liveAt=Date.now();renderAll();}catch(e){}};
-  const stateRef=db.doc('live/state');let listening=true;
+  const stateRef=db.doc(LV+'state');let listening=true;
   try{stateRef.onSnapshot(applyState,()=>{listening=false;});}catch(e){listening=false;}
   setInterval(async()=>{if(listening&&liveState==='on'&&Date.now()-liveAt<120000)return;try{applyState(await stateRef.get());}catch(e){}},15000);
 }catch(e){}})();
@@ -1169,7 +1213,7 @@ setInterval(setLive,1000);
   $('#bz-url').innerHTML='<b>'+esc((cur.url||'').replace(/^https?:\/\//,''))+'</b>';$('#bz-titre').textContent=cur.titre||'';$('#bz-when').textContent=(cur.tache?cur.tache+' · ':'')+when(cur.t);
   $('#bz-tl').innerHTML=L.map(x=>`<button type="button" data-id="${esc(x.id)}" aria-pressed="${x===cur}"><img src="${esc(x.bureau)}" alt="" loading="lazy"><span>${esc(x.titre)}<small>${esc(x.tache||'')} · ${when(x.t)}</small></span></button>`).join('');}
  document.addEventListener('click',e=>{const b=e.target.closest('#bz-tl button');if(b){sel=b.dataset.id;draw();}const d=e.target.closest('.bz-seg button');if(d){dev=d.dataset.dev;document.querySelectorAll('.bz-seg button').forEach(x=>x.setAttribute('aria-pressed',x===d));draw();}});
- (async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');if(!db)return;const r=db.doc('live/navigateur');
+ (async()=>{try{if(!window.claude||!claude.use)return;const db=await claude.use('db');if(!db)return;const r=db.doc(LV+'navigateur');
   const on=s=>{const v=val(s);if(!v)return;const first=!NAV.shots.length;const top=NAV.shots[0]&&NAV.shots[0].id;NAV=v;if(!first&&NAV.shots[0]&&NAV.shots[0].id!==top){sel=null;liveT=Date.now();if(typeof liveToast==='function')liveToast('Navigateur : '+NAV.shots[0].titre);}else if(first&&NAV.shots[0]&&Date.now()-new Date(NAV.shots[0].t)<600000)liveT=Date.now();draw();};
   try{r.onSnapshot(on,()=>{});}catch(e){}setInterval(async()=>{try{on(await r.get());}catch(e){}},20000);try{on(await r.get());}catch(e){}}catch(e){}})();
  setInterval(()=>{if(location.hash==='#navigateur')$('#bz-live').hidden=!(Date.now()-liveT<600000);},30000);

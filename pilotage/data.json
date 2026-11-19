@@ -59,11 +59,12 @@
      "role": "Directrice de projet / PMO",
      "niveau": "Senior"
     }
-   ]
+   ],
+   "partage": true
   },
   {
    "id": "ia",
-   "nom": "Cellule IA",
+   "nom": "AI Casting · Cellule IA",
    "court": "Cellule IA",
    "couleur": "#7A3DB8",
    "missions": [
@@ -88,11 +89,12 @@
      "role": "ML Engineer · recherche sémantique",
      "niveau": "Confirmée"
     }
-   ]
+   ],
+   "equipe": "AI Casting"
   },
   {
    "id": "prod",
-   "nom": "Produit & UX",
+   "nom": "AI Casting · Produit & UX",
    "court": "Produit",
    "couleur": "#B8743D",
    "missions": [
@@ -116,11 +118,12 @@
      "role": "UX/UI Designer",
      "niveau": "Confirmée"
     }
-   ]
+   ],
+   "equipe": "AI Casting"
   },
   {
    "id": "back",
-   "nom": "Technique · Backend",
+   "nom": "AI Casting · Backend",
    "court": "Backend",
    "couleur": "#2F6FB3",
    "missions": [
@@ -148,22 +151,13 @@
      "nom": "Antoine Roux",
      "role": "Ingénieur Java Spring Boot",
      "niveau": "Confirmé"
-    },
-    {
-     "nom": "Walid Khemiri",
-     "role": "Ingénieur Java Spring senior (recruté J6)",
-     "niveau": "Senior"
-    },
-    {
-     "nom": "Sophie Laurent",
-     "role": "Ingénieure Java Spring senior (recrutée J6)",
-     "niveau": "Senior"
     }
-   ]
+   ],
+   "equipe": "AI Casting"
   },
   {
    "id": "front",
-   "nom": "Technique · Frontend",
+   "nom": "AI Casting · Frontend",
    "court": "Frontend",
    "couleur": "#1F8A8A",
    "missions": [
@@ -192,11 +186,12 @@
      "role": "Ingénieure UI/UX Angular · experte (recrutée J6)",
      "niveau": "Senior"
     }
-   ]
+   ],
+   "equipe": "AI Casting"
   },
   {
    "id": "qa",
-   "nom": "Technique · Tests & QA",
+   "nom": "AI Casting · Tests & QA",
    "court": "QA",
    "couleur": "#3D8A4F",
    "missions": [
@@ -225,11 +220,12 @@
      "role": "Ingénieur QA · performance et charge (recruté J6)",
      "niveau": "Senior"
     }
-   ]
+   ],
+   "equipe": "AI Casting"
   },
   {
    "id": "devops",
-   "nom": "Technique · DevOps & Sécurité",
+   "nom": "AI Casting · DevOps & Sécurité",
    "court": "DevOps",
    "couleur": "#5A6B7D",
    "missions": [
@@ -253,7 +249,8 @@
      "role": "Ingénieur DevOps · CI/CD et mise en ligne (recruté J6)",
      "niveau": "Senior"
     }
-   ]
+   ],
+   "equipe": "AI Casting"
   },
   {
    "id": "rh",
@@ -264,7 +261,8 @@
     "Affecte les ingénieurs aux phases (plan de charge)",
     "Onboarding des nouveaux profils",
     "Suivi des compétences",
-    "Recrute les renforts : UI/UX Angular, Java Spring senior, DevOps, QA (J6)"
+    "Recrute les renforts : UI/UX Angular, Java Spring senior, DevOps, QA (J6)",
+    "Répartit les ingénieurs en deux équipes, une par projet (J7)"
    ],
    "membres": [
     {
@@ -272,7 +270,8 @@
      "role": "Responsable RH",
      "niveau": "Senior"
     }
-   ]
+   ],
+   "partage": true
   },
   {
    "id": "admin",
@@ -290,7 +289,8 @@
      "role": "Assistante de direction",
      "niveau": "Confirmée"
     }
-   ]
+   ],
+   "partage": true
   },
   {
    "id": "jur",
@@ -313,7 +313,8 @@
      "role": "DPO · RGPD",
      "niveau": "Senior"
     }
-   ]
+   ],
+   "partage": true
   },
   {
    "id": "fin",
@@ -331,7 +332,8 @@
      "role": "Directeur administratif et financier",
      "niveau": "Senior"
     }
-   ]
+   ],
+   "partage": true
   },
   {
    "id": "client",
@@ -349,7 +351,8 @@
      "role": "Account manager",
      "niveau": "Senior"
     }
-   ]
+   ],
+   "partage": true
   }
  ],
  "cycle": [
