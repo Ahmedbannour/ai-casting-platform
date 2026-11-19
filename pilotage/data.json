@@ -7,7 +7,7 @@
   "debut": "2026-11-15",
   "maj": "2026-11-20",
   "jour": "J8",
-  "avancement": 81,
+  "avancement": 82,
   "avancement_veille": 97,
   "phase_courante": "PH4"
  },
@@ -3173,10 +3173,10 @@
    "resp": "Sarra Mansouri",
    "prio": "P0",
    "phase": "PH4",
-   "statut": "a_faire",
-   "prompt": "P-046",
+   "statut": "fait",
+   "prompt": "P-059",
    "jour": "J7",
-   "detail": "Sprint 4 (14/12 → 20/12). Découpage en scènes, fiche par rôle (intention + critères : type, âge, sexe, apparence) ; publication de la V2 → rôles créés et propositions lancées."
+   "detail": "Livré : le réalisateur et le 1er AD écrivent la V2 (texte, fichier), la découpent en scènes et rédigent une fiche par rôle : intention du réalisateur, sexe, âge, apparence, importance ; une fiche peut partir d'un personnage (nom et attentes repris). Publication impossible sans fiche ni intention. À la publication : V2 figée, statut « Casting », projet de casting « publicité » créé avec un rôle par fiche, 1er AD et production ajoutés à l'équipe, tout le monde notifié ; bouton « Ouvrir le casting ». Migration V38, 82 tests serveur verts, recette navigateur test-v2."
   },
   {
    "id": "T-164",
@@ -3341,18 +3341,18 @@
   }
  ],
  "maintenant": {
-  "titre": "P-059 · Sprint 3 terminé",
+  "titre": "P-059 · T-163 livré : la V2 ouvre le casting",
   "etape": 59,
   "agents": [
    {
-    "nom": "Amel Kacem",
-    "action": "Recette du sprint 3",
-    "court": "QA"
+    "nom": "Yasmine Trabelsi",
+    "action": "Propositions IA expliquées par l'intention",
+    "court": "T-164"
    },
    {
-    "nom": "Hichem Jaziri",
-    "action": "Prochaine tâche : T-163",
-    "court": "T-163"
+    "nom": "Amel Kacem",
+    "action": "Recette du sprint 4",
+    "court": "QA"
    },
    {
     "nom": "Sami Kefi",
@@ -3361,38 +3361,18 @@
    }
   ],
   "progres": {
-   "tache": "T-162",
-   "titre": "Attentes sur les profils",
+   "tache": "T-164",
+   "titre": "Propositions IA expliquées par l'intention",
    "etapes": [
     {
-     "t": "Personnages",
-     "s": "fait"
-    },
-    {
-     "t": "Attentes marque et agence",
-     "s": "fait"
-    },
-    {
-     "t": "Saisie par la production",
-     "s": "fait"
-    },
-    {
-     "t": "Transmis au réalisateur",
-     "s": "fait"
-    },
-    {
-     "t": "Recette",
-     "s": "fait"
-    },
-    {
-     "t": "Git",
-     "s": "fait"
+     "t": "À lancer",
+     "s": "a_faire"
     }
    ]
   },
   "derniere": {
-   "t": "2026-11-20T00:55:00Z",
-   "texte": "Sprint 3 terminé : réponse de l'agence et analyse IA de la V0, V1 et révisions, attentes par personnage transmises au réalisateur ; 81 tests verts"
+   "t": "2026-11-20T01:00:00Z",
+   "texte": "T-163 livré : V2 du réalisateur (scènes, fiches de rôle), publication qui crée le casting ; 82 tests verts"
   }
  },
  "activite": [
@@ -3755,6 +3735,12 @@
    "nom": "Hédi Ben Amor",
    "t": "2026-11-20T00:55:00Z",
    "texte": "T-162 livré : attentes par personnage saisies par la production et transmises au réalisateur et au 1er AD. Sprint 3 terminé."
+  },
+  {
+   "h": "J8",
+   "nom": "Sarra Mansouri",
+   "t": "2026-11-20T01:00:00Z",
+   "texte": "T-163 livré : éditeur de la V2 et création automatique des rôles au casting. Recette navigateur réussie."
   }
  ],
  "plan": {
@@ -3916,7 +3902,6 @@
    }
   ],
   "file": [
-   "T-163",
    "T-164",
    "T-165",
    "T-166",
@@ -3935,7 +3920,7 @@
    "T-100",
    "T-127"
   ],
-  "courante": "T-163",
+  "courante": "T-164",
   "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages ».",
   "calendrier": {
    "T-103": {
@@ -4174,8 +4159,9 @@
     "reel": true
    },
    "T-163": {
-    "debut": "2026-12-14",
-    "fin": "2026-12-18"
+    "debut": "2026-11-20",
+    "fin": "2026-11-20",
+    "reel": true
    },
    "T-164": {
     "debut": "2026-12-21",

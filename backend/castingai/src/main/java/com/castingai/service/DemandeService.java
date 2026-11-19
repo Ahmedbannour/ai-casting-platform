@@ -47,6 +47,7 @@ public class DemandeService {
                          LocalDateTime createdAt, LocalDateTime updatedAt, boolean canEdit, boolean canRespond, boolean canAnalyse, Analysis analysis,
                          boolean canEditV1, boolean canReviewV1, boolean canChooseProduction, boolean v1Validated, String productionName,
                          boolean canEditExpectations, List<CharacterView> characters, String directorName, String firstAdName, LocalDateTime expectationsSentAt,
+                         boolean canEditV2, List<SceneView> scenes, List<RoleSheetView> roles, UUID projectId, LocalDateTime v2PublishedAt,
                          List<VersionView> versions, List<EventView> events) {}
     public record AgencyOption(UUID id, String name, String city) {}
     public record CharacterRequest(@NotBlank(message = "Donnez un nom au personnage") @Size(max = 120) String name,
@@ -55,6 +56,13 @@ public class DemandeService {
     public record CharacterView(UUID id, String name, String story, String brandWish, String agencyWish, String notes) {}
     public record Transmit(@NotNull(message = "Choisissez le réalisateur") UUID directorId, UUID firstAdId) {}
     public record PersonOption(UUID id, String name, String organisation) {}
+    public record SceneRequest(@NotBlank(message = "Donnez un titre à la scène") @Size(max = 160) String title, @Size(max = 4000) String description) {}
+    public record SceneView(UUID id, String title, String description) {}
+    public record RoleSheetRequest(UUID characterId, @NotBlank(message = "Donnez un nom au rôle") @Size(max = 120) String name,
+                                   @Size(max = 4000) String intention, String gender, Integer minAge, Integer maxAge,
+                                   @Size(max = 4000) String appearance, CastingRole.Importance importance) {}
+    public record RoleSheetView(UUID id, UUID characterId, String characterName, String name, String intention, String gender,
+                                Integer minAge, Integer maxAge, String appearance, CastingRole.Importance importance, UUID castingRoleId) {}
     public record Comment(@NotBlank(message = "Expliquez ce qu'il faut revoir") @Size(max = 2000) String comment) {}
     public record ChooseProduction(@NotNull(message = "Choisissez la boîte de production") UUID productionId) {}
     public record Refuse(@NotBlank(message = "Dites à la marque pourquoi vous refusez") @Size(max = 1000) String reason) {}
@@ -73,6 +81,11 @@ public class DemandeService {
     private final NotificationService notifications;
     private final StorageService storage;
     private final AdCharacterRepository characters;
+    private final AdSceneRepository scenes;
+    private final AdRoleRepository roleSheets;
+    private final ProjectRepository projects;
+    private final ProjectMemberRepository members;
+    private final CastingRoleRepository castingRoles;
     private final V0Reader reader;
     private final V0Analyzer analyzer;
 
@@ -477,6 +490,202 @@ public class DemandeService {
         return detail(me, r);
     }
 
+    // ── Réalisateur et 1er AD : V2, scènes, fiches de rôle, publication (T-163) ──
+
+    @Transactional
+    public Detail saveV2Text(String email, UUID id, V0Text req) {
+        User me = access.user(email);
+        AdRequest r = v2Editable(me, id);
+        AdVersion v = draftV2(r, me);
+        v.setBody(req.body() == null || req.body().isBlank() ? null : req.body().trim());
+        versions.save(v);
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail uploadV2File(String email, UUID id, MultipartFile file) {
+        User me = access.user(email);
+        AdRequest r = v2Editable(me, id);
+        String name = storeFile(r, draftV2(r, me), file, "v2");
+        log(r, me, "V2_FICHIER", "Fichier de la V2 déposé : " + name);
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail removeV2File(String email, UUID id) {
+        User me = access.user(email);
+        AdRequest r = v2Editable(me, id);
+        AdVersion v = draftV2(r, me);
+        if (v.getFileKey() != null) { try { storage.delete(v.getFileKey()); } catch (Exception ignored) { } }
+        v.setFileKey(null); v.setFileName(null); v.setFileType(null); v.setFileSize(null);
+        versions.save(v);
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail addScene(String email, UUID id, SceneRequest req) {
+        User me = access.user(email);
+        AdRequest r = v2Editable(me, id);
+        AdScene x = new AdScene();
+        x.setRequest(r); x.setPosition((int) scenes.countByRequestId(r.getId()));
+        x.setTitle(req.title().trim()); x.setDescription(blank(req.description()));
+        scenes.save(x);
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail updateScene(String email, UUID id, UUID sceneId, SceneRequest req) {
+        User me = access.user(email);
+        AdRequest r = v2Editable(me, id);
+        AdScene x = scenes.findById(sceneId).filter(y -> y.getRequest().getId().equals(r.getId()))
+                .orElseThrow(() -> new ResourceNotFoundException("Scène introuvable"));
+        x.setTitle(req.title().trim()); x.setDescription(blank(req.description()));
+        scenes.save(x);
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail deleteScene(String email, UUID id, UUID sceneId) {
+        User me = access.user(email);
+        AdRequest r = v2Editable(me, id);
+        scenes.findById(sceneId).filter(y -> y.getRequest().getId().equals(r.getId())).ifPresent(scenes::delete);
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail addRoleSheet(String email, UUID id, RoleSheetRequest req) {
+        User me = access.user(email);
+        AdRequest r = v2Editable(me, id);
+        AdRole x = new AdRole();
+        x.setRequest(r); x.setPosition((int) roleSheets.countByRequestId(r.getId()));
+        fillRole(r, x, req);
+        roleSheets.save(x);
+        log(r, me, "ROLE", "Fiche de rôle ajoutée : " + x.getName());
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail updateRoleSheet(String email, UUID id, UUID roleId, RoleSheetRequest req) {
+        User me = access.user(email);
+        AdRequest r = v2Editable(me, id);
+        AdRole x = roleSheets.findById(roleId).filter(y -> y.getRequest().getId().equals(r.getId()))
+                .orElseThrow(() -> new ResourceNotFoundException("Fiche de rôle introuvable"));
+        fillRole(r, x, req);
+        roleSheets.save(x);
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail deleteRoleSheet(String email, UUID id, UUID roleId) {
+        User me = access.user(email);
+        AdRequest r = v2Editable(me, id);
+        roleSheets.findById(roleId).filter(y -> y.getRequest().getId().equals(r.getId())).ifPresent(x -> {
+            roleSheets.delete(x);
+            log(r, me, "ROLE", "Fiche de rôle retirée : " + x.getName());
+        });
+        return detail(me, r);
+    }
+
+    /**
+     * Publication de la V2 : la version est figée, un projet de casting « publicité » est créé avec un rôle par fiche
+     * (intention et critères), le 1er AD et la production y sont associés ; les propositions d'acteurs peuvent commencer.
+     */
+    @Transactional
+    public Detail publishV2(String email, UUID id) {
+        User me = access.user(email);
+        AdRequest r = v2Editable(me, id);
+        List<AdRole> sheets = roleSheets.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId());
+        if (sheets.isEmpty()) throw new IllegalArgumentException("Ajoutez au moins une fiche de rôle avant de publier la V2");
+        List<String> noIntent = sheets.stream().filter(x -> x.getIntention() == null).map(AdRole::getName).toList();
+        if (!noIntent.isEmpty()) throw new IllegalArgumentException("Écrivez l'intention de chaque rôle : " + String.join(", ", noIntent));
+        AdVersion v2 = draftV2(r, me);
+        if (v2.getBody() == null && v2.getFileKey() == null && scenes.countByRequestId(r.getId()) == 0) {
+            throw new IllegalArgumentException("Écrivez la V2, déposez un fichier ou découpez au moins une scène avant de publier");
+        }
+        v2.setStatus(AdVersion.Status.LIVREE); v2.setDeliveredAt(LocalDateTime.now()); versions.save(v2);
+
+        User owner = r.getDirector() != null ? r.getDirector() : me;
+        Project p = Project.builder().owner(owner).title(cut(r.getTitle(), 160)).type(Project.Type.PUBLICITE)
+                .description(projectDescription(r, v2)).build();
+        p = projects.save(p);
+        Set<UUID> team = new LinkedHashSet<>();
+        if (r.getFirstAd() != null) team.add(r.getFirstAd().getId());
+        if (!owner.getId().equals(me.getId())) team.add(me.getId());
+        if (r.getProduction() != null) users.findAll().stream()
+                .filter(u -> u.getAgency() != null && u.getAgency().getId().equals(r.getProduction().getId()) && u.isEnabled())
+                .forEach(u -> team.add(u.getId()));
+        team.remove(owner.getId());
+        for (UUID u : team) members.save(new ProjectMember(p.getId(), u, LocalDateTime.now()));
+        int pos = 0;
+        for (AdRole x : sheets) {
+            CastingRole cr = CastingRole.builder().project(p).position(pos++).name(x.getName())
+                    .description(x.getAppearance()).intention(x.getIntention()).gender(x.getGender())
+                    .minAge(x.getMinAge()).maxAge(x.getMaxAge()).importance(x.getImportance()).build();
+            cr = castingRoles.save(cr);
+            x.setCastingRole(cr); roleSheets.save(x);
+        }
+        r.setProject(p);
+        r.setV2PublishedAt(LocalDateTime.now());
+        r.setStatus(AdRequest.Status.CASTING);
+        log(r, me, "V2_PUBLIEE", "V2 publiée par " + name(me) + " : " + sheets.size() + " rôle" + (sheets.size() > 1 ? "s" : "") + " au casting");
+        String body = "La V2 est publiée : " + sheets.size() + " rôle" + (sheets.size() > 1 ? "s" : "") + ". Les propositions d'acteurs commencent.";
+        notifyBrand(r, "V2 publiée : " + r.getTitle(), body);
+        notifyOrg(r.getAgency(), "V2 publiée : " + r.getTitle(), body, r);
+        notifyOrg(r.getProduction(), "V2 publiée : " + r.getTitle(), body, r);
+        if (r.getFirstAd() != null && !r.getFirstAd().getId().equals(me.getId())) notifications.push(r.getFirstAd().getId(), "DEMANDE", "V2 publiée : " + r.getTitle(), body, "/demandes/" + r.getId());
+        if (r.getDirector() != null && !r.getDirector().getId().equals(me.getId())) notifications.push(r.getDirector().getId(), "DEMANDE", "V2 publiée : " + r.getTitle(), body, "/demandes/" + r.getId());
+        return detail(me, r);
+    }
+
+    private AdRequest v2Editable(User me, UUID id) {
+        AdRequest r = visible(me, id);
+        if (!isDirectorSide(me, r)) throw new ForbiddenException("Seuls le réalisateur et le 1er AD écrivent la V2");
+        if (r.getStatus() != AdRequest.Status.V2_EN_COURS) throw new IllegalArgumentException("La V2 n'est plus modifiable");
+        return r;
+    }
+
+    private AdVersion draftV2(AdRequest r, User me) {
+        return versions.findFirstByRequestIdAndKindOrderByCreatedAtDesc(r.getId(), AdVersion.Kind.V2)
+                .filter(x -> x.getStatus() == AdVersion.Status.BROUILLON).orElseGet(() -> {
+                    AdVersion v = new AdVersion();
+                    v.setRequest(r); v.setKind(AdVersion.Kind.V2); v.setLabel("V2"); v.setAuthor(me);
+                    return versions.save(v);
+                });
+    }
+
+    /** Les scènes et fiches de rôle sont visibles du réalisateur et du 1er AD pendant l'écriture, de tous une fois la V2 publiée. */
+    private boolean seesV2(User me, AdRequest r) {
+        return r.getV2PublishedAt() != null || isDirectorSide(me, r) || me.getRole() == Role.ADMIN;
+    }
+
+    private void fillRole(AdRequest r, AdRole x, RoleSheetRequest q) {
+        if (q.gender() != null && !q.gender().isBlank() && !List.of("Femme", "Homme").contains(q.gender())) throw new IllegalArgumentException("Sexe : Femme ou Homme");
+        if (q.minAge() != null && (q.minAge() < 0 || q.minAge() > 100) || q.maxAge() != null && (q.maxAge() < 0 || q.maxAge() > 100)) throw new IllegalArgumentException("L'âge va de 0 à 100 ans");
+        if (q.minAge() != null && q.maxAge() != null && q.minAge() > q.maxAge()) throw new IllegalArgumentException("L'âge minimum dépasse l'âge maximum");
+        AdCharacter c = q.characterId() == null ? null : characters.findById(q.characterId()).filter(y -> y.getRequest().getId().equals(r.getId()))
+                .orElseThrow(() -> new IllegalArgumentException("Personnage introuvable"));
+        x.setCharacter(c); x.setName(q.name().trim()); x.setIntention(blank(q.intention()));
+        x.setGender(blank(q.gender())); x.setMinAge(q.minAge()); x.setMaxAge(q.maxAge()); x.setAppearance(blank(q.appearance()));
+        x.setImportance(q.importance() == null ? CastingRole.Importance.SECONDAIRE : q.importance());
+    }
+
+    private RoleSheetView roleView(AdRole x) {
+        return new RoleSheetView(x.getId(), x.getCharacter() == null ? null : x.getCharacter().getId(), x.getCharacter() == null ? null : x.getCharacter().getName(),
+                x.getName(), x.getIntention(), x.getGender(), x.getMinAge(), x.getMaxAge(), x.getAppearance(), x.getImportance(),
+                x.getCastingRole() == null ? null : x.getCastingRole().getId());
+    }
+
+    private static String projectDescription(AdRequest r, AdVersion v2) {
+        StringBuilder sb = new StringBuilder("Publicité");
+        if (r.getBrand() != null) sb.append(" pour ").append(r.getBrand().getName());
+        if (r.getProduct() != null) sb.append(" (").append(r.getProduct()).append(")");
+        sb.append(".");
+        if (v2.getBody() != null) sb.append("\n\n").append(v2.getBody());
+        return cut(sb.toString(), 4000);
+    }
+
+    private static String cut(String s, int n) { return s == null || s.length() <= n ? s : s.substring(0, n); }
+
     private AdRequest expectationsEditable(User me, UUID id) {
         AdRequest r = visible(me, id);
         if (!isProductionSide(me, r)) throw new ForbiddenException("Seule la boîte de production saisit les attentes");
@@ -626,7 +835,7 @@ public class DemandeService {
         List<VersionView> vs = versions.findByRequestIdOrderByCreatedAtAsc(r.getId()).stream()
                 // l'agence ne voit une version qu'une fois livrée
                 .filter(v -> v.getStatus() != AdVersion.Status.BROUILLON
-                        || (v.getKind() == AdVersion.Kind.V0 ? isBrandSide(me, r) : isAgencySide(me, r)))
+                        || (v.getKind() == AdVersion.Kind.V0 ? isBrandSide(me, r) : v.getKind() == AdVersion.Kind.V1 ? isAgencySide(me, r) : isDirectorSide(me, r)))
                 .map(v -> new VersionView(v.getId(), v.getKind(), v.getLabel(), v.getStatus(), v.getBody(), v.getFileName(), v.getFileType(),
                         v.getFileSize(), v.getAuthor() == null ? null : name(v.getAuthor()), v.getCreatedAt(), v.getDeliveredAt(),
                         v.getReviewComment(), v.getReviewedAt())).toList();
@@ -646,7 +855,13 @@ public class DemandeService {
                 characters.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId()).stream()
                         .map(c -> new CharacterView(c.getId(), c.getName(), c.getStory(), c.getBrandWish(), c.getAgencyWish(), c.getNotes())).toList(),
                 r.getDirector() == null ? null : name(r.getDirector()), r.getFirstAd() == null ? null : name(r.getFirstAd()),
-                r.getExpectationsSentAt(), vs, ev);
+                r.getExpectationsSentAt(),
+                isDirectorSide(me, r) && r.getStatus() == AdRequest.Status.V2_EN_COURS,
+                seesV2(me, r) ? scenes.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId()).stream()
+                        .map(x -> new SceneView(x.getId(), x.getTitle(), x.getDescription())).toList() : List.of(),
+                seesV2(me, r) ? roleSheets.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId()).stream().map(this::roleView).toList() : List.of(),
+                r.getProject() == null || !(isDirectorSide(me, r) || isProductionSide(me, r)) ? null : r.getProject().getId(),
+                r.getV2PublishedAt(), vs, ev);
     }
 
     private static Analysis analysis(AdRequest r) {

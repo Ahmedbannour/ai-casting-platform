@@ -82,6 +82,28 @@ public class DemandeController {
     @PostMapping("/{id}/transmettre")
     public DemandeService.Detail transmit(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.Transmit req) { return demandes.transmit(me.getUsername(), id, req); }
 
+    // T-163 · V2 du réalisateur : texte, fichier, scènes, fiches de rôle, publication
+    @PutMapping("/{id}/v2")
+    public DemandeService.Detail v2Text(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.V0Text req) { return demandes.saveV2Text(me.getUsername(), id, req); }
+    @PostMapping(value = "/{id}/v2/fichier", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public DemandeService.Detail v2File(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @RequestParam("file") MultipartFile file) { return demandes.uploadV2File(me.getUsername(), id, file); }
+    @DeleteMapping("/{id}/v2/fichier")
+    public DemandeService.Detail v2FileRemove(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id) { return demandes.removeV2File(me.getUsername(), id); }
+    @PostMapping("/{id}/scenes")
+    public DemandeService.Detail addScene(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.SceneRequest req) { return demandes.addScene(me.getUsername(), id, req); }
+    @PutMapping("/{id}/scenes/{sid}")
+    public DemandeService.Detail updateScene(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID sid, @Valid @RequestBody DemandeService.SceneRequest req) { return demandes.updateScene(me.getUsername(), id, sid, req); }
+    @DeleteMapping("/{id}/scenes/{sid}")
+    public DemandeService.Detail deleteScene(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID sid) { return demandes.deleteScene(me.getUsername(), id, sid); }
+    @PostMapping("/{id}/roles")
+    public DemandeService.Detail addRole(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.RoleSheetRequest req) { return demandes.addRoleSheet(me.getUsername(), id, req); }
+    @PutMapping("/{id}/roles/{rid}")
+    public DemandeService.Detail updateRole(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID rid, @Valid @RequestBody DemandeService.RoleSheetRequest req) { return demandes.updateRoleSheet(me.getUsername(), id, rid, req); }
+    @DeleteMapping("/{id}/roles/{rid}")
+    public DemandeService.Detail deleteRole(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID rid) { return demandes.deleteRoleSheet(me.getUsername(), id, rid); }
+    @PostMapping("/{id}/v2/publier")
+    public DemandeService.Detail publishV2(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id) { return demandes.publishV2(me.getUsername(), id); }
+
     @GetMapping("/{id}/versions/{versionId}/fichier")
     public ResponseEntity<byte[]> file(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID versionId) {
         DemandeService.FileData f = demandes.file(me.getUsername(), id, versionId);

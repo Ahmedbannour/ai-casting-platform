@@ -296,6 +296,70 @@ class DemandeApiTest {
         assertThat(read(send("GET", "/api/me/notifications", director, null)).get("items").toString()).contains("Nouvelle publicité");
     }
 
+    /** Sprint 4 · T-163 : le réalisateur écrit la V2 (scènes, fiches de rôle) et la publie : projet de casting et rôles créés. */
+    @Test
+    void leRealisateurPublieLaV2EtLesRolesSontCrees() throws Exception {
+        String admin = login("ahmed@casting.com", "password123");
+        String brandOrg = org(admin, "Marque Sel", "MARQUE"), agOrg = org(admin, "Agence Iota", "AGENCE_MARKETING"), prodOrg = org(admin, "Prod Kappa", "BOITE_PROD");
+        String brand = account(admin, "marque@sel.tn", "MARQUE", brandOrg);
+        String agency = account(admin, "agence@iota.tn", "AGENCE_MARKETING", agOrg);
+        String prod = account(admin, "prod@kappa.tn", "BOITE_PROD", prodOrg);
+        send("POST", "/api/admin/agents", admin, "{\"email\":\"real@kappa.tn\",\"firstName\":\"Rim\",\"lastName\":\"Real\",\"role\":\"REALISATEUR\",\"password\":\"Motdepasse-123\"}").andExpect(status().isCreated());
+        send("POST", "/api/admin/agents", admin, "{\"email\":\"ad@kappa.tn\",\"firstName\":\"Ali\",\"lastName\":\"AD\",\"role\":\"REALISATEUR\",\"password\":\"Motdepasse-123\"}").andExpect(status().isCreated());
+        String director = login("real@kappa.tn", "Motdepasse-123"), firstAd = login("ad@kappa.tn", "Motdepasse-123");
+
+        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Sel de Sfax\"}")).get("id").asString();
+        send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Les salines au lever du jour.\"}");
+        send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}");
+        send("POST", "/api/demandes/" + id + "/accepter", agency, null);
+        send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Concept : un saunier et sa fille.\"}");
+        send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null);
+        send("POST", "/api/demandes/" + id + "/v1/valider", brand, null);
+        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}");
+        String cid = read(send("POST", "/api/demandes/" + id + "/personnages", prod, "{\"name\":\"Le saunier\",\"brandWish\":\"Homme de 50 à 60 ans, mains marquées\"}")).get("characters").get(0).get("id").asString();
+        send("POST", "/api/demandes/" + id + "/transmettre", prod, "{\"directorId\":\"" + userId(admin, "real@kappa.tn") + "\",\"firstAdId\":\"" + userId(admin, "ad@kappa.tn") + "\"}").andExpect(status().isOk());
+
+        // Seuls le réalisateur et le 1er AD écrivent la V2
+        assertThat(read(send("GET", "/api/demandes/" + id, director, null)).get("canEditV2").asBoolean()).isTrue();
+        send("PUT", "/api/demandes/" + id + "/v2", prod, "{\"body\":\"x\"}").andExpect(status().isForbidden());
+        send("PUT", "/api/demandes/" + id + "/v2", director, "{\"body\":\"V2 : trois plans, lumière rasante, 30 secondes.\"}").andExpect(status().isOk());
+        send("POST", "/api/demandes/" + id + "/scenes", firstAd, "{\"title\":\"Scène 1 · Les salines\",\"description\":\"Plan large, le saunier ramasse le sel.\"}").andExpect(status().isOk());
+        // Publication impossible sans fiche de rôle, puis sans intention
+        send("POST", "/api/demandes/" + id + "/v2/publier", director, null).andExpect(status().isBadRequest());
+        send("POST", "/api/demandes/" + id + "/roles", director, "{\"name\":\"Le saunier\",\"gender\":\"Autre\"}").andExpect(status().isBadRequest());
+        send("POST", "/api/demandes/" + id + "/roles", director, "{\"name\":\"Le saunier\",\"minAge\":60,\"maxAge\":50}").andExpect(status().isBadRequest());
+        JsonNode withRole = read(send("POST", "/api/demandes/" + id + "/roles", director,
+                "{\"characterId\":\"" + cid + "\",\"name\":\"Le saunier\",\"gender\":\"Homme\",\"minAge\":50,\"maxAge\":65,\"appearance\":\"Mains marquées, peau tannée\",\"importance\":\"PRINCIPAL\"}").andExpect(status().isOk()));
+        String rid = withRole.get("roles").get(0).get("id").asString();
+        assertThat(withRole.get("roles").get(0).get("characterName").asString()).isEqualTo("Le saunier");
+        // Les brouillons de V2 ne sont pas visibles de la marque
+        JsonNode brandSees = read(send("GET", "/api/demandes/" + id, brand, null));
+        assertThat(brandSees.get("roles").size()).isZero();
+        assertThat(brandSees.get("versions").toString()).doesNotContain("lumière rasante");
+        send("POST", "/api/demandes/" + id + "/v2/publier", director, null).andExpect(status().isBadRequest());
+        send("PUT", "/api/demandes/" + id + "/roles/" + rid, director,
+                "{\"characterId\":\"" + cid + "\",\"name\":\"Le saunier\",\"intention\":\"Un homme fier de son travail, silencieux, dont le regard dit la fatigue et la tendresse.\",\"gender\":\"Homme\",\"minAge\":50,\"maxAge\":65,\"appearance\":\"Mains marquées, peau tannée\",\"importance\":\"PRINCIPAL\"}").andExpect(status().isOk());
+        send("POST", "/api/demandes/" + id + "/roles", director, "{\"name\":\"Ouvriers des salines\",\"intention\":\"Silhouettes au travail à l'arrière-plan.\",\"importance\":\"FIGURATION\"}").andExpect(status().isOk());
+
+        // Publication : V2 figée, statut casting, projet et rôles créés
+        JsonNode pub = read(send("POST", "/api/demandes/" + id + "/v2/publier", director, null).andExpect(status().isOk()));
+        assertThat(pub.get("status").asString()).isEqualTo("CASTING");
+        String projectId = pub.get("projectId").asString();
+        assertThat(pub.get("roles").get(0).get("castingRoleId").isNull()).isFalse();
+        send("PUT", "/api/demandes/" + id + "/v2", director, "{\"body\":\"y\"}").andExpect(status().isBadRequest());
+        JsonNode roles = read(send("GET", "/api/projects/" + projectId + "/roles", director, null).andExpect(status().isOk()));
+        assertThat(roles.size()).isEqualTo(2);
+        assertThat(roles.toString()).contains("fier de son travail").contains("FIGURATION");
+        // 1er AD et production ont accès au projet ; la marque voit la V2 et les rôles, sans le projet
+        send("GET", "/api/projects/" + projectId + "/roles", firstAd, null).andExpect(status().isOk());
+        send("GET", "/api/projects/" + projectId + "/roles", prod, null).andExpect(status().isOk());
+        JsonNode after = read(send("GET", "/api/demandes/" + id, brand, null));
+        assertThat(after.get("roles").size()).isEqualTo(2);
+        assertThat(after.get("versions").toString()).contains("lumière rasante");
+        assertThat(after.get("projectId").isNull()).isTrue();
+        assertThat(read(send("GET", "/api/me/notifications", brand, null)).get("items").toString()).contains("V2 publiée");
+    }
+
     private String userId(String admin, String email) throws Exception {
         JsonNode list = read(send("GET", "/api/admin/users", admin, null));
         JsonNode arr = list.isArray() ? list : list.get("content");

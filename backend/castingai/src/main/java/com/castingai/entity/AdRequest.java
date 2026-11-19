@@ -38,6 +38,9 @@ public class AdRequest {
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "director_id") private User director;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "first_ad_id") private User firstAd;
     @Column(name = "expectations_sent_at") private LocalDateTime expectationsSentAt;
+    /** T-163 · Projet de casting créé à la publication de la V2. */
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "project_id") private Project project;
+    @Column(name = "v2_published_at") private LocalDateTime v2PublishedAt;
 
     @Column(nullable = false, length = 160) private String title;
     @Column(length = 160) private String product;

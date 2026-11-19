@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
-import { CharacterRequest, DemandeCharacter, PersonOption } from '../../core/services/demande.service';
+import { CharacterRequest, DemandeCharacter, DemandeScene, Importance, PersonOption, RoleSheet, RoleSheetRequest } from '../../core/services/demande.service';
 import { AgencyOption, DemandeDetail, DemandeRequest, DemandeService, DemandeStatus, DemandeVersion, STATUS_LABEL } from '../../core/services/demande.service';
 
 /** Étapes affichées dans le suivi, dans l'ordre du cycle (cahier v2). */
@@ -272,6 +272,111 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             }
           </div>
         }
+        @if (x.canEditV2) {
+          <div class="card answer">
+            <h2>Votre V2</h2>
+            <p class="muted">La version détaillée de la publicité : découpage en scènes et une fiche par rôle, avec votre intention. À la publication, les rôles sont créés au casting et les propositions d'acteurs commencent.</p>
+            <label>Texte de la V2<textarea name="v2" [(ngModel)]="v2Text" rows="6" maxlength="20000" placeholder="Note d'intention, ton, rythme, durée…"></textarea></label>
+            <div class="row"><button type="button" class="ghost" (click)="saveV2()" [disabled]="busy()">Enregistrer le texte</button></div>
+            <div class="file">
+              @if (v2Draft()?.fileName) {
+                <span>📎 {{ v2Draft()!.fileName }} · {{ size(v2Draft()!.fileSize) }}</span>
+                <button type="button" class="link" (click)="download(v2Draft()!)">Télécharger</button>
+                <button type="button" class="link danger" (click)="removeV2File()" [disabled]="busy()">Retirer</button>
+              } @else {
+                <label class="drop"><input type="file" [accept]="acceptTypes" (change)="uploadV2($event)" [disabled]="busy()">
+                  <b>Déposer le fichier de la V2</b><span>Découpage, storyboard… 20 Mo maximum</span></label>
+              }
+            </div>
+          </div>
+        }
+        @if (x.canEditV2 || x.scenes.length) {
+          <div class="card">
+            <h2>Scènes</h2>
+            <ul class="chars">
+              @for (sc of x.scenes; track sc.id; let i = $index) {
+                <li>
+                  @if (sceneEditing() === sc.id) { <ng-container *ngTemplateOutlet="sceneEditor"></ng-container> }
+                  @else {
+                    <div class="char-head"><b>{{ sc.title }}</b>
+                      @if (x.canEditV2) { <span class="row"><button type="button" class="link" (click)="editScene(sc)">Modifier</button>
+                        <button type="button" class="link danger" (click)="deleteScene(sc)" [disabled]="busy()">Retirer</button></span> }
+                    </div>
+                    @if (sc.description) { <p class="body">{{ sc.description }}</p> }
+                  }
+                </li>
+              }
+            </ul>
+            @if (x.canEditV2) {
+              @if (sceneEditing() === 'new') { <ng-container *ngTemplateOutlet="sceneEditor"></ng-container> }
+              @else if (!sceneEditing()) { <div class="row"><button type="button" class="ghost" (click)="newScene()">Ajouter une scène</button></div> }
+            }
+          </div>
+        }
+        @if (x.canEditV2 || x.roles.length) {
+          <div class="card" [class.answer]="x.canEditV2">
+            <h2>Rôles et intentions</h2>
+            @if (x.canEditV2) { <p class="muted">Une fiche par rôle : votre intention (ce que l'acteur doit faire passer) et les critères. L'IA s'appuiera sur l'intention pour proposer des acteurs.</p> }
+            <ul class="chars">
+              @for (ro of x.roles; track ro.id) {
+                <li>
+                  @if (roleEditing() === ro.id) { <ng-container *ngTemplateOutlet="roleEditor"></ng-container> }
+                  @else {
+                    <div class="char-head"><b>{{ ro.name }} <small class="imp">{{ importanceLabel(ro.importance) }}</small></b>
+                      @if (x.canEditV2) { <span class="row"><button type="button" class="link" (click)="editRole(ro)">Modifier</button>
+                        <button type="button" class="link danger" (click)="deleteRole(ro)" [disabled]="busy()">Retirer</button></span> }
+                    </div>
+                    <dl>
+                      <dt>Intention</dt><dd>{{ ro.intention || 'À écrire' }}</dd>
+                      @if (criteria(ro); as c) { <dt>Critères</dt><dd>{{ c }}</dd> }
+                      @if (ro.appearance) { <dt>Apparence</dt><dd>{{ ro.appearance }}</dd> }
+                      @if (ro.characterName) { <dt>Personnage</dt><dd>{{ ro.characterName }}</dd> }
+                    </dl>
+                  }
+                </li>
+              }
+            </ul>
+            @if (x.canEditV2) {
+              @if (roleEditing() === 'new') { <ng-container *ngTemplateOutlet="roleEditor"></ng-container> }
+              @else if (!roleEditing()) { <div class="row"><button type="button" class="ghost" (click)="newRole()">Ajouter une fiche de rôle</button></div> }
+              <div class="row publish">
+                <button type="button" class="send" (click)="publishV2()" [disabled]="busy() || !x.roles.length || missingIntention()">Publier la V2 et lancer le casting</button>
+              </div>
+              @if (!x.roles.length) { <p class="hint">Ajoutez au moins une fiche de rôle.</p> }
+              @else if (missingIntention()) { <p class="hint">Écrivez l'intention de chaque rôle avant de publier.</p> }
+            }
+            @if (x.projectId) { <div class="row"><a class="send" [routerLink]="['/projects', x.projectId]">Ouvrir le casting</a></div> }
+          </div>
+        }
+        <ng-template #sceneEditor>
+          <div class="char-form">
+            <label>Titre de la scène *<input name="stitle" [(ngModel)]="sceneForm.title" maxlength="160" placeholder="Ex. Scène 1 · Les salines au lever du jour"></label>
+            <label>Ce qu'on y voit<textarea name="sdesc" [(ngModel)]="sceneForm.description" rows="3" maxlength="4000"></textarea></label>
+            <div class="row"><button type="button" class="send" (click)="saveScene()" [disabled]="busy() || !sceneForm.title.trim()">{{ sceneEditing() === 'new' ? 'Ajouter la scène' : 'Enregistrer' }}</button>
+              <button type="button" class="link" (click)="sceneEditing.set(null)">Annuler</button></div>
+          </div>
+        </ng-template>
+        <ng-template #roleEditor>
+          <div class="char-form">
+            @if (x.characters.length) {
+              <label>À partir d'un personnage<select name="rchar" [(ngModel)]="roleForm.characterId" (ngModelChange)="fromCharacter($event)">
+                <option [ngValue]="null">Aucun</option>
+                @for (c of x.characters; track c.id) { <option [ngValue]="c.id">{{ c.name }}</option> }
+              </select></label>
+            }
+            <label>Nom du rôle *<input name="rname" [(ngModel)]="roleForm.name" maxlength="120"></label>
+            <label>Intention du réalisateur *<textarea name="rintent" [(ngModel)]="roleForm.intention" rows="3" maxlength="4000" placeholder="Ce que l'acteur doit faire passer : émotion, présence, rapport aux autres…"></textarea></label>
+            <div class="three">
+              <label>Sexe<select name="rgender" [(ngModel)]="roleForm.gender"><option [ngValue]="null">Indifférent</option><option value="Femme">Femme</option><option value="Homme">Homme</option></select></label>
+              <label>Âge minimum<input name="rmin" type="number" min="0" max="100" [(ngModel)]="roleForm.minAge"></label>
+              <label>Âge maximum<input name="rmax" type="number" min="0" max="100" [(ngModel)]="roleForm.maxAge"></label>
+            </div>
+            <label>Apparence<textarea name="rapp" [(ngModel)]="roleForm.appearance" rows="2" maxlength="4000" placeholder="Silhouette, style, signes particuliers…"></textarea></label>
+            <label>Importance<select name="rimp" [(ngModel)]="roleForm.importance"><option value="PRINCIPAL">Principal</option><option value="SECONDAIRE">Secondaire</option><option value="FIGURATION">Figuration</option></select></label>
+            <div class="row"><button type="button" class="send" (click)="saveRole()" [disabled]="busy() || !roleForm.name.trim()">{{ roleEditing() === 'new' ? 'Ajouter la fiche' : 'Enregistrer' }}</button>
+              <button type="button" class="link" (click)="roleEditing.set(null)">Annuler</button></div>
+          </div>
+        </ng-template>
         <ng-template #charEditor>
           <div class="char-form">
             <label>Personnage *<input name="cname" [(ngModel)]="charForm.name" maxlength="120" placeholder="Ex. Leila, la mère, le grand-père…"></label>
@@ -373,6 +478,11 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .char-head b { font-size: 15px; }
     .char-form { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 12px; border: 1px dashed var(--accent); }
     .card h3 { margin: 6px 0 0; font-size: 14px; }
+    .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .imp { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-left: 6px; }
+    .publish { padding-top: 6px; border-top: 1px solid var(--border); }
+    a.send { display: inline-flex; align-items: center; text-decoration: none; }
+    @media (max-width: 900px) { .three { grid-template-columns: 1fr 1fr; } }
     .pts { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.45; }
     .err { color: #e5484d; margin: 0; }
     @media (max-width: 900px) { .page { padding: 18px 14px 104px; } .two { grid-template-columns: 1fr; } .head h1 { font-size: 28px; } }
@@ -396,6 +506,13 @@ export class DemandeComponent {
   readonly refusing = signal(false);
   readonly revising = signal(false);
   readonly directors = signal<PersonOption[]>([]);
+  readonly sceneEditing = signal<string | null>(null);
+  readonly roleEditing = signal<string | null>(null);
+  v2Text = '';
+  sceneForm = { title: '', description: '' };
+  roleForm: RoleSheetRequest = this.emptyRole();
+  readonly v2Draft = computed(() => (this.d()?.versions ?? []).find(v => v.kind === 'V2' && v.status === 'BROUILLON') ?? null);
+  readonly missingIntention = computed(() => (this.d()?.roles ?? []).some(r => !r.intention));
   /** Personnage en cours d'édition : son id, « new » pour un ajout, ou null. */
   readonly editingId = signal<string | null>(null);
   charForm: { name: string; story: string; brandWish: string; agencyWish: string; notes: string } = { name: '', story: '', brandWish: '', agencyWish: '', notes: '' };
@@ -463,6 +580,7 @@ export class DemandeComponent {
     const v1 = [...x.versions].reverse().find(v => v.kind === 'V1');
     this.v1Text = v1 && v1.status === 'BROUILLON' ? (v1.body ?? '') : (x.canEditV1 && v1 ? (v1.body ?? '') : '');
     this.revising.set(false); this.comment = '';
+    this.v2Text = x.versions.find(v => v.kind === 'V2' && v.status === 'BROUILLON')?.body ?? this.v2Text;
     if (x.canChooseProduction && !this.productions().length) this.loadProductions();
   }
 
@@ -554,6 +672,52 @@ export class DemandeComponent {
   transmit() {
     const x = this.d(); if (!x || !this.directorId) return;
     this.run(this.api.transmit(x.id, this.directorId, this.firstAdId), 'Attentes transmises. Le réalisateur est prévenu.', r => this.apply(r));
+  }
+  private emptyRole(): RoleSheetRequest { return { characterId: null, name: '', intention: null, gender: null, minAge: null, maxAge: null, appearance: null, importance: 'SECONDAIRE' }; }
+  importanceLabel(i: Importance) { return i === 'PRINCIPAL' ? 'principal' : i === 'FIGURATION' ? 'figuration' : 'secondaire'; }
+  criteria(r: RoleSheet) {
+    const age = r.minAge != null && r.maxAge != null ? `${r.minAge} à ${r.maxAge} ans` : r.minAge != null ? `${r.minAge} ans et plus` : r.maxAge != null ? `jusqu'à ${r.maxAge} ans` : '';
+    return [r.gender, age].filter(Boolean).join(' · ');
+  }
+  saveV2() { const x = this.d(); if (x) this.run(this.api.saveV2(x.id, this.v2Text), 'Texte enregistré.', r => this.apply(r)); }
+  uploadV2(ev: Event) {
+    const input = ev.target as HTMLInputElement; const file = input.files?.[0]; const x = this.d();
+    if (!file || !x) return;
+    if (file.size > 20 * 1024 * 1024) { this.error.set('Le fichier dépasse 20 Mo.'); input.value = ''; return; }
+    this.run(this.api.uploadV2(x.id, file), 'Fichier déposé.', r => this.apply(r)); input.value = '';
+  }
+  removeV2File() { const x = this.d(); if (x) this.run(this.api.removeV2File(x.id), 'Fichier retiré.', r => this.apply(r)); }
+  newScene() { this.sceneForm = { title: '', description: '' }; this.sceneEditing.set('new'); }
+  editScene(sc: DemandeScene) { this.sceneForm = { title: sc.title, description: sc.description ?? '' }; this.sceneEditing.set(sc.id); }
+  saveScene() {
+    const x = this.d(), e = this.sceneEditing(); if (!x || !e || !this.sceneForm.title.trim()) return;
+    const b = { title: this.sceneForm.title.trim(), description: this.sceneForm.description.trim() || null };
+    this.run(e === 'new' ? this.api.addScene(x.id, b) : this.api.updateScene(x.id, e, b), e === 'new' ? 'Scène ajoutée.' : 'Scène enregistrée.', r => { this.sceneEditing.set(null); this.apply(r); });
+  }
+  deleteScene(sc: DemandeScene) { const x = this.d(); if (x) this.run(this.api.deleteScene(x.id, sc.id), 'Scène retirée.', r => this.apply(r)); }
+  newRole() { this.roleForm = this.emptyRole(); this.roleEditing.set('new'); }
+  editRole(r: RoleSheet) {
+    this.roleForm = { characterId: r.characterId, name: r.name, intention: r.intention, gender: r.gender, minAge: r.minAge, maxAge: r.maxAge, appearance: r.appearance, importance: r.importance };
+    this.roleEditing.set(r.id);
+  }
+  /** Reprend le nom du personnage et les attentes de la marque comme point de départ de l'apparence. */
+  fromCharacter(cid: string | null) {
+    const c = this.d()?.characters.find(y => y.id === cid); if (!c) return;
+    if (!this.roleForm.name.trim()) this.roleForm.name = c.name;
+    if (!this.roleForm.appearance) this.roleForm.appearance = [c.brandWish, c.agencyWish].filter(Boolean).join(' · ') || null;
+  }
+  saveRole() {
+    const x = this.d(), e = this.roleEditing(); if (!x || !e || !this.roleForm.name.trim()) return;
+    const f = this.roleForm, t = (v: string | null) => (v ?? '').trim() || null, n = (v: number | null) => v === null || (v as unknown) === '' ? null : Number(v);
+    const b: RoleSheetRequest = { characterId: f.characterId, name: f.name.trim(), intention: t(f.intention), gender: f.gender, minAge: n(f.minAge), maxAge: n(f.maxAge), appearance: t(f.appearance), importance: f.importance };
+    this.run(e === 'new' ? this.api.addRole(x.id, b) : this.api.updateRole(x.id, e, b), e === 'new' ? 'Fiche de rôle ajoutée.' : 'Fiche de rôle enregistrée.', r => { this.roleEditing.set(null); this.apply(r); });
+  }
+  deleteRole(r: RoleSheet) { const x = this.d(); if (x) this.run(this.api.deleteRole(x.id, r.id), r.name + ' retiré.', y => this.apply(y)); }
+  publishV2() {
+    const x = this.d(); if (!x) return; const id = x.id;
+    const go = () => this.run(this.api.publishV2(id), 'V2 publiée : les rôles sont au casting, les propositions peuvent commencer.', r => this.apply(r));
+    if ((this.v2Draft()?.body ?? '') !== this.v2Text) { this.busy.set(true); this.api.saveV2(id, this.v2Text).subscribe({ next: () => go(), error: () => go() }); }
+    else go();
   }
   copyQuestions(q: string[]) {
     navigator.clipboard?.writeText(q.map(x => '- ' + x).join('\n')).then(() => this.msg.set('Questions copiées.'), () => this.error.set('Copie impossible.'));

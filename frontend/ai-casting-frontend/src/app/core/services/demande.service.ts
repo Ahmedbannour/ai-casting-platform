@@ -25,13 +25,19 @@ export interface DemandeAnalysis { summary: string; missing: string[]; questions
 export interface DemandeCharacter { id: string; name: string; story: string | null; brandWish: string | null; agencyWish: string | null; notes: string | null; }
 export interface CharacterRequest { name: string; story?: string | null; brandWish?: string | null; agencyWish?: string | null; notes?: string | null; }
 export interface PersonOption { id: string; name: string; organisation: string | null; }
+export interface DemandeScene { id: string; title: string; description: string | null; }
+export type Importance = 'PRINCIPAL' | 'SECONDAIRE' | 'FIGURATION';
+export interface RoleSheet { id: string; characterId: string | null; characterName: string | null; name: string; intention: string | null; gender: string | null;
+  minAge: number | null; maxAge: number | null; appearance: string | null; importance: Importance; castingRoleId: string | null; }
+export interface RoleSheetRequest { characterId: string | null; name: string; intention: string | null; gender: string | null; minAge: number | null; maxAge: number | null; appearance: string | null; importance: Importance; }
 export interface DemandeEvent { type: string; message: string; actorName: string | null; createdAt: string; }
 export interface DemandeDetail {
   id: string; title: string; product: string | null; objective: string | null; target: string | null; keyMessage: string | null;
   airDate: string | null; status: DemandeStatus; brandName: string; agencyId: string | null; agencyName: string | null; createdByName: string;
   createdAt: string; updatedAt: string; canEdit: boolean; canRespond: boolean; canAnalyse: boolean; analysis: DemandeAnalysis | null;
   canEditV1: boolean; canReviewV1: boolean; canChooseProduction: boolean; v1Validated: boolean; productionName: string | null;
-  canEditExpectations: boolean; characters: DemandeCharacter[]; directorName: string | null; firstAdName: string | null; expectationsSentAt: string | null; versions: DemandeVersion[]; events: DemandeEvent[];
+  canEditExpectations: boolean; characters: DemandeCharacter[]; directorName: string | null; firstAdName: string | null; expectationsSentAt: string | null;
+  canEditV2: boolean; scenes: DemandeScene[]; roles: RoleSheet[]; projectId: string | null; v2PublishedAt: string | null; versions: DemandeVersion[]; events: DemandeEvent[];
 }
 export interface DemandeRequest { title: string; product?: string | null; objective?: string | null; target?: string | null; keyMessage?: string | null; airDate?: string | null; }
 export interface AgencyOption { id: string; name: string; city: string | null; }
@@ -71,5 +77,15 @@ export class DemandeService {
   deleteCharacter(id: string, cid: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/personnages/${cid}`); }
   directors(): Observable<PersonOption[]> { return this.http.get<PersonOption[]>(`${this.url}/realisateurs`); }
   transmit(id: string, directorId: string, firstAdId: string | null): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/transmettre`, { directorId, firstAdId }); }
+  saveV2(id: string, body: string): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/v2`, { body }); }
+  uploadV2(id: string, file: File): Observable<DemandeDetail> { const f = new FormData(); f.append('file', file); return this.http.post<DemandeDetail>(`${this.url}/${id}/v2/fichier`, f); }
+  removeV2File(id: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/v2/fichier`); }
+  addScene(id: string, b: { title: string; description: string | null }): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/scenes`, b); }
+  updateScene(id: string, sid: string, b: { title: string; description: string | null }): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/scenes/${sid}`, b); }
+  deleteScene(id: string, sid: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/scenes/${sid}`); }
+  addRole(id: string, b: RoleSheetRequest): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/roles`, b); }
+  updateRole(id: string, rid: string, b: RoleSheetRequest): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/roles/${rid}`, b); }
+  deleteRole(id: string, rid: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/roles/${rid}`); }
+  publishV2(id: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/v2/publier`, {}); }
   file(id: string, versionId: string): Observable<Blob> { return this.http.get(`${this.url}/${id}/versions/${versionId}/fichier`, { responseType: 'blob' }); }
 }
