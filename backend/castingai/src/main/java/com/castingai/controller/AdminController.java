@@ -75,7 +75,8 @@ public class AdminController {
     }
 
     public record UserRow(UUID id, String email, String firstName, String lastName, String role, boolean enabled,
-                          String provider, LocalDateTime createdAt, UUID agencyId, String agencyName, boolean emailVerified) {}
+                          String provider, LocalDateTime createdAt, UUID agencyId, String agencyName, boolean emailVerified,
+                          boolean pendingApproval) {}
     public record CreateAgentRequest(
             @NotBlank(message = "L'adresse e-mail est obligatoire") @Email(message = "Adresse e-mail invalide") String email,
             @NotBlank(message = "Le prénom est obligatoire") @Size(max = 80) String firstName,
@@ -160,6 +161,8 @@ public class AdminController {
         if (req.role() != null && req.role() != u.getRole()) changes.add("rôle " + u.getRole() + " → " + req.role());
         String agencyBefore = u.getAgency() == null ? null : u.getAgency().getName();
         if (req.enabled() != null) u.setEnabled(req.enabled());
+        // T-157 : activer un compte inscrit en ligne le valide
+        if (Boolean.TRUE.equals(req.enabled()) && u.isPendingApproval()) { u.setPendingApproval(false); changes.add("inscription validée"); }
         if (req.role() != null && req.role() != u.getRole()) {
             if (u.getRole() == Role.ACTEUR || req.role() == Role.ACTEUR) {
                 throw new IllegalArgumentException("Un compte acteur reste un compte acteur");
@@ -199,7 +202,7 @@ public class AdminController {
         return new UserRow(u.getId(), u.getEmail(), u.getFirstName(), u.getLastName(), u.getRole().name(), u.isEnabled(),
                 u.getAuthProvider(), u.getCreatedAt(),
                 u.getAgency() == null ? null : u.getAgency().getId(), u.getAgency() == null ? null : u.getAgency().getName(),
-                u.getEmailVerifiedAt() != null || !"LOCAL".equals(u.getAuthProvider()));
+                u.getEmailVerifiedAt() != null || !"LOCAL".equals(u.getAuthProvider()), u.isPendingApproval());
     }
 
     private static final String ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";

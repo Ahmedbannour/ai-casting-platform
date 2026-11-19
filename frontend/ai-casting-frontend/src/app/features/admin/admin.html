@@ -355,7 +355,8 @@
                         @if (providerLabel(u.provider)) { <span class="prov" [class.g]="u.provider === 'GOOGLE'" [class.f]="u.provider === 'FACEBOOK'">{{ providerLabel(u.provider) }}</span> }
                         <span>Depuis le {{ since(u.createdAt) }}</span>
                         @if (!u.emailVerified) { <span class="unverif">E-mail non vérifié</span> }
-                        @if (!u.enabled) { <span class="offtag">Désactivé</span> }
+                        @if (u.pendingApproval) { <span class="offtag wait">Inscription à valider</span> }
+                        @else if (!u.enabled) { <span class="offtag">Désactivé</span> }
                       </span>
                     </div>
                     <div class="ctl">
@@ -377,6 +378,8 @@
                         <span class="confirm" role="alertdialog" [attr.aria-label]="'Désactiver ' + u.firstName + ' ' + u.lastName">Désactiver ?
                           <button type="button" class="yes" (click)="setEnabled(u, false)">Désactiver</button>
                           <button type="button" (click)="confirming.set(null)">Annuler</button></span>
+                      } @else if (u.pendingApproval) {
+                        <button type="button" class="validate" (click)="setEnabled(u, true)">Valider le compte</button>
                       } @else {
                         <button type="button" class="sw" role="switch" [attr.aria-checked]="u.enabled" (click)="toggleEnabled(u)"
                                 [attr.aria-label]="'Compte de ' + u.firstName + ' ' + u.lastName + (u.enabled ? ' actif' : ' désactivé')"

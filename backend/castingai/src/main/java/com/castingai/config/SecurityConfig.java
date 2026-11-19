@@ -58,7 +58,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/health",
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/register-pro", "/api/auth/refresh", "/api/health",
                                 "/api/auth/providers", "/api/auth/google", "/api/auth/facebook").permitAll()
                         .requestMatchers("/error").permitAll()
                         // Page de partage au réalisateur : accès par lien secret, sans compte

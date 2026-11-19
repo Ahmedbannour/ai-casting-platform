@@ -23,6 +23,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final com.castingai.service.SocialAuthService socialAuth;
+    private final com.castingai.service.ProRegistrationService proRegistration;
 
     public record TokenRequest(@jakarta.validation.constraints.NotBlank(message = "Jeton manquant") String token) {}
 
@@ -30,6 +31,13 @@ public class AuthController {
     @GetMapping("/providers")
     public com.castingai.service.SocialAuthService.Providers providers() {
         return socialAuth.providers();
+    }
+
+    /** T-157 · Inscription d'un professionnel (marque, agence, réalisateur, production), validée ensuite par l'administrateur. */
+    @PostMapping("/register-pro")
+    public ResponseEntity<com.castingai.service.ProRegistrationService.Result> registerPro(
+            @Valid @RequestBody com.castingai.service.ProRegistrationService.Request req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(proRegistration.register(req));
     }
 
     @PostMapping("/google")

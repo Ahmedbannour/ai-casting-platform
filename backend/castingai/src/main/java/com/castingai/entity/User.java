@@ -46,6 +46,11 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private boolean enabled;
 
+    /** T-157 · Compte professionnel inscrit seul : en attente de la validation de l'administrateur. */
+    @Column(name = "pending_approval", nullable = false)
+    @Builder.Default
+    private boolean pendingApproval = false;
+
     /** Agence cliente de l'agent (null : administrateur de la plateforme, ou acteur). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "agency_id")

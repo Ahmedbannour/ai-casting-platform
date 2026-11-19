@@ -53,6 +53,11 @@ export class AuthService {
     );
   }
 
+  /** T-157 · Inscription d'un professionnel : pas de session, le compte attend la validation de l'administrateur. */
+  registerPro(body: Record<string, unknown>): Observable<{ status: string; message: string }> {
+    return this.http.post<{ status: string; message: string }>(`${this.apiUrl}/register-pro`, body);
+  }
+
   register(request: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, request).pipe(
       tap(response => this.tokenService.setTokens(response.accessToken, response.refreshToken, response.role))

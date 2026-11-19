@@ -7,7 +7,7 @@
   "debut": "2026-11-15",
   "maj": "2026-11-19",
   "jour": "J7",
-  "avancement": 77,
+  "avancement": 78,
   "avancement_veille": 97,
   "phase_courante": "PH4"
  },
@@ -40,7 +40,7 @@
    "id": "PH4",
    "nom": "Phase 4 · Cahier v2 : chaîne publicitaire",
    "semaines": "23/11 → 03/01",
-   "avancement": 35
+   "avancement": 48
   }
  ],
  "departements": [
@@ -946,6 +946,23 @@
    ],
    "livrables": [
     "T-170"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-056",
+   "date": "2026-11-19",
+   "titre": "Reprise d'AI Casting",
+   "original": "ok lance le jacob sur le tel , et reprend le travail sur ia casting",
+   "ameliore": "Lancer Safi Jacob sur le téléphone (serveur déjà démarré), puis reprendre la file d'AI Casting : T-156, T-157, puis sprint 2.",
+   "departements": [
+    "front",
+    "back",
+    "qa"
+   ],
+   "livrables": [
+    "T-156",
+    "T-157"
    ],
    "statut": "Livré"
   }
@@ -3018,10 +3035,10 @@
    "resp": "Julien Petit",
    "prio": "P1",
    "phase": "PH4",
-   "statut": "en_cours",
+   "statut": "fait",
    "prompt": "P-049",
    "jour": "J7",
-   "detail": "Ces acteurs ne passent pas par le formulaire d'inscription : la question s'affichera à leur première connexion."
+   "detail": "Livré : un acteur sans réponse (inscrit avec Google ou Facebook, ou avant la v2) voit la question en haut de « Mon espace », une seule fois ; réponse enregistrée et reprise dans le profil. Recette test-figuration-ask : question affichée, message sans choix, réponse « Extra » enregistrée, question absente au rechargement."
   },
   {
    "id": "T-157",
@@ -3030,10 +3047,10 @@
    "resp": "Claire Dubois",
    "prio": "P1",
    "phase": "PH4",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-048",
    "jour": "J7",
-   "detail": "Une marque, une agence, un réalisateur ou une boîte de production crée son compte et son organisation ; l'administrateur valide avant accès."
+   "detail": "Livré : page « Créer un compte professionnel » (marque, agence marketing, réalisateur ou 1er AD, boîte de production) avec son organisation ; le compte attend la validation (V33) ; message clair à la connexion avant validation ; l'administrateur valide d'un clic (filtre « À valider »). Recette test-inscription-pro : demande envoyée, connexion refusée (403) puis acceptée après validation, réalisateur indépendant accepté, rôle acteur refusé. 73 tests serveur verts."
   },
   {
    "id": "T-158",
@@ -3042,7 +3059,7 @@
    "resp": "Antoine Roux",
    "prio": "P0",
    "phase": "PH4",
-   "statut": "a_faire",
+   "statut": "en_cours",
    "prompt": "P-046",
    "jour": "J7",
    "detail": "Sprint 2 (30/11 → 06/12). Demande (titre, produit, objectif, cible, message, date de diffusion ; pas de budget) ; V0 = fichier artistique (PDF, Word, PowerPoint, 20 Mo) et/ou texte libre ; choix de l'agence."
@@ -3250,7 +3267,7 @@
   {
    "date": "2026-11-19",
    "jour": "J7",
-   "resume": "Cahier des charges v2 : la plateforme porte toute la chaîne d'une publicité (marque → agence → production → réalisateur et 1er AD → IA → casting → PPM). Six rôles, chacun avec son compte. Sprint 1 livré en grande partie : rôles et migration des agents, espaces par rôle, intention du réalisateur à la place du prompt, figuration à l'inscription, page « Mon profil » corrigée. 73 tests serveur verts. Safi Jacob mis en pause.",
+   "resume": "Cahier des charges v2 : la plateforme porte toute la chaîne d'une publicité (marque → agence → production → réalisateur et 1er AD → IA → casting → PPM). Six rôles, chacun avec son compte. Sprint 1 terminé : rôles et migration des agents, espaces par rôle, intention du réalisateur à la place du prompt, figuration à l'inscription, page « Mon profil » corrigée. 73 tests serveur verts. Safi Jacob mis en pause.",
    "decisions": [
     "D-017 : cahier des charges v2 et plan en 6 sprints (23/11 → 03/01)",
     "D-018 : l'intention du réalisateur remplace le prompt",
@@ -3261,10 +3278,7 @@
     "D-023 : trois recrutements (DevOps / SRE, ML / NLP, consultant production publicitaire) et 8 tâches réaffectées",
     "D-024 : revue de performance — 1 résiliation (Nicolas Perrin), 1 remplacement (Philippe Garnier par Khaled Mzoughi), 4 mises sous objectif jusqu'au 26/11"
    ],
-   "risques": [
-    "Les acteurs inscrits par Google ou Facebook ne voient pas encore la question de la figuration (T-156)",
-    "Seul l'administrateur crée les comptes marque, agence, réalisateur et production (T-157)"
-   ],
+   "risques": [],
    "attente_client": [
     "Décider qui paie l'abonnement et à quel tarif",
     "Relire les définitions des 3 types de figuration",
@@ -3273,58 +3287,58 @@
   }
  ],
  "maintenant": {
-  "titre": "P-052 · Salle à jour, sprint 1 en cours",
-  "etape": 52,
+  "titre": "P-056 · Sprint 1 terminé, sprint 2 lancé",
+  "etape": 56,
   "agents": [
    {
-    "nom": "Julien Petit",
-    "action": "Figuration pour les inscrits Google ou Facebook",
-    "court": "T-156"
+    "nom": "Antoine Roux",
+    "action": "Demande de publicité et dépôt de la V0",
+    "court": "T-158"
    },
    {
-    "nom": "Claire Dubois",
-    "action": "Inscription libre par rôle",
-    "court": "T-157"
+    "nom": "Hichem Jaziri",
+    "action": "Étapes et notifications d'une demande",
+    "court": "T-159"
    },
    {
-    "nom": "Amel Kacem",
-    "action": "Recette des espaces par rôle",
-    "court": "QA"
+    "nom": "Sami Kefi",
+    "action": "Déploiement de production",
+    "court": "T-124"
    }
   ],
   "progres": {
-   "tache": "T-156",
-   "titre": "Figuration à la première connexion",
+   "tache": "T-158",
+   "titre": "Demande et V0 artistique",
    "etapes": [
     {
-     "t": "Cahier v2",
-     "s": "fait"
-    },
-    {
-     "t": "Six rôles",
-     "s": "fait"
-    },
-    {
-     "t": "Intention",
-     "s": "fait"
-    },
-    {
-     "t": "Figuration",
-     "s": "fait"
-    },
-    {
-     "t": "Google et Facebook",
+     "t": "Modèle de données",
      "s": "en_cours"
     },
     {
-     "t": "Inscription par rôle",
+     "t": "API",
+     "s": "a_faire"
+    },
+    {
+     "t": "Écran marque",
+     "s": "a_faire"
+    },
+    {
+     "t": "Dépôt du fichier",
+     "s": "a_faire"
+    },
+    {
+     "t": "Recette",
+     "s": "a_faire"
+    },
+    {
+     "t": "Git",
      "s": "a_faire"
     }
    ]
   },
   "derniere": {
-   "t": "2026-11-19T12:15:00Z",
-   "texte": "Revue de performance : 1 départ, 1 remplacement, 4 objectifs au 26/11"
+   "t": "2026-11-19T12:55:00Z",
+   "texte": "Sprint 1 terminé : six rôles, intention, figuration, inscription des professionnels"
   }
  },
  "activite": [
@@ -3633,6 +3647,24 @@
    "nom": "Sonia Mercier",
    "t": "2026-11-19T12:15:00Z",
    "texte": "Mis sous objectif jusqu'au 26/11 : Mehdi Amrani (T-032), Aurélie Fontaine (T-033), Inès Garnier (T-031), Thomas Girard (T-122)."
+  },
+  {
+   "h": "J7",
+   "nom": "Julien Petit",
+   "t": "2026-11-19T12:40:00Z",
+   "texte": "Figuration demandée dans « Mon espace » aux acteurs inscrits avec Google ou Facebook (T-156)."
+  },
+  {
+   "h": "J7",
+   "nom": "Claire Dubois",
+   "t": "2026-11-19T12:50:00Z",
+   "texte": "Inscription des professionnels avec validation par l'administrateur (T-157) : sprint 1 terminé."
+  },
+  {
+   "h": "J7",
+   "nom": "Amel Kacem",
+   "t": "2026-11-19T12:55:00Z",
+   "texte": "Recette du sprint 1 : 73 tests serveur verts, inscription pro et figuration vérifiées dans le navigateur."
   }
  ],
  "plan": {
@@ -3794,8 +3826,6 @@
    }
   ],
   "file": [
-   "T-156",
-   "T-157",
    "T-158",
    "T-159",
    "T-160",
@@ -3820,7 +3850,7 @@
    "T-100",
    "T-127"
   ],
-  "courante": "T-156",
+  "courante": "T-158",
   "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages ».",
   "calendrier": {
    "T-103": {
@@ -4025,14 +4055,16 @@
    },
    "T-156": {
     "debut": "2026-11-19",
-    "fin": "2026-11-23"
+    "fin": "2026-11-19",
+    "reel": true
    },
    "T-157": {
-    "debut": "2026-11-23",
-    "fin": "2026-11-27"
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
    },
    "T-158": {
-    "debut": "2026-11-30",
+    "debut": "2026-11-20",
     "fin": "2026-12-04"
    },
    "T-159": {

@@ -79,6 +79,10 @@ public class AuthServiceImpl implements AuthService {
     @Transactional(noRollbackFor = org.springframework.security.core.AuthenticationException.class)
     public AuthResponse login(LoginRequest request, String clientIp) {
         loginAttempts.checkAllowed(request.getEmail(), clientIp);
+        userRepository.findByEmail(request.getEmail() == null ? "" : request.getEmail().trim().toLowerCase())
+                .filter(User::isPendingApproval)
+                .ifPresent(u -> { throw new com.castingai.exception.ForbiddenException(
+                        "Votre compte attend la validation de l'équipe AI Casting. Vous recevrez l'accès dès qu'il sera validé."); });
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())

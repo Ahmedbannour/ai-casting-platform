@@ -7,6 +7,7 @@ import { MeService, Visibility } from '../../core/services/me.service';
 import { MyOffer, OFFER_KIND, OfferService } from '../../core/services/offer.service';
 import { AgendaItem, AgendaService } from '../../core/services/agenda.service';
 import { ProfileScoreComponent } from '../actors/actor-form/profile-score';
+import { FigurationAskComponent } from '../actors/figuration-ask';
 import { DAYS_FR, MONTHS_SHORT_FR, addDays, fromIso, todayIso } from '../../shared/forms/dates';
 
 interface Notif { id: string; kind: string; title: string; body: string | null; link: string | null; createdAt: number; read: boolean; }
@@ -19,7 +20,7 @@ interface FeedEvent { at: number; icon: string; title: string; body: string; lin
 @Component({
   selector: 'app-actor-home',
   standalone: true,
-  imports: [RouterLink, ProfileScoreComponent],
+  imports: [RouterLink, ProfileScoreComponent, FigurationAskComponent],
   template: `
   <div class="page">
     <header class="head">
@@ -34,6 +35,8 @@ interface FeedEvent { at: number; icon: string; title: string; body: string; lin
         </a>
       }
     </header>
+
+    <app-figuration-ask />
 
     @if (loading()) {
       <div class="tiles"><div class="tile skel"></div><div class="tile skel"></div><div class="tile skel"></div></div>

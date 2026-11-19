@@ -239,7 +239,7 @@ export class AdminComponent implements OnInit {
   orgOptionsFor(r: string) { const k = ORG_KIND[r as Role]; return this.agencies().filter(a => !k || (a.kind ?? 'BOITE_PROD') === k).map(a => ({ value: a.id, label: a.name + (a.status === 'EXPIRE' ? ' (contrat échu)' : '') })); }
   readonly filters = [
     { value: '', label: 'Tous' }, { value: 'ADMIN', label: 'Administrateurs' }, { value: 'PRO', label: 'Professionnels' },
-    { value: 'ACTEUR', label: 'Acteurs' }, { value: 'UNVERIF', label: 'E-mail à vérifier' }, { value: 'OFF', label: 'Désactivés' }
+    { value: 'ACTEUR', label: 'Acteurs' }, { value: 'WAIT', label: 'À valider' }, { value: 'UNVERIF', label: 'E-mail à vérifier' }, { value: 'OFF', label: 'Désactivés' }
   ];
   readonly sort = signal<'recent' | 'name'>('recent');
   readonly actorLimit = signal(12);
@@ -247,11 +247,11 @@ export class AdminComponent implements OnInit {
   readonly counts = computed(() => {
     const u = this.users();
     return { '': u.length, ADMIN: u.filter(x => x.role === 'ADMIN').length, PRO: u.filter(x => x.role !== 'ADMIN' && x.role !== 'ACTEUR').length,
-      ACTEUR: u.filter(x => x.role === 'ACTEUR').length, UNVERIF: u.filter(x => !x.emailVerified).length, OFF: u.filter(x => !x.enabled).length } as Record<string, number>;
+      ACTEUR: u.filter(x => x.role === 'ACTEUR').length, WAIT: u.filter(x => x.pendingApproval).length, UNVERIF: u.filter(x => !x.emailVerified).length, OFF: u.filter(x => !x.enabled).length } as Record<string, number>;
   });
   readonly shownUsers = computed(() => {
     const q = this.search().trim().toLowerCase(), f = this.roleFilter();
-    const list = this.users().filter(u => (!f || (f === 'OFF' ? !u.enabled : f === 'UNVERIF' ? !u.emailVerified : (f === 'PRO' ? u.role !== 'ADMIN' && u.role !== 'ACTEUR' : u.role === f)))
+    const list = this.users().filter(u => (!f || (f === 'WAIT' ? !!u.pendingApproval : f === 'OFF' ? !u.enabled : f === 'UNVERIF' ? !u.emailVerified : (f === 'PRO' ? u.role !== 'ADMIN' && u.role !== 'ACTEUR' : u.role === f)))
       && (!q || `${u.firstName} ${u.lastName} ${u.email} ${u.agencyName ?? ''}`.toLowerCase().includes(q)));
     return this.sort() === 'name'
       ? [...list].sort((a, b) => `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`, 'fr'))

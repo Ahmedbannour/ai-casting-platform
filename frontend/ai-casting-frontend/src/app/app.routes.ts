@@ -24,6 +24,11 @@ export const routes: Routes = [
         .then(m => m.LoginComponent)
   },
   {
+    path: 'auth/inscription-pro',
+    loadComponent: () => import('./features/auth/inscription-pro').then(m => m.InscriptionProComponent),
+    title: 'AI Casting · Compte professionnel'
+  },
+  {
     path: 'auth/inscription',
     loadComponent: () =>
       import('./features/auth/login/login.component')
