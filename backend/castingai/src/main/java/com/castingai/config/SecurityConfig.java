@@ -68,6 +68,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Espace personnel : tout compte connecté (l'acteur freelance n'a accès qu'à ceci)
                         .requestMatchers("/api/me/**", "/api/auth/logout").authenticated()
+                        // Cahier v2 · demandes de publicité : marque, agence marketing (et administrateur)
+                        .requestMatchers("/api/demandes/**").hasAnyRole("ADMIN", "MARQUE", "AGENCE_MARKETING")
                         // Tout le reste (acteurs, projets, recherche IA…) : agence uniquement
                         .requestMatchers("/api/**").hasAnyRole("ADMIN", "BOITE_PROD", "REALISATEUR")
                         .anyRequest().authenticated()

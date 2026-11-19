@@ -1,0 +1,53 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
+/** Cahier v2 · étapes d'une demande de publicité, dans l'ordre du cycle. */
+export type DemandeStatus = 'BROUILLON' | 'V0_ENVOYEE' | 'V1_EN_COURS' | 'V1_LIVREE' | 'V2_EN_COURS' | 'V2_LIVREE'
+  | 'CASTING' | 'PPM' | 'ACTEURS_VALIDES' | 'CLOTUREE' | 'ANNULEE';
+
+export const STATUS_LABEL: Record<DemandeStatus, string> = {
+  BROUILLON: 'Brouillon', V0_ENVOYEE: 'V0 envoyée à l’agence', V1_EN_COURS: 'V1 en cours', V1_LIVREE: 'V1 livrée',
+  V2_EN_COURS: 'V2 en cours', V2_LIVREE: 'V2 livrée', CASTING: 'Casting', PPM: 'PPM', ACTEURS_VALIDES: 'Acteurs validés',
+  CLOTUREE: 'Clôturée', ANNULEE: 'Annulée'
+};
+
+export interface DemandeSummary {
+  id: string; title: string; product: string | null; status: DemandeStatus; brandName: string; agencyName: string | null;
+  airDate: string | null; updatedAt: string; hasV0: boolean;
+}
+export interface DemandeVersion {
+  id: string; kind: 'V0' | 'V1' | 'V2'; label: string; status: 'BROUILLON' | 'LIVREE' | 'A_REVISER'; body: string | null;
+  fileName: string | null; fileType: string | null; fileSize: number | null; authorName: string | null; createdAt: string; deliveredAt: string | null;
+}
+export interface DemandeEvent { type: string; message: string; actorName: string | null; createdAt: string; }
+export interface DemandeDetail {
+  id: string; title: string; product: string | null; objective: string | null; target: string | null; keyMessage: string | null;
+  airDate: string | null; status: DemandeStatus; brandName: string; agencyId: string | null; agencyName: string | null; createdByName: string;
+  createdAt: string; updatedAt: string; canEdit: boolean; versions: DemandeVersion[]; events: DemandeEvent[];
+}
+export interface DemandeRequest { title: string; product?: string | null; objective?: string | null; target?: string | null; keyMessage?: string | null; airDate?: string | null; }
+export interface AgencyOption { id: string; name: string; city: string | null; }
+
+@Injectable({ providedIn: 'root' })
+export class DemandeService {
+  private readonly http = inject(HttpClient);
+  private readonly url = `${environment.apiUrl}/demandes`;
+
+  mine(): Observable<DemandeSummary[]> { return this.http.get<DemandeSummary[]>(this.url); }
+  get(id: string): Observable<DemandeDetail> { return this.http.get<DemandeDetail>(`${this.url}/${id}`); }
+  agencies(): Observable<AgencyOption[]> { return this.http.get<AgencyOption[]>(`${this.url}/agences`); }
+  create(body: DemandeRequest): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(this.url, body); }
+  update(id: string, body: DemandeRequest): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}`, body); }
+  remove(id: string): Observable<void> { return this.http.delete<void>(`${this.url}/${id}`); }
+  saveV0(id: string, body: string): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/v0`, { body }); }
+  uploadV0(id: string, file: File): Observable<DemandeDetail> {
+    const f = new FormData(); f.append('file', file);
+    return this.http.post<DemandeDetail>(`${this.url}/${id}/v0/fichier`, f);
+  }
+  removeV0File(id: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/v0/fichier`); }
+  send(id: string, agencyId: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/envoyer`, { agencyId }); }
+  cancel(id: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/annuler`, {}); }
+  file(id: string, versionId: string): Observable<Blob> { return this.http.get(`${this.url}/${id}/versions/${versionId}/fichier`, { responseType: 'blob' }); }
+}

@@ -1,17 +1,21 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { MeService } from '../../core/services/me.service';
 import { AuthService } from '../../core/services/auth.service';
+import { DemandeService, DemandeSummary, STATUS_LABEL } from '../../core/services/demande.service';
 
 interface Step { key: string; who: string; what: string; }
 
 /**
  * Espace de la marque et de l'agence marketing (cahier des charges v2, sprint 1).
  * Montre où se place le compte dans le cycle V0 → V1 → V2 → propositions d'acteurs.
- * La création des demandes arrive au sprint 2 (marque) et la V1 au sprint 3 (agence).
+ * Sprint 2 : liste des demandes (marque : les siennes ; agence : celles reçues). La V1 arrive au sprint 3.
  */
 @Component({
   selector: 'app-mes-demandes',
   standalone: true,
+  imports: [RouterLink, DatePipe],
   template: `
   <section class="page">
     <header class="head">
@@ -29,15 +33,39 @@ interface Step { key: string; who: string; what: string; }
       }
     </ol>
 
-    <div class="empty">
-      <h2>Aucune demande pour l'instant</h2>
-      @if (isMarque()) {
-        <p>Vous pourrez créer une demande de publicité et déposer votre V0, le fichier artistique de votre idée (détails du projet, messages, notes ; PDF, Word ou PowerPoint), à partir du 30 novembre.</p>
-        <button type="button" class="soon" disabled>Nouvelle demande · bientôt</button>
-      } @else {
-        <p>Les demandes que les marques vous envoient arriveront ici. Vous pourrez analyser chaque V0 avec l'aide de l'IA et livrer votre V1 à partir du 7 décembre.</p>
-      }
-    </div>
+    @if (loading()) {
+      <p class="muted">Chargement des demandes…</p>
+    } @else if (error()) {
+      <p class="err" role="alert">{{ error() }}</p>
+    } @else if (list().length) {
+      <div class="bar">
+        <h2>{{ list().length }} demande{{ list().length > 1 ? 's' : '' }}</h2>
+        @if (isMarque()) { <a class="send" routerLink="/demandes/nouvelle">Nouvelle demande</a> }
+      </div>
+      <ul class="list">
+        @for (d of list(); track d.id) {
+          <li>
+            <a [routerLink]="['/demandes', d.id]">
+              <div class="t"><b>{{ d.title }}</b>
+                <span>{{ isMarque() ? (d.agencyName ? 'Agence : ' + d.agencyName : 'Pas encore envoyée') : 'Marque : ' + d.brandName }}{{ d.product ? ' · ' + d.product : '' }}</span>
+              </div>
+              <span class="st" [attr.data-s]="d.status">{{ label(d.status) }}</span>
+              <time>{{ d.updatedAt | date:'d MMM' }}</time>
+            </a>
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="empty">
+        <h2>Aucune demande pour l'instant</h2>
+        @if (isMarque()) {
+          <p>Créez une demande de publicité et déposez votre V0 : le fichier artistique de votre idée (détails du projet, messages, notes ; PDF, Word ou PowerPoint). Pas de budget dans la V0.</p>
+          <a class="send" routerLink="/demandes/nouvelle">Nouvelle demande</a>
+        } @else {
+          <p>Les demandes que les marques vous envoient arriveront ici, avec leur V0. Vous recevrez une notification à chaque nouvelle demande.</p>
+        }
+      </div>
+    }
   </section>`,
   styles: [`
     :host { display: block; }
@@ -57,12 +85,40 @@ interface Step { key: string; who: string; what: string; }
     .empty { padding: 28px; border-radius: 16px; border: 1px dashed var(--border); display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
     .empty h2 { margin: 0; font-size: 20px; }
     .empty p { margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.5; max-width: 62ch; }
+    .muted { color: var(--text-muted); margin: 0; }
+    .err { color: #e5484d; margin: 0; }
+    .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .bar h2 { margin: 0; font-size: 18px; }
+    .send { display: inline-flex; align-items: center; height: 40px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent);
+      color: #111; font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; }
+    .send:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; }
+    .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .list a { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 14px 16px;
+      border-radius: 12px; border: 1px solid var(--border); color: inherit; text-decoration: none; }
+    .list a:hover { background: var(--bg-hover); }
+    .t b { display: block; font-size: 15px; }
+    .t span { display: block; color: var(--text-muted); font-size: 13px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .st { font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--bg-hover); white-space: nowrap; }
+    .st[data-s="V0_ENVOYEE"] { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+    .st[data-s="ANNULEE"] { color: var(--text-muted); text-decoration: line-through; }
+    time { color: var(--text-muted); font-size: 12.5px; }
     .soon { height: 40px; padding: 0 18px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text-muted);
       font: inherit; font-size: 14px; font-weight: 600; cursor: not-allowed; }
-    @media (max-width: 900px) { .cycle { grid-template-columns: 1fr; } .page { padding: 18px 14px 104px; } .head h1 { font-size: 30px; } }
+    @media (max-width: 900px) { .list a { grid-template-columns: minmax(0,1fr) auto; } time { display: none; } .cycle { grid-template-columns: 1fr; } .page { padding: 18px 14px 104px; } .head h1 { font-size: 30px; } }
   `]
 })
 export class MesDemandesComponent {
+  private readonly demandes = inject(DemandeService);
+  readonly list = signal<DemandeSummary[]>([]);
+  readonly loading = signal(true);
+  readonly error = signal('');
+  readonly label = (s: keyof typeof STATUS_LABEL) => STATUS_LABEL[s];
+  constructor() {
+    this.demandes.mine().subscribe({
+      next: l => { this.list.set(l); this.loading.set(false); },
+      error: () => { this.error.set('Impossible de charger vos demandes. Réessayez dans un instant.'); this.loading.set(false); }
+    });
+  }
   private readonly me = inject(MeService);
   private readonly auth = inject(AuthService);
   private readonly role = computed(() => this.me.me()?.role ?? this.auth.role());

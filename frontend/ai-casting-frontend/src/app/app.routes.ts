@@ -136,6 +136,13 @@ export const routes: Routes = [
           import('./features/demandes/mes-demandes')
             .then(m => m.MesDemandesComponent)
       },
+      {
+        path: 'demandes/:id',
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'ADMIN')],
+        loadComponent: () =>
+          import('./features/demandes/demande')
+            .then(m => m.DemandeComponent)
+      },
       // ── Administration ──
       {
         path: 'admin',
