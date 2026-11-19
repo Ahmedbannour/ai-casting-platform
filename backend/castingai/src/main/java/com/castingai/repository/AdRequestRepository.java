@@ -14,5 +14,9 @@ public interface AdRequestRepository extends JpaRepository<AdRequest, UUID> {
     @Query("select r from AdRequest r where r.agency.id = :orgId and r.status <> com.castingai.entity.AdRequest.Status.BROUILLON order by r.updatedAt desc")
     List<AdRequest> forAgency(UUID orgId);
 
+    /** T-161 · Demandes confiées à une boîte de production (après validation de la V1). */
+    @Query("select r from AdRequest r where r.production.id = :orgId order by r.updatedAt desc")
+    List<AdRequest> forProduction(UUID orgId);
+
     List<AdRequest> findAllByOrderByUpdatedAtDesc();
 }

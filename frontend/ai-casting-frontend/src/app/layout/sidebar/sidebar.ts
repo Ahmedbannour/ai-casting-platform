@@ -87,6 +87,8 @@ export class SidebarComponent implements OnInit, AfterViewInit {
       { path: '/dashboard', label: 'Acteurs', key: 'Alt+4', icon: this.icon('actors') },
       { path: '/agenda', label: 'Agenda', key: 'Alt+5', icon: this.icon('agenda') }
     ];
+    // Cahier v2 · les publicités confiées par les agences (T-161) ; l'admin les voit toutes
+    if (this.role() === 'BOITE_PROD' || this.role() === 'ADMIN') items.splice(3, 0, { path: '/mes-demandes', label: 'Publicités', key: 'Alt+7', icon: this.icon('projects') });
     if (this.role() === 'ADMIN') items.push({ path: '/admin', label: 'Administration', key: 'Alt+6', icon: this.icon('admin') });
     return items;
   });

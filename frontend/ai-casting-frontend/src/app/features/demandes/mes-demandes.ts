@@ -47,7 +47,7 @@ interface Step { key: string; who: string; what: string; }
           <li>
             <a [routerLink]="['/demandes', d.id]">
               <div class="t"><b>{{ d.title }}</b>
-                <span>{{ isMarque() ? (d.agencyName ? 'Agence : ' + d.agencyName : 'Pas encore envoyée') : 'Marque : ' + d.brandName }}{{ d.product ? ' · ' + d.product : '' }}</span>
+                <span>{{ isMarque() ? (d.agencyName ? 'Agence : ' + d.agencyName : 'Pas encore envoyée') : isProd() ? 'Marque : ' + d.brandName + (d.agencyName ? ' · agence ' + d.agencyName : '') : 'Marque : ' + d.brandName }}{{ d.product ? ' · ' + d.product : '' }}</span>
               </div>
               <span class="st" [attr.data-s]="d.status">{{ label(d.status) }}</span>
               <time>{{ d.updatedAt | date:'d MMM' }}</time>
@@ -61,6 +61,8 @@ interface Step { key: string; who: string; what: string; }
         @if (isMarque()) {
           <p>Créez une demande de publicité et déposez votre V0 : le fichier artistique de votre idée (détails du projet, messages, notes ; PDF, Word ou PowerPoint). Pas de budget dans la V0.</p>
           <a class="send" routerLink="/demandes/nouvelle">Nouvelle demande</a>
+        } @else if (isProd()) {
+          <p>Les publicités que les agences vous confient arriveront ici, avec la V0 et la V1 validée. Vous recevrez une notification à chaque nouvelle publicité.</p>
         } @else {
           <p>Les demandes que les marques vous envoient arriveront ici, avec leur V0. Vous recevrez une notification à chaque nouvelle demande.</p>
         }
@@ -122,9 +124,12 @@ export class MesDemandesComponent {
   private readonly me = inject(MeService);
   private readonly auth = inject(AuthService);
   private readonly role = computed(() => this.me.me()?.role ?? this.auth.role());
-  readonly isMarque = computed(() => this.role() !== 'AGENCE_MARKETING');
-  readonly mine = computed(() => this.role() === 'AGENCE_MARKETING' ? 'v1' : 'v0');
-  readonly lead = computed(() => this.isMarque()
+  readonly isMarque = computed(() => this.role() === 'MARQUE' || this.role() === 'ADMIN');
+  readonly isProd = computed(() => this.role() === 'BOITE_PROD');
+  readonly mine = computed(() => this.role() === 'AGENCE_MARKETING' ? 'v1' : this.isProd() ? 'attentes' : 'v0');
+  readonly lead = computed(() => this.isProd()
+    ? 'Les agences vous confient leurs publicités une fois la V1 validée par la marque : vous recueillez les attentes sur les profils, puis le réalisateur et le 1er AD écrivent la V2.'
+    : this.isMarque()
     ? 'Vous déposez l’idée de votre publicité (V0) ; l’agence, la production et le réalisateur la font avancer jusqu’aux acteurs validés en PPM.'
     : 'Vous recevez la V0 des marques et livrez la V1 : le concept que le réalisateur détaillera.');
   readonly steps: Step[] = [

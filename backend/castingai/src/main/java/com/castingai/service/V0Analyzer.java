@@ -43,7 +43,7 @@ public class V0Analyzer {
     static final String PROMPT = """
         Tu aides une agence marketing qui reçoit la V0 d'une publicité : le fichier artistique où la marque décrit son idée.
         Lis la demande et la V0 ci-dessous, puis réponds UNIQUEMENT par un objet JSON, en français, de cette forme :
-        {"resume":"3 à 5 phrases : l'idée, le ton, ce que la marque attend","manquants":["ce qui manque pour écrire le concept"],"questions":["question précise à poser à la marque"]}
+        {"resume":"3 à 5 phrases courtes : l'idée, le ton, ce que la marque attend","manquants":["ce qui manque pour écrire le concept"],"questions":["question précise à poser à la marque"]}
         Règles : au plus 5 manquants et 5 questions, chacun en une phrase courte. N'invente rien qui n'est pas dans le texte.
         Le budget n'est jamais dans une V0 : ne le cite pas comme manquant.
         Les questions servent à l'agence pour écrire son concept : durée et format du film, supports de diffusion,
@@ -59,7 +59,7 @@ public class V0Analyzer {
             body.put("prompt", PROMPT + "\n\n" + text);
             body.put("stream", false);
             body.put("format", "json");
-            body.put("options", Map.of("temperature", 0.2, "num_predict", 700, "num_ctx", 8192));
+            body.put("options", Map.of("temperature", 0.2, "num_predict", 1400, "num_ctx", 8192));
             HttpRequest req = HttpRequest.newBuilder(URI.create(ollamaUrl.replaceAll("/+$", "") + "/api/generate"))
                     .timeout(Duration.ofSeconds(timeoutSeconds)).header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(body), StandardCharsets.UTF_8)).build();

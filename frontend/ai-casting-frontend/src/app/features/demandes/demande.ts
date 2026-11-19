@@ -37,7 +37,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
       <header class="head">
         <h1>{{ d()?.title || 'Nouvelle demande de publicité' }}</h1>
         @if (d(); as x) {
-          <p>{{ x.brandName }}{{ x.agencyName ? ' → ' + x.agencyName : '' }} · {{ statusLabel(x.status) }}</p>
+          <p>{{ x.brandName }}{{ x.agencyName ? ' → ' + x.agencyName : '' }}{{ x.productionName ? ' → ' + x.productionName : '' }} · {{ statusLabel(x.status) }}{{ x.status === 'V1_LIVREE' && x.v1Validated ? ' · V1 validée' : '' }}</p>
         } @else {
           <p>Décrivez votre projet, puis déposez votre V0. Vous pourrez la modifier tant qu'elle n'est pas envoyée.</p>
         }
@@ -165,9 +165,63 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             }
           </div>
         }
-        @for (v of x.versions; track v.id) {
+        @if (x.canEditV1) {
+          <div class="card answer">
+            <h2>Votre {{ draftLabel() }}</h2>
+            @if (lastReview(); as rv) { <p class="note warn"><b>{{ rv.label }} à revoir :</b> {{ rv.reviewComment }}</p> }
+            <p class="muted">Le concept de la publicité, à partir de la V0 : histoire, ton, personnages, déroulé. Une fois livrée, la version est figée.</p>
+            <label>Texte de la {{ draftLabel() }}<textarea name="v1" [(ngModel)]="v1Text" rows="8" maxlength="20000" placeholder="Votre concept…"></textarea></label>
+            <div class="row"><button type="button" class="ghost" (click)="saveV1()" [disabled]="busy()">Enregistrer le texte</button></div>
+            <div class="file">
+              @if (v1Draft()?.fileName) {
+                <span>📎 {{ v1Draft()!.fileName }} · {{ size(v1Draft()!.fileSize) }}</span>
+                <button type="button" class="link" (click)="download(v1Draft()!)">Télécharger</button>
+                <button type="button" class="link danger" (click)="removeV1File()" [disabled]="busy()">Retirer</button>
+              } @else {
+                <label class="drop">
+                  <input type="file" [accept]="acceptTypes" (change)="uploadV1($event)" [disabled]="busy()">
+                  <b>Déposer le fichier de la {{ draftLabel() }}</b><span>PDF, Word, PowerPoint, Keynote, image… 20 Mo maximum</span>
+                </label>
+              }
+            </div>
+            <div class="row"><button type="button" class="send" (click)="deliverV1()" [disabled]="busy() || !(v1Text.trim() || v1Draft()?.fileName)">Livrer la {{ draftLabel() }} à la marque</button></div>
+          </div>
+        }
+        @if (x.canReviewV1) {
+          <div class="card answer">
+            <h2>Votre avis sur la {{ lastDelivered()?.label }}</h2>
+            @if (!revising()) {
+              <p class="muted">Validez le concept pour que l'agence choisisse la boîte de production, ou demandez une révision en expliquant quoi changer.</p>
+              <div class="row">
+                <button type="button" class="send" (click)="validateV1()" [disabled]="busy()">Valider la {{ lastDelivered()?.label }}</button>
+                <button type="button" class="ghost" (click)="revising.set(true)" [disabled]="busy()">Demander une révision…</button>
+              </div>
+            } @else {
+              <label>Ce qu'il faut revoir, envoyé à l'agence *<textarea name="comment" [(ngModel)]="comment" rows="3" maxlength="2000" placeholder="Ex. Montrez la famille, pas seulement le paysage"></textarea></label>
+              <div class="row">
+                <button type="button" class="send" (click)="reviseV1()" [disabled]="busy() || !comment.trim()">Envoyer la demande de révision</button>
+                <button type="button" class="link" (click)="revising.set(false)">Revenir</button>
+              </div>
+            }
+          </div>
+        }
+        @if (x.canChooseProduction) {
+          <div class="card answer">
+            <h2>Confier à une boîte de production</h2>
+            <p class="muted">La marque a validé votre V1. La production recueillera les attentes sur les profils, puis le réalisateur écrira la V2.</p>
+            @if (productions().length) {
+              <label>Boîte de production<select name="prod" [(ngModel)]="productionId">
+                <option [ngValue]="null" disabled>Choisissez la boîte de production</option>
+                @for (p of productions(); track p.id) { <option [ngValue]="p.id">{{ p.name }}{{ p.city ? ' · ' + p.city : '' }}</option> }
+              </select></label>
+              <div class="row"><button type="button" class="send" (click)="chooseProduction()" [disabled]="busy() || !productionId">Confier la production</button></div>
+            } @else { <p class="muted">Aucune boîte de production n'est encore inscrite sur la plateforme.</p> }
+          </div>
+        }
+        @for (v of shownVersions(); track v.id) {
           <div class="card">
-            <h2>{{ v.label }} <small>{{ v.status === 'LIVREE' ? 'livrée' : v.status === 'A_REVISER' ? 'à réviser' : 'brouillon' }}{{ v.deliveredAt ? ' le ' + (v.deliveredAt | date:'d MMM') : '' }}</small></h2>
+            <h2>{{ v.label }} <small>{{ v.status === 'LIVREE' ? 'livrée' : v.status === 'A_REVISER' ? 'renvoyée en révision' : 'brouillon' }}{{ v.deliveredAt ? ' le ' + (v.deliveredAt | date:'d MMM') : '' }}{{ v.authorName ? ' · ' + v.authorName : '' }}</small></h2>
+            @if (v.reviewComment) { <p class="note warn"><b>Révision demandée :</b> {{ v.reviewComment }}</p> }
             @if (v.body) { <p class="body">{{ v.body }}</p> }
             @if (v.fileName) {
               <div class="file"><span>📎 {{ v.fileName }} · {{ size(v.fileSize) }}</span>
@@ -265,6 +319,18 @@ export class DemandeComponent {
   readonly error = signal('');
   readonly msg = signal('');
   readonly refusing = signal(false);
+  readonly revising = signal(false);
+  readonly productions = signal<AgencyOption[]>([]);
+  v1Text = '';
+  comment = '';
+  productionId: string | null = null;
+  readonly v1Draft = computed(() => { const l = (this.d()?.versions ?? []).filter(v => v.kind === 'V1'); const last = l[l.length - 1]; return last && last.status === 'BROUILLON' ? last : null; });
+  /** Libellé de la version que l'agence prépare : V1, puis V1.1, V1.2… après chaque révision. */
+  readonly draftLabel = computed(() => { if (this.v1Draft()) return this.v1Draft()!.label; const n = (this.d()?.versions ?? []).filter(v => v.kind === 'V1').length; return n ? 'V1.' + n : 'V1'; });
+  readonly lastReview = computed(() => [...(this.d()?.versions ?? [])].reverse().find(v => v.kind === 'V1' && v.status === 'A_REVISER') ?? null);
+  readonly lastDelivered = computed(() => [...(this.d()?.versions ?? [])].reverse().find(v => v.kind === 'V1' && v.status === 'LIVREE') ?? null);
+  /** Les versions affichées en lecture : la plus récente d'abord, sans les brouillons (ils sont dans l'éditeur). */
+  readonly shownVersions = computed(() => [...(this.d()?.versions ?? [])].filter(v => v.status !== 'BROUILLON').reverse());
   readonly analysing = signal(false);
   reason = '';
   /** Dernier refus d'une agence, montré à la marque tant que la demande est en brouillon. */
@@ -300,10 +366,11 @@ export class DemandeComponent {
   private load(id: string) {
     this.loading.set(true);
     this.api.get(id).subscribe({
-      next: x => { this.apply(x); this.loading.set(false); if (x.canEdit) this.loadAgencies(); },
+      next: x => { this.apply(x); this.loading.set(false); if (x.canEdit) this.loadAgencies(); if (x.canChooseProduction) this.loadProductions(); },
       error: (e: HttpErrorResponse) => { this.fatal.set(e.status === 404 ? 'Cette demande n’existe pas ou ne vous est pas visible.' : 'Impossible de charger la demande.'); this.loading.set(false); }
     });
   }
+  private loadProductions() { this.api.productions().subscribe({ next: p => this.productions.set(p), error: () => this.productions.set([]) }); }
   private loadAgencies() { this.api.agencies().subscribe({ next: a => this.agencies.set(a), error: () => this.agencies.set([]) }); }
 
   private apply(x: DemandeDetail) {
@@ -311,6 +378,10 @@ export class DemandeComponent {
     this.form = { title: x.title, product: x.product ?? '', objective: x.objective ?? '', target: x.target ?? '', keyMessage: x.keyMessage ?? '', airDate: x.airDate ?? '' };
     this.v0Text = x.versions.find(v => v.kind === 'V0')?.body ?? '';
     this.agencyId = x.agencyId ?? this.agencyId;
+    const v1 = [...x.versions].reverse().find(v => v.kind === 'V1');
+    this.v1Text = v1 && v1.status === 'BROUILLON' ? (v1.body ?? '') : (x.canEditV1 && v1 ? (v1.body ?? '') : '');
+    this.revising.set(false); this.comment = '';
+    if (x.canChooseProduction && !this.productions().length) this.loadProductions();
   }
 
   private run<T>(obs: import('rxjs').Observable<T>, ok: string, then?: (r: T) => void) {
@@ -367,6 +438,24 @@ export class DemandeComponent {
       error: (e: HttpErrorResponse) => { this.analysing.set(false); this.error.set(e.error?.message || 'L’analyse a échoué. Réessayez.'); }
     });
   }
+  saveV1() { const x = this.d(); if (x) this.run(this.api.saveV1(x.id, this.v1Text), 'Texte enregistré.', r => this.apply(r)); }
+  uploadV1(ev: Event) {
+    const input = ev.target as HTMLInputElement; const file = input.files?.[0]; const x = this.d();
+    if (!file || !x) return;
+    if (file.size > 20 * 1024 * 1024) { this.error.set('Le fichier dépasse 20 Mo.'); input.value = ''; return; }
+    this.run(this.api.uploadV1(x.id, file), 'Fichier déposé.', r => this.apply(r)); input.value = '';
+  }
+  removeV1File() { const x = this.d(); if (x) this.run(this.api.removeV1File(x.id), 'Fichier retiré.', r => this.apply(r)); }
+  deliverV1() {
+    const x = this.d(); if (!x) return; const id = x.id, label = this.draftLabel();
+    const go = () => this.run(this.api.deliverV1(id), label + ' livrée. La marque est prévenue.', r => this.apply(r));
+    // le texte en cours est enregistré avant la livraison, pour ne rien perdre
+    if ((this.v1Draft()?.body ?? '') !== this.v1Text) { this.busy.set(true); this.api.saveV1(id, this.v1Text).subscribe({ next: () => go(), error: () => go() }); }
+    else go();
+  }
+  validateV1() { const x = this.d(); if (x) this.run(this.api.validateV1(x.id), 'V1 validée. L’agence va choisir la boîte de production.', r => this.apply(r)); }
+  reviseV1() { const x = this.d(); if (x && this.comment.trim()) this.run(this.api.reviseV1(x.id, this.comment.trim()), 'Révision demandée. L’agence est prévenue.', r => this.apply(r)); }
+  chooseProduction() { const x = this.d(); if (x && this.productionId) this.run(this.api.chooseProduction(x.id, this.productionId), 'Production confiée. La production et la marque sont prévenues.', r => this.apply(r)); }
   copyQuestions(q: string[]) {
     navigator.clipboard?.writeText(q.map(x => '- ' + x).join('\n')).then(() => this.msg.set('Questions copiées.'), () => this.error.set('Copie impossible.'));
   }

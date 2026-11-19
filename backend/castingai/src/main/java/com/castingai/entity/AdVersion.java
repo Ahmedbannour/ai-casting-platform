@@ -39,6 +39,9 @@ public class AdVersion {
 
     @Column(name = "created_at", nullable = false) private LocalDateTime createdAt;
     @Column(name = "delivered_at") private LocalDateTime deliveredAt;
+    /** T-161 · Commentaire de la marque quand elle renvoie la version en révision. */
+    @Column(name = "review_comment", columnDefinition = "TEXT") private String reviewComment;
+    @Column(name = "reviewed_at") private LocalDateTime reviewedAt;
 
     @PrePersist void onCreate() { createdAt = LocalDateTime.now(); }
 }

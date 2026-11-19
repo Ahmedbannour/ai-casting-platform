@@ -30,6 +30,11 @@ public class AdRequest {
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "agency_org_id")
     private Agency agency;
 
+    /** T-161 · Boîte de production choisie par l'agence une fois la V1 validée par la marque. */
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "production_org_id")
+    private Agency production;
+    @Column(name = "v1_validated_at") private LocalDateTime v1ValidatedAt;
+
     @Column(nullable = false, length = 160) private String title;
     @Column(length = 160) private String product;
     @Column(columnDefinition = "TEXT") private String objective;

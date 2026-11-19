@@ -172,4 +172,68 @@ class DemandeApiTest {
         // La marque ne peut plus annuler une demande acceptée
         send("POST", "/api/demandes/" + id + "/annuler", brand, null).andExpect(status().isBadRequest());
     }
+
+    /** Sprint 3 · T-161 : V1 livrée, révision avec commentaire (V1.1), validation, choix de la boîte de production. */
+    @Test
+    void laV1EstLivreeReviseeValideePuisConfieeALaProduction() throws Exception {
+        String admin = login("ahmed@casting.com", "password123");
+        String brandOrg = org(admin, "Marque Datte", "MARQUE"), agOrg = org(admin, "Agence Gamma", "AGENCE_MARKETING");
+        String prodOrg = org(admin, "Prod Delta", "BOITE_PROD"), otherProd = org(admin, "Prod Epsilon", "BOITE_PROD");
+        String brand = account(admin, "marque@datte.tn", "MARQUE", brandOrg);
+        String agency = account(admin, "agence@gamma.tn", "AGENCE_MARKETING", agOrg);
+        String prod = account(admin, "prod@delta.tn", "BOITE_PROD", prodOrg);
+        String prod2 = account(admin, "prod@epsilon.tn", "BOITE_PROD", otherProd);
+        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Dattes de Tozeur\"}")).get("id").asString();
+        send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Une caravane au coucher du soleil.\"}").andExpect(status().isOk());
+        send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}").andExpect(status().isOk());
+
+        // Pas de V1 avant d'avoir accepté
+        send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"x\"}").andExpect(status().isBadRequest());
+        send("POST", "/api/demandes/" + id + "/accepter", agency, null).andExpect(status().isOk());
+        assertThat(read(send("GET", "/api/demandes/" + id, agency, null)).get("canEditV1").asBoolean()).isTrue();
+
+        // Brouillon de V1 : invisible pour la marque, pas de livraison à vide, la marque n'écrit pas la V1
+        send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null).andExpect(status().isBadRequest());
+        send("PUT", "/api/demandes/" + id + "/v1", brand, "{\"body\":\"x\"}").andExpect(status().isForbidden());
+        send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Concept : le désert raconte la datte, 30 secondes.\"}").andExpect(status().isOk());
+        assertThat(read(send("GET", "/api/demandes/" + id, brand, null)).get("versions").toString()).doesNotContain("le désert raconte");
+
+        JsonNode d1 = read(send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null).andExpect(status().isOk()));
+        assertThat(d1.get("status").asString()).isEqualTo("V1_LIVREE");
+        JsonNode seen = read(send("GET", "/api/demandes/" + id, brand, null));
+        assertThat(seen.get("versions").toString()).contains("le désert raconte");
+        assertThat(seen.get("canReviewV1").asBoolean()).isTrue();
+        assertThat(read(send("GET", "/api/me/notifications", brand, null)).get("items").toString()).contains("V1 livrée");
+
+        // Révision : commentaire obligatoire ; V1 « à revoir », puis V1.1 reprend le texte
+        send("POST", "/api/demandes/" + id + "/v1/revision", brand, "{\"comment\":\"\"}").andExpect(status().isBadRequest());
+        send("POST", "/api/demandes/" + id + "/v1/revision", agency, "{\"comment\":\"x\"}").andExpect(status().isForbidden());
+        JsonNode rev = read(send("POST", "/api/demandes/" + id + "/v1/revision", brand, "{\"comment\":\"Montrez la famille, pas seulement le désert\"}").andExpect(status().isOk()));
+        assertThat(rev.get("status").asString()).isEqualTo("V1_EN_COURS");
+        assertThat(read(send("GET", "/api/me/notifications", agency, null)).get("items").toString()).contains("Révision demandée");
+        JsonNode v11 = read(send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Concept : une famille partage les dattes au coucher du soleil.\"}"));
+        JsonNode last = v11.get("versions").get(v11.get("versions").size() - 1);
+        assertThat(last.get("label").asString()).isEqualTo("V1.1");
+        assertThat(v11.get("versions").toString()).contains("A_REVISER").contains("Montrez la famille");
+        send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null).andExpect(status().isOk());
+
+        // Pas de production avant validation ; validation par la marque
+        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}").andExpect(status().isBadRequest());
+        JsonNode val = read(send("POST", "/api/demandes/" + id + "/v1/valider", brand, null).andExpect(status().isOk()));
+        assertThat(val.get("v1Validated").asBoolean()).isTrue();
+        send("POST", "/api/demandes/" + id + "/v1/valider", brand, null).andExpect(status().isBadRequest());
+        assertThat(read(send("GET", "/api/demandes/" + id, agency, null)).get("canChooseProduction").asBoolean()).isTrue();
+
+        // Choix de la production : seulement une boîte de production ; elle voit la demande, l'autre non
+        assertThat(read(send("GET", "/api/demandes/productions", agency, null)).toString()).contains("Prod Delta").doesNotContain("Agence Gamma");
+        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + brandOrg + "\"}").andExpect(status().isBadRequest());
+        send("GET", "/api/demandes/" + id, prod, null).andExpect(status().isNotFound());
+        JsonNode p = read(send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}").andExpect(status().isOk()));
+        assertThat(p.get("status").asString()).isEqualTo("V2_EN_COURS");
+        assertThat(p.get("productionName").asString()).isEqualTo("Prod Delta");
+        assertThat(read(send("GET", "/api/demandes", prod, null)).size()).isEqualTo(1);
+        send("GET", "/api/demandes/" + id, prod, null).andExpect(status().isOk());
+        send("GET", "/api/demandes/" + id, prod2, null).andExpect(status().isNotFound());
+        assertThat(read(send("GET", "/api/me/notifications", prod, null)).get("items").toString()).contains("Nouvelle publicité");
+    }
 }

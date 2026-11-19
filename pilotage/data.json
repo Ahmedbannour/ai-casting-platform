@@ -5,8 +5,8 @@
   "projet": "AI Casting Platform",
   "client": "Vous, porteur du projet (donneur d’ordre)",
   "debut": "2026-11-15",
-  "maj": "2026-11-19",
-  "jour": "J7",
+  "maj": "2026-11-20",
+  "jour": "J8",
   "avancement": 80,
   "avancement_veille": 97,
   "phase_courante": "PH4"
@@ -997,6 +997,24 @@
    ],
    "livrables": [
     "T-160",
+    "T-161",
+    "T-162"
+   ],
+   "statut": "En cours"
+  },
+  {
+   "id": "P-059",
+   "date": "2026-11-20",
+   "titre": "Avancer au maximum",
+   "original": "ok merci d'avancer le plus possible",
+   "ameliore": "Pendant l'absence du client : remettre la plateforme en ligne (Cloudflare), garder le PC éveillé, puis enchaîner le sprint 3 (T-161, T-162) avec tests et recette à chaque tâche.",
+   "departements": [
+    "back",
+    "front",
+    "qa",
+    "devops"
+   ],
+   "livrables": [
     "T-161",
     "T-162"
    ],
@@ -3131,10 +3149,10 @@
    "resp": "Yanis Belhadj",
    "prio": "P0",
    "phase": "PH4",
-   "statut": "en_cours",
-   "prompt": "P-046",
+   "statut": "fait",
+   "prompt": "P-058",
    "jour": "J7",
-   "detail": "Sprint 3. Rédaction de la V1 (fichier et texte), questions à la marque, versions figées (V1.1…), choix de la boîte de production. Inclut le renvoi en révision avec commentaire (reporté de T-159)."
+   "detail": "Livré : l'agence écrit sa V1 (texte et fichier) et la livre ; la version livrée est figée. La marque valide ou demande une révision avec un commentaire obligatoire ; la version suivante (V1.1, V1.2…) reprend le texte et affiche le commentaire. Après validation, l'agence confie la publicité à une boîte de production (statut « V2 en cours »), qui la voit dans « Publicités » ; marque, agence et production sont notifiées à chaque étape. Migration V36, 80 tests serveur verts, recette navigateur test-v1."
   },
   {
    "id": "T-162",
@@ -3143,7 +3161,7 @@
    "resp": "Hédi Ben Amor",
    "prio": "P0",
    "phase": "PH4",
-   "statut": "a_faire",
+   "statut": "en_cours",
    "prompt": "P-050",
    "jour": "J7",
    "detail": "Sprint 3. Par personnage : ce que le client et l'agence souhaitent voir ; transmis au réalisateur et au 1er AD. Portée par Hédi Ben Amor, consultant production publicitaire."
@@ -3323,17 +3341,17 @@
   }
  ],
  "maintenant": {
-  "titre": "P-058 · T-160 livré, T-161 en cours",
-  "etape": 58,
+  "titre": "P-059 · T-161 livré, T-162 en cours",
+  "etape": 59,
   "agents": [
    {
-    "nom": "Yanis Belhadj",
-    "action": "V1 de l'agence et révisions",
-    "court": "T-161"
+    "nom": "Hédi Ben Amor",
+    "action": "Attentes sur les profils",
+    "court": "T-162"
    },
    {
     "nom": "Amel Kacem",
-    "action": "Recette du sprint 2",
+    "action": "Recette du sprint 3",
     "court": "QA"
    },
    {
@@ -3343,23 +3361,23 @@
    }
   ],
   "progres": {
-   "tache": "T-161",
-   "titre": "V1 de l'agence et révisions",
+   "tache": "T-162",
+   "titre": "Attentes sur les profils",
    "etapes": [
     {
-     "t": "V1 texte et fichier",
+     "t": "Personnages",
      "s": "a_faire"
     },
     {
-     "t": "Versions figées V1.1…",
+     "t": "Attentes marque et agence",
      "s": "a_faire"
     },
     {
-     "t": "Renvoi en révision",
+     "t": "Saisie par la production",
      "s": "a_faire"
     },
     {
-     "t": "Choix de la production",
+     "t": "Transmis au réalisateur",
      "s": "a_faire"
     },
     {
@@ -3373,8 +3391,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-19T14:30:00Z",
-   "texte": "T-160 livré : réponse de l'agence et analyse IA de la V0 ; 79 tests verts"
+   "t": "2026-11-20T00:50:00Z",
+   "texte": "T-161 livré : V1, révisions V1.1…, validation par la marque, production confiée ; 80 tests verts"
   }
  },
  "activite": [
@@ -3725,6 +3743,12 @@
    "nom": "Yosra Ghorbel",
    "t": "2026-11-19T14:20:00Z",
    "texte": "T-160 : analyse de la V0 par l'IA locale (résumé, manques, questions) ; acceptation et refus avec motif. Recette réussie."
+  },
+  {
+   "h": "J8",
+   "nom": "Yanis Belhadj",
+   "t": "2026-11-20T00:50:00Z",
+   "texte": "T-161 livré : V1 et révisions avec commentaire, validation, choix de la boîte de production. Recette navigateur réussie."
   }
  ],
  "plan": {
@@ -3886,7 +3910,6 @@
    }
   ],
   "file": [
-   "T-161",
    "T-162",
    "T-163",
    "T-164",
@@ -3907,7 +3930,7 @@
    "T-100",
    "T-127"
   ],
-  "courante": "T-161",
+  "courante": "T-162",
   "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages ».",
   "calendrier": {
    "T-103": {
@@ -4136,8 +4159,9 @@
     "reel": true
    },
    "T-161": {
-    "debut": "2026-12-07",
-    "fin": "2026-12-11"
+    "debut": "2026-11-20",
+    "fin": "2026-11-20",
+    "reel": true
    },
    "T-162": {
     "debut": "2026-12-07",

@@ -39,13 +39,17 @@ public class DemandeService {
     public record Summary(UUID id, String title, String product, AdRequest.Status status, String brandName, String agencyName,
                           LocalDate airDate, LocalDateTime updatedAt, boolean hasV0) {}
     public record VersionView(UUID id, AdVersion.Kind kind, String label, AdVersion.Status status, String body, String fileName,
-                              String fileType, Long fileSize, String authorName, LocalDateTime createdAt, LocalDateTime deliveredAt) {}
+                              String fileType, Long fileSize, String authorName, LocalDateTime createdAt, LocalDateTime deliveredAt,
+                              String reviewComment, LocalDateTime reviewedAt) {}
     public record EventView(String type, String message, String actorName, LocalDateTime createdAt) {}
     public record Detail(UUID id, String title, String product, String objective, String target, String keyMessage, LocalDate airDate,
                          AdRequest.Status status, String brandName, UUID agencyId, String agencyName, String createdByName,
                          LocalDateTime createdAt, LocalDateTime updatedAt, boolean canEdit, boolean canRespond, boolean canAnalyse, Analysis analysis,
+                         boolean canEditV1, boolean canReviewV1, boolean canChooseProduction, boolean v1Validated, String productionName,
                          List<VersionView> versions, List<EventView> events) {}
     public record AgencyOption(UUID id, String name, String city) {}
+    public record Comment(@NotBlank(message = "Expliquez ce qu'il faut revoir") @Size(max = 2000) String comment) {}
+    public record ChooseProduction(@NotNull(message = "Choisissez la boîte de production") UUID productionId) {}
     public record Refuse(@NotBlank(message = "Dites à la marque pourquoi vous refusez") @Size(max = 1000) String reason) {}
     public record Analysis(String summary, List<String> missing, List<String> questions, String source, LocalDateTime at) {}
     public record FileData(byte[] bytes, String name, String type) {}
@@ -73,6 +77,7 @@ public class DemandeService {
             case ADMIN -> requests.findAllByOrderByUpdatedAtDesc();
             case MARQUE -> requests.forBrand(me.getId(), me.getAgency() == null ? null : me.getAgency().getId());
             case AGENCE_MARKETING -> me.getAgency() == null ? List.of() : requests.forAgency(me.getAgency().getId());
+            case BOITE_PROD -> me.getAgency() == null ? List.of() : requests.forProduction(me.getAgency().getId());
             default -> List.of();
         };
         return list.stream().map(this::summary).toList();
@@ -300,6 +305,164 @@ public class DemandeService {
         return r.getStatus() == AdRequest.Status.V0_ENVOYEE || r.getStatus() == AdRequest.Status.V1_EN_COURS;
     }
 
+    // ── Agence : V1, révisions, production (T-161) ──
+
+    @Transactional
+    public Detail saveV1Text(String email, UUID id, V0Text req) {
+        User me = access.user(email);
+        AdRequest r = v1Editable(me, id);
+        AdVersion v = draftV1(r, me);
+        v.setBody(req.body() == null || req.body().isBlank() ? null : req.body().trim());
+        versions.save(v);
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail uploadV1File(String email, UUID id, MultipartFile file) {
+        User me = access.user(email);
+        AdRequest r = v1Editable(me, id);
+        AdVersion v = draftV1(r, me);
+        String name = storeFile(r, v, file, "v1");
+        log(r, me, "V1_FICHIER", "Fichier de la " + v.getLabel() + " déposé : " + name);
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail removeV1File(String email, UUID id) {
+        User me = access.user(email);
+        AdRequest r = v1Editable(me, id);
+        AdVersion v = draftV1(r, me);
+        if (v.getFileKey() != null) { try { storage.delete(v.getFileKey()); } catch (Exception ignored) { } }
+        v.setFileKey(null); v.setFileName(null); v.setFileType(null); v.setFileSize(null);
+        versions.save(v);
+        return detail(me, r);
+    }
+
+    /** L'agence livre sa V1 (ou V1.1, V1.2… après révision) : la version est figée, la marque est notifiée. */
+    @Transactional
+    public Detail deliverV1(String email, UUID id) {
+        User me = access.user(email);
+        AdRequest r = v1Editable(me, id);
+        AdVersion v = versions.findFirstByRequestIdAndKindOrderByCreatedAtDesc(r.getId(), AdVersion.Kind.V1)
+                .filter(x -> x.getStatus() == AdVersion.Status.BROUILLON).orElse(null);
+        if (v == null || (v.getBody() == null && v.getFileKey() == null)) throw new IllegalArgumentException("Écrivez votre V1 ou déposez un fichier avant de la livrer");
+        v.setStatus(AdVersion.Status.LIVREE); v.setDeliveredAt(LocalDateTime.now()); versions.save(v);
+        r.setStatus(AdRequest.Status.V1_LIVREE);
+        log(r, me, "V1_LIVREE", v.getLabel() + " livrée par " + r.getAgency().getName());
+        notifyBrand(r, v.getLabel() + " livrée : " + r.getTitle(), r.getAgency().getName() + " vous livre sa " + v.getLabel() + ". Validez-la ou demandez une révision.");
+        return detail(me, r);
+    }
+
+    /** La marque renvoie la V1 en révision avec un commentaire : l'agence prépare la version suivante. */
+    @Transactional
+    public Detail reviseV1(String email, UUID id, Comment req) {
+        User me = access.user(email);
+        AdRequest r = v1Reviewable(me, id);
+        AdVersion v = lastDeliveredV1(r);
+        v.setStatus(AdVersion.Status.A_REVISER); v.setReviewComment(req.comment().trim()); v.setReviewedAt(LocalDateTime.now()); versions.save(v);
+        r.setStatus(AdRequest.Status.V1_EN_COURS);
+        log(r, me, "V1_REVISION", v.getLabel() + " à revoir : " + req.comment().trim());
+        notifyOrg(r.getAgency(), "Révision demandée : " + r.getTitle(), "La marque demande de revoir la " + v.getLabel() + " : " + req.comment().trim(), r);
+        return detail(me, r);
+    }
+
+    /** La marque valide la V1 : l'agence peut choisir la boîte de production. */
+    @Transactional
+    public Detail validateV1(String email, UUID id) {
+        User me = access.user(email);
+        AdRequest r = v1Reviewable(me, id);
+        AdVersion v = lastDeliveredV1(r);
+        r.setV1ValidatedAt(LocalDateTime.now());
+        log(r, me, "V1_VALIDEE", v.getLabel() + " validée par la marque");
+        notifyOrg(r.getAgency(), v.getLabel() + " validée : " + r.getTitle(), "La marque a validé votre " + v.getLabel() + ". Choisissez la boîte de production.", r);
+        return detail(me, r);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AgencyOption> productions() {
+        return agencies.findAll().stream().filter(a -> "BOITE_PROD".equals(a.getKind()))
+                .sorted(Comparator.comparing(Agency::getName, String.CASE_INSENSITIVE_ORDER))
+                .map(a -> new AgencyOption(a.getId(), a.getName(), a.getCity())).toList();
+    }
+
+    /** L'agence confie la demande à une boîte de production : la V2 commence, la production est notifiée. */
+    @Transactional
+    public Detail chooseProduction(String email, UUID id, ChooseProduction req) {
+        User me = access.user(email);
+        AdRequest r = visible(me, id);
+        if (!isAgencySide(me, r)) throw new ForbiddenException("Seule l'agence choisit la boîte de production");
+        if (r.getStatus() != AdRequest.Status.V1_LIVREE || r.getV1ValidatedAt() == null) throw new IllegalArgumentException("La marque doit d'abord valider la V1");
+        Agency prod = agencies.findById(req.productionId()).filter(a -> "BOITE_PROD".equals(a.getKind()))
+                .orElseThrow(() -> new IllegalArgumentException("Choisissez une boîte de production inscrite"));
+        r.setProduction(prod);
+        r.setStatus(AdRequest.Status.V2_EN_COURS);
+        log(r, me, "PRODUCTION", "Demande confiée à " + prod.getName() + " : recueil des attentes et V2 du réalisateur");
+        notifyOrg(prod, "Nouvelle publicité : " + r.getTitle(), r.getAgency().getName() + " vous confie la production. Recueillez les attentes sur les profils.", r);
+        notifyBrand(r, "Production choisie : " + r.getTitle(), r.getAgency().getName() + " a confié la production à " + prod.getName() + ".");
+        return detail(me, r);
+    }
+
+    private AdRequest v1Editable(User me, UUID id) {
+        AdRequest r = visible(me, id);
+        if (!isAgencySide(me, r)) throw new ForbiddenException("Seule l'agence écrit la V1");
+        if (r.getStatus() != AdRequest.Status.V1_EN_COURS) throw new IllegalArgumentException("La V1 n'est pas en préparation");
+        return r;
+    }
+
+    private AdRequest v1Reviewable(User me, UUID id) {
+        AdRequest r = visible(me, id);
+        if (!isBrandSide(me, r)) throw new ForbiddenException("Seule la marque valide ou fait réviser la V1");
+        if (r.getStatus() != AdRequest.Status.V1_LIVREE || r.getV1ValidatedAt() != null) throw new IllegalArgumentException("Aucune V1 en attente de votre avis");
+        return r;
+    }
+
+    private AdVersion lastDeliveredV1(AdRequest r) {
+        return versions.findFirstByRequestIdAndKindOrderByCreatedAtDesc(r.getId(), AdVersion.Kind.V1)
+                .filter(x -> x.getStatus() == AdVersion.Status.LIVREE)
+                .orElseThrow(() -> new IllegalArgumentException("Aucune V1 livrée"));
+    }
+
+    /** Brouillon de V1 en cours, ou nouveau brouillon : « V1 », puis « V1.1 », « V1.2 »… après chaque révision. */
+    private AdVersion draftV1(AdRequest r, User me) {
+        Optional<AdVersion> last = versions.findFirstByRequestIdAndKindOrderByCreatedAtDesc(r.getId(), AdVersion.Kind.V1);
+        if (last.isPresent() && last.get().getStatus() == AdVersion.Status.BROUILLON) return last.get();
+        long done = versions.findByRequestIdOrderByCreatedAtAsc(r.getId()).stream().filter(x -> x.getKind() == AdVersion.Kind.V1).count();
+        AdVersion v = new AdVersion();
+        v.setRequest(r); v.setKind(AdVersion.Kind.V1); v.setLabel(done == 0 ? "V1" : "V1." + done); v.setAuthor(me);
+        // la révision part de la version précédente : on reprend son texte
+        last.ifPresent(p -> v.setBody(p.getBody()));
+        return versions.save(v);
+    }
+
+    /** Range un fichier de version dans le stockage et le rattache à la version (l'ancien fichier est retiré). */
+    private String storeFile(AdRequest r, AdVersion v, MultipartFile file, String prefix) {
+        if (file == null || file.isEmpty()) throw new IllegalArgumentException("Choisissez un fichier");
+        if (file.getSize() > MAX_FILE) throw new IllegalArgumentException("Le fichier dépasse 20 Mo");
+        String original = Optional.ofNullable(file.getOriginalFilename()).orElse(prefix);
+        String ext = original.contains(".") ? original.substring(original.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT) : "";
+        if (!EXT.contains(ext)) throw new IllegalArgumentException("Format accepté : PDF, Word, PowerPoint, Keynote, texte ou image");
+        String old = v.getFileKey();
+        String safe = original.replaceAll("[^A-Za-z0-9._-]", "_");
+        if (safe.length() > 80) safe = safe.substring(safe.length() - 80);
+        String key = "demandes/" + r.getId() + "/" + prefix + "-" + UUID.randomUUID() + "-" + safe;
+        try { storage.upload(file, key); } catch (Exception e) { throw new IllegalStateException("Envoi du fichier impossible pour le moment", e); }
+        if (old != null) { try { storage.delete(old); } catch (Exception ignored) { } }
+        v.setFileKey(key); v.setFileName(original); v.setFileType(file.getContentType()); v.setFileSize(file.getSize());
+        versions.save(v);
+        return original;
+    }
+
+    private void notifyOrg(Agency org, String title, String body, AdRequest r) {
+        if (org == null) return;
+        users.findAll().stream().filter(u -> u.getAgency() != null && u.getAgency().getId().equals(org.getId()) && u.isEnabled())
+                .forEach(u -> notifications.push(u.getId(), "DEMANDE", title, body, "/demandes/" + r.getId()));
+    }
+
+    private boolean isProductionSide(User me, AdRequest r) {
+        return r.getProduction() != null && me.getRole() == Role.BOITE_PROD && me.getAgency() != null
+                && me.getAgency().getId().equals(r.getProduction().getId());
+    }
+
     // ── Règles ──
 
     private boolean isBrandSide(User me, AdRequest r) {
@@ -311,6 +474,7 @@ public class DemandeService {
 
     private boolean canSee(User me, AdRequest r) {
         if (isBrandSide(me, r)) return true;
+        if (isProductionSide(me, r)) return true;
         return me.getAgency() != null && r.getAgency() != null && r.getAgency().getId().equals(me.getAgency().getId())
                 && r.getStatus() != AdRequest.Status.BROUILLON;
     }
@@ -362,9 +526,11 @@ public class DemandeService {
     private Detail detail(User me, AdRequest r) {
         List<VersionView> vs = versions.findByRequestIdOrderByCreatedAtAsc(r.getId()).stream()
                 // l'agence ne voit une version qu'une fois livrée
-                .filter(v -> isBrandSide(me, r) || v.getStatus() != AdVersion.Status.BROUILLON || (v.getAuthor() != null && v.getAuthor().getId().equals(me.getId())))
+                .filter(v -> v.getStatus() != AdVersion.Status.BROUILLON
+                        || (v.getKind() == AdVersion.Kind.V0 ? isBrandSide(me, r) : isAgencySide(me, r)))
                 .map(v -> new VersionView(v.getId(), v.getKind(), v.getLabel(), v.getStatus(), v.getBody(), v.getFileName(), v.getFileType(),
-                        v.getFileSize(), v.getAuthor() == null ? null : name(v.getAuthor()), v.getCreatedAt(), v.getDeliveredAt())).toList();
+                        v.getFileSize(), v.getAuthor() == null ? null : name(v.getAuthor()), v.getCreatedAt(), v.getDeliveredAt(),
+                        v.getReviewComment(), v.getReviewedAt())).toList();
         List<EventView> ev = events.findByRequestIdOrderByCreatedAtDesc(r.getId()).stream()
                 .map(e -> new EventView(e.getType(), e.getMessage(), e.getActor() == null ? null : name(e.getActor()), e.getCreatedAt())).toList();
         return new Detail(r.getId(), r.getTitle(), r.getProduct(), r.getObjective(), r.getTarget(), r.getKeyMessage(), r.getAirDate(), r.getStatus(),
@@ -372,7 +538,11 @@ public class DemandeService {
                 r.getAgency() == null ? null : r.getAgency().getName(), name(r.getCreatedBy()), r.getCreatedAt(), r.getUpdatedAt(),
                 isBrandSide(me, r) && r.getStatus() == AdRequest.Status.BROUILLON,
                 isAgencySide(me, r) && r.getStatus() == AdRequest.Status.V0_ENVOYEE,
-                isAgencySide(me, r) && analysable(r), analysis(r), vs, ev);
+                isAgencySide(me, r) && analysable(r), analysis(r),
+                isAgencySide(me, r) && r.getStatus() == AdRequest.Status.V1_EN_COURS,
+                isBrandSide(me, r) && r.getStatus() == AdRequest.Status.V1_LIVREE && r.getV1ValidatedAt() == null,
+                isAgencySide(me, r) && r.getStatus() == AdRequest.Status.V1_LIVREE && r.getV1ValidatedAt() != null,
+                r.getV1ValidatedAt() != null, r.getProduction() == null ? null : r.getProduction().getName(), vs, ev);
     }
 
     private static Analysis analysis(AdRequest r) {

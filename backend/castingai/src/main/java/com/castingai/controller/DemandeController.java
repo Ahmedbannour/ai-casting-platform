@@ -54,6 +54,23 @@ public class DemandeController {
     @PostMapping("/{id}/analyse")
     public DemandeService.Detail analyse(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id) { return demandes.analyse(me.getUsername(), id); }
 
+    // T-161 · V1 de l'agence, révisions, production
+    @PutMapping("/{id}/v1")
+    public DemandeService.Detail v1Text(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.V0Text req) { return demandes.saveV1Text(me.getUsername(), id, req); }
+    @PostMapping(value = "/{id}/v1/fichier", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public DemandeService.Detail v1File(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @RequestParam("file") MultipartFile file) { return demandes.uploadV1File(me.getUsername(), id, file); }
+    @DeleteMapping("/{id}/v1/fichier")
+    public DemandeService.Detail v1FileRemove(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id) { return demandes.removeV1File(me.getUsername(), id); }
+    @PostMapping("/{id}/v1/livrer")
+    public DemandeService.Detail deliverV1(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id) { return demandes.deliverV1(me.getUsername(), id); }
+    @PostMapping("/{id}/v1/revision")
+    public DemandeService.Detail reviseV1(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.Comment req) { return demandes.reviseV1(me.getUsername(), id, req); }
+    @PostMapping("/{id}/v1/valider")
+    public DemandeService.Detail validateV1(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id) { return demandes.validateV1(me.getUsername(), id); }
+    @GetMapping("/productions") public List<DemandeService.AgencyOption> productions() { return demandes.productions(); }
+    @PostMapping("/{id}/production")
+    public DemandeService.Detail production(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.ChooseProduction req) { return demandes.chooseProduction(me.getUsername(), id, req); }
+
     @GetMapping("/{id}/versions/{versionId}/fichier")
     public ResponseEntity<byte[]> file(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID versionId) {
         DemandeService.FileData f = demandes.file(me.getUsername(), id, versionId);
