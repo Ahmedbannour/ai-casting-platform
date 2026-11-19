@@ -47,6 +47,13 @@ public class DemandeController {
     @PostMapping("/{id}/annuler")
     public DemandeService.Detail cancel(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id) { return demandes.cancel(me.getUsername(), id); }
 
+    @PostMapping("/{id}/accepter")
+    public DemandeService.Detail accept(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id) { return demandes.accept(me.getUsername(), id); }
+    @PostMapping("/{id}/refuser")
+    public DemandeService.Detail refuse(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.Refuse req) { return demandes.refuse(me.getUsername(), id, req); }
+    @PostMapping("/{id}/analyse")
+    public DemandeService.Detail analyse(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id) { return demandes.analyse(me.getUsername(), id); }
+
     @GetMapping("/{id}/versions/{versionId}/fichier")
     public ResponseEntity<byte[]> file(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID versionId) {
         DemandeService.FileData f = demandes.file(me.getUsername(), id, versionId);

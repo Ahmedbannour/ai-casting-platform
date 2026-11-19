@@ -54,6 +54,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
         @if (x.status === 'ANNULEE') { <p class="note">Cette demande a été annulée.</p> }
       }
 
+      @if (refusal(); as r) { <p class="note warn">{{ r }} Vous pouvez la modifier et l'envoyer à une autre agence.</p> }
       @if (msg()) { <p class="ok" role="status">{{ msg() }}</p> }
       @if (error()) { <p class="err" role="alert">{{ error() }}</p> }
 
@@ -85,7 +86,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
                 <button type="button" class="link danger" (click)="removeFile()" [disabled]="busy()">Retirer</button>
               } @else {
                 <label class="drop">
-                  <input type="file" [accept]="accept" (change)="upload($event)" [disabled]="busy()">
+                  <input type="file" [accept]="acceptTypes" (change)="upload($event)" [disabled]="busy()">
                   <b>Déposer un fichier</b><span>PDF, Word, PowerPoint, Keynote, image… 20 Mo maximum</span>
                 </label>
               }
@@ -120,6 +121,50 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             <dt>Créée par</dt><dd>{{ x.createdByName }} · {{ x.createdAt | date:'d MMM y' }}</dd>
           </dl>
         </div>
+        @if (x.canRespond) {
+          <div class="card answer">
+            <h2>Votre réponse à la marque</h2>
+            @if (!refusing()) {
+              <p class="muted">Acceptez pour préparer votre V1, ou refusez en expliquant pourquoi : la demande revient alors à la marque.</p>
+              <div class="row">
+                <button type="button" class="send" (click)="accept()" [disabled]="busy()">Accepter la demande</button>
+                <button type="button" class="ghost" (click)="refusing.set(true)" [disabled]="busy()">Refuser…</button>
+              </div>
+            } @else {
+              <label>Motif du refus, envoyé à la marque *<textarea name="reason" [(ngModel)]="reason" rows="3" maxlength="1000" placeholder="Ex. Pas de disponibilité avant mars"></textarea></label>
+              <div class="row">
+                <button type="button" class="send danger-bg" (click)="refuse()" [disabled]="busy() || !reason.trim()">Refuser la demande</button>
+                <button type="button" class="link" (click)="refusing.set(false)">Revenir</button>
+              </div>
+            }
+          </div>
+        }
+        @if (x.canAnalyse) {
+          <div class="card ai">
+            <div class="ai-head">
+              <h2>Analyse de la V0</h2>
+              <button type="button" class="ghost" (click)="analyse()" [disabled]="analysing()">{{ analysing() ? 'Lecture en cours…' : x.analysis ? 'Relancer l’analyse' : 'Analyser la V0' }}</button>
+            </div>
+            @if (analysing()) {
+              <p class="muted" role="status">L'IA locale lit la V0 et son fichier. Cela prend de 10 secondes à une minute.</p>
+            } @else if (x.analysis; as a) {
+              <p class="src">{{ a.source === 'IA' ? 'Analyse de l’IA locale' : 'L’IA locale n’a pas répondu : points vérifiés automatiquement' }} · {{ a.at | date:'d MMM, HH:mm' }}. À relire : c’est une aide, pas un avis.</p>
+              <h3>Résumé</h3>
+              <p class="body">{{ a.summary }}</p>
+              @if (a.missing.length) {
+                <h3>Ce qui manque</h3>
+                <ul class="pts">@for (m of a.missing; track $index) { <li>{{ m }}</li> }</ul>
+              }
+              @if (a.questions.length) {
+                <h3>Questions à poser à la marque</h3>
+                <ul class="pts">@for (q of a.questions; track $index) { <li>{{ q }}</li> }</ul>
+                <button type="button" class="link" (click)="copyQuestions(a.questions)">Copier les questions</button>
+              }
+            } @else {
+              <p class="muted">Un résumé de la V0, ce qui manque pour écrire votre concept et les questions à poser à la marque. L'analyse se fait sur la machine, rien n'est envoyé ailleurs.</p>
+            }
+          </div>
+        }
         @for (v of x.versions; track v.id) {
           <div class="card">
             <h2>{{ v.label }} <small>{{ v.status === 'LIVREE' ? 'livrée' : v.status === 'A_REVISER' ? 'à réviser' : 'brouillon' }}{{ v.deliveredAt ? ' le ' + (v.deliveredAt | date:'d MMM') : '' }}</small></h2>
@@ -193,6 +238,13 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .muted, .hint { color: var(--text-muted); margin: 0; font-size: 13.5px; }
     .note { margin: 0; color: var(--text-muted); }
     .ok { color: #30a46c; margin: 0; }
+    .warn { padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, #e5484d 45%, transparent); color: var(--text-primary); }
+    .answer { border-color: var(--accent); }
+    .danger-bg { background: #e5484d; color: #fff; }
+    .ai-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .ai h3 { margin: 4px 0 0; font-size: 14px; }
+    .src { margin: 0; font-size: 12.5px; color: var(--text-muted); }
+    .pts { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.45; }
     .err { color: #e5484d; margin: 0; }
     @media (max-width: 900px) { .page { padding: 18px 14px 104px; } .two { grid-template-columns: 1fr; } .head h1 { font-size: 28px; } }
   `]
@@ -203,7 +255,7 @@ export class DemandeComponent {
   private readonly router = inject(Router);
 
   readonly steps = STEPS;
-  readonly accept = ACCEPT;
+  readonly acceptTypes = ACCEPT;
   readonly today = new Date().toISOString().slice(0, 10);
   readonly d = signal<DemandeDetail | null>(null);
   readonly agencies = signal<AgencyOption[]>([]);
@@ -212,6 +264,15 @@ export class DemandeComponent {
   readonly fatal = signal('');
   readonly error = signal('');
   readonly msg = signal('');
+  readonly refusing = signal(false);
+  readonly analysing = signal(false);
+  reason = '';
+  /** Dernier refus d'une agence, montré à la marque tant que la demande est en brouillon. */
+  readonly refusal = computed(() => {
+    const x = this.d(); if (!x || x.status !== 'BROUILLON' || !x.canEdit) return null;
+    const e = x.events.find(ev => ev.type === 'REFUSEE' || ev.type === 'V0_ENVOYEE');
+    return e && e.type === 'REFUSEE' ? e.message + '.' : null;
+  });
   form: { title: string; product: string; objective: string; target: string; keyMessage: string; airDate: string } =
     { title: '', product: '', objective: '', target: '', keyMessage: '', airDate: '' };
   v0Text = '';
@@ -292,6 +353,22 @@ export class DemandeComponent {
   remove() {
     const x = this.d(); if (!x) return;
     this.run(this.api.remove(x.id), 'Brouillon supprimé.', () => this.router.navigate(['/mes-demandes']));
+  }
+  accept() { const x = this.d(); if (x) this.run(this.api.accept(x.id), 'Demande acceptée. La marque est prévenue : à vous la V1.', r => this.apply(r)); }
+  refuse() {
+    const x = this.d(); if (!x || !this.reason.trim()) return;
+    this.run(this.api.refuse(x.id, this.reason.trim()), 'Demande refusée. La marque est prévenue.', () => this.router.navigate(['/mes-demandes']));
+  }
+  analyse() {
+    const x = this.d(); if (!x) return;
+    this.analysing.set(true); this.error.set(''); this.msg.set('');
+    this.api.analyse(x.id).subscribe({
+      next: r => { this.analysing.set(false); this.apply(r); },
+      error: (e: HttpErrorResponse) => { this.analysing.set(false); this.error.set(e.error?.message || 'L’analyse a échoué. Réessayez.'); }
+    });
+  }
+  copyQuestions(q: string[]) {
+    navigator.clipboard?.writeText(q.map(x => '- ' + x).join('\n')).then(() => this.msg.set('Questions copiées.'), () => this.error.set('Copie impossible.'));
   }
   download(v: DemandeVersion) {
     const x = this.d(); if (!x) return;

@@ -125,4 +125,51 @@ class DemandeApiTest {
         send("DELETE", "/api/demandes/" + id2, brand, null).andExpect(status().isNoContent());
         send("GET", "/api/demandes/" + id2, brand, null).andExpect(status().isNotFound());
     }
+
+    /** Sprint 3 · T-160 : l'agence refuse (retour en brouillon chez la marque), puis une autre accepte ; analyse de la V0. */
+    @Test
+    void lAgenceRefuseOuAccepteEtAnalyseLaV0() throws Exception {
+        String admin = login("ahmed@casting.com", "password123");
+        String brandOrg = org(admin, "Marque Olive", "MARQUE");
+        String agA = org(admin, "Agence Alpha", "AGENCE_MARKETING"), agB = org(admin, "Agence Beta", "AGENCE_MARKETING");
+        String brand = account(admin, "marque@olive.tn", "MARQUE", brandOrg);
+        String alpha = account(admin, "agence@alpha.tn", "AGENCE_MARKETING", agA);
+        String beta = account(admin, "agence@beta.tn", "AGENCE_MARKETING", agB);
+        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Huile d'olive\",\"product\":\"Huile vierge extra\"}")).get("id").asString();
+        send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Un grand-père récolte les olives avec sa petite-fille au lever du soleil.\"}").andExpect(status().isOk());
+        send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agA + "\"}").andExpect(status().isOk());
+
+        // La marque ne répond pas à la place de l'agence ; une autre agence ne voit rien
+        send("POST", "/api/demandes/" + id + "/accepter", brand, null).andExpect(status().isForbidden());
+        send("POST", "/api/demandes/" + id + "/accepter", beta, null).andExpect(status().isNotFound());
+        JsonNode seen = read(send("GET", "/api/demandes/" + id, alpha, null));
+        assertThat(seen.get("canRespond").asBoolean()).isTrue();
+        assertThat(seen.get("canAnalyse").asBoolean()).isTrue();
+
+        // Refus sans motif : refusé ; avec motif : la demande revient en brouillon chez la marque, notifiée
+        send("POST", "/api/demandes/" + id + "/refuser", alpha, "{\"reason\":\"\"}").andExpect(status().isBadRequest());
+        JsonNode back = read(send("POST", "/api/demandes/" + id + "/refuser", alpha, "{\"reason\":\"Pas de place avant mars\"}").andExpect(status().isOk()));
+        assertThat(back.get("status").asString()).isEqualTo("BROUILLON");
+        send("GET", "/api/demandes/" + id, alpha, null).andExpect(status().isNotFound());
+        JsonNode mine = read(send("GET", "/api/demandes/" + id, brand, null));
+        assertThat(mine.get("canEdit").asBoolean()).isTrue();
+        assertThat(mine.get("events").get(0).get("message").asString()).contains("Pas de place avant mars");
+        assertThat(read(send("GET", "/api/me/notifications", brand, null)).get("items").toString()).contains("Demande refusée");
+
+        // Renvoi à une autre agence, qui analyse puis accepte
+        send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agB + "\"}").andExpect(status().isOk());
+        send("POST", "/api/demandes/" + id + "/analyse", brand, null).andExpect(status().isForbidden());
+        JsonNode an = read(send("POST", "/api/demandes/" + id + "/analyse", beta, null).andExpect(status().isOk())).get("analysis");
+        assertThat(an.get("summary").asString()).isNotBlank();
+        assertThat(an.get("source").asString()).isIn("IA", "REGLES");
+        assertThat(an.get("missing").toString()).contains("cible").doesNotContainIgnoringCase("budget");
+        assertThat(an.get("questions").size()).isPositive();
+        JsonNode ok = read(send("POST", "/api/demandes/" + id + "/accepter", beta, null).andExpect(status().isOk()));
+        assertThat(ok.get("status").asString()).isEqualTo("V1_EN_COURS");
+        assertThat(ok.get("canRespond").asBoolean()).isFalse();
+        send("POST", "/api/demandes/" + id + "/accepter", beta, null).andExpect(status().isBadRequest());
+        assertThat(read(send("GET", "/api/me/notifications", brand, null)).get("items").toString()).contains("Demande acceptée");
+        // La marque ne peut plus annuler une demande acceptée
+        send("POST", "/api/demandes/" + id + "/annuler", brand, null).andExpect(status().isBadRequest());
+    }
 }

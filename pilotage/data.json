@@ -7,7 +7,7 @@
   "debut": "2026-11-15",
   "maj": "2026-11-19",
   "jour": "J7",
-  "avancement": 79,
+  "avancement": 80,
   "avancement_veille": 97,
   "phase_courante": "PH4"
  },
@@ -982,6 +982,25 @@
     "T-159"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-058",
+   "date": "2026-11-19",
+   "titre": "Sprint 3 lancé",
+   "original": "oui",
+   "ameliore": "Lancer le sprint 3 du cahier v2 : T-160 (espace agence, résumé IA de la V0), T-161 (V1 et révisions), T-162 (attentes sur les profils).",
+   "departements": [
+    "ia",
+    "back",
+    "front",
+    "qa"
+   ],
+   "livrables": [
+    "T-160",
+    "T-161",
+    "T-162"
+   ],
+   "statut": "En cours"
   }
  ],
  "bibliotheques": [
@@ -3100,10 +3119,10 @@
    "resp": "Yosra Ghorbel",
    "prio": "P0",
    "phase": "PH4",
-   "statut": "en_cours",
-   "prompt": "P-046",
+   "statut": "fait",
+   "prompt": "P-058",
    "jour": "J7",
-   "detail": "Sprint 3 (07/12 → 13/12). Accepter ou refuser une demande ; résumé de la V0, points manquants et questions suggérées, par l'IA locale. Reprise par Yosra Ghorbel (recrutée le 19/11)."
+   "detail": "Livré : l'agence accepte la demande (passage en V1 en cours, marque notifiée) ou la refuse avec un motif (retour en brouillon chez la marque, qui peut l'envoyer à une autre agence). Analyse de la V0 par l'IA locale (Ollama, gratuite, rien ne sort de la machine) : résumé, ce qui manque, questions à poser ; lecture du texte des PDF, Word et PowerPoint ; points de base vérifiés par des règles fixes, et repli sur les règles seules si l'IA ne répond pas. Migration V35, 79 tests serveur verts, recette navigateur test-agence-v0."
   },
   {
    "id": "T-161",
@@ -3112,7 +3131,7 @@
    "resp": "Yanis Belhadj",
    "prio": "P0",
    "phase": "PH4",
-   "statut": "a_faire",
+   "statut": "en_cours",
    "prompt": "P-046",
    "jour": "J7",
    "detail": "Sprint 3. Rédaction de la V1 (fichier et texte), questions à la marque, versions figées (V1.1…), choix de la boîte de production. Inclut le renvoi en révision avec commentaire (reporté de T-159)."
@@ -3304,13 +3323,13 @@
   }
  ],
  "maintenant": {
-  "titre": "P-057 · Sprint 2 terminé, sprint 3 prêt",
-  "etape": 57,
+  "titre": "P-058 · T-160 livré, T-161 en cours",
+  "etape": 58,
   "agents": [
    {
-    "nom": "Yosra Ghorbel",
-    "action": "Espace agence et résumé IA de la V0",
-    "court": "T-160"
+    "nom": "Yanis Belhadj",
+    "action": "V1 de l'agence et révisions",
+    "court": "T-161"
    },
    {
     "nom": "Amel Kacem",
@@ -3324,19 +3343,23 @@
    }
   ],
   "progres": {
-   "tache": "T-160",
-   "titre": "Espace agence et résumé IA",
+   "tache": "T-161",
+   "titre": "V1 de l'agence et révisions",
    "etapes": [
     {
-     "t": "Accepter ou refuser",
+     "t": "V1 texte et fichier",
      "s": "a_faire"
     },
     {
-     "t": "Résumé IA de la V0",
+     "t": "Versions figées V1.1…",
      "s": "a_faire"
     },
     {
-     "t": "Questions suggérées",
+     "t": "Renvoi en révision",
+     "s": "a_faire"
+    },
+    {
+     "t": "Choix de la production",
      "s": "a_faire"
     },
     {
@@ -3350,8 +3373,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-19T13:20:00Z",
-   "texte": "Sprint 2 terminé : demande de publicité, V0 (texte et fichier), envoi à l'agence, notification et journal"
+   "t": "2026-11-19T14:30:00Z",
+   "texte": "T-160 livré : réponse de l'agence et analyse IA de la V0 ; 79 tests verts"
   }
  },
  "activite": [
@@ -3696,6 +3719,12 @@
    "nom": "Amel Kacem",
    "t": "2026-11-19T13:20:00Z",
    "texte": "Recette du sprint 2 : 75 tests serveur verts ; parcours marque → agence vérifié dans le navigateur, avec un vrai PDF."
+  },
+  {
+   "h": "J7",
+   "nom": "Yosra Ghorbel",
+   "t": "2026-11-19T14:20:00Z",
+   "texte": "T-160 : analyse de la V0 par l'IA locale (résumé, manques, questions) ; acceptation et refus avec motif. Recette réussie."
   }
  ],
  "plan": {
@@ -3857,7 +3886,6 @@
    }
   ],
   "file": [
-   "T-160",
    "T-161",
    "T-162",
    "T-163",
@@ -3879,7 +3907,7 @@
    "T-100",
    "T-127"
   ],
-  "courante": "T-160",
+  "courante": "T-161",
   "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages ».",
   "calendrier": {
    "T-103": {
@@ -4103,8 +4131,9 @@
     "reel": true
    },
    "T-160": {
-    "debut": "2026-12-07",
-    "fin": "2026-12-11"
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
    },
    "T-161": {
     "debut": "2026-12-07",

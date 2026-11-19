@@ -154,6 +154,13 @@
             <version>5.4.1</version>
         </dependency>
 
+        <!-- Lecture du texte des PDF déposés en V0 (T-160), Apache 2.0, gratuit -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.3</version>
+        </dependency>
+
         <!-- ===== Ajouts Cellule IA (J1 - 15/11/2026) ===== -->
 
         <!-- Spring AI : client Ollama (chat + embeddings), version gérée par spring-ai-bom -->

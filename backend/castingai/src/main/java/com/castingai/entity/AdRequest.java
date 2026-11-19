@@ -40,6 +40,13 @@ public class AdRequest {
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20)
     private Status status = Status.BROUILLON;
 
+    /** T-160 · Analyse de la V0 pour l'agence. Listes enregistrées une ligne par élément. */
+    @Column(name = "ai_summary", columnDefinition = "TEXT") private String aiSummary;
+    @Column(name = "ai_missing", columnDefinition = "TEXT") private String aiMissing;
+    @Column(name = "ai_questions", columnDefinition = "TEXT") private String aiQuestions;
+    @Column(name = "ai_source", length = 10) private String aiSource;
+    @Column(name = "ai_at") private LocalDateTime aiAt;
+
     @Column(name = "created_at", nullable = false) private LocalDateTime createdAt;
     @Column(name = "updated_at", nullable = false) private LocalDateTime updatedAt;
 

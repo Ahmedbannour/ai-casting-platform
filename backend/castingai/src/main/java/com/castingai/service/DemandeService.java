@@ -43,8 +43,11 @@ public class DemandeService {
     public record EventView(String type, String message, String actorName, LocalDateTime createdAt) {}
     public record Detail(UUID id, String title, String product, String objective, String target, String keyMessage, LocalDate airDate,
                          AdRequest.Status status, String brandName, UUID agencyId, String agencyName, String createdByName,
-                         LocalDateTime createdAt, LocalDateTime updatedAt, boolean canEdit, List<VersionView> versions, List<EventView> events) {}
+                         LocalDateTime createdAt, LocalDateTime updatedAt, boolean canEdit, boolean canRespond, boolean canAnalyse, Analysis analysis,
+                         List<VersionView> versions, List<EventView> events) {}
     public record AgencyOption(UUID id, String name, String city) {}
+    public record Refuse(@NotBlank(message = "Dites à la marque pourquoi vous refusez") @Size(max = 1000) String reason) {}
+    public record Analysis(String summary, List<String> missing, List<String> questions, String source, LocalDateTime at) {}
     public record FileData(byte[] bytes, String name, String type) {}
 
     static final long MAX_FILE = 20L * 1024 * 1024;
@@ -58,6 +61,8 @@ public class DemandeService {
     private final AccessService access;
     private final NotificationService notifications;
     private final StorageService storage;
+    private final V0Reader reader;
+    private final V0Analyzer analyzer;
 
     // ── Lecture ──
 
@@ -216,6 +221,85 @@ public class DemandeService {
         requests.delete(r);
     }
 
+    // ── Agence : réponse et analyse (T-160) ──
+
+    /** L'agence accepte la demande : elle passe en « V1 en cours », la marque est notifiée. */
+    @Transactional
+    public Detail accept(String email, UUID id) {
+        User me = access.user(email);
+        AdRequest r = respondable(me, id);
+        r.setStatus(AdRequest.Status.V1_EN_COURS);
+        log(r, me, "ACCEPTEE", "Demande acceptée par " + r.getAgency().getName() + " : la V1 est en préparation");
+        notifyBrand(r, "Demande acceptée : " + r.getTitle(), r.getAgency().getName() + " a accepté votre demande et prépare sa V1.");
+        return detail(me, r);
+    }
+
+    /** L'agence refuse avec un motif : la demande revient en brouillon chez la marque, qui peut la modifier et l'envoyer ailleurs. */
+    @Transactional
+    public Detail refuse(String email, UUID id, Refuse req) {
+        User me = access.user(email);
+        AdRequest r = respondable(me, id);
+        String agency = r.getAgency().getName(), reason = req.reason().trim();
+        versions.findFirstByRequestIdAndKindOrderByCreatedAtDesc(r.getId(), AdVersion.Kind.V0).ifPresent(v -> {
+            v.setStatus(AdVersion.Status.BROUILLON); v.setDeliveredAt(null); versions.save(v);
+        });
+        notifyBrand(r, "Demande refusée : " + r.getTitle(), agency + " a refusé votre demande : " + reason);
+        r.setAgency(null);
+        r.setStatus(AdRequest.Status.BROUILLON);
+        r.setAiSummary(null); r.setAiMissing(null); r.setAiQuestions(null); r.setAiSource(null); r.setAiAt(null);
+        log(r, me, "REFUSEE", "Demande refusée par " + agency + " : " + reason);
+        Detail d = detail(me, r);
+        return d;
+    }
+
+    /** Analyse de la V0 (résumé, points manquants, questions) pour l'agence. Relançable. */
+    @Transactional
+    public Detail analyse(String email, UUID id) {
+        User me = access.user(email);
+        AdRequest r = visible(me, id);
+        if (!isAgencySide(me, r) || !analysable(r)) throw new ForbiddenException("L'analyse de la V0 est réservée à l'agence qui a reçu la demande");
+        AdVersion v0 = versions.findFirstByRequestIdAndKindOrderByCreatedAtDesc(r.getId(), AdVersion.Kind.V0)
+                .orElseThrow(() -> new IllegalArgumentException("Cette demande n'a pas de V0"));
+        String fileText = null;
+        if (v0.getFileKey() != null) {
+            try { fileText = reader.read(storage.download(v0.getFileKey()), v0.getFileName()); } catch (Exception ignored) { }
+        }
+        V0Analyzer.Result res = analyzer.analyse(r, v0.getBody(), fileText, v0.getFileName());
+        r.setAiSummary(res.summary());
+        r.setAiMissing(String.join("\n", res.missing()));
+        r.setAiQuestions(String.join("\n", res.questions()));
+        r.setAiSource(res.source());
+        r.setAiAt(LocalDateTime.now());
+        log(r, me, "ANALYSE", res.source().equals("IA") ? "V0 analysée par l'IA locale" : "V0 analysée (règles seules : l'IA locale n'a pas répondu)");
+        return detail(me, r);
+    }
+
+    private AdRequest respondable(User me, UUID id) {
+        AdRequest r = visible(me, id);
+        if (!isAgencySide(me, r)) throw new ForbiddenException("Seule l'agence qui a reçu la demande peut y répondre");
+        if (r.getStatus() != AdRequest.Status.V0_ENVOYEE) throw new IllegalArgumentException("Cette demande a déjà reçu une réponse");
+        return r;
+    }
+
+    private void notifyBrand(AdRequest r, String title, String body) {
+        Set<UUID> to = new LinkedHashSet<>();
+        to.add(r.getCreatedBy().getId());
+        if (r.getBrand() != null) users.findAll().stream()
+                .filter(u -> u.getAgency() != null && u.getAgency().getId().equals(r.getBrand().getId()) && u.isEnabled())
+                .forEach(u -> to.add(u.getId()));
+        to.forEach(u -> notifications.push(u, "DEMANDE", title, body, "/demandes/" + r.getId()));
+    }
+
+    private boolean isAgencySide(User me, AdRequest r) {
+        if (r.getAgency() == null) return false;
+        if (me.getRole() == Role.ADMIN) return true;
+        return me.getRole() == Role.AGENCE_MARKETING && me.getAgency() != null && me.getAgency().getId().equals(r.getAgency().getId());
+    }
+
+    private static boolean analysable(AdRequest r) {
+        return r.getStatus() == AdRequest.Status.V0_ENVOYEE || r.getStatus() == AdRequest.Status.V1_EN_COURS;
+    }
+
     // ── Règles ──
 
     private boolean isBrandSide(User me, AdRequest r) {
@@ -286,8 +370,16 @@ public class DemandeService {
         return new Detail(r.getId(), r.getTitle(), r.getProduct(), r.getObjective(), r.getTarget(), r.getKeyMessage(), r.getAirDate(), r.getStatus(),
                 r.getBrand() == null ? name(r.getCreatedBy()) : r.getBrand().getName(), r.getAgency() == null ? null : r.getAgency().getId(),
                 r.getAgency() == null ? null : r.getAgency().getName(), name(r.getCreatedBy()), r.getCreatedAt(), r.getUpdatedAt(),
-                isBrandSide(me, r) && r.getStatus() == AdRequest.Status.BROUILLON, vs, ev);
+                isBrandSide(me, r) && r.getStatus() == AdRequest.Status.BROUILLON,
+                isAgencySide(me, r) && r.getStatus() == AdRequest.Status.V0_ENVOYEE,
+                isAgencySide(me, r) && analysable(r), analysis(r), vs, ev);
     }
+
+    private static Analysis analysis(AdRequest r) {
+        if (r.getAiAt() == null) return null;
+        return new Analysis(r.getAiSummary(), lines(r.getAiMissing()), lines(r.getAiQuestions()), r.getAiSource(), r.getAiAt());
+    }
+    private static List<String> lines(String s) { return s == null || s.isBlank() ? List.of() : List.of(s.split("\n")); }
 
     private static String name(User u) { return (u.getFirstName() + " " + u.getLastName()).trim(); }
     private static String blank(String s) { return s == null || s.isBlank() ? null : s.trim(); }

@@ -21,11 +21,12 @@ export interface DemandeVersion {
   id: string; kind: 'V0' | 'V1' | 'V2'; label: string; status: 'BROUILLON' | 'LIVREE' | 'A_REVISER'; body: string | null;
   fileName: string | null; fileType: string | null; fileSize: number | null; authorName: string | null; createdAt: string; deliveredAt: string | null;
 }
+export interface DemandeAnalysis { summary: string; missing: string[]; questions: string[]; source: 'IA' | 'REGLES'; at: string; }
 export interface DemandeEvent { type: string; message: string; actorName: string | null; createdAt: string; }
 export interface DemandeDetail {
   id: string; title: string; product: string | null; objective: string | null; target: string | null; keyMessage: string | null;
   airDate: string | null; status: DemandeStatus; brandName: string; agencyId: string | null; agencyName: string | null; createdByName: string;
-  createdAt: string; updatedAt: string; canEdit: boolean; versions: DemandeVersion[]; events: DemandeEvent[];
+  createdAt: string; updatedAt: string; canEdit: boolean; canRespond: boolean; canAnalyse: boolean; analysis: DemandeAnalysis | null; versions: DemandeVersion[]; events: DemandeEvent[];
 }
 export interface DemandeRequest { title: string; product?: string | null; objective?: string | null; target?: string | null; keyMessage?: string | null; airDate?: string | null; }
 export interface AgencyOption { id: string; name: string; city: string | null; }
@@ -49,5 +50,8 @@ export class DemandeService {
   removeV0File(id: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/v0/fichier`); }
   send(id: string, agencyId: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/envoyer`, { agencyId }); }
   cancel(id: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/annuler`, {}); }
+  accept(id: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/accepter`, {}); }
+  refuse(id: string, reason: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/refuser`, { reason }); }
+  analyse(id: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/analyse`, {}); }
   file(id: string, versionId: string): Observable<Blob> { return this.http.get(`${this.url}/${id}/versions/${versionId}/fichier`, { responseType: 'blob' }); }
 }

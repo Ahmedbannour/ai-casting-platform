@@ -5,3 +5,4 @@ outils/
 # Compte administrateur de la recette (mot de passe aléatoire local)
 pilotage/tests/.recette-admin.json
 pilotage/nav/
+pilotage/tests/.demo-agence.json
