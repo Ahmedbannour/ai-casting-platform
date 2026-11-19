@@ -12,18 +12,26 @@ const check = (name, cond, info) => { (cond ? ok : ko).push(name + (info !== und
   page.on('pageerror', e => errors.push(e.message));
 
   // 1. Roadmap
-  await page.goto(URL + '#roadmap'); await page.waitForTimeout(800);
+  await page.goto(URL + '#roadmap'); await page.waitForSelector('#rm-grid .rm-lotbar', { timeout: 8000 }).catch(() => {}); await page.waitForTimeout(400);
   const rm = await page.evaluate(() => ({
     bars: document.querySelectorAll('#rm-grid .rm-bar:not(.lotbar)').length,
-    lots: document.querySelectorAll('#rm-grid .lotbar').length,
+    lots: document.querySelectorAll('#rm-grid .rm-lotbar').length,
     today: document.querySelector('.rm-day.today')?.textContent,
     todayLine: !!document.querySelector('.rm-today'),
     scrolled: document.getElementById('rm-scroll').scrollLeft > 0
   }));
   const planned = Object.keys(JSON.parse(require('fs').readFileSync(require('path').join(process.env.PILOTAGE || 'C:\\Users\\AhmedBannour\\ai-casting-platform\\pilotage', 'data.json'), 'utf8')).plan.calendrier || {}).length;
-  check('Roadmap : une barre par tâche planifiée (' + planned + ')', rm.bars === planned, rm.bars);
-  check('Roadmap : 8 lots', rm.lots === 8, rm.lots);
-  check('Roadmap : colonne du jour = 17', rm.today === String(new Date().getDate()), rm.today);
+
+  const DATA = JSON.parse(require('fs').readFileSync(require('path').join(process.env.PILOTAGE || 'C:\\Users\\AhmedBannour\\ai-casting-platform\\pilotage', 'data.json'), 'utf8'));
+  const nLots = DATA.plan.lots.filter(l => l.taches.some(i => DATA.plan.calendrier[i])).length;
+  check('Roadmap : ' + nLots + ' lots (plan v2 : 8 lots + 6 sprints)', rm.lots === nLots, rm.lots);
+  check('Roadmap : colonne du jour = ' + new Date().getDate(), rm.today === String(new Date().getDate()), rm.today);
+  // « Tout déplier » : une barre par tâche planifiée d'un lot
+  const ids = new Set(DATA.taches.map(t => t.id));
+  const expected = new Set(DATA.plan.lots.flatMap(l => l.taches.filter(i => DATA.plan.calendrier[i] && ids.has(i)))).size;
+  await page.click('#rm-all'); await page.waitForTimeout(300);
+  const nb = await page.evaluate(() => document.querySelectorAll('#rm-grid .rm-bar[data-task]').length);
+  check('Roadmap : une barre par tâche planifiée (' + expected + ')', nb === expected, nb);
   check('Roadmap : ligne « aujourd’hui »', rm.todayLine);
   const align = await page.evaluate(() => {
     const bad = [];
@@ -32,7 +40,7 @@ const check = (name, cond, info) => { (cond ? ok : ko).push(name + (info !== und
       const yb = b.getBoundingClientRect(), yl = lab.getBoundingClientRect();
       if (Math.abs((yb.top + yb.bottom) / 2 - (yl.top + yl.bottom) / 2) > 3) bad.push(b.dataset.task);
     });
-    const lots = [...document.querySelectorAll('#rm-grid .lotbar')].map(b => b.getBoundingClientRect().top);
+    const lots = [...document.querySelectorAll('#rm-grid .rm-lotbar')].map(b => b.getBoundingClientRect().top);
     const lotLabs = [...document.querySelectorAll('#rm-grid .rm-lab.lot')].map(l => { const r = l.getBoundingClientRect(); return r; });
     const lotBad = lots.filter((t, i) => !(t >= lotLabs[i].top && t <= lotLabs[i].bottom)).length;
     const td = document.querySelector('.rm-day.today').getBoundingClientRect();
@@ -53,6 +61,9 @@ const check = (name, cond, info) => { (cond ? ok : ko).push(name + (info !== und
   await page.screenshot({ path: out + 'roadmap-plein-ecran.png' });
   await page.keyboard.press('Escape'); await page.waitForTimeout(300);
   await page.evaluate(async () => { if (document.fullscreenElement) await document.exitFullscreen(); document.getElementById('rm-wrap').classList.remove('fs'); });
+  // La tâche en cours est dans un lot replié : on ouvre son lot, puis on clique sa barre
+  const lotEnCours = DATA.plan.lots.find(l => l.taches.includes(DATA.plan.courante)).id;
+  if (!(await page.isVisible('.rm-bar.en_cours'))) { await page.click(`#rm-grid .rm-lab[data-lot="${lotEnCours}"]`); await page.waitForTimeout(300); }
   await page.click('.rm-bar.en_cours'); await page.waitForTimeout(200);
   check('Roadmap : clic sur une barre ouvre la tâche', await page.isVisible('#modal.on'));
   await page.keyboard.press('Escape');

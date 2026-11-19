@@ -709,9 +709,9 @@ let last,nextDay;
 function renderTop(){
 // header
 $('#h-name').textContent='Salle de pilotage ahmedRoom';
-$('#h-proj').innerHTML=PROJ.map(p=>`<button type="button" aria-pressed="${p.id===PID}" data-proj="${p.id}"><span aria-hidden="true">${p.emoji}</span>${esc(p.nom)}<small>${p.data.meta.avancement} %</small></button>`).join('');
+$('#h-proj').innerHTML=PROJ.map(p=>`<button type="button" aria-pressed="${p.id===PID}" data-proj="${p.id}"><span aria-hidden="true">${p.emoji}</span>${esc(p.nom)}<small>${p.data.meta.pause?'en pause':p.data.meta.avancement+' %'}</small></button>`).join('');
 document.querySelectorAll('#h-proj button').forEach(b=>b.onclick=()=>{if(b.dataset.proj!==PID)switchProject(b.dataset.proj);});
-$('#h-sub').textContent=`${D.meta.entreprise} · projet ${D.meta.projet} · client : ${D.meta.client}`;
+$('#h-sub').textContent=`${D.meta.entreprise} · projet ${D.meta.projet} · client : ${D.meta.client}`+(D.meta.pause?` · en pause depuis le ${new Date(D.meta.pause_depuis+'T12:00:00').toLocaleDateString('fr-FR')}`:'');
 last=D.journal[D.journal.length-1];
 $('#h-day').textContent=`${D.meta.jour||last.jour} · ${fmtDate(D.meta.maj||last.date)}`;
 {const pm=((D.maintenant||{}).titre||'').match(/P-\d{3}/);$('#h-maj').textContent=`Mis à jour après ${pm?pm[0]:D.prompts[D.prompts.length-1].id}`;}
@@ -774,7 +774,7 @@ function renderJournal(){
   const sets=[['Fait',T.filter(t=>t.statut==='fait'&&t.jour===j.jour)],['En cours',T.filter(t=>t.statut==='en_cours')],['Bloqué',T.filter(t=>t.statut==='bloque')],[`À faire ${nd}`,T.filter(t=>t.statut==='a_faire'&&t.jour===nd)]];
   $('#j-cols').innerHTML=sets.map(([h,l])=>`<div class="panel"><div class="col-h"><h3>${h}</h3><span class="n">${l.length}</span></div><ul class="tl">${l.map(task).join('')||'<li class="empty">Rien</li>'}</ul></div>`).join('');
   const box=(h,l)=>`<div class="panel"><h3 style="margin-bottom:8px">${h}</h3><ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">${l.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
-  $('#j-notes').innerHTML=box('Décisions',j.decisions)+box('Risques',j.risques)+box('En attente de vous',j.attente_client);
+  $('#j-notes').innerHTML=box('Décisions',j.decisions||[])+box('Risques',j.risques||[])+box('En attente de vous',j.attente_client||[]);
 }
 
 // kanban

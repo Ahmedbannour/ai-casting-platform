@@ -9,7 +9,9 @@
   "jour": "J1",
   "avancement": 35,
   "avancement_veille": 0,
-  "phase_courante": "ZPH0"
+  "phase_courante": "ZPH0",
+  "pause": true,
+  "pause_depuis": "2026-11-19"
  },
  "phases": [
   {
@@ -468,10 +470,10 @@
    "resp": "Hamza Toumi",
    "prio": "P0",
    "phase": "ZPH0",
-   "statut": "en_cours",
+   "statut": "a_faire",
    "prompt": "Z-P-001",
    "jour": "J1",
-   "detail": "APK release installée par USB ; le téléphone joint l'API du PC par adb reverse."
+   "detail": "APK release installée par USB ; le téléphone joint l'API du PC par adb reverse. En pause depuis le 19/11."
   },
   {
    "id": "Z-010",
@@ -480,10 +482,10 @@
    "resp": "Hamza Toumi",
    "prio": "P0",
    "phase": "ZPH0",
-   "statut": "en_cours",
+   "statut": "a_faire",
    "prompt": "Z-P-001",
    "jour": "J1",
-   "detail": "Dépôt privé, README avec architecture, API et lancement."
+   "detail": "Dépôt privé, README avec architecture, API et lancement. En pause depuis le 19/11."
   },
   {
    "id": "Z-011",
@@ -733,10 +735,58 @@
    "resp": "Walid Khemiri",
    "prio": "P0",
    "phase": "ZPH1",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "",
    "jour": "J1",
-   "detail": "Sprint 2."
+   "detail": "Table feedbacks (V6), PUT/GET /api/orders/{id}/feedback, GET /api/stalls/{id}/feedback ; carte d’avis animée dans l’app, avis visibles sur la page du local."
+  },
+  {
+   "id": "Z-032",
+   "titre": "Chapati monté comme un burger animé",
+   "dept": "front",
+   "resp": "Nour Hamdi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Le pain se soulève, la couche tombe et la pile se tasse ; vraies formes : laitue, tomate, fromage fondu, viande grillée, œuf, sauce, frites, olives, oignons."
+  },
+  {
+   "id": "Z-033",
+   "titre": "Icônes 3D réelles des ingrédients",
+   "dept": "front",
+   "resp": "Lina Cherni",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Microsoft Fluent UI Emoji (licence MIT, GitHub) : thon, chawarma, piment, fromage, œuf…"
+  },
+  {
+   "id": "Z-034",
+   "titre": "Recette incluse, crudités offertes, suppléments payants",
+   "dept": "prod",
+   "resp": "Rim Ayari",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Ce qui est inclus est coché ✓ ; crudités et sauces offertes au choix ; suppléments avec prix. Notes « sans / avec » envoyées au chef."
+  },
+  {
+   "id": "Z-035",
+   "titre": "Base propre à chaque catégorie",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Pizza ronde, chapati en burger, makloub en demi-lune, mlawi carré, libanais en poche, tacos grillé, baguette en long."
   }
  ],
  "journal": [
@@ -756,25 +806,9 @@
   }
  ],
  "maintenant": {
-  "titre": "Z-P-001 · Zanqa version 0",
+  "titre": "En pause depuis le 19/11/2026 · toute l'équipe sur AI Casting",
   "etape": 6,
-  "agents": [
-   {
-    "nom": "Aymen Dridi",
-    "action": "App Flutter sur le téléphone",
-    "court": "Z-009"
-   },
-   {
-    "nom": "Rami Saidi",
-    "action": "Dépôt GitHub",
-    "court": "Z-010"
-   },
-   {
-    "nom": "Amel Kacem",
-    "action": "Recette sur le téléphone",
-    "court": "QA"
-   }
-  ],
+  "agents": [],
   "progres": {
    "tache": "Z-009",
    "titre": "Version 0 sur le téléphone",
@@ -806,8 +840,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-19T09:00:00Z",
-   "texte": "Zanqa : API et app prêtes, installation sur le téléphone"
+   "t": "2026-11-19T11:15:00Z",
+   "texte": "Projet mis en pause à la demande du client"
   }
  },
  "activite": [
@@ -828,6 +862,12 @@
    "nom": "Aymen Dridi",
    "t": "2026-11-19T09:00:00Z",
    "texte": "App Flutter : quatre rôles, suivi du livreur sur la carte, aucune erreur d'analyse."
+  },
+  {
+   "h": "J1",
+   "nom": "Karim Haddad",
+   "t": "2026-11-19T11:15:00Z",
+   "texte": "Projet mis en pause à la demande du client : toute l'équipe passe sur AI Casting. Reprise : connexion Facebook à terminer, sprint 3 (langues, adresses)."
   }
  ],
  "plan": {
@@ -852,7 +892,11 @@
     "titre": "Sprint 2 · Après la commande",
     "but": "Feedback, historique",
     "taches": [
-     "Z-031"
+     "Z-031",
+     "Z-032",
+     "Z-033",
+     "Z-034",
+     "Z-035"
     ]
    },
    {

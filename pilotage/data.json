@@ -5,11 +5,11 @@
   "projet": "AI Casting Platform",
   "client": "Vous, porteur du projet (donneur d’ordre)",
   "debut": "2026-11-15",
-  "maj": "2026-11-17",
-  "jour": "J5",
-  "avancement": 94,
-  "avancement_veille": 71,
-  "phase_courante": "PH1"
+  "maj": "2026-11-19",
+  "jour": "J7",
+  "avancement": 76,
+  "avancement_veille": 97,
+  "phase_courante": "PH4"
  },
  "phases": [
   {
@@ -35,6 +35,12 @@
    "nom": "Phase 3 · Lancer",
    "semaines": "S10–S12",
    "avancement": 26
+  },
+  {
+   "id": "PH4",
+   "nom": "Phase 4 · Cahier v2 : chaîne publicitaire",
+   "semaines": "23/11 → 03/01",
+   "avancement": 32
   }
  ],
  "departements": [
@@ -773,6 +779,114 @@
    ],
    "livrables": [
     "Accueil de l'administrateur (T-144)"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-046",
+   "date": "2026-11-19",
+   "titre": "Cahier des charges v2 : six rôles et cycle de la publicité",
+   "original": "les roles principeau de notre platformes sont : admin , acteur , boite prod , agence marketing , client (brand) , realisateur (directeur) … merci de recorriger la cahier de charge du projet , faire un plan de correction et avancement , sous forme de sprint , me presenter le nouveau plan , et lancer les mises a jours",
+   "ameliore": "Réécrire le cahier des charges autour de la chaîne publicitaire : la marque dépose la V0, l'agence marketing livre la V1, le réalisateur écrit la V2, l'IA propose des acteurs conformes. Six rôles avec leurs droits ; plan de correction en sprints, présenté au client ; sprint 1 lancé.",
+   "departements": [
+    "prod",
+    "back",
+    "front",
+    "qa"
+   ],
+   "livrables": [
+    "Cahier des charges v2 (document partagé)",
+    "Plan en 6 sprints",
+    "T-150 à T-155"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-047",
+   "date": "2026-11-19",
+   "titre": "Note urgente : intention du réalisateur au lieu du prompt",
+   "original": "note trés urgente a mettre dans le cahier de charge : d'intension de réalisateur au lieu de prompt",
+   "ameliore": "Les propositions d'acteurs partent de l'intention du réalisateur écrite pour chaque rôle, plus d'un prompt tapé ; libellés corrigés partout.",
+   "departements": [
+    "ia",
+    "front"
+   ],
+   "livrables": [
+    "T-153"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-048",
+   "date": "2026-11-19",
+   "titre": "Tous les participants ont un accès",
+   "original": "tous les acteurs on un acces a notre platforme , donc merci de recorriger tous",
+   "ameliore": "Chaque rôle du cycle a son compte, sa connexion et son espace ; aucun travail « pour le compte » d'un autre.",
+   "departements": [
+    "back",
+    "front"
+   ],
+   "livrables": [
+    "T-151",
+    "T-152"
+   ],
+   "statut": "En cours"
+  },
+  {
+   "id": "P-049",
+   "date": "2026-11-19",
+   "titre": "Figuration à la création du compte acteur",
+   "original": "il faut poser la question au acteur lors de création de compte es qu'il accepte de travailler comme figurant (3 types de figurant : extra (figurant) , shilouette , figurant spéciale",
+   "ameliore": "Question obligatoire à l'inscription : oui ou non, et si oui les types (extra, silhouette, figurant spécial) ; modifiable dans le profil ; utilisée plus tard pour les rôles de figuration.",
+   "departements": [
+    "front",
+    "back"
+   ],
+   "livrables": [
+    "T-154"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-050",
+   "date": "2026-11-19",
+   "titre": "Réponses du client sur le métier",
+   "original": "Commentaires sur le cahier : production qui recueille les attentes, réalisateur et 1er AD, PPM, choix du réalisateur influencé par le client, V0 artistique sans budget, agences de casting = boîtes de production, abonnement non décidé",
+   "ameliore": "Intégrer au cahier : étape « attentes » de la production, 1er AD avec le réalisateur, PPM où toutes les parties décident, V0 sans budget.",
+   "departements": [
+    "prod"
+   ],
+   "livrables": [
+    "Cahier v2 mis à jour"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-051",
+   "date": "2026-11-19",
+   "titre": "Safi Jacob en pause",
+   "original": "mettre le projet de food en pause pour le moment , en focalise que sur ai casting",
+   "ameliore": "Projet Safi Jacob suspendu ; toute l'équipe sur AI Casting.",
+   "departements": [
+    "dir"
+   ],
+   "livrables": [
+    "Salle : Safi Jacob en pause"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-052",
+   "date": "2026-11-19",
+   "titre": "Salle de pilotage à jour",
+   "original": "merci de mettre a jours tous les module et les interfaces de salle de pilotage tout de suite",
+   "ameliore": "Mettre à jour toute la salle : plan v2 en sprints, tâches, calendrier, journal, activité, état en direct ; Safi Jacob affiché en pause.",
+   "departements": [
+    "dir",
+    "front"
+   ],
+   "livrables": [
+    "Salle de pilotage v2"
    ],
    "statut": "Livré"
   }
@@ -2763,6 +2877,234 @@
    "prompt": "P-045",
    "jour": "J6",
    "detail": "Question du client. Photo de profil disponible sans démarche. Les autres photos demandent la permission user_photos, donc une revue de l'application par Meta, plus une vérification de l'entreprise (gratuite, structure déclarée). En développement, ça fonctionne pour les comptes testeurs. Proposition : écran « Importer mes photos » où l'acteur choisit ses photos, copiées une fois dans notre stockage. En attente de l'accord du client pour lancer la revue Meta."
+  },
+  {
+   "id": "T-150",
+   "titre": "Cahier des charges v2 : 6 rôles et cycle V0 → V1 → V2 → PPM",
+   "dept": "prod",
+   "resp": "Élodie Martin",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "fait",
+   "prompt": "P-046",
+   "jour": "J7",
+   "detail": "Document partagé « AI Casting · Cahier des charges v2 » : rôles (admin, marque, agence marketing, réalisateur et 1er AD, boîte de production, acteur), cycle complet, exigences par espace, matrice des droits, données, écarts avec l'existant, plan en 6 sprints. Les 6 réponses du client en commentaires sont intégrées (PPM, 1er AD, V0 artistique sans budget, agences de casting = boîtes de production)."
+  },
+  {
+   "id": "T-151",
+   "titre": "Six rôles, migration des agents en boîtes de production, organisations typées",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "fait",
+   "prompt": "P-046",
+   "jour": "J7",
+   "detail": "Migration V31 : rôles ADMIN, MARQUE, AGENCE_MARKETING, REALISATEUR, BOITE_PROD, ACTEUR ; comptes AGENT → BOITE_PROD ; type d'organisation (marque, agence marketing, boîte de production) ; un compte ne peut pas être rattaché à une organisation du mauvais type (refus 400 testé). Accès casting : admin, boîte de production, réalisateur."
+  },
+  {
+   "id": "T-152",
+   "titre": "Espaces et menus par rôle ; « Mes demandes » pour la marque et l'agence",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "fait",
+   "prompt": "P-048",
+   "jour": "J7",
+   "detail": "Chaque rôle arrive dans son espace : marque et agence sur « Mes demandes » (cycle avec « Vous êtes ici »), réalisateur et production sur le casting. Menu, barre mobile et libellés par rôle ; administration : onglet Organisations, création de comptes pour les 6 rôles. Recette test-six-roles : 4 rôles connectés, bons menus, 0 erreur."
+  },
+  {
+   "id": "T-153",
+   "titre": "Intention du réalisateur à la place du prompt",
+   "dept": "ia",
+   "resp": "Yasmine Trabelsi",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "fait",
+   "prompt": "P-047",
+   "jour": "J7",
+   "detail": "Note urgente du client. Champ « Intention du réalisateur » sur chaque rôle ; l'IA reçoit les critères du rôle puis l'intention (intentionQuery) et lance les propositions directement. Libellés « prompt » et « Décrivez l'acteur… » remplacés (recherche, vitrine, connexion, écran de lancement)."
+  },
+  {
+   "id": "T-154",
+   "titre": "Figuration demandée à l'inscription : extra, silhouette, figurant spécial",
+   "dept": "front",
+   "resp": "Julien Petit",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "fait",
+   "prompt": "P-049",
+   "jour": "J7",
+   "detail": "Migration V32. L'acteur répond oui ou non ; si oui, il coche un ou plusieurs types. Réponse obligatoire pour créer le compte, modifiable dans « Mon profil ». Recette test-figuration : message sans réponse, 3 types affichés, choix enregistré et repris dans le profil."
+  },
+  {
+   "id": "T-155",
+   "titre": "Mon profil : la carte « Mes données » sous le sommaire",
+   "dept": "front",
+   "resp": "Mariem Gharbi",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "fait",
+   "prompt": "P-046",
+   "jour": "J7",
+   "detail": "Signalé par le client (capture). La carte était placée dans la colonne du sommaire (196 px) et se superposait à lui ; elle suit maintenant le formulaire. Mesuré : même colonne que le formulaire (bureau et tablette)."
+  },
+  {
+   "id": "T-156",
+   "titre": "Figuration demandée aux inscrits Google ou Facebook à la première connexion",
+   "dept": "front",
+   "resp": "Julien Petit",
+   "prio": "P1",
+   "phase": "PH4",
+   "statut": "en_cours",
+   "prompt": "P-049",
+   "jour": "J7",
+   "detail": "Ces acteurs ne passent pas par le formulaire d'inscription : la question s'affichera à leur première connexion."
+  },
+  {
+   "id": "T-157",
+   "titre": "Inscription libre par rôle, validée par l'administrateur",
+   "dept": "back",
+   "resp": "Claire Dubois",
+   "prio": "P1",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-048",
+   "jour": "J7",
+   "detail": "Une marque, une agence, un réalisateur ou une boîte de production crée son compte et son organisation ; l'administrateur valide avant accès."
+  },
+  {
+   "id": "T-158",
+   "titre": "Demande de publicité et dépôt de la V0 artistique",
+   "dept": "back",
+   "resp": "Antoine Roux",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-046",
+   "jour": "J7",
+   "detail": "Sprint 2 (30/11 → 06/12). Demande (titre, produit, objectif, cible, message, date de diffusion ; pas de budget) ; V0 = fichier artistique (PDF, Word, PowerPoint, 20 Mo) et/ou texte libre ; choix de l'agence."
+  },
+  {
+   "id": "T-159",
+   "titre": "Étapes, notifications et journal d'une demande",
+   "dept": "back",
+   "resp": "Hichem Jaziri",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-046",
+   "jour": "J7",
+   "detail": "Sprint 2. Étapes brouillon → V0 envoyée → … → PPM → acteurs validés ; notification et ligne au journal à chaque passage ; renvoi en révision avec commentaire."
+  },
+  {
+   "id": "T-160",
+   "titre": "Espace agence : réception des demandes et résumé IA de la V0",
+   "dept": "ia",
+   "resp": "Nadia Ben Salem",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-046",
+   "jour": "J7",
+   "detail": "Sprint 3 (07/12 → 13/12). Accepter ou refuser une demande ; résumé de la V0, points manquants et questions suggérées, par l'IA locale."
+  },
+  {
+   "id": "T-161",
+   "titre": "V1 de l'agence et historique des versions",
+   "dept": "front",
+   "resp": "Yanis Belhadj",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-046",
+   "jour": "J7",
+   "detail": "Sprint 3. Rédaction de la V1 (fichier et texte), questions à la marque, versions figées (V1.1…), choix de la boîte de production."
+  },
+  {
+   "id": "T-162",
+   "titre": "Attentes du client et de l'agence sur les profils, saisies par la production",
+   "dept": "prod",
+   "resp": "Omar Chérif",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-050",
+   "jour": "J7",
+   "detail": "Sprint 3. Par personnage : ce que le client et l'agence souhaitent voir ; transmis au réalisateur et au 1er AD."
+  },
+  {
+   "id": "T-163",
+   "titre": "Éditeur de la V2 pour le réalisateur et le 1er AD ; rôles créés automatiquement",
+   "dept": "front",
+   "resp": "Sarra Mansouri",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-046",
+   "jour": "J7",
+   "detail": "Sprint 4 (14/12 → 20/12). Découpage en scènes, fiche par rôle (intention + critères : type, âge, sexe, apparence) ; publication de la V2 → rôles créés et propositions lancées."
+  },
+  {
+   "id": "T-164",
+   "titre": "Propositions IA expliquées par l'intention",
+   "dept": "ia",
+   "resp": "Yasmine Trabelsi",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-047",
+   "jour": "J7",
+   "detail": "Sprint 5 (21/12 → 27/12). Chaque acteur proposé dit quel passage de l'intention il satisfait."
+  },
+  {
+   "id": "T-165",
+   "titre": "Rôles de figuration : seulement les acteurs qui l'acceptent",
+   "dept": "back",
+   "resp": "Antoine Roux",
+   "prio": "P1",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-049",
+   "jour": "J7",
+   "detail": "Sprint 5. Un rôle d'importance « figuration » ne propose que les acteurs ayant accepté ce type."
+  },
+  {
+   "id": "T-166",
+   "titre": "Shortlist et auditions partagées ; avis du client et de l'agence",
+   "dept": "front",
+   "resp": "Mariem Gharbi",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-050",
+   "jour": "J7",
+   "detail": "Sprint 5. Le réalisateur mène le choix ; le client et l'agence donnent leur avis."
+  },
+  {
+   "id": "T-167",
+   "titre": "Dossier PPM et décisions en réunion",
+   "dept": "prod",
+   "resp": "Inès Garnier",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-050",
+   "jour": "J7",
+   "detail": "Sprint 6 (28/12 → 03/01). Casting, décors, lieux, accessoires, costumes : propositions préparées par la production et le réalisateur, validées ou ajustées ensemble ; compte rendu qui fige les choix."
+  },
+  {
+   "id": "T-168",
+   "titre": "Recette du cycle complet et tableau de bord admin v2",
+   "dept": "qa",
+   "resp": "Amel Kacem",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "a_faire",
+   "prompt": "P-046",
+   "jour": "J7",
+   "detail": "Sprint 6. Une pub fictive va de la V0 à la PPM puis à l'acteur qui accepte ; tableau de bord : demandes par étape, délais entre versions."
   }
  ],
  "journal": [
@@ -2819,61 +3161,82 @@
    "attente_client": [
     "Accord pour pousser S3, S4, S5 et le rapport de performance"
    ]
+  },
+  {
+   "date": "2026-11-19",
+   "jour": "J7",
+   "resume": "Cahier des charges v2 : la plateforme porte toute la chaîne d'une publicité (marque → agence → production → réalisateur et 1er AD → IA → casting → PPM). Six rôles, chacun avec son compte. Sprint 1 livré en grande partie : rôles et migration des agents, espaces par rôle, intention du réalisateur à la place du prompt, figuration à l'inscription, page « Mon profil » corrigée. 73 tests serveur verts. Safi Jacob mis en pause.",
+   "decisions": [
+    "D-017 : cahier des charges v2 et plan en 6 sprints (23/11 → 03/01)",
+    "D-018 : l'intention du réalisateur remplace le prompt",
+    "D-019 : les agences de casting sous contrat deviennent des boîtes de production",
+    "D-020 : la V0 est un fichier artistique, sans budget",
+    "D-021 : les choix définitifs se prennent ensemble à la PPM",
+    "D-022 : Safi Jacob en pause, toute l'équipe sur AI Casting"
+   ],
+   "risques": [
+    "Les acteurs inscrits par Google ou Facebook ne voient pas encore la question de la figuration (T-156)",
+    "Seul l'administrateur crée les comptes marque, agence, réalisateur et production (T-157)"
+   ],
+   "attente_client": [
+    "Décider qui paie l'abonnement et à quel tarif",
+    "Relire les définitions des 3 types de figuration"
+   ]
   }
  ],
  "maintenant": {
-  "titre": "P-063 · Carte du contact réparée",
-  "etape": 63,
+  "titre": "P-052 · Salle à jour, sprint 1 en cours",
+  "etape": 52,
   "agents": [
    {
-    "nom": "Bilel Ferchichi",
-    "action": "Serveur de démo : type du module de la carte",
-    "court": "T-146"
+    "nom": "Julien Petit",
+    "action": "Figuration pour les inscrits Google ou Facebook",
+    "court": "T-156"
    },
    {
-    "nom": "Mariem Gharbi",
-    "action": "Zoom sur Tunis à l’arrivée sur Contact",
-    "court": "T-146"
+    "nom": "Claire Dubois",
+    "action": "Inscription libre par rôle",
+    "court": "T-157"
    },
    {
-    "nom": "Nicolas Perrin",
-    "action": "Recette avec la carte",
+    "nom": "Amel Kacem",
+    "action": "Recette des espaces par rôle",
     "court": "QA"
    }
   ],
   "progres": {
-   "tache": "T-146",
-   "titre": "Carte du contact",
+   "tache": "T-156",
+   "titre": "Figuration à la première connexion",
    "etapes": [
     {
-     "t": "Diagnostic",
+     "t": "Cahier v2",
      "s": "fait"
     },
     {
-     "t": "Type .mjs",
+     "t": "Six rôles",
      "s": "fait"
     },
     {
-     "t": "Zoom sur Tunis",
+     "t": "Intention",
      "s": "fait"
     },
     {
-     "t": "Vérifié en public",
+     "t": "Figuration",
      "s": "fait"
     },
     {
-     "t": "Recette",
+     "t": "Google et Facebook",
      "s": "en_cours"
     },
     {
-     "t": "Git",
+     "t": "Inscription par rôle",
      "s": "a_faire"
     }
    ]
   },
   "derniere": {
-   "t": "2026-11-18T06:08:00Z",
-   "texte": "Carte du contact réparée"
+   "t": "2026-11-19T11:20:00Z",
+   "texte": "Salle de pilotage mise à jour : plan v2 en 6 sprints, Safi Jacob en pause"
   }
  },
  "activite": [
@@ -3092,11 +3455,65 @@
    "nom": "Bilel Ferchichi",
    "t": "2026-11-18T06:08:00Z",
    "texte": "Carte du contact réparée : le serveur de démo n’envoyait pas le module de la carte en JavaScript, et le zoom sur Tunis ne partait pas en arrivant directement sur Contact. Vérification ajoutée à la recette."
+  },
+  {
+   "h": "J7",
+   "nom": "Élodie Martin",
+   "t": "2026-11-19T10:47:00Z",
+   "texte": "Cahier des charges v2 publié : six rôles, cycle V0 → V1 → V2 → propositions → PPM, plan en 6 sprints."
+  },
+  {
+   "h": "J7",
+   "nom": "Mariem Gharbi",
+   "t": "2026-11-19T10:40:00Z",
+   "texte": "« Mon profil » : la carte « Mes données » ne recouvre plus le sommaire."
+  },
+  {
+   "h": "J7",
+   "nom": "Omar Chérif",
+   "t": "2026-11-19T11:00:00Z",
+   "texte": "Réponses du client intégrées : production et attentes, 1er AD, PPM, V0 sans budget."
+  },
+  {
+   "h": "J7",
+   "nom": "Hichem Jaziri",
+   "t": "2026-11-19T10:55:00Z",
+   "texte": "Six rôles en base (V31) ; les agents deviennent boîtes de production ; organisations typées."
+  },
+  {
+   "h": "J7",
+   "nom": "Yasmine Trabelsi",
+   "t": "2026-11-19T10:56:00Z",
+   "texte": "Intention du réalisateur : l'IA reçoit les critères du rôle puis l'intention ; plus de « prompt »."
+  },
+  {
+   "h": "J7",
+   "nom": "Sarra Mansouri",
+   "t": "2026-11-19T11:04:00Z",
+   "texte": "Espaces par rôle : « Mes demandes » pour la marque et l'agence, casting pour le réalisateur et la production."
+  },
+  {
+   "h": "J7",
+   "nom": "Julien Petit",
+   "t": "2026-11-19T11:12:00Z",
+   "texte": "Figuration à l'inscription : extra, silhouette, figurant spécial ; repris dans le profil."
+  },
+  {
+   "h": "J7",
+   "nom": "Amel Kacem",
+   "t": "2026-11-19T11:08:00Z",
+   "texte": "Recette : 73 tests serveur verts, 4 rôles connectés avec le bon menu, figuration enregistrée."
+  },
+  {
+   "h": "J7",
+   "nom": "Karim Haddad",
+   "t": "2026-11-19T11:15:00Z",
+   "texte": "Safi Jacob mis en pause : toute l'équipe sur AI Casting."
   }
  ],
  "plan": {
-  "objectif": "Produit final : plateforme en ligne, sûre et conforme, où les agences sous contrat trouvent, valident et convoquent des acteurs, et où chaque acteur garde la main sur ses données.",
-  "version": "Plan v1 · 17/11/2026",
+  "objectif": "Produit final : la plateforme porte une publicité de l'idée de la marque (V0) au concept de l'agence (V1), à l'intention du réalisateur (V2), aux acteurs proposés par l'IA puis validés ensemble en PPM ; chaque participant a son compte, et chaque acteur garde la main sur ses données.",
+  "version": "Plan v2 · 19/11/2026 (cahier des charges v2)",
   "lots": [
    {
     "id": "L1",
@@ -3179,6 +3596,67 @@
     ]
    },
    {
+    "id": "S1",
+    "titre": "Sprint 1 · Rôles, intention, figuration",
+    "but": "23/11 → 29/11 · chaque rôle entre dans son espace",
+    "taches": [
+     "T-150",
+     "T-151",
+     "T-152",
+     "T-153",
+     "T-154",
+     "T-155",
+     "T-156",
+     "T-157"
+    ]
+   },
+   {
+    "id": "S2",
+    "titre": "Sprint 2 · Demande et V0",
+    "but": "30/11 → 06/12 · la marque dépose son idée",
+    "taches": [
+     "T-158",
+     "T-159"
+    ]
+   },
+   {
+    "id": "S3",
+    "titre": "Sprint 3 · Agence, V1 et attentes",
+    "but": "07/12 → 13/12 · le concept et les attentes sur les profils",
+    "taches": [
+     "T-160",
+     "T-161",
+     "T-162"
+    ]
+   },
+   {
+    "id": "S4",
+    "titre": "Sprint 4 · V2 du réalisateur",
+    "but": "14/12 → 20/12 · l'intention de chaque rôle",
+    "taches": [
+     "T-163"
+    ]
+   },
+   {
+    "id": "S5",
+    "titre": "Sprint 5 · Propositions et casting",
+    "but": "21/12 → 27/12 · les acteurs proposés et choisis",
+    "taches": [
+     "T-164",
+     "T-165",
+     "T-166"
+    ]
+   },
+   {
+    "id": "S6",
+    "titre": "Sprint 6 · PPM et recette",
+    "but": "28/12 → 03/01 · tout le monde valide avant le tournage",
+    "taches": [
+     "T-167",
+     "T-168"
+    ]
+   },
+   {
     "id": "L8",
     "titre": "Mise en ligne",
     "but": "Ouvert aux premières agences",
@@ -3190,25 +3668,21 @@
    }
   ],
   "file": [
-   "T-105",
-   "T-128",
-   "T-106",
-   "T-129",
-   "T-107",
-   "T-108",
-   "T-132",
-   "T-101",
-   "T-102",
-   "T-112",
-   "T-113",
+   "T-156",
+   "T-157",
+   "T-158",
+   "T-159",
+   "T-160",
+   "T-161",
+   "T-162",
+   "T-163",
+   "T-164",
+   "T-165",
+   "T-166",
+   "T-167",
+   "T-168",
    "T-114",
-   "T-110",
-   "T-109",
-   "T-111",
-   "T-117",
-   "T-116",
    "T-118",
-   "T-131",
    "T-119",
    "T-120",
    "T-121",
@@ -3220,7 +3694,7 @@
    "T-100",
    "T-127"
   ],
-  "courante": "T-101",
+  "courante": "T-156",
   "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages ».",
   "calendrier": {
    "T-103": {
@@ -3392,9 +3866,91 @@
     "debut": "2026-12-16",
     "fin": "2026-12-16",
     "reel": false
+   },
+   "T-150": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "T-151": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "T-152": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "T-153": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "T-154": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "T-155": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "T-156": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-23"
+   },
+   "T-157": {
+    "debut": "2026-11-23",
+    "fin": "2026-11-27"
+   },
+   "T-158": {
+    "debut": "2026-11-30",
+    "fin": "2026-12-04"
+   },
+   "T-159": {
+    "debut": "2026-11-30",
+    "fin": "2026-12-04"
+   },
+   "T-160": {
+    "debut": "2026-12-07",
+    "fin": "2026-12-11"
+   },
+   "T-161": {
+    "debut": "2026-12-07",
+    "fin": "2026-12-11"
+   },
+   "T-162": {
+    "debut": "2026-12-07",
+    "fin": "2026-12-11"
+   },
+   "T-163": {
+    "debut": "2026-12-14",
+    "fin": "2026-12-18"
+   },
+   "T-164": {
+    "debut": "2026-12-21",
+    "fin": "2026-12-25"
+   },
+   "T-165": {
+    "debut": "2026-12-21",
+    "fin": "2026-12-25"
+   },
+   "T-166": {
+    "debut": "2026-12-21",
+    "fin": "2026-12-25"
+   },
+   "T-167": {
+    "debut": "2026-12-28",
+    "fin": "2027-01-01"
+   },
+   "T-168": {
+    "debut": "2026-12-28",
+    "fin": "2027-01-01"
    }
   },
-  "calendrier_note": "Dates prévisionnelles en jours ouvrés (lundi-vendredi), une tâche à la fois dans l'ordre de la file ; recalculées quand le plan avance. Tâches faites : date réelle.",
+  "calendrier_note": "Cahier v2 : un sprint d'une semaine par lot S1 à S6 (du 23/11/2026 au 03/01/2027), puis reprise de la mise en ligne (L8). Tâches faites : date réelle.",
   "calendrier_google": {
    "calendrier": "ahmed@d-service.sa",
    "evenements": {
