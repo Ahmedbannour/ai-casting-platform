@@ -27,9 +27,9 @@
     <div class="left-content">
       @if (mode === 'inscription') {
         <h2>Votre profil d'acteur,<br>vu par les castings.</h2>
-        <p>Créez votre fiche, ajoutez vos photos et vos disponibilités&nbsp;: les agents de casting vous trouvent quand un rôle vous correspond.</p>
+        <p>Créez votre fiche, ajoutez vos photos et vos disponibilités&nbsp;: les réalisateurs et les boîtes de production vous trouvent quand un rôle vous correspond.</p>
       } @else {
-        <h2>Décrivez le rôle.<br>Triez les profils.</h2>
+        <h2>De l’idée de la marque<br>aux bons acteurs.</h2>
         <p>Écrivez ce que vous cherchez en une phrase. L'IA vous propose des acteurs un par un&nbsp;: glissez à droite pour les garder, à gauche pour les écarter.</p>
       }
     </div>
@@ -157,6 +157,8 @@
               @if (fieldError('guardianName'); as m) { <small class="field-msg">{{ m }}</small> }
             </div>
           }
+          <app-figuration-picker [value]="form.get('figuration')?.value" (valueChange)="setFiguration($event)"
+                                 [error]="fieldError('figuration')" />
           <label class="consent" [class.error]="fieldError('acceptTerms')">
             <input type="checkbox" formControlName="acceptTerms" />
             <span>J'accepte les <a routerLink="/legal/conditions" target="_blank">conditions d'utilisation</a>

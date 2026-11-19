@@ -37,6 +37,9 @@ public class ActorUpdateRequest {
     private String bio;
     @Min(value = 40, message = "Taille : entre 40 et 250 cm") @Max(value = 250, message = "Taille : entre 40 et 250 cm")
     private Integer height;
+
+    /** Figuration acceptée (cahier v2) : EXTRA, SILHOUETTE, FIGURANT_SPECIAL ; liste vide = refuse. */
+    private java.util.List<String> figuration;
     @Min(value = 3, message = "Poids : entre 3 et 300 kg") @Max(value = 300, message = "Poids : entre 3 et 300 kg")
     private Integer weight;
     @Size(max = 40) private String eyeColor;

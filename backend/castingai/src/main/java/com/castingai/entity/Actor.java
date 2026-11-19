@@ -55,6 +55,10 @@ public class Actor {
     @Column(name = "height")
     private Integer height;
 
+    /** Types de figuration acceptés (EXTRA, SILHOUETTE, FIGURANT_SPECIAL) ; "" = refuse ; null = pas répondu. */
+    @Column(name = "figuration", length = 60)
+    private String figuration;
+
     @Column(name = "weight")
     private Integer weight;
 

@@ -69,7 +69,7 @@ public class SecurityConfig {
                         // Espace personnel : tout compte connecté (l'acteur freelance n'a accès qu'à ceci)
                         .requestMatchers("/api/me/**", "/api/auth/logout").authenticated()
                         // Tout le reste (acteurs, projets, recherche IA…) : agence uniquement
-                        .requestMatchers("/api/**").hasAnyRole("ADMIN", "AGENT")
+                        .requestMatchers("/api/**").hasAnyRole("ADMIN", "BOITE_PROD", "REALISATEUR")
                         .anyRequest().authenticated()
                 )
                 // Réponses JSON claires : 401 sans jeton valide, 403 sans droit

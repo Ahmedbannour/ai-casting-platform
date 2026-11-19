@@ -8,7 +8,7 @@ import { TokenService } from './token.service';
 
 export interface Me {
   id: string; email: string; firstName: string; lastName: string;
-  role: 'ADMIN' | 'AGENT' | 'ACTEUR'; provider: string; actorId: string | null;
+  role: 'ADMIN' | 'BOITE_PROD' | 'ACTEUR' | 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR'; provider: string; actorId: string | null;
   agencyName: string | null; contractStatus: 'ACTIF' | 'A_VENIR' | 'EXPIRE' | 'SANS_AGENCE' | null; contractEnd: string | null;
 }
 

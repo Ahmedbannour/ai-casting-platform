@@ -37,7 +37,8 @@ public class AdminStatsController {
             @jakarta.validation.constraints.Pattern(regexp = "^$|ESSENTIEL|PRO|STUDIO|SUR_MESURE", message = "Forfait inconnu") String plan,
             @jakarta.validation.constraints.DecimalMin(value = "0", message = "Le montant mensuel ne peut pas être négatif")
             @jakarta.validation.constraints.DecimalMax(value = "1000000", message = "Montant mensuel trop élevé") java.math.BigDecimal monthlyAmount,
-            @jakarta.validation.constraints.Pattern(regexp = "^$|TND|EUR|USD", message = "Devise attendue : TND, EUR ou USD") String currency) {}
+            @jakarta.validation.constraints.Pattern(regexp = "^$|TND|EUR|USD", message = "Devise attendue : TND, EUR ou USD") String currency,
+            @jakarta.validation.constraints.Pattern(regexp = "^$|MARQUE|AGENCE_MARKETING|BOITE_PROD", message = "Type d'organisation inconnu") String kind) {}
 
     @GetMapping("/stats")
     public PlatformStatsService.Overview overview(@RequestParam(defaultValue = "12") int months) {
@@ -117,6 +118,7 @@ public class AdminStatsController {
         a.setPlan(blank(req.plan()));
         a.setMonthlyAmount(req.monthlyAmount());
         a.setCurrency(blank(req.currency()) == null ? "TND" : req.currency());
+        if (blank(req.kind()) != null) a.setKind(req.kind());
     }
 
     private static String blank(String s) { return s == null || s.isBlank() ? null : s.trim(); }

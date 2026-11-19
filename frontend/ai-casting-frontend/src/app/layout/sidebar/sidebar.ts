@@ -1,3 +1,4 @@
+import { roleLabel as labelOf } from '../../core/roles';
 import { NotificationBellComponent } from '../notification-bell/notification-bell';
 import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -55,6 +56,10 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   /** Rôle connu tout de suite (mémorisé à la connexion), confirmé par /api/me. */
   readonly role = computed(() => this.meService.me()?.role ?? this.authService.role());
   readonly isActor = computed(() => this.role() === 'ACTEUR');
+  /** Marque et agence marketing : pas de recherche d'acteurs, leurs demandes seulement (cahier v2). */
+  readonly isClient = computed(() => this.role() === 'MARQUE' || this.role() === 'AGENCE_MARKETING');
+  /** Comptes sans recherche IA ni historique. */
+  readonly noSearch = computed(() => this.isActor() || this.isClient());
 
   private icon(k: keyof typeof ICONS): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(ICONS[k]); }
 
@@ -69,9 +74,15 @@ export class SidebarComponent implements OnInit, AfterViewInit {
         { path: '/agenda', label: 'Agenda', key: 'Alt+5', icon: this.icon('agenda') }
       ];
     }
+    if (this.role() === 'MARQUE' || this.role() === 'AGENCE_MARKETING') {
+      return [
+        { path: '/mes-demandes', label: 'Mes demandes', key: 'Alt+1', icon: this.icon('projects') },
+        { path: '/agenda', label: 'Agenda', key: 'Alt+2', icon: this.icon('agenda') }
+      ];
+    }
     const items: NavItem[] = [
       { path: '/accueil', label: 'Accueil', key: 'Alt+1', icon: this.icon('home') },
-      { path: '/chat', label: 'Recherche IA', key: 'Alt+2', icon: this.icon('search') },
+      { path: '/chat', label: 'Propositions IA', key: 'Alt+2', icon: this.icon('search') },
       { path: '/projects', label: 'Projets', key: 'Alt+3', icon: this.icon('projects') },
       { path: '/dashboard', label: 'Acteurs', key: 'Alt+4', icon: this.icon('actors') },
       { path: '/agenda', label: 'Agenda', key: 'Alt+5', icon: this.icon('agenda') }
@@ -80,7 +91,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
     return items;
   });
 
-  readonly roleLabel = computed(() => ({ ADMIN: 'Administrateur', AGENT: 'Agent de casting', ACTEUR: 'Acteur' } as Record<string, string>)[this.role() ?? ''] ?? '');
+  readonly roleLabel = computed(() => labelOf(this.role()));
 
   private readonly history = signal<HistoryItem[]>([]);
   readonly loadingHistory = signal(true);
@@ -116,7 +127,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   });
 
   ngOnInit(): void {
-    this.meService.load().subscribe({ next: () => { this.queueGlider(); if (!this.isActor()) { this.loadHistory(); this.loadCounts(); } }, error: () => {} });
+    this.meService.load().subscribe({ next: () => { this.queueGlider(); if (!this.noSearch()) { this.loadHistory(); this.loadCounts(); } }, error: () => {} });
     if (!this.isActor()) {
       this.loadHistory();
       this.loadCounts();

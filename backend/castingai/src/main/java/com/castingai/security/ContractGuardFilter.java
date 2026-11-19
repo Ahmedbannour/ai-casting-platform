@@ -39,7 +39,7 @@ public class ContractGuardFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean agent = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_AGENT".equals(a.getAuthority()));
+        boolean agent = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_BOITE_PROD".equals(a.getAuthority()));
         if (agent) {
             List<String> status = jdbc.queryForList("""
                 select case when a.id is null then 'SANS_AGENCE'

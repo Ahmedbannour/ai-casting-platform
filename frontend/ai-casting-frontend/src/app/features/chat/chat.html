@@ -13,9 +13,9 @@
   @if (isEmpty) {
     <div class="chat-empty">
       <span class="brand-mark big" aria-hidden="true"></span>
-      <h1 class="empty-title">Quel acteur recherchez-vous ?</h1>
+      <h1 class="empty-title">Quelle est l’intention du réalisateur ?</h1>
       <p class="empty-subtitle">
-        Décrivez le rôle en une phrase. L'IA vous propose des acteurs, vous gardez ou vous écartez.
+        Collez l’intention du réalisateur pour ce rôle : qui est le personnage, ce qu’il dégage, le jeu attendu. L’IA propose des acteurs, vous gardez ou vous écartez.
       </p>
       <div class="suggestions">
         @for (s of suggestions; track s) {
@@ -121,11 +121,11 @@
         <textarea #box
           [(ngModel)]="input"
           (keydown)="onKeydown($event)"
-          [placeholder]="isEmpty ? 'Décrivez l’acteur que vous recherchez…' : 'Nouvelle demande ou précision…'"
+          [placeholder]="isEmpty ? 'Intention du réalisateur pour ce rôle…' : 'Préciser l’intention ou ajouter un critère…'"
           rows="1"
           [disabled]="loading()"
           class="chat-input"
-          aria-label="Décrivez l’acteur recherché"
+          aria-label="Intention du réalisateur"
         ></textarea>
         <button (click)="send()"
                 [disabled]="!input.trim() || loading()"

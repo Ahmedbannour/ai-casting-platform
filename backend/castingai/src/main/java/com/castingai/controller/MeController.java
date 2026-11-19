@@ -51,7 +51,7 @@ public class MeController {
         User u = user(principal);
         UUID actorId = actors.findByAccount_Id(u.getId()).map(Actor::getId).orElse(null);
         var ag = u.getAgency();
-        String contract = u.getRole() != Role.AGENT ? null : ag == null ? "SANS_AGENCE" : ag.contractStatus();
+        String contract = u.getRole() != Role.BOITE_PROD ? null : ag == null ? "SANS_AGENCE" : ag.contractStatus();
         return new MeResponse(u.getId(), u.getEmail(), u.getFirstName(), u.getLastName(), u.getRole().name(),
                 u.getAuthProvider(), actorId, ag == null ? null : ag.getName(), contract, ag == null ? null : ag.getContractEnd());
     }

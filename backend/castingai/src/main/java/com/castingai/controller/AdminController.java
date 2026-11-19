@@ -41,12 +41,28 @@ public class AdminController {
     private final ActorImportService importService;
     private final com.castingai.repository.AgencyRepository agencyRepository;
 
-    /** Agence d'un agent : obligatoire, et dans la limite d'agents prévue par son contrat. */
+    /**
+     * Organisation d'un compte (cahier v2) : obligatoire pour une marque, une agence marketing ou une boîte de
+     * production, facultative pour un réalisateur (indépendant ou rattaché à une boîte), du bon type, et dans la
+     * limite de membres prévue par son contrat.
+     */
     private com.castingai.entity.Agency agencyFor(Role role, UUID agencyId, UUID exceptUser) {
-        if (role != Role.AGENT) return null;
-        if (agencyId == null) throw new IllegalArgumentException("Choisissez l'agence cliente de cet agent");
+        String kind = switch (role) {
+            case MARQUE -> "MARQUE";
+            case AGENCE_MARKETING -> "AGENCE_MARKETING";
+            case BOITE_PROD, REALISATEUR -> "BOITE_PROD";
+            default -> null;
+        };
+        if (kind == null) return null;
+        if (agencyId == null) {
+            if (role == Role.REALISATEUR) return null;
+            throw new IllegalArgumentException("Choisissez l'organisation de ce compte");
+        }
         com.castingai.entity.Agency a = agencyRepository.findById(agencyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Agence introuvable"));
+                .orElseThrow(() -> new ResourceNotFoundException("Organisation introuvable"));
+        if (!kind.equals(a.getKind())) {
+            throw new IllegalArgumentException(a.getName() + " n'est pas une organisation du bon type pour ce rôle");
+        }
         if (a.getMaxAgents() != null) {
             long n = users.findAll().stream()
                     .filter(u -> u.getAgency() != null && u.getAgency().getId().equals(agencyId) && !u.getId().equals(exceptUser))
@@ -74,6 +90,17 @@ public class AdminController {
                            long actorsAgence, long actorsInscription, long actorsImport) {}
     public record ImportRequest(@NotNull @Valid List<ActorCreateRequest> rows) {}
 
+    static String roleLabel(Role r) {
+        return switch (r) {
+            case ADMIN -> "Administrateur";
+            case BOITE_PROD -> "Boîte de production";
+            case ACTEUR -> "Acteur";
+            case MARQUE -> "Marque";
+            case AGENCE_MARKETING -> "Agence marketing";
+            case REALISATEUR -> "Réalisateur";
+        };
+    }
+
     /** T-144 · Accueil de l'administrateur. */
     @GetMapping("/home")
     public com.castingai.service.AdminHomeService.Home home() { return adminHome.home(); }
@@ -84,7 +111,7 @@ public class AdminController {
         users.findAll().forEach(u -> byRole.merge(u.getRole(), 1L, Long::sum));
         Map<String, Long> bySource = new HashMap<>();
         for (Object[] r : actors.countBySource()) bySource.put((String) r[0], (Long) r[1]);
-        return new Overview(byRole.getOrDefault(Role.AGENT, 0L), byRole.getOrDefault(Role.ADMIN, 0L),
+        return new Overview(byRole.getOrDefault(Role.BOITE_PROD, 0L), byRole.getOrDefault(Role.ADMIN, 0L),
                 byRole.getOrDefault(Role.ACTEUR, 0L), actors.count(),
                 bySource.getOrDefault("AGENCE", 0L), bySource.getOrDefault("INSCRIPTION", 0L), bySource.getOrDefault("IMPORT", 0L));
     }
@@ -108,7 +135,7 @@ public class AdminController {
     public CreatedAgent createAgent(@Valid @RequestBody CreateAgentRequest req) {
         String email = req.email().trim().toLowerCase(Locale.ROOT);
         if (users.existsByEmail(email)) throw new ConflictException("Un compte existe déjà avec cette adresse e-mail");
-        Role role = req.role() == null ? Role.AGENT : req.role();
+        Role role = req.role() == null ? Role.BOITE_PROD : req.role();
         if (role == Role.ACTEUR) throw new IllegalArgumentException("Les comptes acteur sont créés par l'inscription ou par l'import");
         com.castingai.entity.Agency agency = agencyFor(role, req.agencyId(), null);
         String temp = req.password() == null || req.password().isBlank() ? temporaryPassword() : null;
@@ -117,7 +144,7 @@ public class AdminController {
                 .password(passwordEncoder.encode(temp != null ? temp : req.password()))
                 .role(role).enabled(true).agency(agency).build();
         User saved = users.save(u);
-        audit.log("COMPTE_CREE", email, (role == Role.ADMIN ? "Administrateur" : "Agent") + (agency == null ? "" : " · " + agency.getName()));
+        audit.log("COMPTE_CREE", email, roleLabel(role) + (agency == null ? "" : " · " + agency.getName()));
         return new CreatedAgent(row(saved), temp);
     }
 
@@ -140,7 +167,7 @@ public class AdminController {
             u.setRole(req.role());
             if (req.role() == Role.ADMIN) u.setAgency(null);
         }
-        if (req.agencyId() != null && u.getRole() == Role.AGENT) u.setAgency(agencyFor(Role.AGENT, req.agencyId(), u.getId()));
+        if (req.agencyId() != null && u.getRole() != Role.ADMIN && u.getRole() != Role.ACTEUR) u.setAgency(agencyFor(u.getRole(), req.agencyId(), u.getId()));
         String agencyAfter = u.getAgency() == null ? null : u.getAgency().getName();
         if (!java.util.Objects.equals(agencyBefore, agencyAfter)) changes.add("agence " + (agencyBefore == null ? "aucune" : agencyBefore) + " → " + (agencyAfter == null ? "aucune" : agencyAfter));
         User saved = users.save(u);

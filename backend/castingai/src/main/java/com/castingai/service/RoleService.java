@@ -126,6 +126,7 @@ public class RoleService {
     private static void apply(CastingRole r, RoleRequest req) {
         r.setName(req.name().trim());
         r.setDescription(blank(req.description()));
+        r.setIntention(blank(req.intention()));
         r.setGender(blank(req.gender()));
         r.setMinAge(req.minAge());
         r.setMaxAge(req.maxAge());
@@ -150,16 +151,21 @@ public class RoleService {
         Map<String, Long> c = counts.getOrDefault(r.getId(), Map.of());
         long total = c.values().stream().mapToLong(Long::longValue).sum();
         return new RoleResponse(r.getId(), r.getProject().getId(), r.getProject().getTitle(), r.getName(),
-                r.getDescription(), r.getGender(), r.getMinAge(), r.getMaxAge(), split(r.getLanguages()),
+                r.getDescription(), r.getIntention(), r.getGender(), r.getMinAge(), r.getMaxAge(), split(r.getLanguages()),
                 split(r.getSkills()), r.getCity(), r.getShootStart(), r.getShootEnd(), r.getImportance(),
-                r.getPosition(), r.isFilled(), total, c, searchPrompt(r));
+                r.getPosition(), r.isFilled(), total, c, intentionQuery(r));
     }
 
     /**
-     * Phrase de recherche pré-remplie à partir du rôle (US-06), écrite dans les tournures que
-     * l'analyse de la recherche IA reconnaît (« femme », « entre 25 et 35 ans », « parlant anglais », « à Paris »).
+     * Ce que l'IA reçoit pour proposer des acteurs (cahier v2) : l'intention du réalisateur, précédée des
+     * critères du rôle dans les tournures que l'analyse reconnaît (« femme », « entre 25 et 35 ans », « à Paris »).
      */
-    static String searchPrompt(CastingRole r) {
+    static String intentionQuery(CastingRole r) {
+        String criteria = criteria(r);
+        return r.getIntention() == null ? criteria : criteria + ". " + r.getIntention();
+    }
+
+    static String criteria(CastingRole r) {
         List<String> parts = new ArrayList<>();
         parts.add("Femme".equals(r.getGender()) ? "femme" : "Homme".equals(r.getGender()) ? "homme" : "profil");
         if (r.getMinAge() != null && r.getMaxAge() != null) parts.add("entre " + r.getMinAge() + " et " + r.getMaxAge() + " ans");

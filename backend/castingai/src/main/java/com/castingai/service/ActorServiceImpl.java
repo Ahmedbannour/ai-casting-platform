@@ -46,7 +46,7 @@ public class ActorServiceImpl implements ActorService {
 
         actor.setCreatedBy(user);
         // T-092 : une fiche créée par un agent reste privée à son agence
-        if (user.getRole() == com.castingai.entity.Role.AGENT && user.getAgency() != null) {
+        if (user.getRole() == com.castingai.entity.Role.BOITE_PROD && user.getAgency() != null) {
             actor.setAgencyId(user.getAgency().getId());
         }
 
@@ -94,6 +94,7 @@ public class ActorServiceImpl implements ActorService {
         }
         if (request.getBio() != null) actor.setBio(request.getBio());
         if (request.getHeight() != null) actor.setHeight(request.getHeight());
+        if (request.getFiguration() != null) actor.setFiguration(com.castingai.entity.Figuration.toColumn(request.getFiguration()));
         if (request.getWeight() != null) actor.setWeight(request.getWeight());
         if (request.getEyeColor() != null) actor.setEyeColor(request.getEyeColor());
         if (request.getHairColor() != null) actor.setHairColor(request.getHairColor());

@@ -210,6 +210,8 @@
       <section id="dispos" class="card" formArrayName="availabilities">
         <div class="list-head"><h2>Disponibilités</h2>
           <button type="button" class="add" (click)="addAvailability()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Période</button></div>
+        <app-figuration-picker [value]="form.get('figuration')?.value" (valueChange)="setFiguration($event)"
+                               [question]="self ? 'Acceptez-vous de travailler en figuration ?' : 'Accepte la figuration ?'" />
         <p class="field-hint intro">Comparées aux dates de tournage des rôles : un acteur sans période couvrant le tournage apparaît « à vérifier ».</p>
         @for (p of availabilities.controls; track p; let i = $index) {
           <div class="row-card period" [formGroupName]="i" [class.invalid]="!!periodError(i)">

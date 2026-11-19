@@ -1,3 +1,4 @@
+import { ORG_KIND, ORG_LABELS, roleLabel as labelOf, Role } from '../../core/roles';
 import { HostListener, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -36,7 +37,7 @@ export class AdminComponent implements OnInit {
 
   readonly tab = signal<Tab>('tableau');
   readonly tabs: { id: Tab; label: string }[] = [
-    { id: 'tableau', label: 'Tableau de bord' }, { id: 'agences', label: 'Agences' }, { id: 'projets', label: 'Projets' },
+    { id: 'tableau', label: 'Tableau de bord' }, { id: 'agences', label: 'Organisations' }, { id: 'projets', label: 'Projets' },
     { id: 'acteurs', label: 'Acteurs et freelancers' }, { id: 'equipe', label: 'Équipe et comptes' }, { id: 'import', label: "Import d'acteurs" },
     { id: 'journal', label: 'Journal' }, { id: 'messages', label: 'Messages' }
   ];
@@ -149,7 +150,7 @@ export class AdminComponent implements OnInit {
   }
 
   private emptyAgency(): AgencyRequest {
-    return { name: '', city: null, contactEmail: null, contractStart: todayIso(), contractEnd: null, maxAgents: null, notes: null, plan: '', monthlyAmount: null, currency: 'TND' };
+    return { name: '', city: null, contactEmail: null, contractStart: todayIso(), contractEnd: null, maxAgents: null, notes: null, plan: '', monthlyAmount: null, currency: 'TND', kind: 'BOITE_PROD' };
   }
   statusLabel(s: string): string { return s === 'ACTIF' ? 'Sous contrat' : s === 'A_VENIR' ? 'Contrat à venir' : 'Contrat échu'; }
   daysLeft(a: AgencyStats): string {
@@ -167,7 +168,7 @@ export class AdminComponent implements OnInit {
     this.agencyError.set('');
     this.agency = a
       ? { name: a.name, city: a.city, contactEmail: a.contactEmail, contractStart: a.contractStart, contractEnd: a.contractEnd, maxAgents: a.maxAgents, notes: null,
-          plan: a.plan ?? '', monthlyAmount: a.monthlyAmount, currency: a.currency || 'TND' }
+          plan: a.plan ?? '', monthlyAmount: a.monthlyAmount, currency: a.currency || 'TND', kind: a.kind ?? 'BOITE_PROD' }
       : this.emptyAgency();
     this.agencyForm.set(a ? a.id : 'new');
   }
@@ -228,9 +229,16 @@ export class AdminComponent implements OnInit {
   readonly search = signal('');
   readonly confirming = signal<string | null>(null);
   readonly userError = signal('');
-  readonly roleOptions = [{ value: 'AGENT', label: 'Agent' }, { value: 'ADMIN', label: 'Administrateur' }];
+  readonly roleOptions = [{ value: 'MARQUE', label: 'Marque' }, { value: 'AGENCE_MARKETING', label: 'Agence marketing' }, { value: 'REALISATEUR', label: 'Réalisateur' },
+    { value: 'BOITE_PROD', label: 'Boîte de production' }, { value: 'ADMIN', label: 'Administrateur' }];
+  readonly kindOptions = [{ value: 'MARQUE', label: 'Marque' }, { value: 'AGENCE_MARKETING', label: 'Agence marketing' }, { value: 'BOITE_PROD', label: 'Boîte de production' }];
+  kindLabel(k: string | null | undefined): string { return ORG_LABELS[k ?? ''] ?? ''; }
+  /** Le rôle demande-t-il une organisation (facultative pour un réalisateur) ? */
+  needsOrg(r: string): boolean { return !!ORG_KIND[r as Role]; }
+  /** Organisations du bon type pour un rôle. */
+  orgOptionsFor(r: string) { const k = ORG_KIND[r as Role]; return this.agencies().filter(a => !k || (a.kind ?? 'BOITE_PROD') === k).map(a => ({ value: a.id, label: a.name + (a.status === 'EXPIRE' ? ' (contrat échu)' : '') })); }
   readonly filters = [
-    { value: '', label: 'Tous' }, { value: 'ADMIN', label: 'Administrateurs' }, { value: 'AGENT', label: 'Agents' },
+    { value: '', label: 'Tous' }, { value: 'ADMIN', label: 'Administrateurs' }, { value: 'PRO', label: 'Professionnels' },
     { value: 'ACTEUR', label: 'Acteurs' }, { value: 'UNVERIF', label: 'E-mail à vérifier' }, { value: 'OFF', label: 'Désactivés' }
   ];
   readonly sort = signal<'recent' | 'name'>('recent');
@@ -238,12 +246,12 @@ export class AdminComponent implements OnInit {
   /** Nombre de comptes par filtre (affiché dans les onglets). */
   readonly counts = computed(() => {
     const u = this.users();
-    return { '': u.length, ADMIN: u.filter(x => x.role === 'ADMIN').length, AGENT: u.filter(x => x.role === 'AGENT').length,
+    return { '': u.length, ADMIN: u.filter(x => x.role === 'ADMIN').length, PRO: u.filter(x => x.role !== 'ADMIN' && x.role !== 'ACTEUR').length,
       ACTEUR: u.filter(x => x.role === 'ACTEUR').length, UNVERIF: u.filter(x => !x.emailVerified).length, OFF: u.filter(x => !x.enabled).length } as Record<string, number>;
   });
   readonly shownUsers = computed(() => {
     const q = this.search().trim().toLowerCase(), f = this.roleFilter();
-    const list = this.users().filter(u => (!f || (f === 'OFF' ? !u.enabled : f === 'UNVERIF' ? !u.emailVerified : u.role === f))
+    const list = this.users().filter(u => (!f || (f === 'OFF' ? !u.enabled : f === 'UNVERIF' ? !u.emailVerified : (f === 'PRO' ? u.role !== 'ADMIN' && u.role !== 'ACTEUR' : u.role === f)))
       && (!q || `${u.firstName} ${u.lastName} ${u.email} ${u.agencyName ?? ''}`.toLowerCase().includes(q)));
     return this.sort() === 'name'
       ? [...list].sort((a, b) => `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`, 'fr'))
@@ -256,12 +264,12 @@ export class AdminComponent implements OnInit {
     const admins = list.filter(u => u.role === 'ADMIN');
     if (admins.length) out.push({ key: 'admin', title: 'Administrateurs', hint: 'Accès complet à la plateforme', users: admins, total: admins.length });
     const byAgency = new Map<string, UserRow[]>();
-    for (const u of list.filter(x => x.role === 'AGENT')) {
-      const k = u.agencyName || 'Sans agence';
+    for (const u of list.filter(x => x.role !== 'ADMIN' && x.role !== 'ACTEUR')) {
+      const k = u.agencyName || 'Sans organisation';
       byAgency.set(k, [...(byAgency.get(k) ?? []), u]);
     }
-    [...byAgency.entries()].sort(([a], [b]) => a === 'Sans agence' ? 1 : b === 'Sans agence' ? -1 : a.localeCompare(b, 'fr'))
-      .forEach(([k, us]) => out.push({ key: 'ag:' + k, title: k, hint: k === 'Sans agence' ? 'À rattacher à une agence pour travailler' : 'Agents de l’agence', users: us, total: us.length }));
+    [...byAgency.entries()].sort(([a], [b]) => a === 'Sans organisation' ? 1 : b === 'Sans organisation' ? -1 : a.localeCompare(b, 'fr'))
+      .forEach(([k, us]) => out.push({ key: 'ag:' + k, title: k, hint: k === 'Sans organisation' ? 'Réalisateurs indépendants, ou comptes à rattacher' : 'Membres de l’organisation', users: us, total: us.length }));
     const actors = list.filter(u => u.role === 'ACTEUR');
     if (actors.length) out.push({ key: 'acteurs', title: 'Acteurs', hint: 'Comptes créés par les acteurs eux-mêmes ou par invitation', users: actors.slice(0, this.actorLimit()), total: actors.length });
     return out;
@@ -285,7 +293,7 @@ export class AdminComponent implements OnInit {
   }
 
   creating = false;
-  newAgent = { firstName: '', lastName: '', email: '', role: 'AGENT', agencyId: '' };
+  newAgent = { firstName: '', lastName: '', email: '', role: 'BOITE_PROD', agencyId: '' };
   readonly createTried = signal(false);
   readonly createError = signal('');
   readonly createBusy = signal(false);
@@ -325,7 +333,7 @@ export class AdminComponent implements OnInit {
     this.loadUsers();
   }
 
-  roleLabel(r: string): string { return ({ ADMIN: 'Administrateur', AGENT: 'Agent', ACTEUR: 'Acteur' } as Record<string, string>)[r] ?? r; }
+  roleLabel(r: string): string { return labelOf(r); }
   providerLabel(p: string): string { return ({ GOOGLE: 'Google', FACEBOOK: 'Facebook' } as Record<string, string>)[p] ?? ''; }
   since(iso: string): string { return iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; }
 
@@ -339,7 +347,7 @@ export class AdminComponent implements OnInit {
 
   agentError(field: 'firstName' | 'lastName' | 'email' | 'agencyId'): string {
     if (!this.createTried()) return '';
-    if (field === 'agencyId') return this.newAgent.role === 'AGENT' && !this.newAgent.agencyId ? 'Choisissez l’agence cliente de cet agent.' : '';
+    if (field === 'agencyId') return this.needsOrg(this.newAgent.role) && this.newAgent.role !== 'REALISATEUR' && !this.newAgent.agencyId ? 'Choisissez l’organisation de ce compte.' : '';
     const v = this.newAgent[field].trim();
     if (!v) return 'Champ obligatoire.';
     if (field === 'email' && !EMAIL_RE.test(v)) return 'Adresse e-mail incomplète (ex. nom@agence.fr).';
@@ -352,7 +360,7 @@ export class AdminComponent implements OnInit {
     this.created.set(null);
     this.createTried.set(false);
     this.createError.set('');
-    this.newAgent = { firstName: '', lastName: '', email: '', role: 'AGENT', agencyId: this.agencies().find(a => a.status === 'ACTIF')?.id ?? '' };
+    this.newAgent = { firstName: '', lastName: '', email: '', role: 'BOITE_PROD', agencyId: '' };
   }
 
   submitAgent(): void {
@@ -363,7 +371,7 @@ export class AdminComponent implements OnInit {
     const a = this.newAgent;
     this.admin.createAgent({
       firstName: a.firstName.trim(), lastName: a.lastName.trim(), email: a.email.trim(), role: a.role,
-      agencyId: a.role === 'AGENT' ? a.agencyId : null
+      agencyId: this.needsOrg(a.role) && a.agencyId ? a.agencyId : null
     }).subscribe({
       next: r => {
         this.createBusy.set(false);

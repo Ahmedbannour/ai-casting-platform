@@ -35,11 +35,12 @@ export class ChatComponent implements OnInit {
   view = signal<'cartes' | 'liste'>('cartes');
   loading = signal(false);
 
+  /** Exemples d'intentions de réalisateur (cahier v2). */
   suggestions = [
-    'Je cherche une femme entre 25 et 35 ans parlant français',
-    'Acteur homme de 40 ans basé à Paris',
-    'Comédienne parlant anglais et espagnol',
-    'Acteur avec compétences en danse et chant'
+    'Une mère de 35 ans, chaleureuse et pressée, qui garde son humour au petit-déjeuner',
+    'Un livreur de 25 ans à Tunis, énergique, regard complice face caméra',
+    'Une cheffe d’entreprise bilingue français-anglais, posée, qui inspire confiance',
+    'Un grand-père de 70 ans, malicieux, qui danse dans la cuisine'
   ];
 
   constructor(
@@ -81,7 +82,8 @@ export class ChatComponent implements OnInit {
         this.casting.shortlist(roleId).subscribe(list => {
           this.inShortlist.clear();
           list.forEach(e => this.inShortlist.add(e.actorId));
-          if (q) this.send(q); else this.input = r.searchPrompt;
+          // Cahier v2 : les propositions partent directement de l'intention du réalisateur.
+          this.send(q || r.intentionQuery);
         });
       },
       error: () => { this.roleCtx.set(null); if (q) this.send(q); }

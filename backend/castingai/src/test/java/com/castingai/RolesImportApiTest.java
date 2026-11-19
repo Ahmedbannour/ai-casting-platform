@@ -136,7 +136,7 @@ class RolesImportApiTest {
                 .andExpect(status().isConflict());
         String temp = created.get("temporaryPassword").asString();
         assertThat(temp).hasSize(12);
-        assertThat(created.get("user").get("role").asString()).isEqualTo("AGENT");
+        assertThat(created.get("user").get("role").asString()).isEqualTo("BOITE_PROD");
 
         String agent = token("agent.s7@test.local", temp);
         send("GET", "/api/projects", agent, null).andExpect(status().isOk());

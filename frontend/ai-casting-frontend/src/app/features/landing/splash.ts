@@ -34,7 +34,7 @@ import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, inject, output
     <h1 class="word" aria-hidden="true">
       @for (c of letters; track $index) { <span class="l" [style.--i]="$index">{{ c }}</span> }
     </h1>
-    <p class="tag" aria-hidden="true">Décrivez le rôle. Nous préparons la planche.</p>
+    <p class="tag" aria-hidden="true">L’intention du réalisateur. Les bons acteurs.</p>
 
     <button type="button" class="skip" (click)="skip(); $event.stopPropagation()">Passer</button>
   </div>

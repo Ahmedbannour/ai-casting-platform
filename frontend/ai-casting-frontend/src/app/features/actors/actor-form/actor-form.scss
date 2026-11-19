@@ -13,6 +13,8 @@ svg { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; s
 .head { h1 { font-size: 38px; line-height: 1.05; } p { margin-top: 6px; color: var(--text-muted); font-size: 14.5px; max-width: 64ch; } }
 
 .layout { display: grid; grid-template-columns: 196px 1fr; gap: 24px; align-items: start; }
+/* « Mes données » suit le formulaire, dans la colonne de droite (jamais sous le sommaire collant). */
+.layout > app-my-data { grid-column: 2; min-width: 0; }
 
 /* ── Sommaire, PC : liste verticale, un trait qui glisse vers la rubrique active ── */
 .toc-wrap { position: sticky; top: 16px; z-index: 6; }

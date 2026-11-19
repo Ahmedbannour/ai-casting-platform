@@ -33,6 +33,10 @@ public class CastingRole {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    /** Intention du réalisateur pour ce rôle (cahier v2) : le point de départ des propositions d'acteurs. */
+    @Column(columnDefinition = "TEXT")
+    private String intention;
+
     @Column(length = 10)
     private String gender;
 

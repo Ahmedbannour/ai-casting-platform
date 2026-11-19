@@ -1,3 +1,4 @@
+import { FigurationPickerComponent, FigurationType } from '../figuration-picker';
 import { Component, DestroyRef, ElementRef, OnInit, ViewChild, afterRenderEffect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
@@ -19,7 +20,7 @@ type SectionId = 'identite' | 'physique' | 'talents' | 'parcours' | 'dispos';
 @Component({
   selector: 'app-actor-form',
   standalone: true,
-  imports: [ReactiveFormsModule, DateFieldComponent, SelectFieldComponent, VisibilitySwitchComponent, ProfileScoreComponent, MyDataComponent],
+  imports: [ReactiveFormsModule, DateFieldComponent, SelectFieldComponent, VisibilitySwitchComponent, ProfileScoreComponent, MyDataComponent, FigurationPickerComponent],
   templateUrl: './actor-form.html',
   styleUrl: './actor-form.scss'
 })
@@ -141,6 +142,7 @@ export class ActorFormComponent implements OnInit {
       email: ['', [email, Validators.maxLength(160)]],
       bio: ['', Validators.maxLength(RULES.bioMax)],
       height: [null as number | null, intBetween(RULES.height.min, RULES.height.max)],
+      figuration: [null as FigurationType[] | null],
       weight: [null as number | null, intBetween(RULES.weight.min, RULES.weight.max)],
       eyeColor: ['', Validators.maxLength(40)],
       hairColor: ['', Validators.maxLength(40)],
@@ -202,6 +204,12 @@ export class ActorFormComponent implements OnInit {
       const rows = this.host.nativeElement.querySelectorAll(`${scope} .row-card, ${scope} .pair`);
       (rows[rows.length - 1] as HTMLElement | undefined)?.querySelector<HTMLElement>('input')?.focus();
     });
+  }
+
+  setFiguration(v: FigurationType[] | null): void {
+    const c = this.form.get('figuration')!;
+    if (v === null) return;          // « oui » sans type : on attend un type coché
+    c.setValue(v); c.markAsDirty();
   }
 
   private loadActor(id: string): void {
@@ -338,6 +346,7 @@ export class ActorFormComponent implements OnInit {
       city: trim(v.city) || null, country: trim(v.country) || null, bio: trim(v.bio) || null,
       birthDate: v.birthDate || null, gender: v.gender || null,
       height: v.height === '' ? null : v.height, weight: v.weight === '' ? null : v.weight,
+      figuration: v.figuration ?? undefined,
       skills: v.skills.map((s: any) => ({ ...s, name: trim(s.name) })),
       languages: v.languages.map((s: any) => ({ ...s, name: trim(s.name) })),
       experiences: v.experiences.map((e: any) => ({ ...e, title: trim(e.title), year: e.year === '' ? null : e.year })),

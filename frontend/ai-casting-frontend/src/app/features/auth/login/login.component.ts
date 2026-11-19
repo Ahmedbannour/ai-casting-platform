@@ -1,3 +1,4 @@
+import { FigurationPickerComponent, FigurationType, FIGURATION_MESSAGE } from '../../actors/figuration-picker';
 import { Component, ElementRef, NgZone, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
@@ -36,7 +37,7 @@ const emailFormat = (c: AbstractControl): ValidationErrors | null =>
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, FigurationPickerComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
@@ -85,7 +86,9 @@ export class LoginComponent implements OnInit {
           password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]],
           age: ['', [Validators.required]],
           guardianName: ['', [Validators.maxLength(120)]],
-          acceptTerms: [false, [Validators.requiredTrue]]
+          acceptTerms: [false, [Validators.requiredTrue]],
+          // Cahier v2 (EX-52) : figuration acceptée ou non, demandée à la création du compte
+          figuration: [null as FigurationType[] | null, [(c: any) => c.value === null ? { figuration: true } : null]]
         })
       : this.fb.group({
           email: ['', [Validators.required, emailFormat]],
@@ -112,6 +115,7 @@ export class LoginComponent implements OnInit {
     const e = c.errors!;
     if (name === 'acceptTerms') return 'Cochez la case pour créer votre compte.';
     if (name === 'age') return 'Indiquez votre âge.';
+    if (name === 'figuration') return FIGURATION_MESSAGE;
     if (e['required'] || e['blank']) return 'Champ obligatoire.';
     if (e['email']) return 'Adresse e-mail incomplète (ex. nom@domaine.fr).';
     if (e['minlength']) return '8 caractères au moins.';
@@ -133,6 +137,10 @@ export class LoginComponent implements OnInit {
     return score >= 4 ? { level: 3, label: 'Solide' } : score >= 2 ? { level: 2, label: 'Correct' } : { level: 1, label: 'Faible' };
   }
 
+  setFiguration(v: FigurationType[] | null): void {
+    const c = this.form.get('figuration')!; c.setValue(v); c.markAsTouched();
+  }
+
   /** T-101 · un mineur s'inscrit avec l'accord de son représentant légal. */
   setAge(a: 'MAJEUR' | 'MINEUR'): void {
     this.form.get('age')!.setValue(a);
@@ -150,7 +158,8 @@ export class LoginComponent implements OnInit {
     const v = this.form.value;
     const call = this.mode === 'inscription'
       ? this.authService.register({ email: v.email.trim(), password: v.password, firstName: v.firstName.trim(), lastName: v.lastName.trim(),
-          acceptTerms: v.acceptTerms === true, age: v.age, guardianName: v.age === 'MINEUR' ? v.guardianName.trim() : undefined })
+          acceptTerms: v.acceptTerms === true, age: v.age, guardianName: v.age === 'MINEUR' ? v.guardianName.trim() : undefined,
+          figuration: v.figuration ?? [] })
       : this.authService.login({ email: v.email.trim(), password: v.password });
     call.subscribe({
       next: r => this.done(r),

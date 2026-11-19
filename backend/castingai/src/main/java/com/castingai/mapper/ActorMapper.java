@@ -99,6 +99,7 @@ public class ActorMapper {
                 .email(actor.getEmail())
                 .bio(actor.getBio())
                 .height(actor.getHeight())
+                .figuration(com.castingai.entity.Figuration.fromColumn(actor.getFiguration()))
                 .weight(actor.getWeight())
                 .eyeColor(actor.getEyeColor())
                 .hairColor(actor.getHairColor())

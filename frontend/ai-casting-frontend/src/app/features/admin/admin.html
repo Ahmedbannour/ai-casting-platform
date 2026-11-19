@@ -123,12 +123,14 @@
       <div class="toolbar">
         <p class="intro">Chaque agence signe un contrat avec la plateforme : ses agents accèdent au vivier d'acteurs partagé pendant la durée du contrat.</p>
         <button type="button" class="btn-primary" (click)="openAgency(null)">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nouvelle agence</button>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nouvelle organisation</button>
       </div>
 
       @if (agencyForm()) {
         <form class="create agency-form" (ngSubmit)="saveAgency()" novalidate>
-          <div class="f wide2"><label for="ag-name">Nom de l'agence</label>
+          <div class="f"><label for="ag-kind">Type</label>
+            <app-select inputId="ag-kind" name="kind" [(ngModel)]="agency.kind" [options]="kindOptions" /></div>
+          <div class="f wide2"><label for="ag-name">Nom de l'organisation</label>
             <input id="ag-name" name="name" [(ngModel)]="agency.name" maxlength="160" [attr.aria-invalid]="!!agencyFieldError('name')" placeholder="Casting Méditerranée" />
             @if (agencyFieldError('name'); as m) { <small class="field-msg">{{ m }}</small> }</div>
           <div class="f"><label for="ag-city">Ville</label><input id="ag-city" name="city" [(ngModel)]="agency.city" maxlength="100" placeholder="Tunis" /></div>
@@ -158,20 +160,20 @@
           <div class="create-actions">
             @if (agencyError()) { <small class="field-msg">{{ agencyError() }}</small> }
             <button type="button" class="btn-ghost" (click)="agencyForm.set(null)">Annuler</button>
-            <button type="submit" class="btn-primary" [disabled]="agencyBusy()">{{ agencyBusy() ? 'Enregistrement…' : (agencyForm() === 'new' ? 'Ajouter l’agence' : 'Enregistrer') }}</button>
+            <button type="submit" class="btn-primary" [disabled]="agencyBusy()">{{ agencyBusy() ? 'Enregistrement…' : (agencyForm() === 'new' ? 'Ajouter l’organisation' : 'Enregistrer') }}</button>
           </div>
         </form>
       }
 
       @if (!agenciesLoaded()) { <div class="skel"></div> }
       @else if (!agencies().length) {
-        <div class="empty"><h3>Aucune agence sous contrat</h3><p>Ajoutez une agence, puis ses agents dans « Équipe et comptes » : ils pourront chercher dans le vivier partagé.</p></div>
+        <div class="empty"><h3>Aucune organisation</h3><p>Ajoutez une marque, une agence marketing ou une boîte de production, puis ses membres dans « Équipe et comptes ».</p></div>
       } @else {
         <div class="agency-grid">
           @for (a of agencies(); track a.id; let i = $index) {
             <article class="agency" [class]="'agency ' + a.status.toLowerCase()" [style.animation-delay.ms]="i * 40">
               <header>
-                <div><h3>{{ a.name }}</h3><small>{{ a.city || 'Ville non précisée' }}@if (a.contactEmail) { · {{ a.contactEmail }} }</small></div>
+                <div><h3>{{ a.name }}</h3><small>{{ kindLabel(a.kind) }} · {{ a.city || 'Ville non précisée' }}@if (a.contactEmail) { · {{ a.contactEmail }} }</small></div>
                 <span class="status">{{ statusLabel(a.status) }}</span>
               </header>
               <p class="contract">Contrat du {{ frDate(a.contractStart) }} · {{ daysLeft(a) }}</p>
@@ -317,11 +319,11 @@
             @if (agentError('email'); as m) { <small class="field-msg">{{ m }}</small> }</div>
           <div class="f"><label for="ag-role">Rôle</label>
             <app-select inputId="ag-role" name="role" [(ngModel)]="newAgent.role" [options]="roleOptions" /></div>
-          @if (newAgent.role === 'AGENT') {
-            <div class="f wide"><label for="ag-agency">Agence cliente</label>
-              <app-select inputId="ag-agency" name="agency" [(ngModel)]="newAgent.agencyId" [options]="agencyOptions()" placeholder="Choisir l’agence" />
+          @if (needsOrg(newAgent.role)) {
+            <div class="f wide"><label for="ag-agency">Organisation{{ newAgent.role === 'REALISATEUR' ? ' (facultatif)' : '' }}</label>
+              <app-select inputId="ag-agency" name="agency" [(ngModel)]="newAgent.agencyId" [options]="orgOptionsFor(newAgent.role)" [placeholder]="newAgent.role === 'REALISATEUR' ? 'Indépendant' : 'Choisir l’organisation'" />
               @if (agentError('agencyId'); as m) { <small class="field-msg">{{ m }}</small> }
-              @if (!agencies().length) { <small class="field-hint">Créez d’abord l’agence dans l’onglet « Agences ».</small> }</div>
+              @if (!orgOptionsFor(newAgent.role).length) { <small class="field-hint">Créez d’abord l’organisation dans l’onglet « Organisations ».</small> }</div>
           }
           <div class="create-actions">
             @if (createError()) { <small class="field-msg">{{ createError() }}</small> }
@@ -362,9 +364,9 @@
                       } @else {
                         <app-select class="role" [options]="roleOptions" [ngModel]="u.role" (ngModelChange)="setRole(u, $event)"
                                     [compact]="true" [ariaLabel]="'Rôle de ' + u.firstName + ' ' + u.lastName" />
-                        @if (u.role === 'AGENT') {
-                          <app-select class="agency-pick" [options]="agencyOptions()" [ngModel]="u.agencyId" (ngModelChange)="setAgency(u, $event)"
-                                      placeholder="Sans agence" [compact]="true" [ariaLabel]="'Agence de ' + u.firstName + ' ' + u.lastName" />
+                        @if (needsOrg(u.role)) {
+                          <app-select class="agency-pick" [options]="orgOptionsFor(u.role)" [ngModel]="u.agencyId" (ngModelChange)="setAgency(u, $event)"
+                                      placeholder="Sans organisation" [compact]="true" [ariaLabel]="'Agence de ' + u.firstName + ' ' + u.lastName" />
                         }
                       }
                     </div>

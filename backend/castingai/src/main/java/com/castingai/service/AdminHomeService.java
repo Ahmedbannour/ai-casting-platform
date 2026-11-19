@@ -67,7 +67,7 @@ public class AdminHomeService {
         LocalDateTime lastPurge = jdbc.query("select max(created_at) from audit_log where action = 'PURGE_CONSERVATION'",
                 rs -> rs.next() ? rs.getObject(1, LocalDateTime.class) : null);
         return new Home(alerts, days, recent, agencies, n("select count(*) from actors"),
-                n("select count(*) from users where role = 'ACTEUR'"), n("select count(*) from users where role = 'AGENT'"), lastPurge);
+                n("select count(*) from users where role = 'ACTEUR'"), n("select count(*) from users where role = 'BOITE_PROD'"), lastPurge);
     }
 
     private long n(String sql) { Long v = jdbc.queryForObject(sql, Long.class); return v == null ? 0 : v; }

@@ -59,7 +59,7 @@ import { EmailBannerComponent } from './email-banner';
     <app-sidebar />
     <div class="content">
       <header class="m-top">
-        <a class="m-logo" [routerLink]="role() === 'ACTEUR' ? '/mon-profil' : '/chat'" aria-label="AI Casting, accueil"><span class="brand-mark" aria-hidden="true"></span>AI Casting</a>
+        <a class="m-logo" [routerLink]="role() === 'ACTEUR' ? '/mon-profil' : role() === 'MARQUE' || role() === 'AGENCE_MARKETING' ? '/mes-demandes' : '/chat'" aria-label="AI Casting, accueil"><span class="brand-mark" aria-hidden="true"></span>AI Casting</a>
         <app-notification-bell class="m-bell" />
       </header>
       @if (contract(); as c) {
@@ -88,6 +88,15 @@ import { EmailBannerComponent } from './email-banner';
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
         Propositions
       </a>
+      } @else if (role() === 'MARQUE' || role() === 'AGENCE_MARKETING') {
+      <a class="tab" routerLink="/mes-demandes" routerLinkActive="active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-8l-2-3H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1z"/></svg>
+        Demandes
+      </a>
+      <a class="tab" routerLink="/agenda" routerLinkActive="active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        Agenda
+      </a>
       } @else {
       <a class="tab" routerLink="/accueil" routerLinkActive="active">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
@@ -95,7 +104,7 @@ import { EmailBannerComponent } from './email-banner';
       </a>
       <a class="tab" routerLink="/chat" routerLinkActive="active">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        Recherche
+        Propositions
       </a>
       <a class="tab" routerLink="/projects" routerLinkActive="active">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-8l-2-3H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1z"/></svg>
@@ -122,7 +131,7 @@ export class MainLayoutComponent {
   /** Bandeau de l'agent : contrat inactif (lecture seule) ou qui se termine bientôt. */
   readonly contract = computed(() => {
     const m = this.me.me();
-    if (!m || m.role !== 'AGENT' || !m.contractStatus) return null;
+    if (!m || m.role !== 'BOITE_PROD' || !m.contractStatus) return null;
     const agence = m.agencyName ?? 'votre agence';
     if (m.contractStatus === 'EXPIRE') return { level: 'stop', text: `Le contrat de ${agence} a pris fin : vous pouvez consulter vos projets, mais plus les modifier ni lancer de recherche. Contactez la plateforme pour le renouveler.` };
     if (m.contractStatus === 'A_VENIR') return { level: 'stop', text: `Le contrat de ${agence} n'a pas encore commencé : accès en lecture seule jusqu'à son ouverture.` };

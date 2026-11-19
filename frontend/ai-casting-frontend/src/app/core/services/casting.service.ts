@@ -12,6 +12,8 @@ export interface CastingRole {
   projectTitle: string;
   name: string;
   description: string | null;
+  /** Intention du réalisateur (cahier v2) : le point de départ des propositions d'acteurs. */
+  intention: string | null;
   gender: string | null;
   minAge: number | null;
   maxAge: number | null;
@@ -25,12 +27,14 @@ export interface CastingRole {
   filled: boolean;
   shortlistCount: number;
   countByStatus: Partial<Record<EntryStatus, number>>;
-  searchPrompt: string;
+  /** Texte envoyé à l'IA : critères du rôle + intention du réalisateur. */
+  intentionQuery: string;
 }
 
 export interface RoleRequest {
   name: string;
   description?: string | null;
+  intention?: string | null;
   gender?: string | null;
   minAge?: number | null;
   maxAge?: number | null;

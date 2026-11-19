@@ -18,7 +18,7 @@ export class TokenService {
 
   setRole(role: string): void { localStorage.setItem(this.ROLE_KEY, role); }
 
-  /** Rôle du compte connecté (ADMIN, AGENT, ACTEUR). Le serveur reste seul juge des droits. */
+  /** Rôle du compte connecté (ADMIN, MARQUE, AGENCE_MARKETING, REALISATEUR, BOITE_PROD, ACTEUR). Le serveur reste seul juge des droits. */
   getRole(): string | null {
     return localStorage.getItem(this.ROLE_KEY);
   }

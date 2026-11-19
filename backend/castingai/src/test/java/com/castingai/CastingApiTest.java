@@ -78,7 +78,7 @@ class CastingApiTest {
         JsonNode r = read(send("POST", "/api/projects/" + p + "/roles", a, """
             {"name":"Léa","gender":"Femme","minAge":25,"maxAge":35,"languages":["Anglais","Espagnol"],
              "skills":["Danse"],"city":"Paris","importance":"PRINCIPAL"}""").andExpect(status().isCreated()));
-        assertThat(r.get("searchPrompt").asString())
+        assertThat(r.get("intentionQuery").asString())
                 .isEqualTo("femme entre 25 et 35 ans parlant anglais et espagnol avec danse à Paris");
         assertThat(r.get("languages").size()).isEqualTo(2);
         assertThat(r.get("filled").asBoolean()).isFalse();

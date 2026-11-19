@@ -22,6 +22,7 @@ public final class CastingDtos {
     public record RoleRequest(
             @NotBlank(message = "Le nom du rôle est obligatoire") @Size(max = 120) String name,
             String description,
+            @Size(max = 4000, message = "L'intention du réalisateur ne dépasse pas 4000 caractères") String intention,
             String gender,
             @Min(value = 0, message = "Âge minimum invalide") @Max(value = 120, message = "Âge minimum invalide") Integer minAge,
             @Min(value = 0, message = "Âge maximum invalide") @Max(value = 120, message = "Âge maximum invalide") Integer maxAge,
@@ -38,6 +39,7 @@ public final class CastingDtos {
             String projectTitle,
             String name,
             String description,
+            String intention,
             String gender,
             Integer minAge,
             Integer maxAge,
@@ -51,7 +53,7 @@ public final class CastingDtos {
             boolean filled,
             long shortlistCount,
             Map<String, Long> countByStatus,
-            String searchPrompt) {}
+            String intentionQuery) {}
 
     public record AddToShortlistRequest(@NotNull(message = "Acteur manquant") UUID actorId) {}
 

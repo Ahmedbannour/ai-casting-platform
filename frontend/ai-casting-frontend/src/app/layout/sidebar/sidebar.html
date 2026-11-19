@@ -3,7 +3,7 @@
 <aside class="sidebar" [class.collapsed]="collapsedView()" [class.open]="nav.drawerOpen()" aria-label="Menu principal">
 
   <div class="top">
-    <a class="logo" [routerLink]="isActor() ? '/mon-profil' : '/chat'" (click)="nav.closeDrawer()" aria-label="AI Casting, accueil">
+    <a class="logo" [routerLink]="isActor() ? '/mon-profil' : isClient() ? '/mes-demandes' : '/chat'" (click)="nav.closeDrawer()" aria-label="AI Casting, accueil">
       <span class="brand-mark" aria-hidden="true"></span>
       <span class="logo-text">AI Casting</span>
     </a>
@@ -20,7 +20,7 @@
     </span>
   </div>
 
-  @if (!isActor()) {
+  @if (!noSearch()) {
   <button type="button" class="new-search" (click)="newChat()" title="Nouvelle recherche (Alt+N)">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
     <span class="label">Nouvelle recherche</span>
@@ -46,8 +46,13 @@
   @if (isActor()) {
     <section class="history actor-note" aria-label="Votre espace">
       <h2 class="history-title">Votre espace</h2>
-      <p class="empty-history">Tenez votre fiche, vos photos et vos disponibilités à jour : les agents de casting voient
-        directement ce que vous renseignez ici.</p>
+      <p class="empty-history">Tenez votre fiche, vos photos et vos disponibilités à jour : les réalisateurs et les boîtes de production
+        voient directement ce que vous renseignez ici.</p>
+    </section>
+  } @else if (isClient()) {
+    <section class="history actor-note" aria-label="Votre espace">
+      <h2 class="history-title">Votre espace</h2>
+      <p class="empty-history">Suivez vos demandes de publicité, de la V0 jusqu’aux acteurs validés en PPM.</p>
     </section>
   } @else {
   <section class="history" aria-label="Historique des recherches">

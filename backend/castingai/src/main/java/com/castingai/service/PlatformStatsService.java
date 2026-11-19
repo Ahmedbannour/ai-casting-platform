@@ -37,7 +37,7 @@ public class PlatformStatsService {
     public record AgencyStats(UUID id, String name, String city, String contactEmail, LocalDate contractStart, LocalDate contractEnd,
                               Integer maxAgents, String status, long agents, long projects, long activeProjects,
                               long roles, long rolesFilled, long candidates, long searches30, LocalDateTime lastActivity,
-                              String plan, java.math.BigDecimal monthlyAmount, String currency) {}
+                              String plan, java.math.BigDecimal monthlyAmount, String currency, String kind) {}
 
     /** T-098 · Revenu mensuel récurrent par devise et contrats à renouveler sous 30 jours. */
     public record Money(String currency, java.math.BigDecimal amount) {}
@@ -74,7 +74,7 @@ public class PlatformStatsService {
         return new Kpis(
                 count("select count(*) from agencies where " + active),
                 count("select count(*) from agencies"),
-                count("select count(*) from users where role = 'AGENT'"),
+                count("select count(*) from users where role = 'BOITE_PROD'"),
                 count("select count(*) from actors"),
                 count("select count(*) from actors where user_id is not null"),
                 count("select count(*) from projects where status = 'EN_COURS'"),
@@ -190,7 +190,7 @@ public class PlatformStatsService {
 
     public List<AgencyStats> agencies() {
         String sql = """
-            select a.id, a.name, a.city, a.contact_email, a.contract_start, a.contract_end, a.max_agents, a.plan, a.monthly_amount, a.currency,
+            select a.id, a.name, a.city, a.contact_email, a.contract_start, a.contract_end, a.max_agents, a.plan, a.monthly_amount, a.currency, a.kind,
               case when a.contract_start > current_date then 'A_VENIR'
                    when a.contract_end is not null and a.contract_end < current_date then 'EXPIRE' else 'ACTIF' end as status,
               (select count(*) from users u where u.agency_id = a.id) as agents,
@@ -211,7 +211,7 @@ public class PlatformStatsService {
                 (Integer) rs.getObject("max_agents"), rs.getString("status"), rs.getLong("agents"), rs.getLong("projects"),
                 rs.getLong("active_projects"), rs.getLong("roles"), rs.getLong("filled"), rs.getLong("candidates"),
                 rs.getLong("searches30"), rs.getObject("last_activity", LocalDateTime.class),
-                rs.getString("plan"), rs.getBigDecimal("monthly_amount"), rs.getString("currency")));
+                rs.getString("plan"), rs.getBigDecimal("monthly_amount"), rs.getString("currency"), rs.getString("kind")));
     }
 
     // ── Projets ──

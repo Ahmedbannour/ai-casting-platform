@@ -25,6 +25,9 @@ public class ActorResponse {
     private String email;
     private String bio;
     private Integer height;
+
+    /** Figuration acceptée (cahier v2) : EXTRA, SILHOUETTE, FIGURANT_SPECIAL ; liste vide = refuse. */
+    private java.util.List<String> figuration;
     private Integer weight;
     private String eyeColor;
     private String hairColor;

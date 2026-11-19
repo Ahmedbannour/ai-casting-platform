@@ -45,6 +45,11 @@ public class Agency {
     @Column(length = 20)
     private String plan;
 
+    /** Type d'organisation (cahier v2) : MARQUE, AGENCE_MARKETING ou BOITE_PROD. */
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private String kind = "BOITE_PROD";
+
     @Column(name = "monthly_amount", precision = 12, scale = 2)
     private java.math.BigDecimal monthlyAmount;
 

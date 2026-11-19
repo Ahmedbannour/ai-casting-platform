@@ -29,6 +29,8 @@ export interface RegisterRequest {
   acceptTerms?: boolean;
   age?: 'MAJEUR' | 'MINEUR';
   guardianName?: string;
+  /** Cahier v2 (EX-52) · types de figuration acceptés ; [] = refuse. */
+  figuration?: string[];
 }
 
 /**
@@ -78,7 +80,9 @@ export class AuthService {
 
   /** Page d'accueil selon le rôle : l'acteur freelance arrive sur son profil, l'agence sur la recherche. */
   homeFor(role: string | null = this.role()): string {
-    return role === 'ACTEUR' ? '/mon-espace' : '/accueil';
+    if (role === 'ACTEUR') return '/mon-espace';
+    if (role === 'MARQUE' || role === 'AGENCE_MARKETING') return '/mes-demandes';
+    return '/accueil';
   }
 
   /** Fournisseurs de connexion configurés côté serveur (identifiants publics). */

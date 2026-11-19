@@ -234,7 +234,7 @@ export class AgentHomeComponent implements OnInit {
   readonly accepted = computed(() => (this.h()?.answers ?? []).filter(a => a.status === 'ACCEPTEE' && this.days(a.answeredAt) < 7).length);
   readonly declined = computed(() => (this.h()?.answers ?? []).filter(a => a.status === 'DECLINEE' && this.days(a.answeredAt) < 7).length);
   readonly contractNote = computed(() => {
-    const m = this.meService.me(); if (!m || m.role !== 'AGENT' || !m.contractEnd) return null;
+    const m = this.meService.me(); if (!m || m.role !== 'BOITE_PROD' || !m.contractEnd) return null;
     const left = this.daysTo(m.contractEnd);
     if (m.contractStatus === 'EXPIRE') return { warn: true, text: 'Contrat de l’agence terminé : consultation seule.' };
     return left <= 30 ? { warn: true, text: `Contrat de l’agence : fin dans ${left} jour${left > 1 ? 's' : ''}.` } : null;

@@ -62,7 +62,7 @@ public class TeamService {
         }
         // T-092 : l'équipe d'un projet reste dans l'agence de son propriétaire
         var ownerAgency = p.getOwner().getAgency();
-        if (u.getRole() == com.castingai.entity.Role.AGENT && ownerAgency != null
+        if (u.getRole() == com.castingai.entity.Role.BOITE_PROD && ownerAgency != null
                 && (u.getAgency() == null || !ownerAgency.getId().equals(u.getAgency().getId()))) {
             throw new IllegalArgumentException("Ce compte n'appartient pas à votre agence : seuls ses agents peuvent rejoindre le projet");
         }

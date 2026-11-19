@@ -59,7 +59,10 @@ public class AuthServiceImpl implements AuthService {
                 .enabled(true)
                 .build();
         userRepository.saveAndFlush(user);
-        actorAccounts.createFicheFor(user, "INSCRIPTION");
+        var fiche = actorAccounts.createFicheFor(user, "INSCRIPTION");
+        if (request.getFiguration() != null) {
+            fiche.setFiguration(com.castingai.entity.Figuration.toColumn(request.getFiguration()));
+        }
         consents.record(user.getId(), consent, "INSCRIPTION");
 
         return buildAuthResponse(user);

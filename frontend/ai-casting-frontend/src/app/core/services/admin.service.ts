@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 
 export interface UserRow {
   id: string; email: string; firstName: string; lastName: string;
-  role: 'ADMIN' | 'AGENT' | 'ACTEUR'; enabled: boolean; provider: string; createdAt: string;
+  role: 'ADMIN' | 'BOITE_PROD' | 'ACTEUR' | 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR'; enabled: boolean; provider: string; createdAt: string;
   agencyId: string | null; agencyName: string | null; emailVerified: boolean;
 }
 export interface Delta { current: number; previous: number; }
@@ -29,16 +29,17 @@ export interface Revenue {
   mrr: { currency: string; amount: number }[]; payingAgencies: number; activeWithoutAmount: number;
   renewals: { id: string; name: string; contractEnd: string; daysLeft: number; monthlyAmount: number | null; currency: string }[];
 }
+export type OrgKind = 'MARQUE' | 'AGENCE_MARKETING' | 'BOITE_PROD';
 export type Plan = 'ESSENTIEL' | 'PRO' | 'STUDIO' | 'SUR_MESURE';
 export interface AgencyStats {
   id: string; name: string; city: string | null; contactEmail: string | null; contractStart: string; contractEnd: string | null;
   maxAgents: number | null; status: 'ACTIF' | 'A_VENIR' | 'EXPIRE'; agents: number; projects: number; activeProjects: number;
   roles: number; rolesFilled: number; candidates: number; searches30: number; lastActivity: string | null;
-  plan: Plan | null; monthlyAmount: number | null; currency: string;
+  plan: Plan | null; monthlyAmount: number | null; currency: string; kind: OrgKind;
 }
 export interface AgencyRequest {
   name: string; city: string | null; contactEmail: string | null; contractStart: string; contractEnd: string | null; maxAgents: number | null; notes: string | null;
-  plan: Plan | '' | null; monthlyAmount: number | null; currency: string;
+  plan: Plan | '' | null; monthlyAmount: number | null; currency: string; kind: OrgKind;
 }
 export interface AuditEntry { id: string; actor: string; action: string; target: string | null; details: string | null; createdAt: number; }
 export interface ProjectStats {

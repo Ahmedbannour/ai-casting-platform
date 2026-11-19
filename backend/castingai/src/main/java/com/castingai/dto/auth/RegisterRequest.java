@@ -32,4 +32,7 @@ public class RegisterRequest {
 
     @Size(max = 120)
     private String guardianName;
+
+    /** Cahier v2 (EX-52) · Figuration acceptée : EXTRA, SILHOUETTE, FIGURANT_SPECIAL ; liste vide = refuse. */
+    private java.util.List<String> figuration;
 }

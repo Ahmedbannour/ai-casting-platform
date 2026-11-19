@@ -74,8 +74,8 @@ import { ProjectActivityComponent } from './project-activity';
           <div class="empty">
             <span class="brand-mark big" aria-hidden="true"></span>
             <h3>Ajoutez un premier rôle</h3>
-            <p>Décrivez le personnage recherché : la recherche IA sera pré-remplie et chaque carte retenue
-               rejoindra la shortlist du rôle.</p>
+            <p>Écrivez l’intention du réalisateur pour ce personnage : l’IA en tire ses propositions d’acteurs,
+               et chaque carte retenue rejoint la shortlist du rôle.</p>
             <button type="button" class="btn-primary" (click)="openRole(null)">Nouveau rôle</button>
           </div>
         }

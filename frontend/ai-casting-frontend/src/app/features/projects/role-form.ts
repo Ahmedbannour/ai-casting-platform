@@ -85,6 +85,11 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
       <p class="field-hint period">Période du projet : {{ projectStart ? 'du ' + frDate(projectStart) : '' }} {{ projectEnd ? 'au ' + frDate(projectEnd) : '' }}</p>
     }
 
+    <label class="f intention"><span>Intention du réalisateur <em>conseillé</em></span>
+      <textarea name="intention" rows="4" maxlength="4000" [(ngModel)]="intention"
+        placeholder="Qui est le personnage, ce qu’il doit dégager, le ton et le jeu attendus. Ex. : une avocate de 30 ans, rigoureuse, un humour pince-sans-rire qui désamorce les scènes tendues."></textarea>
+      <small class="field-hint">L’IA part de cette intention pour proposer les acteurs, et dit pour chacun ce qui y répond.</small></label>
+
     <label class="f"><span>Description <em>facultatif</em></span>
       <textarea name="desc" rows="3" maxlength="2000" [(ngModel)]="description" placeholder="Avocate pénaliste, rigoureuse, un humour pince-sans-rire."></textarea></label>
 
@@ -162,6 +167,7 @@ export class RoleFormComponent implements OnInit {
   shootStart = '';
   shootEnd = '';
   description = '';
+  intention = '';
 
   ngOnInit(): void {
     const r = this.role;
@@ -171,6 +177,7 @@ export class RoleFormComponent implements OnInit {
     this.languages = new Set(r.languages); this.skills = new Set(r.skills);
     this.city = r.city ?? ''; this.shootStart = r.shootStart ?? ''; this.shootEnd = r.shootEnd ?? '';
     this.description = r.description ?? '';
+    this.intention = r.intention ?? '';
   }
 
   private num(v: number | null): number | null { return v === null || v === undefined || (v as any) === '' ? null : +v; }
@@ -204,7 +211,8 @@ export class RoleFormComponent implements OnInit {
       minAge: this.num(this.minAge), maxAge: this.num(this.maxAge),
       languages: [...this.languages], skills: [...this.skills],
       city: this.city.trim() || null, shootStart: this.shootStart || null, shootEnd: this.shootEnd || null,
-      description: this.description.trim() || null
+      description: this.description.trim() || null,
+      intention: this.intention.trim() || null
     };
     this.saving.set(true); this.error.set('');
     const call = this.role ? this.service.updateRole(this.role.id, req) : this.service.createRole(this.projectId, req);

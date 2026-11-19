@@ -4,8 +4,8 @@ import { homeRedirect, roleGuard } from './core/guards/role.guard';
 import { consentGuard } from './features/legal/consent.guard';
 import { visitorOnly } from './features/landing/visitor.guard';
 
-/** Pages de l'agence (agents et administrateurs). */
-const agence = roleGuard('ADMIN', 'AGENT');
+/** Pages du casting : boîte de production, réalisateur et administrateur (cahier v2). */
+const agence = roleGuard('ADMIN', 'BOITE_PROD', 'REALISATEUR');
 import { MainLayoutComponent } from './layout/main-layout/main-layout';
 
 export const routes: Routes = [
@@ -15,7 +15,7 @@ export const routes: Routes = [
     pathMatch: 'full',
     canActivate: [visitorOnly],
     loadComponent: () => import('./features/landing/landing').then(m => m.LandingComponent),
-    title: 'AI Casting · Décrivez le rôle, nous préparons la planche'
+    title: 'AI Casting · De l’intention du réalisateur aux bons acteurs'
   },
   {
     path: 'auth/login',
@@ -122,6 +122,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/agenda/agenda')
             .then(m => m.AgendaComponent)
+      },
+      // ── Marque et agence marketing : leurs demandes de publicité (cahier v2) ──
+      {
+        path: 'mes-demandes',
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'ADMIN')],
+        loadComponent: () =>
+          import('./features/demandes/mes-demandes')
+            .then(m => m.MesDemandesComponent)
       },
       // ── Administration ──
       {
