@@ -127,7 +127,8 @@
     {
      "nom": "Inès Garnier",
      "role": "UX/UI Designer",
-     "niveau": "Confirmée"
+     "niveau": "Confirmée",
+     "objectif": "Sous objectif jusqu'au 26/11 : maquettes (T-031), ouvertes depuis J5"
     },
     {
      "nom": "Hédi Ben Amor",
@@ -224,17 +225,13 @@
     {
      "nom": "Thomas Girard",
      "role": "Ingénieur automatisation de tests",
-     "niveau": "Confirmé"
+     "niveau": "Confirmé",
+     "objectif": "Sous objectif jusqu'au 26/11 : 1 tâche livrée en 7 jours ; reprend les tests de bout en bout (T-122) avec Rania Jlassi"
     },
     {
      "nom": "Rania Jlassi",
      "role": "Ingénieure QA · recette et accessibilité (recrutée J6)",
      "niveau": "Confirmé"
-    },
-    {
-     "nom": "Nicolas Perrin",
-     "role": "Ingénieur QA · performance et charge (recruté J6)",
-     "niveau": "Senior"
     }
    ],
    "equipe": "AI Casting"
@@ -327,12 +324,14 @@
     {
      "nom": "Mehdi Amrani",
      "role": "Juriste contrats & PI",
-     "niveau": "Senior"
+     "niveau": "Senior",
+     "objectif": "Sous objectif jusqu'au 26/11 : contrat de sous-traitance (T-032), ouvert depuis J3"
     },
     {
      "nom": "Aurélie Fontaine",
      "role": "DPO · RGPD",
-     "niveau": "Senior"
+     "niveau": "Senior",
+     "objectif": "Sous objectif jusqu'au 26/11 : registre RGPD (T-033), ouvert depuis J5"
     }
    ],
    "partage": true
@@ -349,8 +348,8 @@
    ],
    "membres": [
     {
-     "nom": "Philippe Garnier",
-     "role": "Directeur administratif et financier",
+     "nom": "Khaled Mzoughi",
+     "role": "Contrôleur de gestion · CDI, recruté le 19/11 (remplace Philippe Garnier)",
      "niveau": "Senior"
     }
    ],
@@ -934,6 +933,21 @@
     "T-035"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-055",
+   "date": "2026-11-19",
+   "titre": "Revue de performance",
+   "original": "merci de résilé des ingénieur ou les remplacé au cas ou manque de performance ou sérieusité",
+   "ameliore": "Revue de chaque membre sur des critères mesurés dans la salle (livraisons en 7 jours selon le niveau, tâches qui n'avancent plus, effet sur le planning) ; résilier ou remplacer quand c'est justifié, sinon fixer un objectif daté.",
+   "departements": [
+    "rh",
+    "dir"
+   ],
+   "livrables": [
+    "T-170"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -1401,12 +1415,13 @@
    "id": "T-034",
    "titre": "Budget jours-homme par phase et coût d’hébergement IA",
    "dept": "fin",
-   "resp": "Philippe Garnier",
+   "resp": "Khaled Mzoughi",
    "prio": "P1",
    "phase": "PH0",
    "statut": "a_faire",
    "prompt": "P-002",
-   "jour": "J3"
+   "jour": "J3",
+   "detail": "Reprise par Khaled Mzoughi le 19/11, échéance 21/11."
   },
   {
    "id": "T-035",
@@ -2514,7 +2529,7 @@
    "jour": "J6",
    "prompt": "P-031",
    "statut": "a_faire",
-   "detail": "Playwright (Microsoft, open source) : administrateur, agent, acteur, réalisateur ; lancés avant chaque livraison. Réaffectée à Rania Jlassi et Nicolas Perrin (QA sous-employée).",
+   "detail": "Playwright (Microsoft, open source) : administrateur, agent, acteur, réalisateur ; lancés avant chaque livraison. Réaffectée à Rania Jlassi et Thomas Girard (QA sous-employée).",
    "lot": "L7"
   },
   {
@@ -3163,6 +3178,18 @@
    "prompt": "P-054",
    "jour": "J7",
    "detail": "Après l'analyse RH du 19/11 : Sami Kefi (DevOps / SRE, CDI) sur le déploiement et les sauvegardes ; Yosra Ghorbel (ML / NLP, CDI) sur le résumé de la V0 et les modèles multilingues ; Hédi Ben Amor (consultant production publicitaire, mi-temps) sur les attentes du client et le dossier PPM."
+  },
+  {
+   "id": "T-170",
+   "titre": "Revue de performance : 1 résiliation, 1 remplacement, 4 mises sous objectif",
+   "dept": "rh",
+   "resp": "Fatma Zouari",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "fait",
+   "prompt": "P-055",
+   "jour": "J7",
+   "detail": "Critères appliqués à chacun : tâches livrées en 7 jours au regard du niveau, tâches ouvertes sans avancer depuis J3 à J5, effet sur le calendrier. Résiliation : Nicolas Perrin (QA senior, aucune tâche livrée, équipe QA en sureffectif ; non remplacé). Remplacement : Philippe Garnier (budget T-034 ouvert depuis J3, il bloque le chiffrage des recrutements) par Khaled Mzoughi. Sous objectif jusqu'au 26/11 : Mehdi Amrani, Aurélie Fontaine, Inès Garnier, Thomas Girard."
   }
  ],
  "journal": [
@@ -3231,7 +3258,8 @@
     "D-020 : la V0 est un fichier artistique, sans budget",
     "D-021 : les choix définitifs se prennent ensemble à la PPM",
     "D-022 : Safi Jacob en pause, toute l'équipe sur AI Casting",
-    "D-023 : trois recrutements (DevOps / SRE, ML / NLP, consultant production publicitaire) et 8 tâches réaffectées"
+    "D-023 : trois recrutements (DevOps / SRE, ML / NLP, consultant production publicitaire) et 8 tâches réaffectées",
+    "D-024 : revue de performance — 1 résiliation (Nicolas Perrin), 1 remplacement (Philippe Garnier par Khaled Mzoughi), 4 mises sous objectif jusqu'au 26/11"
    ],
    "risques": [
     "Les acteurs inscrits par Google ou Facebook ne voient pas encore la question de la figuration (T-156)",
@@ -3295,8 +3323,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-19T11:58:00Z",
-   "texte": "Trois recrues intégrées : DevOps, ML / NLP, production publicitaire"
+   "t": "2026-11-19T12:15:00Z",
+   "texte": "Revue de performance : 1 départ, 1 remplacement, 4 objectifs au 26/11"
   }
  },
  "activite": [
@@ -3587,6 +3615,24 @@
    "nom": "Sonia Mercier",
    "t": "2026-11-19T11:58:00Z",
    "texte": "8 tâches réaffectées : déploiement et sauvegardes à Sami Kefi, résumé de la V0 à Yosra Ghorbel, PPM à Hédi Ben Amor, tests de bout en bout à Rania Jlassi."
+  },
+  {
+   "h": "J7",
+   "nom": "Fatma Zouari",
+   "t": "2026-11-19T12:10:00Z",
+   "texte": "Revue de performance : Nicolas Perrin quitte l'équipe QA (aucune tâche livrée en 7 jours, QA en sureffectif)."
+  },
+  {
+   "h": "J7",
+   "nom": "Fatma Zouari",
+   "t": "2026-11-19T12:12:00Z",
+   "texte": "Philippe Garnier remplacé par Khaled Mzoughi (contrôleur de gestion) : le budget T-034 est attendu le 21/11."
+  },
+  {
+   "h": "J7",
+   "nom": "Sonia Mercier",
+   "t": "2026-11-19T12:15:00Z",
+   "texte": "Mis sous objectif jusqu'au 26/11 : Mehdi Amrani (T-032), Aurélie Fontaine (T-033), Inès Garnier (T-031), Thomas Girard (T-122)."
   }
  ],
  "plan": {
@@ -3686,7 +3732,8 @@
      "T-155",
      "T-156",
      "T-157",
-     "T-169"
+     "T-169",
+     "T-170"
     ]
    },
    {
@@ -4034,6 +4081,11 @@
     "reel": true
    },
    "T-169": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "T-170": {
     "debut": "2026-11-19",
     "fin": "2026-11-19",
     "reel": true

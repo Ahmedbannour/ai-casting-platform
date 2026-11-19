@@ -241,12 +241,14 @@
     {
      "nom": "Mehdi Amrani",
      "role": "Juriste contrats & PI",
-     "niveau": "Senior"
+     "niveau": "Senior",
+     "objectif": "Sous objectif jusqu'au 26/11 : contrat de sous-traitance (T-032), ouvert depuis J3"
     },
     {
      "nom": "Aurélie Fontaine",
      "role": "DPO · RGPD",
-     "niveau": "Senior"
+     "niveau": "Senior",
+     "objectif": "Sous objectif jusqu'au 26/11 : registre RGPD (T-033), ouvert depuis J5"
     }
    ],
    "partage": true
@@ -263,8 +265,8 @@
    ],
    "membres": [
     {
-     "nom": "Philippe Garnier",
-     "role": "Directeur administratif et financier",
+     "nom": "Khaled Mzoughi",
+     "role": "Contrôleur de gestion · CDI, recruté le 19/11 (remplace Philippe Garnier)",
      "niveau": "Senior"
     }
    ],
