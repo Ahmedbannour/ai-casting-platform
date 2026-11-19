@@ -18,5 +18,9 @@ public interface AdRequestRepository extends JpaRepository<AdRequest, UUID> {
     @Query("select r from AdRequest r where r.production.id = :orgId order by r.updatedAt desc")
     List<AdRequest> forProduction(UUID orgId);
 
+    /** T-162 · Demandes transmises à un réalisateur ou à un 1er AD. */
+    @Query("select r from AdRequest r left join r.director d left join r.firstAd f where d.id = :userId or f.id = :userId order by r.updatedAt desc")
+    List<AdRequest> forDirector(UUID userId);
+
     List<AdRequest> findAllByOrderByUpdatedAtDesc();
 }

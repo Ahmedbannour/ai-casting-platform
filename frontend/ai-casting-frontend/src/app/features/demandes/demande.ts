@@ -1,9 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
+import { CharacterRequest, DemandeCharacter, PersonOption } from '../../core/services/demande.service';
 import { AgencyOption, DemandeDetail, DemandeRequest, DemandeService, DemandeStatus, DemandeVersion, STATUS_LABEL } from '../../core/services/demande.service';
 
 /** Étapes affichées dans le suivi, dans l'ordre du cycle (cahier v2). */
@@ -26,7 +27,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
 @Component({
   selector: 'app-demande',
   standalone: true,
-  imports: [FormsModule, RouterLink, DatePipe],
+  imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet],
   template: `
   <section class="page">
     <a class="back" routerLink="/mes-demandes">← Mes demandes</a>
@@ -218,6 +219,74 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             } @else { <p class="muted">Aucune boîte de production n'est encore inscrite sur la plateforme.</p> }
           </div>
         }
+        @if (x.canEditExpectations || x.characters.length) {
+          <div class="card" [class.answer]="x.canEditExpectations">
+            <h2>Attentes sur les profils</h2>
+            @if (x.expectationsSentAt) {
+              <p class="src">Transmises à {{ x.directorName }}{{ x.firstAdName ? ' (réalisateur) et ' + x.firstAdName + ' (1er AD)' : ' (réalisateur)' }} le {{ x.expectationsSentAt | date:'d MMM, HH:mm' }}.</p>
+            }
+            @if (x.canEditExpectations) {
+              <p class="muted">Pour chaque personnage, notez ce que la marque et l'agence souhaitent voir. Le réalisateur et le 1er AD s'en serviront pour écrire l'intention de chaque rôle dans la V2.</p>
+            }
+            <ul class="chars">
+              @for (c of x.characters; track c.id) {
+                <li>
+                  @if (editingId() === c.id) {
+                    <ng-container *ngTemplateOutlet="charEditor"></ng-container>
+                  } @else {
+                    <div class="char-head"><b>{{ c.name }}</b>
+                      @if (x.canEditExpectations) {
+                        <span class="row"><button type="button" class="link" (click)="editChar(c)">Modifier</button>
+                        <button type="button" class="link danger" (click)="deleteChar(c)" [disabled]="busy()">Retirer</button></span>
+                      }
+                    </div>
+                    <dl>
+                      @if (c.story) { <dt>Dans l'histoire</dt><dd>{{ c.story }}</dd> }
+                      @if (c.brandWish) { <dt>La marque souhaite</dt><dd>{{ c.brandWish }}</dd> }
+                      @if (c.agencyWish) { <dt>L'agence souhaite</dt><dd>{{ c.agencyWish }}</dd> }
+                      @if (c.notes) { <dt>Production</dt><dd>{{ c.notes }}</dd> }
+                    </dl>
+                  }
+                </li>
+              }
+            </ul>
+            @if (x.canEditExpectations) {
+              @if (editingId() === 'new') { <ng-container *ngTemplateOutlet="charEditor"></ng-container> }
+              @else if (!editingId()) { <div class="row"><button type="button" class="ghost" (click)="newChar()">Ajouter un personnage</button></div> }
+
+              <h3>Transmettre au réalisateur et au 1er AD</h3>
+              @if (directors().length) {
+                <div class="two">
+                  <label>Réalisateur *<select name="director" [(ngModel)]="directorId">
+                    <option [ngValue]="null" disabled>Choisissez le réalisateur</option>
+                    @for (p of directors(); track p.id) { <option [ngValue]="p.id">{{ p.name }}{{ p.organisation ? ' · ' + p.organisation : '' }}</option> }
+                  </select></label>
+                  <label>1er AD (facultatif)<select name="firstAd" [(ngModel)]="firstAdId">
+                    <option [ngValue]="null">Aucun pour l'instant</option>
+                    @for (p of directors(); track p.id) { @if (p.id !== directorId) { <option [ngValue]="p.id">{{ p.name }}{{ p.organisation ? ' · ' + p.organisation : '' }}</option> } }
+                  </select></label>
+                </div>
+                <div class="row"><button type="button" class="send" (click)="transmit()" [disabled]="busy() || !directorId || !x.characters.length">{{ x.expectationsSentAt ? 'Transmettre la mise à jour' : 'Transmettre les attentes' }}</button></div>
+                @if (!x.characters.length) { <p class="hint">Ajoutez au moins un personnage avant de transmettre.</p> }
+              } @else { <p class="muted">Aucun réalisateur n'est encore inscrit sur la plateforme.</p> }
+            }
+          </div>
+        }
+        <ng-template #charEditor>
+          <div class="char-form">
+            <label>Personnage *<input name="cname" [(ngModel)]="charForm.name" maxlength="120" placeholder="Ex. Leila, la mère, le grand-père…"></label>
+            <label>Sa place dans l'histoire<textarea name="cstory" [(ngModel)]="charForm.story" rows="2" maxlength="4000"></textarea></label>
+            <div class="two">
+              <label>Ce que la marque souhaite voir<textarea name="cbrand" [(ngModel)]="charForm.brandWish" rows="3" maxlength="4000" placeholder="Âge, allure, style…"></textarea></label>
+              <label>Ce que l'agence souhaite voir<textarea name="cagency" [(ngModel)]="charForm.agencyWish" rows="3" maxlength="4000"></textarea></label>
+            </div>
+            <label>Remarques de la production<textarea name="cnotes" [(ngModel)]="charForm.notes" rows="2" maxlength="4000" placeholder="Disponibilités, figuration, contraintes…"></textarea></label>
+            <div class="row">
+              <button type="button" class="send" (click)="saveChar()" [disabled]="busy() || !charForm.name.trim()">{{ editingId() === 'new' ? 'Ajouter le personnage' : 'Enregistrer' }}</button>
+              <button type="button" class="link" (click)="editingId.set(null)">Annuler</button>
+            </div>
+          </div>
+        </ng-template>
         @for (v of shownVersions(); track v.id) {
           <div class="card">
             <h2>{{ v.label }} <small>{{ v.status === 'LIVREE' ? 'livrée' : v.status === 'A_REVISER' ? 'renvoyée en révision' : 'brouillon' }}{{ v.deliveredAt ? ' le ' + (v.deliveredAt | date:'d MMM') : '' }}{{ v.authorName ? ' · ' + v.authorName : '' }}</small></h2>
@@ -298,6 +367,12 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .ai-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .ai h3 { margin: 4px 0 0; font-size: 14px; }
     .src { margin: 0; font-size: 12.5px; color: var(--text-muted); }
+    .chars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+    .chars > li { padding: 14px; border-radius: 12px; border: 1px solid var(--border); }
+    .char-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+    .char-head b { font-size: 15px; }
+    .char-form { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 12px; border: 1px dashed var(--accent); }
+    .card h3 { margin: 6px 0 0; font-size: 14px; }
     .pts { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.45; }
     .err { color: #e5484d; margin: 0; }
     @media (max-width: 900px) { .page { padding: 18px 14px 104px; } .two { grid-template-columns: 1fr; } .head h1 { font-size: 28px; } }
@@ -320,6 +395,12 @@ export class DemandeComponent {
   readonly msg = signal('');
   readonly refusing = signal(false);
   readonly revising = signal(false);
+  readonly directors = signal<PersonOption[]>([]);
+  /** Personnage en cours d'édition : son id, « new » pour un ajout, ou null. */
+  readonly editingId = signal<string | null>(null);
+  charForm: { name: string; story: string; brandWish: string; agencyWish: string; notes: string } = { name: '', story: '', brandWish: '', agencyWish: '', notes: '' };
+  directorId: string | null = null;
+  firstAdId: string | null = null;
   readonly productions = signal<AgencyOption[]>([]);
   v1Text = '';
   comment = '';
@@ -366,10 +447,11 @@ export class DemandeComponent {
   private load(id: string) {
     this.loading.set(true);
     this.api.get(id).subscribe({
-      next: x => { this.apply(x); this.loading.set(false); if (x.canEdit) this.loadAgencies(); if (x.canChooseProduction) this.loadProductions(); },
+      next: x => { this.apply(x); this.loading.set(false); if (x.canEdit) this.loadAgencies(); if (x.canChooseProduction) this.loadProductions(); if (x.canEditExpectations) this.loadDirectors(); },
       error: (e: HttpErrorResponse) => { this.fatal.set(e.status === 404 ? 'Cette demande n’existe pas ou ne vous est pas visible.' : 'Impossible de charger la demande.'); this.loading.set(false); }
     });
   }
+  private loadDirectors() { this.api.directors().subscribe({ next: p => this.directors.set(p), error: () => this.directors.set([]) }); }
   private loadProductions() { this.api.productions().subscribe({ next: p => this.productions.set(p), error: () => this.productions.set([]) }); }
   private loadAgencies() { this.api.agencies().subscribe({ next: a => this.agencies.set(a), error: () => this.agencies.set([]) }); }
 
@@ -456,6 +538,23 @@ export class DemandeComponent {
   validateV1() { const x = this.d(); if (x) this.run(this.api.validateV1(x.id), 'V1 validée. L’agence va choisir la boîte de production.', r => this.apply(r)); }
   reviseV1() { const x = this.d(); if (x && this.comment.trim()) this.run(this.api.reviseV1(x.id, this.comment.trim()), 'Révision demandée. L’agence est prévenue.', r => this.apply(r)); }
   chooseProduction() { const x = this.d(); if (x && this.productionId) this.run(this.api.chooseProduction(x.id, this.productionId), 'Production confiée. La production et la marque sont prévenues.', r => this.apply(r)); }
+  newChar() { this.charForm = { name: '', story: '', brandWish: '', agencyWish: '', notes: '' }; this.editingId.set('new'); }
+  editChar(c: DemandeCharacter) {
+    this.charForm = { name: c.name, story: c.story ?? '', brandWish: c.brandWish ?? '', agencyWish: c.agencyWish ?? '', notes: c.notes ?? '' };
+    this.editingId.set(c.id);
+  }
+  saveChar() {
+    const x = this.d(), e = this.editingId(); if (!x || !e || !this.charForm.name.trim()) return;
+    const t = (v: string) => v.trim() || null;
+    const body: CharacterRequest = { name: this.charForm.name.trim(), story: t(this.charForm.story), brandWish: t(this.charForm.brandWish), agencyWish: t(this.charForm.agencyWish), notes: t(this.charForm.notes) };
+    const obs = e === 'new' ? this.api.addCharacter(x.id, body) : this.api.updateCharacter(x.id, e, body);
+    this.run(obs, e === 'new' ? 'Personnage ajouté.' : 'Personnage enregistré.', r => { this.editingId.set(null); this.apply(r); });
+  }
+  deleteChar(c: DemandeCharacter) { const x = this.d(); if (x) this.run(this.api.deleteCharacter(x.id, c.id), c.name + ' retiré.', r => this.apply(r)); }
+  transmit() {
+    const x = this.d(); if (!x || !this.directorId) return;
+    this.run(this.api.transmit(x.id, this.directorId, this.firstAdId), 'Attentes transmises. Le réalisateur est prévenu.', r => this.apply(r));
+  }
   copyQuestions(q: string[]) {
     navigator.clipboard?.writeText(q.map(x => '- ' + x).join('\n')).then(() => this.msg.set('Questions copiées.'), () => this.error.set('Copie impossible.'));
   }

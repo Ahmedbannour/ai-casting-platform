@@ -236,4 +236,70 @@ class DemandeApiTest {
         send("GET", "/api/demandes/" + id, prod2, null).andExpect(status().isNotFound());
         assertThat(read(send("GET", "/api/me/notifications", prod, null)).get("items").toString()).contains("Nouvelle publicité");
     }
+
+    /** Sprint 3 · T-162 : la production saisit les attentes par personnage et les transmet au réalisateur et au 1er AD. */
+    @Test
+    void laProductionSaisitLesAttentesEtLesTransmetAuRealisateur() throws Exception {
+        String admin = login("ahmed@casting.com", "password123");
+        String brandOrg = org(admin, "Marque Jasmin", "MARQUE"), agOrg = org(admin, "Agence Zeta", "AGENCE_MARKETING"), prodOrg = org(admin, "Prod Eta", "BOITE_PROD");
+        String brand = account(admin, "marque@jasmin.tn", "MARQUE", brandOrg);
+        String agency = account(admin, "agence@zeta.tn", "AGENCE_MARKETING", agOrg);
+        String prod = account(admin, "prod@eta.tn", "BOITE_PROD", prodOrg);
+        send("POST", "/api/admin/agents", admin, "{\"email\":\"real@eta.tn\",\"firstName\":\"Nadia\",\"lastName\":\"Real\",\"role\":\"REALISATEUR\",\"password\":\"Motdepasse-123\"}").andExpect(status().isCreated());
+        send("POST", "/api/admin/agents", admin, "{\"email\":\"ad@eta.tn\",\"firstName\":\"Omar\",\"lastName\":\"Assistant\",\"role\":\"REALISATEUR\",\"password\":\"Motdepasse-123\"}").andExpect(status().isCreated());
+        send("POST", "/api/admin/agents", admin, "{\"email\":\"autre@eta.tn\",\"firstName\":\"Sami\",\"lastName\":\"Autre\",\"role\":\"REALISATEUR\",\"password\":\"Motdepasse-123\"}").andExpect(status().isCreated());
+        String director = login("real@eta.tn", "Motdepasse-123"), firstAd = login("ad@eta.tn", "Motdepasse-123"), other = login("autre@eta.tn", "Motdepasse-123");
+
+        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Parfum Jasmin\"}")).get("id").asString();
+        send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Une femme marche dans la médina.\"}");
+        send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}");
+        send("POST", "/api/demandes/" + id + "/accepter", agency, null);
+        // Pas d'attentes avant que la production soit choisie
+        send("POST", "/api/demandes/" + id + "/personnages", prod, "{\"name\":\"Leila\"}").andExpect(status().isNotFound());
+        send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Concept : la médina au petit matin.\"}");
+        send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null);
+        send("POST", "/api/demandes/" + id + "/v1/valider", brand, null);
+        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}").andExpect(status().isOk());
+
+        // Saisie : réservée à la production ; nom obligatoire
+        assertThat(read(send("GET", "/api/demandes/" + id, prod, null)).get("canEditExpectations").asBoolean()).isTrue();
+        send("POST", "/api/demandes/" + id + "/personnages", agency, "{\"name\":\"X\"}").andExpect(status().isForbidden());
+        send("POST", "/api/demandes/" + id + "/personnages", prod, "{\"name\":\"\"}").andExpect(status().isBadRequest());
+        // Pas de transmission sans personnage
+        send("POST", "/api/demandes/" + id + "/transmettre", prod, "{\"directorId\":\"" + userId(admin, "real@eta.tn") + "\"}").andExpect(status().isBadRequest());
+        JsonNode c = read(send("POST", "/api/demandes/" + id + "/personnages", prod,
+                "{\"name\":\"Leila\",\"story\":\"Elle traverse la médina\",\"brandWish\":\"Femme de 30 à 40 ans, élégante, naturelle\",\"agencyWish\":\"Regard franc, pas de mannequin\"}").andExpect(status().isOk()));
+        String cid = c.get("characters").get(0).get("id").asString();
+        send("PUT", "/api/demandes/" + id + "/personnages/" + cid, prod, "{\"name\":\"Leila\",\"brandWish\":\"Femme de 30 à 40 ans\",\"agencyWish\":\"Regard franc, pas de mannequin\",\"notes\":\"Tournage un samedi\"}").andExpect(status().isOk());
+        String tmp = read(send("POST", "/api/demandes/" + id + "/personnages", prod, "{\"name\":\"Passant\"}")).get("characters").get(1).get("id").asString();
+        assertThat(read(send("DELETE", "/api/demandes/" + id + "/personnages/" + tmp, prod, null)).get("characters").size()).isEqualTo(1);
+
+        // La marque et l'agence voient les attentes ; seule la production liste les réalisateurs
+        assertThat(read(send("GET", "/api/demandes/" + id, brand, null)).get("characters").toString()).contains("Femme de 30 à 40 ans").contains("Tournage un samedi");
+        send("GET", "/api/demandes/realisateurs", brand, null).andExpect(status().isForbidden());
+        assertThat(read(send("GET", "/api/demandes/realisateurs", prod, null)).toString()).contains("Nadia Real");
+
+        // Réalisateur avant transmission : ne voit rien. Même personne en 1er AD : refusé.
+        send("GET", "/api/demandes/" + id, director, null).andExpect(status().isNotFound());
+        String did = userId(admin, "real@eta.tn"), aid = userId(admin, "ad@eta.tn");
+        send("POST", "/api/demandes/" + id + "/transmettre", prod, "{\"directorId\":\"" + did + "\",\"firstAdId\":\"" + did + "\"}").andExpect(status().isBadRequest());
+        JsonNode t = read(send("POST", "/api/demandes/" + id + "/transmettre", prod, "{\"directorId\":\"" + did + "\",\"firstAdId\":\"" + aid + "\"}").andExpect(status().isOk()));
+        assertThat(t.get("directorName").asString()).isEqualTo("Nadia Real");
+        assertThat(t.get("firstAdName").asString()).isEqualTo("Omar Assistant");
+        assertThat(read(send("GET", "/api/demandes", director, null)).size()).isEqualTo(1);
+        assertThat(read(send("GET", "/api/demandes", firstAd, null)).size()).isEqualTo(1);
+        JsonNode seen = read(send("GET", "/api/demandes/" + id, director, null).andExpect(status().isOk()));
+        assertThat(seen.get("characters").get(0).get("agencyWish").asString()).contains("Regard franc");
+        assertThat(seen.get("canEditExpectations").asBoolean()).isFalse();
+        send("POST", "/api/demandes/" + id + "/personnages", director, "{\"name\":\"X\"}").andExpect(status().isForbidden());
+        send("GET", "/api/demandes/" + id, other, null).andExpect(status().isNotFound());
+        assertThat(read(send("GET", "/api/me/notifications", director, null)).get("items").toString()).contains("Nouvelle publicité");
+    }
+
+    private String userId(String admin, String email) throws Exception {
+        JsonNode list = read(send("GET", "/api/admin/users", admin, null));
+        JsonNode arr = list.isArray() ? list : list.get("content");
+        for (JsonNode u : arr) if (email.equals(u.get("email").asString())) return u.get("id").asString();
+        throw new IllegalStateException("utilisateur introuvable : " + email);
+    }
 }

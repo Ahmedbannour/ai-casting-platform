@@ -7,7 +7,7 @@
   "debut": "2026-11-15",
   "maj": "2026-11-20",
   "jour": "J8",
-  "avancement": 80,
+  "avancement": 81,
   "avancement_veille": 97,
   "phase_courante": "PH4"
  },
@@ -1000,7 +1000,7 @@
     "T-161",
     "T-162"
    ],
-   "statut": "En cours"
+   "statut": "Livré"
   },
   {
    "id": "P-059",
@@ -3161,10 +3161,10 @@
    "resp": "Hédi Ben Amor",
    "prio": "P0",
    "phase": "PH4",
-   "statut": "en_cours",
-   "prompt": "P-050",
+   "statut": "fait",
+   "prompt": "P-059",
    "jour": "J7",
-   "detail": "Sprint 3. Par personnage : ce que le client et l'agence souhaitent voir ; transmis au réalisateur et au 1er AD. Portée par Hédi Ben Amor, consultant production publicitaire."
+   "detail": "Livré : la boîte de production saisit, personnage par personnage, sa place dans l'histoire, ce que la marque et ce que l'agence souhaitent voir, et ses remarques (ajout, modification, retrait). Elle transmet le tout au réalisateur et, au besoin, au 1er AD : ils voient la publicité dans « Publicités », en lecture, et sont notifiés ; la transmission peut être refaite après une mise à jour. Marque et agence voient aussi les attentes. Migration V37, 81 tests serveur verts, recette navigateur test-attentes."
   },
   {
    "id": "T-163",
@@ -3341,18 +3341,18 @@
   }
  ],
  "maintenant": {
-  "titre": "P-059 · T-161 livré, T-162 en cours",
+  "titre": "P-059 · Sprint 3 terminé",
   "etape": 59,
   "agents": [
-   {
-    "nom": "Hédi Ben Amor",
-    "action": "Attentes sur les profils",
-    "court": "T-162"
-   },
    {
     "nom": "Amel Kacem",
     "action": "Recette du sprint 3",
     "court": "QA"
+   },
+   {
+    "nom": "Hichem Jaziri",
+    "action": "Prochaine tâche : T-163",
+    "court": "T-163"
    },
    {
     "nom": "Sami Kefi",
@@ -3366,33 +3366,33 @@
    "etapes": [
     {
      "t": "Personnages",
-     "s": "a_faire"
+     "s": "fait"
     },
     {
      "t": "Attentes marque et agence",
-     "s": "a_faire"
+     "s": "fait"
     },
     {
      "t": "Saisie par la production",
-     "s": "a_faire"
+     "s": "fait"
     },
     {
      "t": "Transmis au réalisateur",
-     "s": "a_faire"
+     "s": "fait"
     },
     {
      "t": "Recette",
-     "s": "a_faire"
+     "s": "fait"
     },
     {
      "t": "Git",
-     "s": "a_faire"
+     "s": "fait"
     }
    ]
   },
   "derniere": {
-   "t": "2026-11-20T00:50:00Z",
-   "texte": "T-161 livré : V1, révisions V1.1…, validation par la marque, production confiée ; 80 tests verts"
+   "t": "2026-11-20T00:55:00Z",
+   "texte": "Sprint 3 terminé : réponse de l'agence et analyse IA de la V0, V1 et révisions, attentes par personnage transmises au réalisateur ; 81 tests verts"
   }
  },
  "activite": [
@@ -3749,6 +3749,12 @@
    "nom": "Yanis Belhadj",
    "t": "2026-11-20T00:50:00Z",
    "texte": "T-161 livré : V1 et révisions avec commentaire, validation, choix de la boîte de production. Recette navigateur réussie."
+  },
+  {
+   "h": "J8",
+   "nom": "Hédi Ben Amor",
+   "t": "2026-11-20T00:55:00Z",
+   "texte": "T-162 livré : attentes par personnage saisies par la production et transmises au réalisateur et au 1er AD. Sprint 3 terminé."
   }
  ],
  "plan": {
@@ -3910,7 +3916,6 @@
    }
   ],
   "file": [
-   "T-162",
    "T-163",
    "T-164",
    "T-165",
@@ -3930,7 +3935,7 @@
    "T-100",
    "T-127"
   ],
-  "courante": "T-162",
+  "courante": "T-163",
   "regle": "Une tâche à la fois, dans l'ordre de la file. Chaque tâche est testée avant d'être marquée « fait ». Les tâches bloquées attendent votre choix dans « Blocages ».",
   "calendrier": {
    "T-103": {
@@ -4164,8 +4169,9 @@
     "reel": true
    },
    "T-162": {
-    "debut": "2026-12-07",
-    "fin": "2026-12-11"
+    "debut": "2026-11-20",
+    "fin": "2026-11-20",
+    "reel": true
    },
    "T-163": {
     "debut": "2026-12-14",

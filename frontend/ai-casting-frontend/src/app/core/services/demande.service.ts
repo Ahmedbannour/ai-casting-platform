@@ -22,12 +22,16 @@ export interface DemandeVersion {
   fileName: string | null; fileType: string | null; fileSize: number | null; authorName: string | null; createdAt: string; deliveredAt: string | null; reviewComment: string | null; reviewedAt: string | null;
 }
 export interface DemandeAnalysis { summary: string; missing: string[]; questions: string[]; source: 'IA' | 'REGLES'; at: string; }
+export interface DemandeCharacter { id: string; name: string; story: string | null; brandWish: string | null; agencyWish: string | null; notes: string | null; }
+export interface CharacterRequest { name: string; story?: string | null; brandWish?: string | null; agencyWish?: string | null; notes?: string | null; }
+export interface PersonOption { id: string; name: string; organisation: string | null; }
 export interface DemandeEvent { type: string; message: string; actorName: string | null; createdAt: string; }
 export interface DemandeDetail {
   id: string; title: string; product: string | null; objective: string | null; target: string | null; keyMessage: string | null;
   airDate: string | null; status: DemandeStatus; brandName: string; agencyId: string | null; agencyName: string | null; createdByName: string;
   createdAt: string; updatedAt: string; canEdit: boolean; canRespond: boolean; canAnalyse: boolean; analysis: DemandeAnalysis | null;
-  canEditV1: boolean; canReviewV1: boolean; canChooseProduction: boolean; v1Validated: boolean; productionName: string | null; versions: DemandeVersion[]; events: DemandeEvent[];
+  canEditV1: boolean; canReviewV1: boolean; canChooseProduction: boolean; v1Validated: boolean; productionName: string | null;
+  canEditExpectations: boolean; characters: DemandeCharacter[]; directorName: string | null; firstAdName: string | null; expectationsSentAt: string | null; versions: DemandeVersion[]; events: DemandeEvent[];
 }
 export interface DemandeRequest { title: string; product?: string | null; objective?: string | null; target?: string | null; keyMessage?: string | null; airDate?: string | null; }
 export interface AgencyOption { id: string; name: string; city: string | null; }
@@ -62,5 +66,10 @@ export class DemandeService {
   validateV1(id: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/v1/valider`, {}); }
   productions(): Observable<AgencyOption[]> { return this.http.get<AgencyOption[]>(`${this.url}/productions`); }
   chooseProduction(id: string, productionId: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/production`, { productionId }); }
+  addCharacter(id: string, c: CharacterRequest): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/personnages`, c); }
+  updateCharacter(id: string, cid: string, c: CharacterRequest): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/personnages/${cid}`, c); }
+  deleteCharacter(id: string, cid: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/personnages/${cid}`); }
+  directors(): Observable<PersonOption[]> { return this.http.get<PersonOption[]>(`${this.url}/realisateurs`); }
+  transmit(id: string, directorId: string, firstAdId: string | null): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/transmettre`, { directorId, firstAdId }); }
   file(id: string, versionId: string): Observable<Blob> { return this.http.get(`${this.url}/${id}/versions/${versionId}/fichier`, { responseType: 'blob' }); }
 }

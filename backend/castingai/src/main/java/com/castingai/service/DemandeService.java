@@ -46,8 +46,15 @@ public class DemandeService {
                          AdRequest.Status status, String brandName, UUID agencyId, String agencyName, String createdByName,
                          LocalDateTime createdAt, LocalDateTime updatedAt, boolean canEdit, boolean canRespond, boolean canAnalyse, Analysis analysis,
                          boolean canEditV1, boolean canReviewV1, boolean canChooseProduction, boolean v1Validated, String productionName,
+                         boolean canEditExpectations, List<CharacterView> characters, String directorName, String firstAdName, LocalDateTime expectationsSentAt,
                          List<VersionView> versions, List<EventView> events) {}
     public record AgencyOption(UUID id, String name, String city) {}
+    public record CharacterRequest(@NotBlank(message = "Donnez un nom au personnage") @Size(max = 120) String name,
+                                   @Size(max = 4000) String story, @Size(max = 4000) String brandWish,
+                                   @Size(max = 4000) String agencyWish, @Size(max = 4000) String notes) {}
+    public record CharacterView(UUID id, String name, String story, String brandWish, String agencyWish, String notes) {}
+    public record Transmit(@NotNull(message = "Choisissez le réalisateur") UUID directorId, UUID firstAdId) {}
+    public record PersonOption(UUID id, String name, String organisation) {}
     public record Comment(@NotBlank(message = "Expliquez ce qu'il faut revoir") @Size(max = 2000) String comment) {}
     public record ChooseProduction(@NotNull(message = "Choisissez la boîte de production") UUID productionId) {}
     public record Refuse(@NotBlank(message = "Dites à la marque pourquoi vous refusez") @Size(max = 1000) String reason) {}
@@ -65,6 +72,7 @@ public class DemandeService {
     private final AccessService access;
     private final NotificationService notifications;
     private final StorageService storage;
+    private final AdCharacterRepository characters;
     private final V0Reader reader;
     private final V0Analyzer analyzer;
 
@@ -78,6 +86,7 @@ public class DemandeService {
             case MARQUE -> requests.forBrand(me.getId(), me.getAgency() == null ? null : me.getAgency().getId());
             case AGENCE_MARKETING -> me.getAgency() == null ? List.of() : requests.forAgency(me.getAgency().getId());
             case BOITE_PROD -> me.getAgency() == null ? List.of() : requests.forProduction(me.getAgency().getId());
+            case REALISATEUR -> requests.forDirector(me.getId());
             default -> List.of();
         };
         return list.stream().map(this::summary).toList();
@@ -402,6 +411,89 @@ public class DemandeService {
         return detail(me, r);
     }
 
+    // ── Production : attentes par personnage, transmission au réalisateur (T-162) ──
+
+    @Transactional
+    public Detail addCharacter(String email, UUID id, CharacterRequest req) {
+        User me = access.user(email);
+        AdRequest r = expectationsEditable(me, id);
+        AdCharacter c = new AdCharacter();
+        c.setRequest(r);
+        c.setPosition((int) characters.countByRequestId(r.getId()));
+        fill(c, req);
+        characters.save(c);
+        log(r, me, "PERSONNAGE", "Personnage ajouté : " + c.getName());
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail updateCharacter(String email, UUID id, UUID characterId, CharacterRequest req) {
+        User me = access.user(email);
+        AdRequest r = expectationsEditable(me, id);
+        AdCharacter c = character(r, characterId);
+        fill(c, req);
+        characters.save(c);
+        return detail(me, r);
+    }
+
+    @Transactional
+    public Detail deleteCharacter(String email, UUID id, UUID characterId) {
+        User me = access.user(email);
+        AdRequest r = expectationsEditable(me, id);
+        AdCharacter c = character(r, characterId);
+        characters.delete(c);
+        log(r, me, "PERSONNAGE", "Personnage retiré : " + c.getName());
+        return detail(me, r);
+    }
+
+    /** Réalisateurs et 1er AD inscrits (validés), pour la transmission des attentes. */
+    @Transactional(readOnly = true)
+    public List<PersonOption> directors(String email) {
+        User me = access.user(email);
+        if (me.getRole() != Role.BOITE_PROD && me.getRole() != Role.ADMIN) throw new ForbiddenException("Réservé à la boîte de production");
+        return users.findAll().stream().filter(u -> u.getRole() == Role.REALISATEUR && u.isEnabled())
+                .sorted(Comparator.comparing(u -> name(u), String.CASE_INSENSITIVE_ORDER))
+                .map(u -> new PersonOption(u.getId(), name(u), u.getAgency() == null ? null : u.getAgency().getName())).toList();
+    }
+
+    /** La production transmet les attentes au réalisateur (et au 1er AD) : ils voient la demande et sont notifiés. Relançable. */
+    @Transactional
+    public Detail transmit(String email, UUID id, Transmit req) {
+        User me = access.user(email);
+        AdRequest r = expectationsEditable(me, id);
+        if (characters.countByRequestId(r.getId()) == 0) throw new IllegalArgumentException("Ajoutez au moins un personnage avant de transmettre");
+        User director = users.findById(req.directorId()).filter(u -> u.getRole() == Role.REALISATEUR && u.isEnabled())
+                .orElseThrow(() -> new IllegalArgumentException("Choisissez un réalisateur inscrit"));
+        User firstAd = req.firstAdId() == null ? null : users.findById(req.firstAdId()).filter(u -> u.getRole() == Role.REALISATEUR && u.isEnabled())
+                .orElseThrow(() -> new IllegalArgumentException("Choisissez un 1er AD inscrit"));
+        if (firstAd != null && firstAd.getId().equals(director.getId())) throw new IllegalArgumentException("Le 1er AD doit être une autre personne que le réalisateur");
+        boolean again = r.getExpectationsSentAt() != null;
+        r.setDirector(director); r.setFirstAd(firstAd); r.setExpectationsSentAt(LocalDateTime.now());
+        log(r, me, "ATTENTES", (again ? "Attentes mises à jour et transmises à " : "Attentes transmises à ") + name(director) + (firstAd == null ? "" : " et " + name(firstAd)));
+        String body = r.getProduction().getName() + (again ? " a mis à jour" : " vous transmet") + " les attentes de la marque et de l'agence, personnage par personnage. À vous la V2.";
+        for (User u : firstAd == null ? List.of(director) : List.of(director, firstAd)) {
+            notifications.push(u.getId(), "DEMANDE", (again ? "Attentes mises à jour : " : "Nouvelle publicité : ") + r.getTitle(), body, "/demandes/" + r.getId());
+        }
+        return detail(me, r);
+    }
+
+    private AdRequest expectationsEditable(User me, UUID id) {
+        AdRequest r = visible(me, id);
+        if (!isProductionSide(me, r)) throw new ForbiddenException("Seule la boîte de production saisit les attentes");
+        if (r.getStatus() != AdRequest.Status.V2_EN_COURS) throw new IllegalArgumentException("Les attentes se saisissent pendant la préparation de la V2");
+        return r;
+    }
+
+    private AdCharacter character(AdRequest r, UUID characterId) {
+        return characters.findById(characterId).filter(c -> c.getRequest().getId().equals(r.getId()))
+                .orElseThrow(() -> new ResourceNotFoundException("Personnage introuvable"));
+    }
+
+    private static void fill(AdCharacter c, CharacterRequest q) {
+        c.setName(q.name().trim()); c.setStory(blank(q.story())); c.setBrandWish(blank(q.brandWish()));
+        c.setAgencyWish(blank(q.agencyWish())); c.setNotes(blank(q.notes()));
+    }
+
     private AdRequest v1Editable(User me, UUID id) {
         AdRequest r = visible(me, id);
         if (!isAgencySide(me, r)) throw new ForbiddenException("Seule l'agence écrit la V1");
@@ -458,7 +550,13 @@ public class DemandeService {
                 .forEach(u -> notifications.push(u.getId(), "DEMANDE", title, body, "/demandes/" + r.getId()));
     }
 
+    private boolean isDirectorSide(User me, AdRequest r) {
+        return me.getRole() == Role.REALISATEUR && ((r.getDirector() != null && r.getDirector().getId().equals(me.getId()))
+                || (r.getFirstAd() != null && r.getFirstAd().getId().equals(me.getId())));
+    }
+
     private boolean isProductionSide(User me, AdRequest r) {
+        if (r.getProduction() != null && me.getRole() == Role.ADMIN) return true;
         return r.getProduction() != null && me.getRole() == Role.BOITE_PROD && me.getAgency() != null
                 && me.getAgency().getId().equals(r.getProduction().getId());
     }
@@ -475,6 +573,7 @@ public class DemandeService {
     private boolean canSee(User me, AdRequest r) {
         if (isBrandSide(me, r)) return true;
         if (isProductionSide(me, r)) return true;
+        if (isDirectorSide(me, r)) return true;
         return me.getAgency() != null && r.getAgency() != null && r.getAgency().getId().equals(me.getAgency().getId())
                 && r.getStatus() != AdRequest.Status.BROUILLON;
     }
@@ -542,7 +641,12 @@ public class DemandeService {
                 isAgencySide(me, r) && r.getStatus() == AdRequest.Status.V1_EN_COURS,
                 isBrandSide(me, r) && r.getStatus() == AdRequest.Status.V1_LIVREE && r.getV1ValidatedAt() == null,
                 isAgencySide(me, r) && r.getStatus() == AdRequest.Status.V1_LIVREE && r.getV1ValidatedAt() != null,
-                r.getV1ValidatedAt() != null, r.getProduction() == null ? null : r.getProduction().getName(), vs, ev);
+                r.getV1ValidatedAt() != null, r.getProduction() == null ? null : r.getProduction().getName(),
+                isProductionSide(me, r) && r.getStatus() == AdRequest.Status.V2_EN_COURS,
+                characters.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId()).stream()
+                        .map(c -> new CharacterView(c.getId(), c.getName(), c.getStory(), c.getBrandWish(), c.getAgencyWish(), c.getNotes())).toList(),
+                r.getDirector() == null ? null : name(r.getDirector()), r.getFirstAd() == null ? null : name(r.getFirstAd()),
+                r.getExpectationsSentAt(), vs, ev);
     }
 
     private static Analysis analysis(AdRequest r) {

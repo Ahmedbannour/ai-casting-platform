@@ -131,14 +131,14 @@ export const routes: Routes = [
       // ── Marque et agence marketing : leurs demandes de publicité (cahier v2) ──
       {
         path: 'mes-demandes',
-        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ADMIN')],
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'REALISATEUR', 'ADMIN')],
         loadComponent: () =>
           import('./features/demandes/mes-demandes')
             .then(m => m.MesDemandesComponent)
       },
       {
         path: 'demandes/:id',
-        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ADMIN')],
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'REALISATEUR', 'ADMIN')],
         loadComponent: () =>
           import('./features/demandes/demande')
             .then(m => m.DemandeComponent)

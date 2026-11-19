@@ -71,6 +71,17 @@ public class DemandeController {
     @PostMapping("/{id}/production")
     public DemandeService.Detail production(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.ChooseProduction req) { return demandes.chooseProduction(me.getUsername(), id, req); }
 
+    // T-162 · Attentes par personnage, transmission au réalisateur et au 1er AD
+    @PostMapping("/{id}/personnages")
+    public DemandeService.Detail addCharacter(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.CharacterRequest req) { return demandes.addCharacter(me.getUsername(), id, req); }
+    @PutMapping("/{id}/personnages/{cid}")
+    public DemandeService.Detail updateCharacter(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID cid, @Valid @RequestBody DemandeService.CharacterRequest req) { return demandes.updateCharacter(me.getUsername(), id, cid, req); }
+    @DeleteMapping("/{id}/personnages/{cid}")
+    public DemandeService.Detail deleteCharacter(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID cid) { return demandes.deleteCharacter(me.getUsername(), id, cid); }
+    @GetMapping("/realisateurs") public List<DemandeService.PersonOption> directors(@AuthenticationPrincipal UserDetails me) { return demandes.directors(me.getUsername()); }
+    @PostMapping("/{id}/transmettre")
+    public DemandeService.Detail transmit(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.Transmit req) { return demandes.transmit(me.getUsername(), id, req); }
+
     @GetMapping("/{id}/versions/{versionId}/fichier")
     public ResponseEntity<byte[]> file(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID versionId) {
         DemandeService.FileData f = demandes.file(me.getUsername(), id, versionId);
