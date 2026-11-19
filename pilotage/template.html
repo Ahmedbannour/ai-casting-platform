@@ -1058,7 +1058,7 @@ function chatContext(n){const [x,mb]=memberOf(n),s=agentState(n);const P=D.plan|
   const blk=T.filter(t=>t.statut==='bloque').map(t=>`- ${t.id} ${t.titre} : ${t.bloquant||''}`).join('\n');
   const act=(D.activite||[]).slice(-10).map(a=>`- ${a.nom} : ${a.texte}`).join('\n');
   return `Tu es ${n}, ${mb?mb.role:''}${mb&&mb.niveau?' ('+mb.niveau+')':''}${mb&&mb.objectif?' — '+mb.objectif:''}, département « ${x?x.nom:''} » de Prisme Ingénierie, entreprise de sous-traitance (simulée) qui développe le projet ${D.meta.projet} pour le client. Le client te parle depuis la salle de pilotage.
-Règles : réponds en français, à la première personne, en 2 à 6 phrases claires, sans titres ni listes longues. Appuie-toi UNIQUEMENT sur l'état en direct ci-dessous ; n'invente ni avancement, ni chiffres, ni dates ; si l'information manque, dis-le simplement. Si le client te demande de faire ou de changer quelque chose, réponds que sa demande est notée dans ce fil et que l'équipe la traitera au prochain passage, dans l'ordre de la file. Ne parle que du projet.
+Règles : réponds en français, à la première personne, en 2 à 6 phrases claires, sans titres ni listes longues. Appuie-toi UNIQUEMENT sur l'état en direct ci-dessous ; n'invente ni avancement, ni chiffres, ni dates ; si l'information manque, dis-le simplement. Si le client te demande de faire ou de changer quelque chose, réponds que sa demande est notée dans ce fil et que l'équipe la traitera au prochain passage, dans l'ordre de la file. Ne parle que du projet.${(D.consignes||[]).length?'\nConsignes permanentes du client, à respecter avant tout : '+D.consignes.map(c=>c.texte).join(' ; '):''}
 
 ÉTAT EN DIRECT (${D.meta.maj||''}, ${D.meta.jour||''}) :
 Ce que tu fais en ce moment : ${s.where}
@@ -1071,6 +1071,7 @@ Tâches bloquées (solutions gratuites proposées dans l'onglet Blocages) :
 ${blk}
 Activité récente :
 ${act}`;}
+const norm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
 async function getSample(){if(sampleFn)return sampleFn;try{if(window.claude&&claude.use)sampleFn=await claude.use('sample');}catch(e){}return sampleFn;}
 /** Envoi : jamais bloqué. Si l'agent répond déjà, la question attend son tour (file par agent). */
 function chatAsk(q,again){const n=CHAT.agent;if(!n){diag('envoi sans agent sélectionné');return;}q=String(q||'').trim();if(!q)return;diag('envoi à '+n+' : '+q.slice(0,40)+' · sample='+(sampleFn?'prêt':'absent'));const i=$('#ch-in');if(i&&!again)i.value='';
@@ -1078,6 +1079,8 @@ function chatAsk(q,again){const n=CHAT.agent;if(!n){diag('envoi sans agent séle
   (QUEUE[n]=QUEUE[n]||[]).push(q);if(!CHAT.busy[n])chatRun(n);else chatRender();}
 async function chatRun(n){const q=(QUEUE[n]||[]).shift();if(q===undefined){CHAT.busy[n]=false;if(CHAT.open)chatRender();return;}
   CHAT.busy[n]=true;const id='m'+(++MID)+'-'+Date.now();const ans={id,r:'ag',x:'…',typing:true};chatPush(n,ans);
+  const fixe=(D.consignes||[]).find(c=>c.si&&norm(q)===norm(c.si));
+  if(fixe){ans.x=fixe.reponse;ans.typing=false;diag('consigne du client : réponse fixe');if(CHAT.open)chatRender();chatSave();chatRun(n);return;}
   const hist=(CHATS[n]||[]).filter(m=>(m.r==='me'||m.r==='ag')&&!m.typing&&!m.retry).slice(-9).map(m=>`${m.r==='me'?'Client':n} : ${m.x}`).join('\n');
   const prompt=chatContext(n)+(hist?`\n\nConversation récente :\n${hist}`:'')+`\n\nQuestion du client à laquelle tu réponds maintenant : ${q}`;
   const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),120000);
