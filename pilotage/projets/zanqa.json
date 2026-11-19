@@ -1063,7 +1063,8 @@
    "date": "2026-11-19",
    "si": "aychou",
    "reponse": "aychou",
-   "texte": "si le client écrit « aychou », tu réponds exactement « aychou », rien d'autre"
+   "etat": true,
+   "texte": "« aychou » veut dire « t'es où, on en est où ? » : tu réponds d'abord « aychou », puis tu dis où tu en es (ce que tu fais, ta tâche en cours, la tâche en cours de l'équipe)"
   }
  ]
 }

@@ -1071,6 +1071,15 @@ Tâches bloquées (solutions gratuites proposées dans l'onglet Blocages) :
 ${blk}
 Activité récente :
 ${act}`;}
+/** Consigne C-001 : « aychou » = « t'es où ? » → « aychou » puis l'état réel de l'agent, tiré des données (jamais inventé). */
+function statusLine(n,mot){const s=agentState(n),P=D.plan||{},byId=Object.fromEntries(T.map(t=>[t.id,t]));
+  const enc=s.ts.filter(t=>t.statut==='en_cours'),afaire=s.ts.filter(t=>t.statut==='a_faire'),c=byId[P.courante];
+  const L=[mot,'En ce moment : '+(s.where||'rien en cours')+'.'];
+  if(enc.length)L.push('En cours chez moi : '+enc.map(t=>t.id+' '+t.titre).join(' ; ')+'.');
+  else if(afaire.length)L.push('Ma prochaine tâche : '+afaire[0].id+' '+afaire[0].titre+'.');
+  if(c)L.push("Tâche en cours de l'équipe : "+c.id+' '+c.titre+' ('+c.resp+').');
+  if(D.meta&&D.meta.avancement!=null)L.push('Avancement du projet : '+D.meta.avancement+' %'+(D.meta.pause?' · projet en pause':'')+'.');
+  return L.join('\n');}
 const norm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
 async function getSample(){if(sampleFn)return sampleFn;try{if(window.claude&&claude.use)sampleFn=await claude.use('sample');}catch(e){}return sampleFn;}
 /** Envoi : jamais bloqué. Si l'agent répond déjà, la question attend son tour (file par agent). */
@@ -1080,7 +1089,7 @@ function chatAsk(q,again){const n=CHAT.agent;if(!n){diag('envoi sans agent séle
 async function chatRun(n){const q=(QUEUE[n]||[]).shift();if(q===undefined){CHAT.busy[n]=false;if(CHAT.open)chatRender();return;}
   CHAT.busy[n]=true;const id='m'+(++MID)+'-'+Date.now();const ans={id,r:'ag',x:'…',typing:true};chatPush(n,ans);
   const fixe=(D.consignes||[]).find(c=>c.si&&norm(q)===norm(c.si));
-  if(fixe){ans.x=fixe.reponse;ans.typing=false;diag('consigne du client : réponse fixe');if(CHAT.open)chatRender();chatSave();chatRun(n);return;}
+  if(fixe){ans.x=fixe.etat?statusLine(n,fixe.reponse):fixe.reponse;ans.typing=false;diag('consigne du client : réponse fixe');if(CHAT.open)chatRender();chatSave();chatRun(n);return;}
   const hist=(CHATS[n]||[]).filter(m=>(m.r==='me'||m.r==='ag')&&!m.typing&&!m.retry).slice(-9).map(m=>`${m.r==='me'?'Client':n} : ${m.x}`).join('\n');
   const prompt=chatContext(n)+(hist?`\n\nConversation récente :\n${hist}`:'')+`\n\nQuestion du client à laquelle tu réponds maintenant : ${q}`;
   const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),120000);

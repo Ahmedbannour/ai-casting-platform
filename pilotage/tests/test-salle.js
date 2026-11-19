@@ -109,7 +109,7 @@ const check = (name, cond, info) => { (cond ? ok : ko).push(name + (info !== und
     await page.fill('#ch-in', 'Aychou'); await page.keyboard.press('Enter'); await page.waitForTimeout(1500);
     ay.push(await page.evaluate(() => { const l = [...document.querySelectorAll('#ch-msgs .wb.ag .tx')]; return l.length ? l.at(-1).textContent : ''; }));
   }
-  check('Tchat : « aychou » → « aychou » chez 3 agents', ay.every(x => x === 'aychou'), ay);
+  check('Tchat : « aychou » → « aychou » + où en est l’agent, chez 3 agents', ay.every(x => x.startsWith('aychou\nEn ce moment') && x.includes('Avancement du projet')), ay);
   check('Tchat hors claude.ai : message clair + Réessayer', chat.retry === 2 && /claude\.ai/.test(chat.ag[0] || ''), chat.ag);
   await page.screenshot({ path: out + 'tchat-bureau.png' });
   // Reproduction de la panne sur claude.ai : fils venus de la base = objets en lecture seule
