@@ -7,7 +7,7 @@
   "debut": "2026-11-15",
   "maj": "2026-11-19",
   "jour": "J7",
-  "avancement": 76,
+  "avancement": 77,
   "avancement_veille": 97,
   "phase_courante": "PH4"
  },
@@ -40,7 +40,7 @@
    "id": "PH4",
    "nom": "Phase 4 · Cahier v2 : chaîne publicitaire",
    "semaines": "23/11 → 03/01",
-   "avancement": 32
+   "avancement": 35
   }
  ],
  "departements": [
@@ -94,6 +94,11 @@
      "nom": "Nadia Ben Salem",
      "role": "ML Engineer · recherche sémantique",
      "niveau": "Confirmée"
+    },
+    {
+     "nom": "Yosra Ghorbel",
+     "role": "Ingénieure ML / NLP · CDI, recrutée le 19/11",
+     "niveau": "Confirmée"
     }
    ],
    "equipe": "AI Casting"
@@ -123,6 +128,11 @@
      "nom": "Inès Garnier",
      "role": "UX/UI Designer",
      "niveau": "Confirmée"
+    },
+    {
+     "nom": "Hédi Ben Amor",
+     "role": "Consultant production publicitaire · mi-temps, ex-1er assistant réalisateur, recruté le 19/11",
+     "niveau": "Senior"
     }
    ],
    "equipe": "AI Casting"
@@ -253,6 +263,11 @@
     {
      "nom": "Bilel Ferchichi",
      "role": "Ingénieur DevOps · CI/CD et mise en ligne (recruté J6)",
+     "niveau": "Senior"
+    },
+    {
+     "nom": "Sami Kefi",
+     "role": "Ingénieur DevOps / SRE · CDI, recruté le 19/11",
      "niveau": "Senior"
     }
    ],
@@ -889,6 +904,36 @@
     "Salle de pilotage v2"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-053",
+   "date": "2026-11-19",
+   "titre": "Analyse RH et brief de recrutement",
+   "original": "peux tu faire un analyse rh correcte , voire le département qui prend plus de temps (retard) par rapport aux autres , me faire un brief exact et simple pour faire des recrutement",
+   "ameliore": "Mesurer charge et retard par département à partir de la salle ; brief court des postes à ouvrir, dans l'ordre, et réaffectations immédiates.",
+   "departements": [
+    "rh",
+    "dir"
+   ],
+   "livrables": [
+    "Document « Analyse RH et brief de recrutement »"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-054",
+   "date": "2026-11-19",
+   "titre": "Recrutements",
+   "original": "ok merci de faire les recrutement pour un Ingénieur DevOps / SRE, CDI , Ingénieur ML / NLP, CDI et Consultant production publicitaire, mi-temps",
+   "ameliore": "Recruter les 3 profils du brief, les intégrer aux équipes et leur confier les tâches en retard ; appliquer les réaffectations.",
+   "departements": [
+    "rh"
+   ],
+   "livrables": [
+    "T-169",
+    "T-035"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -1370,9 +1415,10 @@
    "resp": "Fatma Zouari",
    "prio": "P1",
    "phase": "PH0",
-   "statut": "a_faire",
+   "statut": "fait",
    "prompt": "P-002",
-   "jour": "J2"
+   "jour": "J7",
+   "detail": "Fait le 19/11 avec l'analyse RH : 3 recrutements, 8 tâches réaffectées (voir le document « Analyse RH et brief de recrutement »)."
   },
   {
    "id": "T-036",
@@ -2423,13 +2469,13 @@
    "id": "T-119",
    "titre": "IA : fiches indexées à chaque modification, explication en arrière-plan",
    "dept": "ia",
-   "resp": "Nadia Ben Salem",
+   "resp": "Yasmine Trabelsi",
    "phase": "PH2",
    "prio": "P1",
    "jour": "J6",
    "prompt": "P-031",
    "statut": "a_faire",
-   "detail": "Vecteur recalculé à l'enregistrement d'une fiche ; l'explication de l'IA arrive après les cartes, sans bloquer l'écran.",
+   "detail": "Vecteur recalculé à l'enregistrement d'une fiche ; l'explication de l'IA arrive après les cartes, sans bloquer l'écran. Réaffectée à Yasmine Trabelsi pour libérer Nadia Ben Salem.",
    "lot": "L5"
   },
   {
@@ -2462,13 +2508,13 @@
    "id": "T-122",
    "titre": "Tests automatiques de bout en bout des quatre parcours",
    "dept": "qa",
-   "resp": "Thomas Girard",
+   "resp": "Rania Jlassi",
    "phase": "PH3",
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
    "statut": "a_faire",
-   "detail": "Playwright (Microsoft, open source) : administrateur, agent, acteur, réalisateur ; lancés avant chaque livraison.",
+   "detail": "Playwright (Microsoft, open source) : administrateur, agent, acteur, réalisateur ; lancés avant chaque livraison. Réaffectée à Rania Jlassi et Nicolas Perrin (QA sous-employée).",
    "lot": "L7"
   },
   {
@@ -2517,26 +2563,26 @@
    "id": "T-124",
    "titre": "Déploiement Docker de production",
    "dept": "devops",
-   "resp": "Laura Blanc",
+   "resp": "Sami Kefi",
    "phase": "PH3",
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
    "statut": "a_faire",
-   "detail": "Images du serveur et du site, serveur web (nginx) qui sert le site, l'API et /casting-media sur une seule adresse ; HTTPS.",
+   "detail": "Images du serveur et du site, serveur web (nginx) qui sert le site, l'API et /casting-media sur une seule adresse ; HTTPS. Reprise par Sami Kefi (recruté le 19/11).",
    "lot": "L7"
   },
   {
    "id": "T-125",
    "titre": "Sauvegardes automatiques de la base et des photos",
    "dept": "devops",
-   "resp": "Rami Saidi",
+   "resp": "Sami Kefi",
    "phase": "PH3",
    "prio": "P0",
    "jour": "J6",
    "prompt": "P-031",
    "statut": "a_faire",
-   "detail": "Sauvegarde quotidienne, 14 jours conservés, restauration testée.",
+   "detail": "Sauvegarde quotidienne, 14 jours conservés, restauration testée. Reprise par Sami Kefi (recruté le 19/11), avec Claire Dubois.",
    "lot": "L7"
   },
   {
@@ -2822,13 +2868,13 @@
    "id": "T-145",
    "titre": "IA : modèles multilingues gratuits (bge-m3, reclassement bge-reranker-v2-m3, Qwen)",
    "dept": "ia",
-   "resp": "Nadia Ben Salem",
+   "resp": "Yosra Ghorbel",
    "prio": "P1",
    "phase": "PH2",
    "statut": "a_faire",
    "prompt": "P-041",
    "jour": "J7",
-   "detail": "Proposé au client : remplacer nomic-embed-text (entraîné surtout en anglais) par bge-m3 pour le français et l'arabe, ajouter un reclassement par bge-reranker-v2-m3, et un modèle Qwen pour comprendre la demande en JSON ; tout en local et gratuit. En attente de son accord."
+   "detail": "Proposé au client : remplacer nomic-embed-text (entraîné surtout en anglais) par bge-m3 pour le français et l'arabe, ajouter un reclassement par bge-reranker-v2-m3, et un modèle Qwen pour comprendre la demande en JSON ; tout en local et gratuit. En attente de son accord. Reprise par Yosra Ghorbel (recrutée le 19/11)."
   },
   {
    "id": "T-146",
@@ -3002,13 +3048,13 @@
    "id": "T-160",
    "titre": "Espace agence : réception des demandes et résumé IA de la V0",
    "dept": "ia",
-   "resp": "Nadia Ben Salem",
+   "resp": "Yosra Ghorbel",
    "prio": "P0",
    "phase": "PH4",
    "statut": "a_faire",
    "prompt": "P-046",
    "jour": "J7",
-   "detail": "Sprint 3 (07/12 → 13/12). Accepter ou refuser une demande ; résumé de la V0, points manquants et questions suggérées, par l'IA locale."
+   "detail": "Sprint 3 (07/12 → 13/12). Accepter ou refuser une demande ; résumé de la V0, points manquants et questions suggérées, par l'IA locale. Reprise par Yosra Ghorbel (recrutée le 19/11)."
   },
   {
    "id": "T-161",
@@ -3026,13 +3072,13 @@
    "id": "T-162",
    "titre": "Attentes du client et de l'agence sur les profils, saisies par la production",
    "dept": "prod",
-   "resp": "Omar Chérif",
+   "resp": "Hédi Ben Amor",
    "prio": "P0",
    "phase": "PH4",
    "statut": "a_faire",
    "prompt": "P-050",
    "jour": "J7",
-   "detail": "Sprint 3. Par personnage : ce que le client et l'agence souhaitent voir ; transmis au réalisateur et au 1er AD."
+   "detail": "Sprint 3. Par personnage : ce que le client et l'agence souhaitent voir ; transmis au réalisateur et au 1er AD. Portée par Hédi Ben Amor, consultant production publicitaire."
   },
   {
    "id": "T-163",
@@ -3086,13 +3132,13 @@
    "id": "T-167",
    "titre": "Dossier PPM et décisions en réunion",
    "dept": "prod",
-   "resp": "Inès Garnier",
+   "resp": "Hédi Ben Amor",
    "prio": "P0",
    "phase": "PH4",
    "statut": "a_faire",
    "prompt": "P-050",
    "jour": "J7",
-   "detail": "Sprint 6 (28/12 → 03/01). Casting, décors, lieux, accessoires, costumes : propositions préparées par la production et le réalisateur, validées ou ajustées ensemble ; compte rendu qui fige les choix."
+   "detail": "Sprint 6 (28/12 → 03/01). Casting, décors, lieux, accessoires, costumes : propositions préparées par la production et le réalisateur, validées ou ajustées ensemble ; compte rendu qui fige les choix. Portée par Hédi Ben Amor avec Inès Garnier (écrans)."
   },
   {
    "id": "T-168",
@@ -3105,6 +3151,18 @@
    "prompt": "P-046",
    "jour": "J7",
    "detail": "Sprint 6. Une pub fictive va de la V0 à la PPM puis à l'acteur qui accepte ; tableau de bord : demandes par étape, délais entre versions."
+  },
+  {
+   "id": "T-169",
+   "titre": "Recrutements : DevOps / SRE, ML / NLP, consultant production publicitaire",
+   "dept": "rh",
+   "resp": "Fatma Zouari",
+   "prio": "P0",
+   "phase": "PH4",
+   "statut": "fait",
+   "prompt": "P-054",
+   "jour": "J7",
+   "detail": "Après l'analyse RH du 19/11 : Sami Kefi (DevOps / SRE, CDI) sur le déploiement et les sauvegardes ; Yosra Ghorbel (ML / NLP, CDI) sur le résumé de la V0 et les modèles multilingues ; Hédi Ben Amor (consultant production publicitaire, mi-temps) sur les attentes du client et le dossier PPM."
   }
  ],
  "journal": [
@@ -3172,7 +3230,8 @@
     "D-019 : les agences de casting sous contrat deviennent des boîtes de production",
     "D-020 : la V0 est un fichier artistique, sans budget",
     "D-021 : les choix définitifs se prennent ensemble à la PPM",
-    "D-022 : Safi Jacob en pause, toute l'équipe sur AI Casting"
+    "D-022 : Safi Jacob en pause, toute l'équipe sur AI Casting",
+    "D-023 : trois recrutements (DevOps / SRE, ML / NLP, consultant production publicitaire) et 8 tâches réaffectées"
    ],
    "risques": [
     "Les acteurs inscrits par Google ou Facebook ne voient pas encore la question de la figuration (T-156)",
@@ -3180,7 +3239,8 @@
    ],
    "attente_client": [
     "Décider qui paie l'abonnement et à quel tarif",
-    "Relire les définitions des 3 types de figuration"
+    "Relire les définitions des 3 types de figuration",
+    "Valider le budget des 3 recrutements (T-034)"
    ]
   }
  ],
@@ -3235,8 +3295,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-19T11:20:00Z",
-   "texte": "Salle de pilotage mise à jour : plan v2 en 6 sprints, Safi Jacob en pause"
+   "t": "2026-11-19T11:58:00Z",
+   "texte": "Trois recrues intégrées : DevOps, ML / NLP, production publicitaire"
   }
  },
  "activite": [
@@ -3509,6 +3569,24 @@
    "nom": "Karim Haddad",
    "t": "2026-11-19T11:15:00Z",
    "texte": "Safi Jacob mis en pause : toute l'équipe sur AI Casting."
+  },
+  {
+   "h": "J7",
+   "nom": "Fatma Zouari",
+   "t": "2026-11-19T11:40:00Z",
+   "texte": "Analyse RH : DevOps le plus en retard, Cellule IA portée par une seule personne, QA sous-employée."
+  },
+  {
+   "h": "J7",
+   "nom": "Fatma Zouari",
+   "t": "2026-11-19T11:55:00Z",
+   "texte": "Recrutés : Sami Kefi (DevOps / SRE, CDI), Yosra Ghorbel (ML / NLP, CDI), Hédi Ben Amor (consultant production publicitaire, mi-temps)."
+  },
+  {
+   "h": "J7",
+   "nom": "Sonia Mercier",
+   "t": "2026-11-19T11:58:00Z",
+   "texte": "8 tâches réaffectées : déploiement et sauvegardes à Sami Kefi, résumé de la V0 à Yosra Ghorbel, PPM à Hédi Ben Amor, tests de bout en bout à Rania Jlassi."
   }
  ],
  "plan": {
@@ -3607,7 +3685,8 @@
      "T-154",
      "T-155",
      "T-156",
-     "T-157"
+     "T-157",
+     "T-169"
     ]
    },
    {
@@ -3948,6 +4027,16 @@
    "T-168": {
     "debut": "2026-12-28",
     "fin": "2027-01-01"
+   },
+   "T-035": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
+   },
+   "T-169": {
+    "debut": "2026-11-19",
+    "fin": "2026-11-19",
+    "reel": true
    }
   },
   "calendrier_note": "Cahier v2 : un sprint d'une semaine par lot S1 à S6 (du 23/11/2026 au 03/01/2027), puis reprise de la mise en ligne (L8). Tâches faites : date réelle.",
