@@ -548,7 +548,7 @@
   },
   {
    "id": "Z-016",
-   "titre": "Écran de démarrage : logo vectoriel animé (sans fond noir)",
+   "titre": "Écran de démarrage : logo original détouré, animé",
    "dept": "front",
    "resp": "Nour Hamdi",
    "prio": "P0",
@@ -556,7 +556,7 @@
    "statut": "fait",
    "prompt": "",
    "jour": "J1",
-   "detail": "Logo Safi Jacob redessiné dans l’app (spatules, SAFI, JACOB, FOOD, barre) : fond transparent, chaque pièce animée, braises et vapeur, fondu vers l’app."
+   "detail": "Logo Safi Jacob d’origine, fond retiré (PNG transparent) ; il se dévoile depuis les spatules, flou puis net, étincelles, reflet, vraie vapeur, fondu vers l’app."
   },
   {
    "id": "Z-017",
@@ -629,6 +629,30 @@
    "prompt": "",
    "jour": "J1",
    "detail": "Gratuites, sans compte Firebase."
+  },
+  {
+   "id": "Z-023",
+   "titre": "Composeur de sandwich : ingrédients et suppléments animés",
+   "dept": "front",
+   "resp": "Aymen Dridi",
+   "prio": "P0",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "Le plat de base, ses ingrédients (on peut en retirer : « sans harissa » part au chef), les suppléments payants ; chaque choix fait glisser une couche dans le sandwich dessiné."
+  },
+  {
+   "id": "Z-024",
+   "titre": "Barre panier fixe et navigation flottante",
+   "dept": "front",
+   "resp": "Nour Hamdi",
+   "prio": "P1",
+   "phase": "ZPH1",
+   "statut": "fait",
+   "prompt": "",
+   "jour": "J1",
+   "detail": "« Voir le panier · total » au-dessus de la navigation, qui rebondit à chaque ajout."
   }
  ],
  "journal": [
@@ -756,7 +780,9 @@
      "Z-016",
      "Z-017",
      "Z-018",
-     "Z-019"
+     "Z-019",
+     "Z-023",
+     "Z-024"
     ]
    },
    {
