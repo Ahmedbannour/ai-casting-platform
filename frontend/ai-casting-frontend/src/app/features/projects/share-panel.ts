@@ -71,8 +71,9 @@ import { frDate } from '../../shared/forms/dates';
   `,
   styles: [`
   :host { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; }
+  @media (max-width: 600px) { :host { padding: 12px; } }
   .backdrop { position: absolute; inset: 0; background: rgba(10,10,12,.55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); animation: fade .2s both; }
-  .panel { position: relative; width: min(640px, 100%); max-height: calc(100vh - 40px); overflow: auto; display: flex; flex-direction: column; gap: 14px;
+  .panel { position: relative; width: min(640px, 100%); max-height: calc(100vh - 40px); max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 14px;
     padding: 24px; border-radius: var(--radius-l); border: 1px solid var(--border); background: var(--glass-strong);
     -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); box-shadow: 0 30px 80px rgba(0,0,0,.4); animation: pop .32s cubic-bezier(.2,.8,.2,1) both; }
   header { display: flex; justify-content: space-between; align-items: center; }
@@ -103,6 +104,8 @@ import { frDate } from '../../shared/forms/dates';
   .v.oui::before { background: var(--series-3); } .v.pe::before { background: var(--series-2); } .v.non::before { background: var(--text-subtle); }
   .l-actions { display: flex; gap: 6px; flex-wrap: wrap; }
   .skel { height: 70px; border-radius: var(--radius-m); background: var(--bg-hover); }
+  /* Une popup trop haute pour l'écran défile : ses champs gardent leur taille au lieu d'être écrasés. */
+  .panel > * { flex-shrink: 0; }
   @keyframes fade { from { opacity: 0; } }
   @keyframes pop { from { opacity: 0; transform: translateY(16px) scale(.97); } }
   @media (max-width: 560px) { :host { padding: 10px; } .panel { padding: 18px; } .new .btn-primary { width: 100%; justify-content: center; } }

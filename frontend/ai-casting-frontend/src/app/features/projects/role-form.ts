@@ -115,8 +115,9 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
   styles: [`
     .hint-fig { display: block; margin-top: 6px; color: var(--text-muted); font-size: 12.5px; }
   :host { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; }
+  @media (max-width: 600px) { :host { padding: 12px; } }
   .backdrop { position: absolute; inset: 0; background: rgba(10,10,12,.55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); animation: fade .2s both; }
-  .panel { position: relative; width: min(620px, 100%); max-height: calc(100vh - 40px); overflow: auto; display: flex; flex-direction: column; gap: 14px;
+  .panel { position: relative; width: min(620px, 100%); max-height: calc(100vh - 40px); max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 14px;
     padding: 24px; border-radius: var(--radius-l); border: 1px solid var(--border); background: var(--glass-strong);
     -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); box-shadow: 0 30px 80px rgba(0,0,0,.4); animation: pop .32s cubic-bezier(.2,.8,.2,1) both; }
   h2 { font-size: 26px; }
@@ -127,7 +128,7 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
   input, textarea { height: 40px; padding: 0 12px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--glass);
     color: var(--text-primary); font-size: 14.5px; outline: none; color-scheme: dark; min-width: 0; }
   :host-context(.light) input, :host-context(.light) textarea { color-scheme: light; }
-  textarea { height: auto; padding: 10px 12px; resize: vertical; line-height: 1.5; }
+  textarea { height: auto; min-height: 96px; padding: 10px 12px; resize: vertical; line-height: 1.5; }
   input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
   .row { display: flex; gap: 12px; }
   .inline { display: flex; align-items: center; gap: 8px; input { width: 70px; text-align: center; } em { color: var(--text-subtle); font-style: normal; } }
@@ -143,6 +144,8 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
   .primary { border: none; background: var(--accent); color: var(--on-accent); }
   .primary:hover { background: var(--accent-hover); }
   .primary:disabled { opacity: .6; cursor: default; }
+  /* Une popup trop haute pour l'écran défile : ses champs gardent leur taille au lieu d'être écrasés. */
+  .panel > * { flex-shrink: 0; }
   @keyframes fade { from { opacity: 0; } }
   @keyframes pop { from { opacity: 0; transform: translateY(16px) scale(.97); } }
   @container page (max-width: 560px) { .row { flex-direction: column; } }
