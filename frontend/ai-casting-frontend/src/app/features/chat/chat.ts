@@ -187,7 +187,7 @@ export class ChatComponent implements OnInit {
   private explain(index: number, query: string, ids: string[]): void {
     if (!ids.length) return;
     this.patch(index, m => ({ ...m, explaining: true }));
-    this.aiService.explain(query, ids).subscribe({
+    this.aiService.explain(query, ids, this.roleCtx()?.id ?? null).subscribe({
       next: (reasons) => this.patch(index, m => ({
         ...m,
         explaining: false,

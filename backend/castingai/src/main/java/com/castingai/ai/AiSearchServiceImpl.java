@@ -108,6 +108,21 @@ public class AiSearchServiceImpl implements AiSearchService {
     @Value("${casting.ai.max-tokens:450}")
     private int maxTokens;
 
+    /** T-164 · Explication rattachée à l'intention du réalisateur : un extrait exact de l'intention par profil. */
+    static final String INTENTION_PROMPT = """
+        Tu es directeur de casting. Le réalisateur a écrit une INTENTION pour un rôle : ce que l'acteur doit faire passer.
+        Pour chaque acteur fourni, choisis le passage de l'intention qu'il remplit le mieux, et dis pourquoi d'après son profil.
+
+        IMPORTANT : réponds UNIQUEMENT par un objet JSON, en français, pour l'acteur fourni.
+        "passage" : COPIE EXACTE de quelques mots de l'intention (12 mots maximum), sans les modifier.
+        "raison" : 15 mots maximum, ce qui dans CE profil précis (description, compétences, expérience) rejoint ce passage.
+        Ne répète pas l'âge ni la ville. Ne mets pas de défaut. N'invente rien.
+        Choisis pour chaque acteur le passage qui lui correspond le mieux : deux acteurs différents n'ont pas forcément le même.
+
+        FORMAT :
+        {"id":"uuid-exact","score":85,"passage":"mots copiés de l'intention","raison":"pourquoi ce profil, en une phrase complète"}
+        """;
+
     private static final String SYSTEM_PROMPT = """
         Tu es un expert casting. Classe les acteurs fournis pour la demande du recruteur.
 
@@ -199,6 +214,69 @@ public class AiSearchServiceImpl implements AiSearchService {
         return s == null ? "" : s;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, String> explain(String query, List<UUID> actorIds, UUID roleId, String userEmail) {
+        com.castingai.entity.CastingRole role = roleId == null ? null : castingRoleRepository.findById(roleId).orElse(null);
+        if (role == null || role.getIntention() == null || role.getIntention().isBlank()) return explain(query, actorIds);
+        try {
+            userRepository.findByEmail(userEmail).ifPresent(u -> accessService.requireVisible(u, role.getProject()));
+        } catch (com.castingai.exception.ResourceNotFoundException e) {
+            return explain(query, actorIds);
+        }
+        List<UUID> ids = actorIds == null ? List.of() : actorIds.stream().limit(Math.max(1, explainCount)).toList();
+        if (ids.isEmpty() || !isOllamaAvailable()) return Map.of();
+        String intention = role.getIntention().trim();
+        // Un profil à la fois : vu en lot, le petit modèle local donne la même explication à tous.
+        String ask = "INTENTION DU RÉALISATEUR : \"" + intention + "\"\nCRITÈRES : " + query;
+        List<AiAnalysisResult> ai = new ArrayList<>();
+        for (ActorProfile one : buildProfiles(actorRepository.findAllById(ids))) {
+            ai.addAll(callOllama(INTENTION_PROMPT, ask, List.of(one)).stream().limit(1).toList());
+        }
+        Map<String, String> out = new LinkedHashMap<>();
+        for (AiAnalysisResult r : ai) {
+            if (r.getId() == null) continue;
+            String passage = anchor(intention, r.getPassage(), r.getRaison());
+            String reason = r.getRaison() == null ? "" : r.getRaison().trim();
+            out.put(r.getId(), passage == null ? reason : "Répond à « " + passage + " » : " + reason);
+        }
+        return out;
+    }
+
+    /**
+     * T-164 · Rattache l'explication à un vrai passage de l'intention : l'extrait proposé par l'IA s'il y figure
+     * (aux accents et à la casse près), sinon la phrase de l'intention qui partage le plus de mots avec lui et la raison.
+     * Jamais un texte que le réalisateur n'a pas écrit.
+     */
+    static String anchor(String intention, String passage, String reason) {
+        if (intention == null || intention.isBlank()) return null;
+        String ni = normKeep(intention);
+        if (passage != null && !passage.isBlank()) {
+            String p = passage.trim().replaceAll("^[«\"'\\s]+|[»\"'.\\s]+$", "");
+            int at = p.isEmpty() ? -1 : ni.indexOf(normKeep(p));
+            if (at >= 0) return intention.substring(at, Math.min(intention.length(), at + p.length())).trim();
+        }
+        Set<String> words = new HashSet<>();
+        for (String w : normKeep((passage == null ? "" : passage) + " " + (reason == null ? "" : reason)).split("[^a-z0-9]+")) if (w.length() > 3) words.add(w);
+        String best = null; int bestScore = 0;
+        for (String sentence : intention.split("(?<=[.;:!?])\\s+|,\\s+")) {
+            int sc = 0;
+            for (String w : normKeep(sentence).split("[^a-z0-9]+")) if (w.length() > 3 && words.contains(w)) sc++;
+            if (sc > bestScore) { bestScore = sc; best = sentence.trim().replaceAll("[.;:!?,]+$", ""); }
+        }
+        return best;
+    }
+
+    /** Minuscules sans accents, même longueur que le texte d'origine (pour retrouver la position d'un extrait). */
+    static String normKeep(String s) {
+        StringBuilder b = new StringBuilder(s.length());
+        for (char c : s.toCharArray()) {
+            String d = java.text.Normalizer.normalize(String.valueOf(c), java.text.Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+            b.append(d.isEmpty() ? c : Character.toLowerCase(d.charAt(0)));
+        }
+        return b.toString();
+    }
+
     private String describe(ParsedCriteria c, long total) {
         List<String> parts = new ArrayList<>();
         if (c.getGender() != null) parts.add(c.getGender());
@@ -280,18 +358,25 @@ public class AiSearchServiceImpl implements AiSearchService {
     }
 
     private List<AiAnalysisResult> callOllama(String query, List<ActorProfile> profiles) {
+        return callOllama(SYSTEM_PROMPT, query, profiles);
+    }
+
+    private List<AiAnalysisResult> callOllama(String system, String query, List<ActorProfile> profiles) {
         try {
             String profilesJson = objectMapper.writeValueAsString(profiles);
 
-            String fullPrompt = SYSTEM_PROMPT
+            String fullPrompt = system
                     + "\n\nACTEURS DISPONIBLES (JSON) :\n" + profilesJson
                     + "\n\nDEMANDE DU RECRUTEUR : \"" + query + "\""
-                    + "\n\nRetourne le tableau JSON des " + profiles.size() + " acteurs, du meilleur au moins bon.";
+                    + (system == INTENTION_PROMPT ? "\n\nRetourne l'objet JSON de cet acteur."
+                       : "\n\nRetourne le tableau JSON des " + profiles.size() + " acteurs, du meilleur au moins bon.");
 
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("model", aiModel);
             body.put("prompt", fullPrompt);
             body.put("stream", false);
+            // T-164 : un seul profil, réponse en objet JSON strict (le modèle s'arrête proprement, sans phrase coupée)
+            if (system == INTENTION_PROMPT) body.put("format", "json");
             body.put("options", Map.of("temperature", 0.1, "num_predict", maxTokens, "num_ctx", 4096));
 
             log.debug("Calling Ollama with {} actors...", profiles.size());

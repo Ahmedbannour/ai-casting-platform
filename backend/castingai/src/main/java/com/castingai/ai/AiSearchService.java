@@ -19,4 +19,9 @@ public interface AiSearchService {
     void feedback(String userEmail, String query, java.util.UUID actorId, String decision, java.util.UUID roleId);
 
     java.util.Map<String, String> explain(String query, java.util.List<java.util.UUID> actorIds);
+
+    /** T-164 · Pour un rôle avec une intention : chaque profil dit quel passage de l'intention il remplit. */
+    default java.util.Map<String, String> explain(String query, java.util.List<java.util.UUID> actorIds, java.util.UUID roleId, String userEmail) {
+        return explain(query, actorIds);
+    }
 }

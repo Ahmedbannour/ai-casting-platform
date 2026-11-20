@@ -9,4 +9,6 @@ public class AiAnalysisResult {
     private String raison;
     private String points_forts;
     private String points_faibles;
+    /** T-164 · Passage de l'intention du réalisateur que ce profil remplit. */
+    private String passage;
 }

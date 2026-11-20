@@ -54,8 +54,9 @@ export class AiSearchAngularService {
   }
 
   /** Analyse de l'IA pour les meilleurs profils, demandée après l'affichage des résultats. */
-  explain(query: string, actorIds: string[]): Observable<Record<string, string>> {
-    return this.http.post<Record<string, string>>(`${this.url}/explain`, { query, actorIds });
+  /** roleId (T-164) : l'explication cite le passage de l'intention du réalisateur que chaque profil remplit. */
+  explain(query: string, actorIds: string[], roleId: string | null = null): Observable<Record<string, string>> {
+    return this.http.post<Record<string, string>>(`${this.url}/explain`, { query, actorIds, roleId });
   }
 
   /** Décision du client sur une proposition : RETENU, ECARTE ou ANNULE. */

@@ -40,7 +40,9 @@ public class AiSearchController {
 
     /** Explications de l'IA pour les meilleurs résultats (appel séparé, ne bloque pas l'affichage). */
     @PostMapping("/explain")
-    public ResponseEntity<java.util.Map<String, String>> explain(@RequestBody ExplainRequest request) {
+    public ResponseEntity<java.util.Map<String, String>> explain(@RequestBody ExplainRequest request,
+                                                                 @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails me) {
+        if (request.roleId() != null && me != null) return ResponseEntity.ok(aiSearchService.explain(request.query(), request.actorIds(), request.roleId(), me.getUsername()));
         return ResponseEntity.ok(aiSearchService.explain(request.query(), request.actorIds()));
     }
 
@@ -53,5 +55,5 @@ public class AiSearchController {
 
     public record FeedbackRequest(String query, java.util.UUID actorId, String decision, java.util.UUID roleId) {}
 
-    public record ExplainRequest(String query, java.util.List<java.util.UUID> actorIds) {}
+    public record ExplainRequest(String query, java.util.List<java.util.UUID> actorIds, java.util.UUID roleId) {}
 }
