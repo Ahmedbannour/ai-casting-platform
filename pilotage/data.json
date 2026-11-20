@@ -1211,6 +1211,64 @@
     "T-171"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-073",
+   "date": "2026-11-20",
+   "titre": "Projets vide en compte production",
+   "original": "En fait, ici, je suis connecté sur l'interface de production et je trouve que il y a apparemment un problème au niveau de menu. Du coup, si je clique sur le projet, rien ne s'apparaît. Du coup, je suppose qu'il y a un problème. Merci de fixer ça.",
+   "ameliore": "Montrer dans Projets les publicités en préparation (avant le projet de casting).",
+   "departements": [
+    "front"
+   ],
+   "livrables": [
+    "T-171"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-074",
+   "date": "2026-11-20",
+   "titre": "Nouveau nom de la plateforme",
+   "original": "Concernant le logo de notre plateforme, merci de changer le nom. En fait, on peut pas mettre IA Casting car cela va être intractable par rapport aux les autres agences de casting. Du coup, on est des collègues, donc il faut pas les provoquer. Donc, merci de trouver un autre nom qui est attirable plutôt. Et ben voilà, il faut qu'il soit attirant et sympa.",
+   "ameliore": "Remplacer « AI Casting » par un nom attirant et confraternel : « Cercle » (choisi par le client).",
+   "departements": [
+    "front",
+    "back",
+    "prod"
+   ],
+   "livrables": [
+    "T-171"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-075",
+   "date": "2026-11-20",
+   "titre": "Lancer le projet en local",
+   "original": "merci de lancer le projet en local",
+   "ameliore": "Relancer le site (4200), le serveur et le tunnel ; garder le PC éveillé.",
+   "departements": [
+    "ops"
+   ],
+   "livrables": [
+    "T-171"
+   ],
+   "statut": "Livré"
+  },
+  {
+   "id": "P-076",
+   "date": "2026-11-20",
+   "titre": "Splash moderne et à la marque",
+   "original": "peux tu rendre le splash screen plus moderne et customized for our brand name !! merci de faire cette partie comme ingénieur ui ux lead angular",
+   "ameliore": "Splash construit autour du nom « Cercle » : le cercle au crayon autour du bon visage devient le C du nom.",
+   "departements": [
+    "front"
+   ],
+   "livrables": [
+    "T-171"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -3464,7 +3522,7 @@
    "statut": "en_cours",
    "prompt": "P-062",
    "jour": "J8",
-   "detail": "Notes de design du client (20/11, captures sur téléphone) à appliquer sur toute l'app mobile : 1) aucune popup ne tasse ses champs : elle défile (fait : projet, rôle, proposition, partage) ; 2) le bas des pages et du menu reste au-dessus de la barre d'onglets et de la barre de gestes (fait : 100dvh + zone sûre, pages Projets, Projet, Rôle, Acteurs, Fiche, Galerie, tiroir de menu) ; 3) menu tiroir aéré : lignes de 48 px, menu qui défile, compte / mode sombre / déconnexion toujours atteignables (fait) ; 4) reste à faire : passer en revue tous les écrans à 360 × 640 et 412 × 860 (espaces, tailles de texte, cibles tactiles de 44 px minimum, rien sous la barre d'onglets), corriger les textes dépassés de la page de connexion (« prompt », « Agence ou acteur »), et ajouter un test mobile par écran. | Note du client (20/11) : remettre le mode clair. Corrigé : l'interrupteur « Mode sombre » (bascule vers le mode clair) était passé sous l'historique dans le menu mobile ; le bas du menu (compte, mode clair/sombre, déconnexion) est maintenant fixe et toujours visible, seul l'historique défile (masqué sur les écrans très bas). Reste à faire en mode clair : la page de connexion reste toujours sombre ; vérifier contrastes, cartes, badges et photos de chaque écran en mode clair à 360 × 640 et 412 × 860. Revue partagée avec Inès Garnier (UX/UI Designer). L'application est un site web Angular, pas une application React Native. | Note du client (20/11, 2) : en mode clair, remettre les couleurs et l'animation. Fait : jaune vif identique au mode sombre pour les boutons, pastilles et repères (texte foncé dessus) ; jaune foncé réservé aux textes (--accent-ink, 60 usages repris) ; page de connexion en mode clair dès le chargement, avec la planche contact animée (portraits éclaircis, cercle jaune lisible). À vérifier par Yanis Belhadj et Inès Garnier : contrastes du jaune vif sur fond clair (boutons, onglets actifs), photos et cartes acteurs, bandeaux, et proposer une bascule clair/sombre sur la page de connexion. | Palette unifiée (20/11) : cinq gammes (graphite, crayon, rouge, vert, bleu) dans styles.scss, utilisées par les deux modes ; jetons de sens --bg-*, --text-*, --accent / --accent-ink / --on-accent, --success, --danger, --info, --warning ; plus aucun vert ou rouge écrit en dur dans les écrans. Règle pour l'équipe : jamais de couleur en dur, toujours un jeton. Reste : passer les dernières couleurs fixes (fonds de photo, ombres) sur les jetons. | Barre d'onglets mobile animée (20/11) : pastille jaune qui glisse sous l'onglet actif (effet élastique), icône qui rebondit, barre qui se range quand on descend dans la page et revient en remontant, entrée en douceur, mouvements coupés si le téléphone demande moins d'animations. Test test-barre-onglets.js (2 modes). | Note client (20/11) transmise à Yanis Belhadj : icônes + texte trop serrés dans la barre d'onglets. Corrigé : icônes seules (22 px) ; seul l'onglet actif s'élargit et montre son nom à côté de l'icône, la pastille épouse sa taille ; nom lu par les lecteurs d'écran (aria-label). Vérifié : « Propositions » (nom le plus long) tient sans être coupé, deux modes. | Note client (20/11) : petit gel du fond en changeant d'onglet. Cause : la transition de page du navigateur fige une photo de tout l'écran (fond animé compris) ~0,2 s. Corrigé : sur téléphone la transition est sautée, les blocs de la page montent toujours ; flou retiré de la sortie de page sur ordinateur. Test : 0 photo figée, image la plus longue 15 à 23 ms. | Note client (20/11) : champs au design de l'application. Les 7 listes, la date (publicités) et l'heure (offre) passent sur app-select / app-date-field (plus de fenêtres Android bleues) ; cases à cocher et boutons radio dessinés avec la palette ; plus de fond jaune ou bleu du remplissage automatique. Note client : défilement difficile en compte production. Toute page s'allonge désormais avec son contenu (règle globale) ; cycle de « Mes demandes » compact sur téléphone (6 lignes au lieu d'un écran et demi). Tests test-defilement-roles.js (tous les comptes démo, tous les onglets) et capture-champs.js. | Défilement (agence, 20/11) : listes et calendriers écoutaient le défilement de toute la page en permanence et relançaient l'affichage de l'application ; désormais hors d'Angular, passifs, actifs seulement ouverts. Barre d'onglets : défilement écouté hors d'Angular, une fois par image. Sur téléphone : plus de flou d'arrière-plan (recalculé à chaque image), fond animé figé, une seule zone défile."
+   "detail": "Notes de design du client (20/11, captures sur téléphone) à appliquer sur toute l'app mobile : 1) aucune popup ne tasse ses champs : elle défile (fait : projet, rôle, proposition, partage) ; 2) le bas des pages et du menu reste au-dessus de la barre d'onglets et de la barre de gestes (fait : 100dvh + zone sûre, pages Projets, Projet, Rôle, Acteurs, Fiche, Galerie, tiroir de menu) ; 3) menu tiroir aéré : lignes de 48 px, menu qui défile, compte / mode sombre / déconnexion toujours atteignables (fait) ; 4) reste à faire : passer en revue tous les écrans à 360 × 640 et 412 × 860 (espaces, tailles de texte, cibles tactiles de 44 px minimum, rien sous la barre d'onglets), corriger les textes dépassés de la page de connexion (« prompt », « Agence ou acteur »), et ajouter un test mobile par écran. | Note du client (20/11) : remettre le mode clair. Corrigé : l'interrupteur « Mode sombre » (bascule vers le mode clair) était passé sous l'historique dans le menu mobile ; le bas du menu (compte, mode clair/sombre, déconnexion) est maintenant fixe et toujours visible, seul l'historique défile (masqué sur les écrans très bas). Reste à faire en mode clair : la page de connexion reste toujours sombre ; vérifier contrastes, cartes, badges et photos de chaque écran en mode clair à 360 × 640 et 412 × 860. Revue partagée avec Inès Garnier (UX/UI Designer). L'application est un site web Angular, pas une application React Native. | Note du client (20/11, 2) : en mode clair, remettre les couleurs et l'animation. Fait : jaune vif identique au mode sombre pour les boutons, pastilles et repères (texte foncé dessus) ; jaune foncé réservé aux textes (--accent-ink, 60 usages repris) ; page de connexion en mode clair dès le chargement, avec la planche contact animée (portraits éclaircis, cercle jaune lisible). À vérifier par Yanis Belhadj et Inès Garnier : contrastes du jaune vif sur fond clair (boutons, onglets actifs), photos et cartes acteurs, bandeaux, et proposer une bascule clair/sombre sur la page de connexion. | Palette unifiée (20/11) : cinq gammes (graphite, crayon, rouge, vert, bleu) dans styles.scss, utilisées par les deux modes ; jetons de sens --bg-*, --text-*, --accent / --accent-ink / --on-accent, --success, --danger, --info, --warning ; plus aucun vert ou rouge écrit en dur dans les écrans. Règle pour l'équipe : jamais de couleur en dur, toujours un jeton. Reste : passer les dernières couleurs fixes (fonds de photo, ombres) sur les jetons. | Barre d'onglets mobile animée (20/11) : pastille jaune qui glisse sous l'onglet actif (effet élastique), icône qui rebondit, barre qui se range quand on descend dans la page et revient en remontant, entrée en douceur, mouvements coupés si le téléphone demande moins d'animations. Test test-barre-onglets.js (2 modes). | Note client (20/11) transmise à Yanis Belhadj : icônes + texte trop serrés dans la barre d'onglets. Corrigé : icônes seules (22 px) ; seul l'onglet actif s'élargit et montre son nom à côté de l'icône, la pastille épouse sa taille ; nom lu par les lecteurs d'écran (aria-label). Vérifié : « Propositions » (nom le plus long) tient sans être coupé, deux modes. | Note client (20/11) : petit gel du fond en changeant d'onglet. Cause : la transition de page du navigateur fige une photo de tout l'écran (fond animé compris) ~0,2 s. Corrigé : sur téléphone la transition est sautée, les blocs de la page montent toujours ; flou retiré de la sortie de page sur ordinateur. Test : 0 photo figée, image la plus longue 15 à 23 ms. | Note client (20/11) : champs au design de l'application. Les 7 listes, la date (publicités) et l'heure (offre) passent sur app-select / app-date-field (plus de fenêtres Android bleues) ; cases à cocher et boutons radio dessinés avec la palette ; plus de fond jaune ou bleu du remplissage automatique. Note client : défilement difficile en compte production. Toute page s'allonge désormais avec son contenu (règle globale) ; cycle de « Mes demandes » compact sur téléphone (6 lignes au lieu d'un écran et demi). Tests test-defilement-roles.js (tous les comptes démo, tous les onglets) et capture-champs.js. | Défilement (agence, 20/11) : listes et calendriers écoutaient le défilement de toute la page en permanence et relançaient l'affichage de l'application ; désormais hors d'Angular, passifs, actifs seulement ouverts. Barre d'onglets : défilement écouté hors d'Angular, une fois par image. Sur téléphone : plus de flou d'arrière-plan (recalculé à chaque image), fond animé figé, une seule zone défile. | Nouveau nom (20/11) : « Cercle » remplace « AI Casting » partout à l'écran (nom de confrère, pas de concurrent des agences ; reprend le cercle au crayon du logo). Splash refait : planche de visages, le crayon entoure le visage choisi, ce cercle devient le C de « Cercle », le nom se déroule, ouverture en iris depuis le C. Projets (production, réalisateur) : les publicités en préparation y apparaissent avant la création du projet de casting."
   }
  ],
  "journal": [
@@ -4021,6 +4079,12 @@
    "nom": "Yanis Belhadj",
    "t": "2026-11-20T14:50:00Z",
    "texte": "Équipe synchronisée (bandeau « Où en est la publicité », production et réalisateur rattachés tôt) ; défilement allégé sur téléphone. 88 tests serveur, recette 10/10."
+  },
+  {
+   "h": "J8",
+   "nom": "Inès Garnier",
+   "t": "2026-11-20T15:40:00Z",
+   "texte": "La plateforme s'appelle Cercle ; nouveau splash à la marque ; Projets montre les publicités en préparation. Recette 10/10."
   }
  ],
  "plan": {
