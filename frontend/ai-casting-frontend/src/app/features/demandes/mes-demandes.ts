@@ -48,6 +48,7 @@ interface Step { key: string; who: string; what: string; }
             <a [routerLink]="['/demandes', d.id]">
               <div class="t"><b>{{ d.title }}</b>
                 <span>{{ isMarque() ? (d.agencyName ? 'Agence : ' + d.agencyName : 'Pas encore envoyée') : (isProd() || isDirector()) ? 'Marque : ' + d.brandName + (d.agencyName ? ' · agence ' + d.agencyName : '') : 'Marque : ' + d.brandName }}{{ d.product ? ' · ' + d.product : '' }}</span>
+                <span class="now"><i aria-hidden="true"></i>{{ d.nowWho ? d.nowWho + ' ' : '' }}{{ d.nowWhat }}</span>
               </div>
               <span class="st" [attr.data-s]="d.status">{{ label(d.status) }}</span>
               <time>{{ d.updatedAt | date:'d MMM' }}</time>
@@ -62,9 +63,9 @@ interface Step { key: string; who: string; what: string; }
           <p>Créez une demande de publicité et déposez votre V0 : le fichier artistique de votre idée (détails du projet, messages, notes ; PDF, Word ou PowerPoint). Pas de budget dans la V0.</p>
           <a class="send" routerLink="/demandes/nouvelle">Nouvelle demande</a>
         } @else if (isDirector()) {
-          <p>Les publicités que les boîtes de production vous transmettent arriveront ici, avec la V1 validée et les attentes sur chaque personnage.</p>
+          <p>Les publicités auxquelles une boîte de production vous rattache arriveront ici. Vous suivrez leur avancement, puis écrirez la V2 dès que les attentes vous seront transmises.</p>
         } @else if (isProd()) {
-          <p>Les publicités que les agences vous confient arriveront ici, avec la V0 et la V1 validée. Vous recevrez une notification à chaque nouvelle publicité.</p>
+          <p>Les publicités auxquelles une agence vous rattache arriveront ici, dès la V1 en cours. Vous suivrez leur avancement et prendrez la main une fois la V1 validée par la marque.</p>
         } @else {
           <p>Les demandes que les marques vous envoient arriveront ici, avec leur V0. Vous recevrez une notification à chaque nouvelle demande.</p>
         }
@@ -101,6 +102,8 @@ interface Step { key: string; who: string; what: string; }
       border-radius: 12px; border: 1px solid var(--border); color: inherit; text-decoration: none; }
     .list a:hover { background: var(--bg-hover); }
     .t b { display: block; font-size: 15px; }
+    .t .now { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-weight: 500; }
+    .t .now i { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
     .t span { display: block; color: var(--text-muted); font-size: 13px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .st { font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--bg-hover); white-space: nowrap; }
     .st[data-s="V0_ENVOYEE"] { background: color-mix(in srgb, var(--accent) 22%, transparent); }

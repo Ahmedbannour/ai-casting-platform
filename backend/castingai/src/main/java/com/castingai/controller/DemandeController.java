@@ -79,6 +79,8 @@ public class DemandeController {
     @DeleteMapping("/{id}/personnages/{cid}")
     public DemandeService.Detail deleteCharacter(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID cid) { return demandes.deleteCharacter(me.getUsername(), id, cid); }
     @GetMapping("/realisateurs") public List<DemandeService.PersonOption> directors(@AuthenticationPrincipal UserDetails me) { return demandes.directors(me.getUsername()); }
+    @PutMapping("/{id}/equipe")
+    public DemandeService.Detail team(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @RequestBody DemandeService.Team req) { return demandes.attachTeam(me.getUsername(), id, req); }
     @PostMapping("/{id}/transmettre")
     public DemandeService.Detail transmit(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody DemandeService.Transmit req) { return demandes.transmit(me.getUsername(), id, req); }
 

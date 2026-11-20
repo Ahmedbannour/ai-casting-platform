@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnDestroy, ViewChild, computed, effect, forwardRef, input, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, NgZone, OnDestroy, inject, ViewChild, computed, effect, forwardRef, input, signal } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { SelectFieldComponent } from '../select-field/select-field';
@@ -187,13 +187,17 @@ export class DateFieldComponent implements ControlValueAccessor, Validator, OnDe
   readonly canNext = computed(() => !this.max() || toIso(new Date(this.viewYear(), this.viewMonth() + 1, 0, 12)) < this.max()!);
   readonly todayOff = computed(() => { const t = todayIso(); return (!!this.min() && t < this.min()!) || (!!this.max() && t > this.max()!); });
 
-  private readonly reposition = () => this.place();
+  private readonly zone = inject(NgZone);
+  /** Écouté hors d'Angular et en mode passif : fermé, le champ ne coûte rien pendant le défilement de la page. */
+  private readonly reposition = () => { if (this.open()) this.zone.run(() => this.place()); };
 
   constructor(private host: ElementRef<HTMLElement>) {
     // Bornes modifiées (ex. la date de début change) → le formulaire revalide ce champ.
     effect(() => { this.min(); this.max(); queueMicrotask(() => this.onValidatorChange()); });
-    window.addEventListener('scroll', this.reposition, true);
-    window.addEventListener('resize', this.reposition);
+    this.zone.runOutsideAngular(() => {
+      window.addEventListener('scroll', this.reposition, { capture: true, passive: true });
+      window.addEventListener('resize', this.reposition, { passive: true });
+    });
   }
 
   ngOnDestroy(): void {

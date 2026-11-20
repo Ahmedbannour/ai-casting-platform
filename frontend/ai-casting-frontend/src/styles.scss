@@ -132,6 +132,20 @@
 }
 
 /* ── Base ─────────────────────────────────────────── */
+/* Téléphone : une seule zone défile (le contenu), jamais la page entière derrière elle. */
+/* (Seulement dans l'application ; l'accueil public et la connexion défilent normalement.) */
+html:has(app-main-layout), html:has(app-main-layout) body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+
+/* Téléphone : le verre dépoli (flou de l'arrière-plan) est recalculé à chaque image pendant le défilement,
+   et le fond animé bouge en permanence : sur un téléphone moyen, cela saccade. On garde le même aspect
+   avec des fonds pleins un peu plus couvrants, sans flou, et le fond animé est figé. */
+@media (max-width: 860px) {
+  :root { --glass: color-mix(in srgb, var(--graphite-800) 82%, transparent); --glass-strong: color-mix(in srgb, var(--graphite-850) 94%, transparent); }
+  :root.light { --glass: color-mix(in srgb, var(--graphite-0) 86%, transparent); --glass-strong: color-mix(in srgb, var(--graphite-0) 95%, transparent); }
+  *, *::before, *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  body::before { animation: none; will-change: auto; }
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {

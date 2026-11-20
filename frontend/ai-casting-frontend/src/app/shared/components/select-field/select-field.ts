@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnDestroy, ViewChild, computed, forwardRef, input, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, NgZone, OnDestroy, inject, ViewChild, computed, forwardRef, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { usableBottom } from '../../forms/viewport';
 
@@ -79,11 +79,15 @@ export class SelectFieldComponent implements ControlValueAccessor, OnDestroy {
   onTouched: () => void = () => {};
   private typed = '';
   private typedAt = 0;
-  private readonly reposition = () => this.place();
+  private readonly zone = inject(NgZone);
+  /** Écouté hors d'Angular et en mode passif : fermé, le champ ne coûte rien pendant le défilement de la page. */
+  private readonly reposition = () => { if (this.open()) this.zone.run(() => this.place()); };
 
   constructor(private host: ElementRef<HTMLElement>) {
-    window.addEventListener('scroll', this.reposition, true);
-    window.addEventListener('resize', this.reposition);
+    this.zone.runOutsideAngular(() => {
+      window.addEventListener('scroll', this.reposition, { capture: true, passive: true });
+      window.addEventListener('resize', this.reposition, { passive: true });
+    });
   }
 
   ngOnDestroy(): void {

@@ -1,5 +1,5 @@
 import { NotificationBellComponent } from '../notification-bell/notification-bell';
-import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, NgZone, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { SidebarComponent } from '../sidebar/sidebar';
@@ -17,6 +17,7 @@ import { EmailBannerComponent } from './email-banner';
     :host { display: flex; height: 100vh; height: 100dvh; width: 100%; overflow: hidden; }
     .content {
       flex: 1; min-width: 0; height: 100vh; height: 100dvh; overflow-y: auto; display: flex; flex-direction: column;
+      overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
       view-transition-name: page;  /* zone animée lors du changement de page */
       /* Les pages s'adaptent à la place réellement disponible (menu ouvert ou replié), pas à la fenêtre. */
       container-type: inline-size; container-name: page;
@@ -92,7 +93,7 @@ import { EmailBannerComponent } from './email-banner';
   `],
   template: `
     <app-sidebar />
-    <div class="content" (scroll)="onScroll($event)">
+    <div #content class="content">
       <header class="m-top">
         <a class="m-logo" [routerLink]="role() === 'ACTEUR' ? '/mon-profil' : role() === 'MARQUE' || role() === 'AGENCE_MARKETING' ? '/mes-demandes' : '/chat'" aria-label="AI Casting, accueil"><span class="brand-mark" aria-hidden="true"></span>AI Casting</a>
         <app-notification-bell class="m-bell" />
@@ -166,6 +167,7 @@ export class MainLayoutComponent {
 
   /* --- Barre d'onglets animée (mobile) --- */
   private readonly tabbar = viewChild<ElementRef<HTMLElement>>('tabbar');
+  private readonly content = viewChild<ElementRef<HTMLElement>>('content');
   readonly tabHidden = signal(false);
   private lastY = 0;
 
@@ -176,7 +178,22 @@ export class MainLayoutComponent {
       requestAnimationFrame(() => this.placePill());
     });
     inject(DestroyRef).onDestroy(() => sub.unsubscribe());
-    afterNextRender(() => { this.placePill(false); setTimeout(() => this.placePill(false), 300); });
+    const zone = inject(NgZone);
+    afterNextRender(() => {
+      this.placePill(false); setTimeout(() => this.placePill(false), 300);
+      // Défilement écouté hors d'Angular, en mode passif et une fois par image : le doigt n'attend jamais l'application.
+      const el = this.content()?.nativeElement; if (!el) return;
+      let queued = false;
+      const onScroll = () => {
+        if (queued) return; queued = true;
+        requestAnimationFrame(() => {
+          queued = false;
+          const hide = this.scrollDecision(el.scrollTop);
+          if (hide !== null && hide !== this.tabHidden()) zone.run(() => this.tabHidden.set(hide));
+        });
+      };
+      zone.runOutsideAngular(() => el.addEventListener('scroll', onScroll, { passive: true }));
+    });
     const onResize = () => this.placePill(false);
     window.addEventListener('resize', onResize);
     inject(DestroyRef).onDestroy(() => window.removeEventListener('resize', onResize));
@@ -202,13 +219,12 @@ export class MainLayoutComponent {
     tabs.forEach((t, k) => t.style.transition = saved[k]);
   }
 
-  /** La barre se range quand on descend dans la page et revient dès qu'on remonte. */
-  onScroll(e: Event) {
-    const y = (e.target as HTMLElement).scrollTop;
+  /** La barre se range quand on descend dans la page et revient dès qu'on remonte (null : rien ne change). */
+  private scrollDecision(y: number): boolean | null {
     const d = y - this.lastY;
-    if (Math.abs(d) < 8) return;
-    this.tabHidden.set(d > 0 && y > 120);
+    if (Math.abs(d) < 8) return null;
     this.lastY = y;
+    return d > 0 && y > 120;
   }
 
   /** Bandeau de l'agent : contrat inactif (lecture seule) ou qui se termine bientôt. */

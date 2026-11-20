@@ -1,5 +1,5 @@
 import { FigurationPickerComponent, FigurationType } from '../figuration-picker';
-import { Component, DestroyRef, ElementRef, OnInit, ViewChild, afterRenderEffect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, NgZone, OnInit, ViewChild, afterRenderEffect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -69,6 +69,8 @@ export class ActorFormComponent implements OnInit {
   readonly skillLevels = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
   readonly languageLevels = ['Notions', 'Intermédiaire', 'Courant', 'Natif'];
 
+  private readonly ngZone = inject(NgZone);
+
   constructor() {
     // L'indicateur du sommaire suit l'onglet actif, quelle que soit sa taille (vertical sur bureau, horizontal sur tablette/mobile).
     afterRenderEffect(() => { this.active(); this.loaded(); this.placeIndicator(); });
@@ -116,7 +118,8 @@ export class ActorFormComponent implements OnInit {
     this.form.statusChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refreshCounts());
     // Le défilement se fait dans le conteneur de la mise en page : écoute en phase de capture.
     const onScroll = () => this.onScroll();
-    document.addEventListener('scroll', onScroll, true);
+    // Hors d'Angular et passif : le défilement ne relance pas tout l'affichage (les signaux mettent la vue à jour).
+    this.ngZone.runOutsideAngular(() => document.addEventListener('scroll', onScroll, { capture: true, passive: true }));
     // Défilement manuel (molette, toucher, clavier) : le suivi reprend.
     const resume = (e: Event) => {
       if (e instanceof KeyboardEvent && !['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(e.key)) return;

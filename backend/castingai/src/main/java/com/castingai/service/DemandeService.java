@@ -39,7 +39,7 @@ public class DemandeService {
     public record Send(@NotNull(message = "Choisissez l'agence marketing") UUID agencyId) {}
 
     public record Summary(UUID id, String title, String product, AdRequest.Status status, String brandName, String agencyName,
-                          LocalDate airDate, LocalDateTime updatedAt, boolean hasV0) {}
+                          LocalDate airDate, LocalDateTime updatedAt, boolean hasV0, String nowWho, String nowWhat) {}
     public record VersionView(UUID id, AdVersion.Kind kind, String label, AdVersion.Status status, String body, String fileName,
                               String fileType, Long fileSize, String authorName, LocalDateTime createdAt, LocalDateTime deliveredAt,
                               String reviewComment, LocalDateTime reviewedAt, String linkUrl) {}
@@ -50,6 +50,7 @@ public class DemandeService {
                          boolean canEditV1, boolean canReviewV1, boolean canChooseProduction, boolean v1Validated, String productionName,
                          boolean canEditExpectations, List<CharacterView> characters, String directorName, String firstAdName, LocalDateTime expectationsSentAt,
                          boolean canEditV2, List<SceneView> scenes, List<RoleSheetView> roles, UUID projectId, LocalDateTime v2PublishedAt,
+                         boolean canAttachTeam, UUID directorId, UUID firstAdId, String nowWho, String nowWhat,
                          List<VersionView> versions, List<EventView> events) {}
     public record AgencyOption(UUID id, String name, String city) {}
     public record CharacterRequest(@NotBlank(message = "Donnez un nom au personnage") @Size(max = 120) String name,
@@ -57,6 +58,7 @@ public class DemandeService {
                                    @Size(max = 4000) String agencyWish, @Size(max = 4000) String notes) {}
     public record CharacterView(UUID id, String name, String story, String brandWish, String agencyWish, String notes) {}
     public record Transmit(@NotNull(message = "Choisissez le réalisateur") UUID directorId, UUID firstAdId) {}
+    public record Team(UUID directorId, UUID firstAdId) {}
     public record PersonOption(UUID id, String name, String organisation) {}
     public record SceneRequest(@NotBlank(message = "Donnez un titre à la scène") @Size(max = 160) String title, @Size(max = 4000) String description) {}
     public record SceneView(UUID id, String title, String description) {}
@@ -400,7 +402,12 @@ public class DemandeService {
         AdVersion v = lastDeliveredV1(r);
         r.setV1ValidatedAt(LocalDateTime.now());
         log(r, me, "V1_VALIDEE", v.getLabel() + " validée par la marque");
-        notifyOrg(r.getAgency(), v.getLabel() + " validée : " + r.getTitle(), "La marque a validé votre " + v.getLabel() + ". Choisissez la boîte de production.", r);
+        if (r.getProduction() != null) {
+            notifyOrg(r.getAgency(), v.getLabel() + " validée : " + r.getTitle(), "La marque a validé votre " + v.getLabel() + ". " + r.getProduction().getName() + " prend la suite.", r);
+            startV2(r, me);
+        } else {
+            notifyOrg(r.getAgency(), v.getLabel() + " validée : " + r.getTitle(), "La marque a validé votre " + v.getLabel() + ". Choisissez la boîte de production.", r);
+        }
         return detail(me, r);
     }
 
@@ -417,15 +424,92 @@ public class DemandeService {
         User me = access.user(email);
         AdRequest r = visible(me, id);
         if (!isAgencySide(me, r)) throw new ForbiddenException("Seule l'agence choisit la boîte de production");
-        if (r.getStatus() != AdRequest.Status.V1_LIVREE || r.getV1ValidatedAt() == null) throw new IllegalArgumentException("La marque doit d'abord valider la V1");
+        if (!productionChoosable(r)) throw new IllegalArgumentException("La production se choisit une fois la demande acceptée, avant le début de la V2");
         Agency prod = agencies.findById(req.productionId()).filter(a -> "BOITE_PROD".equals(a.getKind()))
                 .orElseThrow(() -> new IllegalArgumentException("Choisissez une boîte de production inscrite"));
+        boolean change = r.getProduction() != null && !r.getProduction().getId().equals(prod.getId());
+        if (change) { r.setDirector(null); r.setFirstAd(null); }   // l'équipe du réalisateur appartient à l'ancienne production
         r.setProduction(prod);
-        r.setStatus(AdRequest.Status.V2_EN_COURS);
-        log(r, me, "PRODUCTION", "Demande confiée à " + prod.getName() + " : recueil des attentes et V2 du réalisateur");
-        notifyOrg(prod, "Nouvelle publicité : " + r.getTitle(), r.getAgency().getName() + " vous confie la production. Recueillez les attentes sur les profils.", r);
+        if (r.getV1ValidatedAt() != null) {
+            startV2(r, me);
+        } else {
+            // Rattachée tôt : la production suit la publicité en lecture jusqu'à la validation de la V1.
+            log(r, me, "PRODUCTION", (change ? "Production changée : " : "Production rattachée : ") + prod.getName() + " suit la publicité jusqu'à la validation de la V1");
+            notifyOrg(prod, "Publicité à venir : " + r.getTitle(), r.getAgency().getName() + " vous rattache à cette publicité. Suivez son avancement ; vous recueillerez les attentes dès que la marque aura validé la V1.", r);
+        }
         notifyBrand(r, "Production choisie : " + r.getTitle(), r.getAgency().getName() + " a confié la production à " + prod.getName() + ".");
         return detail(me, r);
+    }
+
+    /** La production peut être choisie dès l'acceptation de la demande, et changée tant que la V2 n'a pas commencé. */
+    private static boolean productionChoosable(AdRequest r) {
+        return r.getStatus() == AdRequest.Status.V1_EN_COURS || r.getStatus() == AdRequest.Status.V1_LIVREE;
+    }
+
+    /** V1 validée et production choisie : la préparation de la V2 commence, la production est notifiée. */
+    private void startV2(AdRequest r, User me) {
+        r.setStatus(AdRequest.Status.V2_EN_COURS);
+        log(r, me, "PRODUCTION", "Demande confiée à " + r.getProduction().getName() + " : recueil des attentes et V2 du réalisateur");
+        notifyOrg(r.getProduction(), "À vous : " + r.getTitle(), "La V1 est validée. Recueillez les attentes sur les profils, personnage par personnage.", r);
+        for (User u : team(r)) notifications.push(u.getId(), "DEMANDE", "V1 validée : " + r.getTitle(), "La production recueille maintenant les attentes ; vous les recevrez pour écrire la V2.", "/demandes/" + r.getId());
+    }
+
+    private static List<User> team(AdRequest r) {
+        List<User> t = new java.util.ArrayList<>();
+        if (r.getDirector() != null) t.add(r.getDirector());
+        if (r.getFirstAd() != null) t.add(r.getFirstAd());
+        return t;
+    }
+
+    /** La production rattache le réalisateur et le 1er AD quand elle veut : ils suivent la publicité en lecture
+     *  et écriront la V2 une fois les attentes transmises. */
+    @Transactional
+    public Detail attachTeam(String email, UUID id, Team req) {
+        User me = access.user(email);
+        AdRequest r = visible(me, id);
+        if (!isProductionSide(me, r)) throw new ForbiddenException("Seule la boîte de production rattache le réalisateur");
+        if (!teamAttachable(r)) throw new IllegalArgumentException("L'équipe ne se modifie plus une fois la V2 publiée");
+        User director = req.directorId() == null ? null : realisateur(req.directorId(), "Choisissez un réalisateur inscrit");
+        User firstAd = req.firstAdId() == null ? null : realisateur(req.firstAdId(), "Choisissez un 1er AD inscrit");
+        if (director == null && firstAd != null) throw new IllegalArgumentException("Choisissez d'abord le réalisateur");
+        if (firstAd != null && firstAd.getId().equals(director.getId())) throw new IllegalArgumentException("Le 1er AD doit être une autre personne que le réalisateur");
+        List<UUID> before = team(r).stream().map(User::getId).toList();
+        r.setDirector(director); r.setFirstAd(firstAd);
+        log(r, me, "EQUIPE", director == null ? "Réalisateur retiré" : "Équipe : " + name(director) + (firstAd == null ? "" : " (réalisateur) et " + name(firstAd) + " (1er AD)"));
+        for (User u : team(r)) if (!before.contains(u.getId()))
+            notifications.push(u.getId(), "DEMANDE", "Publicité à suivre : " + r.getTitle(),
+                    r.getProduction().getName() + " vous rattache à cette publicité. Suivez son avancement ; vous écrirez la V2 une fois les attentes reçues.", "/demandes/" + r.getId());
+        return detail(me, r);
+    }
+
+    private static boolean teamAttachable(AdRequest r) {
+        return r.getProduction() != null && r.getV2PublishedAt() == null
+                && (r.getStatus() == AdRequest.Status.V1_EN_COURS || r.getStatus() == AdRequest.Status.V1_LIVREE || r.getStatus() == AdRequest.Status.V2_EN_COURS);
+    }
+
+    private User realisateur(UUID id, String msg) {
+        return users.findById(id).filter(u -> u.getRole() == Role.REALISATEUR && u.isEnabled()).orElseThrow(() -> new IllegalArgumentException(msg));
+    }
+
+    /** Qui a la main maintenant, et pour faire quoi : la même phrase pour toute l'équipe. */
+    private String[] now(AdRequest r) {
+        String agence = r.getAgency() == null ? "L'agence" : r.getAgency().getName();
+        String prod = r.getProduction() == null ? "La production" : r.getProduction().getName();
+        String real = r.getDirector() == null ? "Le réalisateur" : name(r.getDirector());
+        return switch (r.getStatus()) {
+            case BROUILLON -> new String[]{ "La marque", "écrit la V0 avant de l'envoyer à l'agence" };
+            case V0_ENVOYEE -> new String[]{ agence, "lit la V0 pour l'accepter ou la refuser" };
+            case V1_EN_COURS -> new String[]{ agence, "écrit la V1 (le concept)" };
+            case V1_LIVREE -> r.getV1ValidatedAt() == null ? new String[]{ "La marque", "relit la V1 pour la valider ou demander une révision" }
+                    : new String[]{ agence, "choisit la boîte de production" };
+            case V2_EN_COURS -> r.getExpectationsSentAt() == null ? new String[]{ prod, "recueille les attentes sur les profils, personnage par personnage" }
+                    : new String[]{ real, "écrit la V2 : scènes et fiches de rôle" };
+            case V2_LIVREE, CASTING -> new String[]{ "AI Casting", "propose des acteurs pour chaque rôle" };
+            case PPM -> new String[]{ "Toute l'équipe", "valide le casting, les décors et les costumes" };
+            case ACTEURS_VALIDES -> new String[]{ "Toute l'équipe", "a validé les acteurs" };
+            case CLOTUREE -> new String[]{ "", "Publicité clôturée" };
+            case ANNULEE -> new String[]{ "", "Demande annulée" };
+        };
     }
 
     // ── Production : attentes par personnage, transmission au réalisateur (T-162) ──
@@ -646,6 +730,7 @@ public class DemandeService {
         AdRequest r = visible(me, id);
         if (!isDirectorSide(me, r)) throw new ForbiddenException("Seuls le réalisateur et le 1er AD écrivent la V2");
         if (r.getStatus() != AdRequest.Status.V2_EN_COURS) throw new IllegalArgumentException("La V2 n'est plus modifiable");
+        if (r.getExpectationsSentAt() == null) throw new IllegalArgumentException("La V2 s'écrit une fois les attentes de la production reçues");
         return r;
     }
 
@@ -833,7 +918,7 @@ public class DemandeService {
         boolean hasV0 = versions.findFirstByRequestIdAndKindOrderByCreatedAtDesc(r.getId(), AdVersion.Kind.V0)
                 .map(AdVersion::hasContent).orElse(false);
         return new Summary(r.getId(), r.getTitle(), r.getProduct(), r.getStatus(), r.getBrand() == null ? name(r.getCreatedBy()) : r.getBrand().getName(),
-                r.getAgency() == null ? null : r.getAgency().getName(), r.getAirDate(), r.getUpdatedAt(), hasV0);
+                r.getAgency() == null ? null : r.getAgency().getName(), r.getAirDate(), r.getUpdatedAt(), hasV0, now(r)[0], now(r)[1]);
     }
 
     private Detail detail(User me, AdRequest r) {
@@ -854,19 +939,22 @@ public class DemandeService {
                 isAgencySide(me, r) && analysable(r), analysis(r),
                 isAgencySide(me, r) && r.getStatus() == AdRequest.Status.V1_EN_COURS,
                 isBrandSide(me, r) && r.getStatus() == AdRequest.Status.V1_LIVREE && r.getV1ValidatedAt() == null,
-                isAgencySide(me, r) && r.getStatus() == AdRequest.Status.V1_LIVREE && r.getV1ValidatedAt() != null,
+                isAgencySide(me, r) && productionChoosable(r),
                 r.getV1ValidatedAt() != null, r.getProduction() == null ? null : r.getProduction().getName(),
                 isProductionSide(me, r) && r.getStatus() == AdRequest.Status.V2_EN_COURS,
                 characters.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId()).stream()
                         .map(c -> new CharacterView(c.getId(), c.getName(), c.getStory(), c.getBrandWish(), c.getAgencyWish(), c.getNotes())).toList(),
                 r.getDirector() == null ? null : name(r.getDirector()), r.getFirstAd() == null ? null : name(r.getFirstAd()),
                 r.getExpectationsSentAt(),
-                isDirectorSide(me, r) && r.getStatus() == AdRequest.Status.V2_EN_COURS,
+                isDirectorSide(me, r) && r.getStatus() == AdRequest.Status.V2_EN_COURS && r.getExpectationsSentAt() != null,
                 seesV2(me, r) ? scenes.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId()).stream()
                         .map(x -> new SceneView(x.getId(), x.getTitle(), x.getDescription())).toList() : List.of(),
                 seesV2(me, r) ? roleSheets.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId()).stream().map(this::roleView).toList() : List.of(),
                 r.getProject() == null || !(isDirectorSide(me, r) || isProductionSide(me, r)) ? null : r.getProject().getId(),
-                r.getV2PublishedAt(), vs, ev);
+                r.getV2PublishedAt(), isProductionSide(me, r) && teamAttachable(r),
+                isProductionSide(me, r) && r.getDirector() != null ? r.getDirector().getId() : null,
+                isProductionSide(me, r) && r.getFirstAd() != null ? r.getFirstAd().getId() : null,
+                now(r)[0], now(r)[1], vs, ev);
     }
 
     private static Analysis analysis(AdRequest r) {

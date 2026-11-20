@@ -132,7 +132,7 @@ class DemandeApiTest {
         String admin = login("ahmed@casting.com", "password123");
         String brandOrg = org(admin, "Marque Olive", "MARQUE");
         String agA = org(admin, "Agence Alpha", "AGENCE_MARKETING"), agB = org(admin, "Agence Beta", "AGENCE_MARKETING");
-        String brand = account(admin, "marque@olive.tn", "MARQUE", brandOrg);
+        String brand = account(admin, "marque@figue.tn", "MARQUE", brandOrg);
         String alpha = account(admin, "agence@alpha.tn", "AGENCE_MARKETING", agA);
         String beta = account(admin, "agence@beta.tn", "AGENCE_MARKETING", agB);
         String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Huile d'olive\",\"product\":\"Huile vierge extra\"}")).get("id").asString();
@@ -217,8 +217,7 @@ class DemandeApiTest {
         assertThat(v11.get("versions").toString()).contains("A_REVISER").contains("Montrez la famille");
         send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null).andExpect(status().isOk());
 
-        // Pas de production avant validation ; validation par la marque
-        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}").andExpect(status().isBadRequest());
+        // Validation par la marque
         JsonNode val = read(send("POST", "/api/demandes/" + id + "/v1/valider", brand, null).andExpect(status().isOk()));
         assertThat(val.get("v1Validated").asBoolean()).isTrue();
         send("POST", "/api/demandes/" + id + "/v1/valider", brand, null).andExpect(status().isBadRequest());
@@ -234,7 +233,66 @@ class DemandeApiTest {
         assertThat(read(send("GET", "/api/demandes", prod, null)).size()).isEqualTo(1);
         send("GET", "/api/demandes/" + id, prod, null).andExpect(status().isOk());
         send("GET", "/api/demandes/" + id, prod2, null).andExpect(status().isNotFound());
-        assertThat(read(send("GET", "/api/me/notifications", prod, null)).get("items").toString()).contains("Nouvelle publicité");
+        assertThat(read(send("GET", "/api/me/notifications", prod, null)).get("items").toString()).contains("À vous");
+    }
+
+    /** Synchronisation de l'équipe : la production et le réalisateur, rattachés tôt, suivent la publicité en lecture
+     *  et voient la même étape que tout le monde ; chacun agit à son tour. */
+    @Test
+    void lEquipeRattacheeTotSuitLaPubliciteEnLecture() throws Exception {
+        String admin = login("ahmed@casting.com", "password123");
+        String brandOrg = org(admin, "Marque Figue", "MARQUE"), agOrg = org(admin, "Agence Lambda", "AGENCE_MARKETING"), prodOrg = org(admin, "Prod Mu", "BOITE_PROD");
+        String brand = account(admin, "sync.marque@exemple.tn", "MARQUE", brandOrg);
+        String agency = account(admin, "sync.agence@exemple.tn", "AGENCE_MARKETING", agOrg);
+        String prod = account(admin, "sync.prod@exemple.tn", "BOITE_PROD", prodOrg);
+        send("POST", "/api/admin/agents", admin, "{\"email\":\"sync.real@exemple.tn\",\"firstName\":\"Rim\",\"lastName\":\"Real\",\"role\":\"REALISATEUR\",\"password\":\"Motdepasse-123\"}").andExpect(status().isCreated());
+        String director = login("sync.real@exemple.tn", "Motdepasse-123"), did = userId(admin, "sync.real@exemple.tn");
+
+        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Huile Olive\"}")).get("id").asString();
+        send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Un verger au lever du jour.\"}");
+        send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}");
+        // Pas de production avant l'acceptation
+        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}").andExpect(status().isBadRequest());
+        send("POST", "/api/demandes/" + id + "/accepter", agency, null);
+
+        // Production rattachée pendant la V1 : elle voit la demande, l'étape, mais ne saisit rien encore
+        JsonNode early = read(send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}").andExpect(status().isOk()));
+        assertThat(early.get("status").asString()).isEqualTo("V1_EN_COURS");
+        JsonNode pv = read(send("GET", "/api/demandes/" + id, prod, null).andExpect(status().isOk()));
+        assertThat(pv.get("nowWho").asString()).isEqualTo("Agence Lambda");
+        assertThat(pv.get("nowWhat").asString()).contains("V1");
+        assertThat(pv.get("canEditExpectations").asBoolean()).isFalse();
+        assertThat(pv.get("canAttachTeam").asBoolean()).isTrue();
+        assertThat(read(send("GET", "/api/me/notifications", prod, null)).get("items").toString()).contains("Publicité à venir");
+        send("POST", "/api/demandes/" + id + "/personnages", prod, "{\"name\":\"Leila\"}").andExpect(status().isBadRequest());
+
+        // Réalisateur rattaché tôt : il suit en lecture, même étape affichée
+        send("PUT", "/api/demandes/" + id + "/equipe", agency, "{\"directorId\":\"" + did + "\"}").andExpect(status().isForbidden());
+        send("PUT", "/api/demandes/" + id + "/equipe", prod, "{\"directorId\":\"" + did + "\"}").andExpect(status().isOk());
+        JsonNode dv = read(send("GET", "/api/demandes/" + id, director, null).andExpect(status().isOk()));
+        assertThat(dv.get("nowWho").asString()).isEqualTo("Agence Lambda");
+        assertThat(dv.get("canEditV2").asBoolean()).isFalse();
+        assertThat(read(send("GET", "/api/demandes", director, null)).size()).isEqualTo(1);
+        assertThat(read(send("GET", "/api/me/notifications", director, null)).get("items").toString()).contains("Publicité à suivre");
+
+        // V1 livrée puis validée : la V2 démarre seule puisque la production est déjà là
+        send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Concept : le verger.\"}");
+        send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null);
+        assertThat(read(send("GET", "/api/demandes/" + id, director, null)).get("nowWho").asString()).isEqualTo("La marque");
+        assertThat(read(send("GET", "/api/demandes/" + id, director, null)).get("versions").toString()).contains("le verger");
+        JsonNode val = read(send("POST", "/api/demandes/" + id + "/v1/valider", brand, null).andExpect(status().isOk()));
+        assertThat(val.get("status").asString()).isEqualTo("V2_EN_COURS");
+        assertThat(val.get("nowWho").asString()).isEqualTo("Prod Mu");
+        assertThat(read(send("GET", "/api/me/notifications", prod, null)).get("items").toString()).contains("À vous");
+        // Le réalisateur n'écrit la V2 qu'une fois les attentes transmises
+        send("PUT", "/api/demandes/" + id + "/v2", director, "{\"body\":\"x\"}").andExpect(status().isBadRequest());
+        send("POST", "/api/demandes/" + id + "/personnages", prod, "{\"name\":\"Leila\"}").andExpect(status().isOk());
+        send("POST", "/api/demandes/" + id + "/transmettre", prod, "{\"directorId\":\"" + did + "\"}").andExpect(status().isOk());
+        JsonNode go = read(send("GET", "/api/demandes/" + id, director, null));
+        assertThat(go.get("canEditV2").asBoolean()).isTrue();
+        assertThat(go.get("nowWho").asString()).isEqualTo("Rim Real");
+        // Plus de changement de production une fois la V2 commencée
+        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}").andExpect(status().isBadRequest());
     }
 
     /** Sprint 3 · T-162 : la production saisit les attentes par personnage et les transmet au réalisateur et au 1er AD. */

@@ -16,6 +16,8 @@ export const STATUS_LABEL: Record<DemandeStatus, string> = {
 export interface DemandeSummary {
   id: string; title: string; product: string | null; status: DemandeStatus; brandName: string; agencyName: string | null;
   airDate: string | null; updatedAt: string; hasV0: boolean;
+  /** Qui a la main maintenant (même phrase pour toute l'équipe). */
+  nowWho: string; nowWhat: string;
 }
 export interface DemandeVersion {
   id: string; kind: 'V0' | 'V1' | 'V2'; label: string; status: 'BROUILLON' | 'LIVREE' | 'A_REVISER'; body: string | null;
@@ -37,7 +39,9 @@ export interface DemandeDetail {
   createdAt: string; updatedAt: string; canEdit: boolean; canRespond: boolean; canAnalyse: boolean; analysis: DemandeAnalysis | null;
   canEditV1: boolean; canReviewV1: boolean; canChooseProduction: boolean; v1Validated: boolean; productionName: string | null;
   canEditExpectations: boolean; characters: DemandeCharacter[]; directorName: string | null; firstAdName: string | null; expectationsSentAt: string | null;
-  canEditV2: boolean; scenes: DemandeScene[]; roles: RoleSheet[]; projectId: string | null; v2PublishedAt: string | null; versions: DemandeVersion[]; events: DemandeEvent[];
+  canEditV2: boolean; scenes: DemandeScene[]; roles: RoleSheet[]; projectId: string | null; v2PublishedAt: string | null;
+  /** Synchronisation de l'équipe : qui a la main maintenant, et la production rattache son équipe quand elle veut. */
+  canAttachTeam: boolean; directorId: string | null; firstAdId: string | null; nowWho: string; nowWhat: string; versions: DemandeVersion[]; events: DemandeEvent[];
 }
 export interface DemandeRequest { title: string; product?: string | null; objective?: string | null; target?: string | null; keyMessage?: string | null; airDate?: string | null; }
 export interface AgencyOption { id: string; name: string; city: string | null; }
@@ -76,6 +80,7 @@ export class DemandeService {
   updateCharacter(id: string, cid: string, c: CharacterRequest): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/personnages/${cid}`, c); }
   deleteCharacter(id: string, cid: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/personnages/${cid}`); }
   directors(): Observable<PersonOption[]> { return this.http.get<PersonOption[]>(`${this.url}/realisateurs`); }
+  attachTeam(id: string, directorId: string | null, firstAdId: string | null): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/equipe`, { directorId, firstAdId }); }
   transmit(id: string, directorId: string, firstAdId: string | null): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/transmettre`, { directorId, firstAdId }); }
   saveV2(id: string, body: string, link: string | null = null): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/v2`, { body, link }); }
   uploadV2(id: string, file: File): Observable<DemandeDetail> { const f = new FormData(); f.append('file', file); return this.http.post<DemandeDetail>(`${this.url}/${id}/v2/fichier`, f); }

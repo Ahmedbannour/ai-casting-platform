@@ -55,6 +55,22 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
           }
         </ol>
         @if (x.status === 'ANNULEE') { <p class="note">Cette demande a été annulée.</p> }
+
+        <!-- Même information pour toute l'équipe : qui a la main maintenant, et qui fait partie de la publicité. -->
+        <section class="now-card" aria-live="polite">
+          <span class="pulse" aria-hidden="true"></span>
+          <div>
+            <small>Où en est la publicité</small>
+            <p>@if (x.nowWho) { <b>{{ x.nowWho }}</b> }{{ x.nowWho ? ' ' : '' }}{{ x.nowWhat }}</p>
+          </div>
+        </section>
+        <ul class="team" aria-label="L'équipe de la publicité">
+          @for (m of team(x); track m.role) {
+            <li [class.now]="m.now" [class.empty]="!m.name">
+              <small>{{ m.role }}</small><b>{{ m.name || m.empty }}</b>
+            </li>
+          }
+        </ul>
       }
 
       @if (refusal(); as r) { <p class="note warn">{{ r }} Vous pouvez la modifier et l'envoyer à une autre agence.</p> }
@@ -212,13 +228,34 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
         }
         @if (x.canChooseProduction) {
           <div class="card answer">
-            <h2>Confier à une boîte de production</h2>
-            <p class="muted">La marque a validé votre V1. La production recueillera les attentes sur les profils, puis le réalisateur écrira la V2.</p>
+            <h2>{{ x.productionName ? 'Boîte de production' : 'Confier à une boîte de production' }}</h2>
+            @if (x.productionName) {
+              <p class="muted">{{ x.productionName }} suit déjà la publicité. Vous pouvez encore la changer tant que la V2 n'a pas commencé.</p>
+            } @else if (x.v1Validated) {
+              <p class="muted">La marque a validé votre V1. La production recueillera les attentes sur les profils, puis le réalisateur écrira la V2.</p>
+            } @else {
+              <p class="muted">Vous pouvez la rattacher dès maintenant : elle suivra la publicité et prendra la main dès que la marque aura validé la V1.</p>
+            }
             @if (productions().length) {
               <label>Boîte de production<app-select name="prod" [options]="orgOptions(productions())" placeholder="Choisissez la boîte de production"
                 [ngModel]="productionId ?? ''" (ngModelChange)="productionId = $event || null" /></label>
-              <div class="row"><button type="button" class="send" (click)="chooseProduction()" [disabled]="busy() || !productionId">Confier la production</button></div>
+              <div class="row"><button type="button" class="send" (click)="chooseProduction()" [disabled]="busy() || !productionId">{{ x.productionName ? 'Changer de production' : x.v1Validated ? 'Confier la production' : 'Rattacher la production' }}</button></div>
             } @else { <p class="muted">Aucune boîte de production n'est encore inscrite sur la plateforme.</p> }
+          </div>
+        }
+        @if (x.canAttachTeam && !x.canEditExpectations) {
+          <div class="card answer">
+            <h2>Votre équipe</h2>
+            <p class="muted">Rattachez dès maintenant le réalisateur et le 1er AD : ils suivent la publicité et écriront la V2 dès que vous leur aurez transmis les attentes.</p>
+            @if (directors().length) {
+              <div class="two">
+                <label>Réalisateur<app-select name="tdirector" [options]="personOptions(directors(), null, 'Pas encore choisi')"
+                  [ngModel]="directorId ?? ''" (ngModelChange)="directorId = $event || null; firstAdId = directorId ? firstAdId : null" /></label>
+                <label>1er AD (facultatif)<app-select name="tfirstAd" [options]="personOptions(directors(), directorId, 'Aucun pour l’instant')"
+                  [ngModel]="firstAdId ?? ''" (ngModelChange)="firstAdId = $event || null" /></label>
+              </div>
+              <div class="row"><button type="button" class="send" (click)="attachTeam()" [disabled]="busy() || (directorId === x.directorId && firstAdId === x.firstAdId)">Enregistrer l'équipe</button></div>
+            } @else { <p class="muted">Aucun réalisateur n'est encore inscrit sur la plateforme.</p> }
           </div>
         }
         @if (x.canEditExpectations || x.characters.length) {
@@ -426,6 +463,21 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .back:hover { color: var(--text-primary); }
     .head h1 { font-size: 34px; line-height: 1.08; margin: 0; }
     .head p { margin: 6px 0 0; color: var(--text-muted); font-size: 14.5px; }
+    .now-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--accent-dim); }
+    .now-card small { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .02em; color: var(--accent-ink); }
+    .now-card p { margin: 2px 0 0; font-size: 15px; line-height: 1.4; color: var(--text-primary); }
+    .pulse { position: relative; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+    .pulse::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: nowPulse 1.8s ease-out infinite; }
+    @keyframes nowPulse { 0% { transform: scale(.5); opacity: .8; } 100% { transform: scale(1.4); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .pulse::after { animation: none; } }
+    .team { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+    .team li { display: flex; flex-direction: column; gap: 2px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--glass); min-width: 0; }
+    .team small { font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
+    .team b { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .team li.empty b { color: var(--text-subtle); font-weight: 500; }
+    .team li.now { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+    @media (max-width: 600px) { .team { grid-template-columns: 1fr 1fr; } }
     .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--text-muted); }
     .steps li { display: flex; align-items: center; gap: 6px; }
     .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--border); }
@@ -584,7 +636,7 @@ export class DemandeComponent {
   private load(id: string) {
     this.loading.set(true);
     this.api.get(id).subscribe({
-      next: x => { this.apply(x); this.loading.set(false); if (x.canEdit) this.loadAgencies(); if (x.canChooseProduction) this.loadProductions(); if (x.canEditExpectations) this.loadDirectors(); },
+      next: x => { this.apply(x); this.loading.set(false); if (x.canEdit) this.loadAgencies(); if (x.canChooseProduction) this.loadProductions(); if (x.canEditExpectations || x.canAttachTeam) this.loadDirectors(); },
       error: (e: HttpErrorResponse) => { this.fatal.set(e.status === 404 ? 'Cette demande n’existe pas ou ne vous est pas visible.' : 'Impossible de charger la demande.'); this.loading.set(false); }
     });
   }
@@ -598,6 +650,7 @@ export class DemandeComponent {
     this.v0Text = x.versions.find(v => v.kind === 'V0')?.body ?? '';
     this.v0Link = x.versions.find(v => v.kind === 'V0')?.linkUrl ?? '';
     this.agencyId = x.agencyId ?? this.agencyId;
+    if (x.canAttachTeam) { this.directorId = x.directorId; this.firstAdId = x.firstAdId; }
     const v1 = [...x.versions].reverse().find(v => v.kind === 'V1');
     this.v1Text = v1 && v1.status === 'BROUILLON' ? (v1.body ?? '') : (x.canEditV1 && v1 ? (v1.body ?? '') : '');
     this.v1Link = v1 && (v1.status === 'BROUILLON' || x.canEditV1) ? (v1.linkUrl ?? '') : '';
@@ -680,6 +733,24 @@ export class DemandeComponent {
   }
   validateV1() { const x = this.d(); if (x) this.run(this.api.validateV1(x.id), 'V1 validée. L’agence va choisir la boîte de production.', r => this.apply(r)); }
   reviseV1() { const x = this.d(); if (x && this.comment.trim()) this.run(this.api.reviseV1(x.id, this.comment.trim()), 'Révision demandée. L’agence est prévenue.', r => this.apply(r)); }
+  /** Les membres de la publicité, dans l'ordre du cycle ; celui qui a la main est mis en avant. */
+  team(x: DemandeDetail) {
+    const m = [
+      { role: 'Marque', name: x.brandName, empty: '' },
+      { role: 'Agence marketing', name: x.agencyName, empty: 'Pas encore choisie' },
+      { role: 'Production', name: x.productionName, empty: 'Pas encore choisie' },
+      { role: 'Réalisateur', name: x.directorName, empty: 'Pas encore rattaché' },
+      { role: '1er AD', name: x.firstAdName, empty: 'Pas encore rattaché' }
+    ];
+    const who = (x.nowWho || '').toLowerCase();
+    return m.map(e => ({ ...e, now: !!e.name && (who === e.name.toLowerCase() || (who === 'la marque' && e.role === 'Marque')) }));
+  }
+
+  attachTeam() {
+    const x = this.d(); if (!x) return;
+    this.run(this.api.attachTeam(x.id, this.directorId, this.firstAdId), 'Équipe enregistrée. Le réalisateur et le 1er AD suivent maintenant la publicité.', r => this.apply(r));
+  }
+
   chooseProduction() { const x = this.d(); if (x && this.productionId) this.run(this.api.chooseProduction(x.id, this.productionId), 'Production confiée. La production et la marque sont prévenues.', r => this.apply(r)); }
   newChar() { this.charForm = { name: '', story: '', brandWish: '', agencyWish: '', notes: '' }; this.editingId.set('new'); }
   editChar(c: DemandeCharacter) {
