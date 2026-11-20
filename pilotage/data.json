@@ -1037,6 +1037,22 @@
     "T-166"
    ],
    "statut": "En cours"
+  },
+  {
+   "id": "P-061",
+   "date": "2026-11-20",
+   "titre": "V0, V1, V2 en présentation Canva",
+   "original": "just noté bien que la v0 , v1 et v2 peuvent etre une presentation canva donc merci de tenir ca en compte",
+   "ameliore": "Chaque version (V0, V1, V2) peut être une présentation Canva : ajouter le lien de la présentation à côté du texte et du fichier ; l'IA ne lit pas Canva, demander aussi le PDF pour l'analyse.",
+   "departements": [
+    "back",
+    "front",
+    "qa"
+   ],
+   "livrables": [
+    "EX-73"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -3348,7 +3364,11 @@
     "D-021 : les choix définitifs se prennent ensemble à la PPM",
     "D-022 : Safi Jacob en pause, toute l'équipe sur AI Casting",
     "D-023 : trois recrutements (DevOps / SRE, ML / NLP, consultant production publicitaire) et 8 tâches réaffectées",
-    "D-024 : revue de performance — 1 résiliation (Nicolas Perrin), 1 remplacement (Philippe Garnier par Khaled Mzoughi), 4 mises sous objectif jusqu'au 26/11"
+    "D-024 : revue de performance — 1 résiliation (Nicolas Perrin), 1 remplacement (Philippe Garnier par Khaled Mzoughi), 4 mises sous objectif jusqu'au 26/11",
+    {
+     "id": "D-025",
+     "texte": "V0, V1 et V2 peuvent être une présentation Canva : lien https enregistré avec la version (« Ouvrir la présentation Canva »), seul ou avec un texte et un fichier. L'IA ne lit pas une présentation par son lien : l'analyse de la V0 demande aussi le PDF exporté de Canva."
+    }
    ],
    "risques": [],
    "attente_client": [
@@ -3389,8 +3409,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-20T05:40:00Z",
-   "texte": "T-164 livré : chaque proposition cite le passage de l'intention qu'elle remplit ; 86 tests verts"
+   "t": "2026-11-20T09:20:00Z",
+   "texte": "Présentations Canva acceptées pour la V0, la V1 et la V2 ; 87 tests verts"
   }
  },
  "activite": [
@@ -3771,6 +3791,12 @@
    "nom": "Yasmine Trabelsi",
    "t": "2026-11-20T05:40:00Z",
    "texte": "T-164 livré : propositions expliquées par l'intention du réalisateur. Recette navigateur réussie."
+  },
+  {
+   "h": "J8",
+   "nom": "Antoine Roux",
+   "t": "2026-11-20T09:20:00Z",
+   "texte": "V0, V1, V2 en présentation Canva : lien de la présentation à côté du texte et du fichier (migration V40). 87 tests serveur verts, recette test-canva réussie."
   }
  ],
  "plan": {

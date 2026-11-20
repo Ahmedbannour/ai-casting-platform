@@ -33,14 +33,16 @@ public class DemandeService {
             @Size(max = 4000) String keyMessage,
             LocalDate airDate) {}
 
-    public record V0Text(@Size(max = 20000, message = "Le texte de la V0 ne dépasse pas 20 000 caractères") String body) {}
+    /** Texte d'une version et, au besoin, le lien de sa présentation Canva (ou autre présentation en ligne). */
+    public record V0Text(@Size(max = 20000, message = "Le texte ne dépasse pas 20 000 caractères") String body,
+                         @Size(max = 500, message = "Le lien ne dépasse pas 500 caractères") String link) {}
     public record Send(@NotNull(message = "Choisissez l'agence marketing") UUID agencyId) {}
 
     public record Summary(UUID id, String title, String product, AdRequest.Status status, String brandName, String agencyName,
                           LocalDate airDate, LocalDateTime updatedAt, boolean hasV0) {}
     public record VersionView(UUID id, AdVersion.Kind kind, String label, AdVersion.Status status, String body, String fileName,
                               String fileType, Long fileSize, String authorName, LocalDateTime createdAt, LocalDateTime deliveredAt,
-                              String reviewComment, LocalDateTime reviewedAt) {}
+                              String reviewComment, LocalDateTime reviewedAt, String linkUrl) {}
     public record EventView(String type, String message, String actorName, LocalDateTime createdAt) {}
     public record Detail(UUID id, String title, String product, String objective, String target, String keyMessage, LocalDate airDate,
                          AdRequest.Status status, String brandName, UUID agencyId, String agencyName, String createdByName,
@@ -157,6 +159,7 @@ public class DemandeService {
         AdRequest r = editable(me, id);
         AdVersion v = draftV0(r, me);
         v.setBody(req.body() == null || req.body().isBlank() ? null : req.body().trim());
+        v.setLinkUrl(link(req.link()));
         versions.save(v);
         return detail(me, r);
     }
@@ -203,8 +206,8 @@ public class DemandeService {
         User me = access.user(email);
         AdRequest r = editable(me, id);
         AdVersion v0 = versions.findFirstByRequestIdAndKindOrderByCreatedAtDesc(r.getId(), AdVersion.Kind.V0).orElse(null);
-        if (v0 == null || (v0.getBody() == null && v0.getFileKey() == null)) {
-            throw new IllegalArgumentException("Déposez votre V0 (un fichier ou un texte) avant de l'envoyer");
+        if (v0 == null || !v0.hasContent()) {
+            throw new IllegalArgumentException("Déposez votre V0 (un texte, un fichier ou le lien de votre présentation Canva) avant de l'envoyer");
         }
         Agency agency = agencies.findById(req.agencyId()).filter(a -> "AGENCE_MARKETING".equals(a.getKind()))
                 .orElseThrow(() -> new IllegalArgumentException("Choisissez une agence marketing inscrite"));
@@ -291,7 +294,7 @@ public class DemandeService {
         if (v0.getFileKey() != null) {
             try { fileText = reader.read(storage.download(v0.getFileKey()), v0.getFileName()); } catch (Exception ignored) { }
         }
-        V0Analyzer.Result res = analyzer.analyse(r, v0.getBody(), fileText, v0.getFileName());
+        V0Analyzer.Result res = analyzer.analyse(r, v0.getBody(), fileText, v0.getFileName(), v0.getLinkUrl());
         r.setAiSummary(res.summary());
         r.setAiMissing(String.join("\n", res.missing()));
         r.setAiQuestions(String.join("\n", res.questions()));
@@ -335,6 +338,7 @@ public class DemandeService {
         AdRequest r = v1Editable(me, id);
         AdVersion v = draftV1(r, me);
         v.setBody(req.body() == null || req.body().isBlank() ? null : req.body().trim());
+        v.setLinkUrl(link(req.link()));
         versions.save(v);
         return detail(me, r);
     }
@@ -367,7 +371,7 @@ public class DemandeService {
         AdRequest r = v1Editable(me, id);
         AdVersion v = versions.findFirstByRequestIdAndKindOrderByCreatedAtDesc(r.getId(), AdVersion.Kind.V1)
                 .filter(x -> x.getStatus() == AdVersion.Status.BROUILLON).orElse(null);
-        if (v == null || (v.getBody() == null && v.getFileKey() == null)) throw new IllegalArgumentException("Écrivez votre V1 ou déposez un fichier avant de la livrer");
+        if (v == null || !v.hasContent()) throw new IllegalArgumentException("Écrivez votre V1, déposez un fichier ou donnez le lien de votre présentation Canva avant de la livrer");
         v.setStatus(AdVersion.Status.LIVREE); v.setDeliveredAt(LocalDateTime.now()); versions.save(v);
         r.setStatus(AdRequest.Status.V1_LIVREE);
         log(r, me, "V1_LIVREE", v.getLabel() + " livrée par " + r.getAgency().getName());
@@ -498,6 +502,7 @@ public class DemandeService {
         AdRequest r = v2Editable(me, id);
         AdVersion v = draftV2(r, me);
         v.setBody(req.body() == null || req.body().isBlank() ? null : req.body().trim());
+        v.setLinkUrl(link(req.link()));
         versions.save(v);
         return detail(me, r);
     }
@@ -599,8 +604,8 @@ public class DemandeService {
         List<String> noIntent = sheets.stream().filter(x -> x.getIntention() == null).map(AdRole::getName).toList();
         if (!noIntent.isEmpty()) throw new IllegalArgumentException("Écrivez l'intention de chaque rôle : " + String.join(", ", noIntent));
         AdVersion v2 = draftV2(r, me);
-        if (v2.getBody() == null && v2.getFileKey() == null && scenes.countByRequestId(r.getId()) == 0) {
-            throw new IllegalArgumentException("Écrivez la V2, déposez un fichier ou découpez au moins une scène avant de publier");
+        if (!v2.hasContent() && scenes.countByRequestId(r.getId()) == 0) {
+            throw new IllegalArgumentException("Écrivez la V2, déposez un fichier, donnez le lien Canva ou découpez au moins une scène avant de publier");
         }
         v2.setStatus(AdVersion.Status.LIVREE); v2.setDeliveredAt(LocalDateTime.now()); versions.save(v2);
 
@@ -731,7 +736,7 @@ public class DemandeService {
         AdVersion v = new AdVersion();
         v.setRequest(r); v.setKind(AdVersion.Kind.V1); v.setLabel(done == 0 ? "V1" : "V1." + done); v.setAuthor(me);
         // la révision part de la version précédente : on reprend son texte
-        last.ifPresent(p -> v.setBody(p.getBody()));
+        last.ifPresent(p -> { v.setBody(p.getBody()); v.setLinkUrl(p.getLinkUrl()); });
         return versions.save(v);
     }
 
@@ -826,7 +831,7 @@ public class DemandeService {
 
     private Summary summary(AdRequest r) {
         boolean hasV0 = versions.findFirstByRequestIdAndKindOrderByCreatedAtDesc(r.getId(), AdVersion.Kind.V0)
-                .map(v -> v.getBody() != null || v.getFileKey() != null).orElse(false);
+                .map(AdVersion::hasContent).orElse(false);
         return new Summary(r.getId(), r.getTitle(), r.getProduct(), r.getStatus(), r.getBrand() == null ? name(r.getCreatedBy()) : r.getBrand().getName(),
                 r.getAgency() == null ? null : r.getAgency().getName(), r.getAirDate(), r.getUpdatedAt(), hasV0);
     }
@@ -838,7 +843,7 @@ public class DemandeService {
                         || (v.getKind() == AdVersion.Kind.V0 ? isBrandSide(me, r) : v.getKind() == AdVersion.Kind.V1 ? isAgencySide(me, r) : isDirectorSide(me, r)))
                 .map(v -> new VersionView(v.getId(), v.getKind(), v.getLabel(), v.getStatus(), v.getBody(), v.getFileName(), v.getFileType(),
                         v.getFileSize(), v.getAuthor() == null ? null : name(v.getAuthor()), v.getCreatedAt(), v.getDeliveredAt(),
-                        v.getReviewComment(), v.getReviewedAt())).toList();
+                        v.getReviewComment(), v.getReviewedAt(), v.getLinkUrl())).toList();
         List<EventView> ev = events.findByRequestIdOrderByCreatedAtDesc(r.getId()).stream()
                 .map(e -> new EventView(e.getType(), e.getMessage(), e.getActor() == null ? null : name(e.getActor()), e.getCreatedAt())).toList();
         return new Detail(r.getId(), r.getTitle(), r.getProduct(), r.getObjective(), r.getTarget(), r.getKeyMessage(), r.getAirDate(), r.getStatus(),
@@ -869,6 +874,22 @@ public class DemandeService {
         return new Analysis(r.getAiSummary(), lines(r.getAiMissing()), lines(r.getAiQuestions()), r.getAiSource(), r.getAiAt());
     }
     private static List<String> lines(String s) { return s == null || s.isBlank() ? List.of() : List.of(s.split("\n")); }
+
+    /**
+     * Lien de présentation accepté : https uniquement (Canva le plus souvent : canva.com/design/…/view, canva.link/…).
+     * Un lien vide efface le lien ; une adresse qui n'est pas en https est refusée.
+     */
+    static String link(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String u = raw.trim();
+        try {
+            java.net.URI uri = new java.net.URI(u);
+            if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) throw new IllegalArgumentException();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Le lien doit être une adresse https, par exemple le lien « Partager » de votre présentation Canva");
+        }
+        return u;
+    }
 
     private static String name(User u) { return (u.getFirstName() + " " + u.getLastName()).trim(); }
     private static String blank(String s) { return s == null || s.isBlank() ? null : s.trim(); }

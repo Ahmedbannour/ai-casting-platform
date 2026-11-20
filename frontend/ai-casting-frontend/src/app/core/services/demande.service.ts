@@ -19,7 +19,7 @@ export interface DemandeSummary {
 }
 export interface DemandeVersion {
   id: string; kind: 'V0' | 'V1' | 'V2'; label: string; status: 'BROUILLON' | 'LIVREE' | 'A_REVISER'; body: string | null;
-  fileName: string | null; fileType: string | null; fileSize: number | null; authorName: string | null; createdAt: string; deliveredAt: string | null; reviewComment: string | null; reviewedAt: string | null;
+  fileName: string | null; fileType: string | null; fileSize: number | null; authorName: string | null; createdAt: string; deliveredAt: string | null; reviewComment: string | null; reviewedAt: string | null; linkUrl: string | null;
 }
 export interface DemandeAnalysis { summary: string; missing: string[]; questions: string[]; source: 'IA' | 'REGLES'; at: string; }
 export interface DemandeCharacter { id: string; name: string; story: string | null; brandWish: string | null; agencyWish: string | null; notes: string | null; }
@@ -53,7 +53,7 @@ export class DemandeService {
   create(body: DemandeRequest): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(this.url, body); }
   update(id: string, body: DemandeRequest): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}`, body); }
   remove(id: string): Observable<void> { return this.http.delete<void>(`${this.url}/${id}`); }
-  saveV0(id: string, body: string): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/v0`, { body }); }
+  saveV0(id: string, body: string, link: string | null = null): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/v0`, { body, link }); }
   uploadV0(id: string, file: File): Observable<DemandeDetail> {
     const f = new FormData(); f.append('file', file);
     return this.http.post<DemandeDetail>(`${this.url}/${id}/v0/fichier`, f);
@@ -64,7 +64,7 @@ export class DemandeService {
   accept(id: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/accepter`, {}); }
   refuse(id: string, reason: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/refuser`, { reason }); }
   analyse(id: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/analyse`, {}); }
-  saveV1(id: string, body: string): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/v1`, { body }); }
+  saveV1(id: string, body: string, link: string | null = null): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/v1`, { body, link }); }
   uploadV1(id: string, file: File): Observable<DemandeDetail> { const f = new FormData(); f.append('file', file); return this.http.post<DemandeDetail>(`${this.url}/${id}/v1/fichier`, f); }
   removeV1File(id: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/v1/fichier`); }
   deliverV1(id: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/v1/livrer`, {}); }
@@ -77,7 +77,7 @@ export class DemandeService {
   deleteCharacter(id: string, cid: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/personnages/${cid}`); }
   directors(): Observable<PersonOption[]> { return this.http.get<PersonOption[]>(`${this.url}/realisateurs`); }
   transmit(id: string, directorId: string, firstAdId: string | null): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/transmettre`, { directorId, firstAdId }); }
-  saveV2(id: string, body: string): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/v2`, { body }); }
+  saveV2(id: string, body: string, link: string | null = null): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/v2`, { body, link }); }
   uploadV2(id: string, file: File): Observable<DemandeDetail> { const f = new FormData(); f.append('file', file); return this.http.post<DemandeDetail>(`${this.url}/${id}/v2/fichier`, f); }
   removeV2File(id: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/v2/fichier`); }
   addScene(id: string, b: { title: string; description: string | null }): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/scenes`, b); }

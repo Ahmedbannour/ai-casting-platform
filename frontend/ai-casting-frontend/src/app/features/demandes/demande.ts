@@ -78,7 +78,9 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             <h2>Votre V0</h2>
             <p class="muted">Le fichier artistique de votre idée : détails du projet, messages, notes, références. Pas de budget.</p>
             <label>Texte de la V0<textarea name="v0" [(ngModel)]="v0Text" rows="7" maxlength="20000" placeholder="Racontez votre idée de publicité…"></textarea></label>
-            <div class="row"><button type="button" class="ghost" (click)="saveV0()" [disabled]="busy()">Enregistrer le texte</button></div>
+            <label>Lien de la présentation Canva (facultatif)<input name="v0link" type="url" [(ngModel)]="v0Link" maxlength="500" placeholder="https://www.canva.com/design/…/view" inputmode="url"></label>
+            <p class="hint">Dans Canva : Partager › Copier le lien (accès « toute personne disposant du lien »).</p>
+            <div class="row"><button type="button" class="ghost" (click)="saveV0()" [disabled]="busy()">Enregistrer le texte et le lien</button></div>
 
             <div class="file">
               @if (v0()?.fileName) {
@@ -107,7 +109,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
               <button type="button" class="send" (click)="send()" [disabled]="busy() || !agencyId || !hasV0()">Envoyer à l'agence</button>
               <button type="button" class="link danger" (click)="remove()" [disabled]="busy()">Supprimer le brouillon</button>
             </div>
-            @if (!hasV0()) { <p class="hint">Écrivez votre V0 ou déposez un fichier avant d'envoyer.</p> }
+            @if (!hasV0()) { <p class="hint">Écrivez votre V0, déposez un fichier ou donnez le lien de votre présentation Canva avant d'envoyer.</p> }
           </div>
         }
       } @else if (d(); as x) {
@@ -172,7 +174,9 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             @if (lastReview(); as rv) { <p class="note warn"><b>{{ rv.label }} à revoir :</b> {{ rv.reviewComment }}</p> }
             <p class="muted">Le concept de la publicité, à partir de la V0 : histoire, ton, personnages, déroulé. Une fois livrée, la version est figée.</p>
             <label>Texte de la {{ draftLabel() }}<textarea name="v1" [(ngModel)]="v1Text" rows="8" maxlength="20000" placeholder="Votre concept…"></textarea></label>
-            <div class="row"><button type="button" class="ghost" (click)="saveV1()" [disabled]="busy()">Enregistrer le texte</button></div>
+            <label>Lien de la présentation Canva (facultatif)<input name="v1link" type="url" [(ngModel)]="v1Link" maxlength="500" placeholder="https://www.canva.com/design/…/view" inputmode="url"></label>
+            <p class="hint">Dans Canva : Partager › Copier le lien (accès « toute personne disposant du lien »).</p>
+            <div class="row"><button type="button" class="ghost" (click)="saveV1()" [disabled]="busy()">Enregistrer le texte et le lien</button></div>
             <div class="file">
               @if (v1Draft()?.fileName) {
                 <span>📎 {{ v1Draft()!.fileName }} · {{ size(v1Draft()!.fileSize) }}</span>
@@ -185,7 +189,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
                 </label>
               }
             </div>
-            <div class="row"><button type="button" class="send" (click)="deliverV1()" [disabled]="busy() || !(v1Text.trim() || v1Draft()?.fileName)">Livrer la {{ draftLabel() }} à la marque</button></div>
+            <div class="row"><button type="button" class="send" (click)="deliverV1()" [disabled]="busy() || !(v1Text.trim() || v1Link.trim() || v1Draft()?.fileName)">Livrer la {{ draftLabel() }} à la marque</button></div>
           </div>
         }
         @if (x.canReviewV1) {
@@ -277,7 +281,9 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             <h2>Votre V2</h2>
             <p class="muted">La version détaillée de la publicité : découpage en scènes et une fiche par rôle, avec votre intention. À la publication, les rôles sont créés au casting et les propositions d'acteurs commencent.</p>
             <label>Texte de la V2<textarea name="v2" [(ngModel)]="v2Text" rows="6" maxlength="20000" placeholder="Note d'intention, ton, rythme, durée…"></textarea></label>
-            <div class="row"><button type="button" class="ghost" (click)="saveV2()" [disabled]="busy()">Enregistrer le texte</button></div>
+            <label>Lien de la présentation Canva (facultatif)<input name="v2link" type="url" [(ngModel)]="v2Link" maxlength="500" placeholder="https://www.canva.com/design/…/view" inputmode="url"></label>
+            <p class="hint">Dans Canva : Partager › Copier le lien (accès « toute personne disposant du lien »).</p>
+            <div class="row"><button type="button" class="ghost" (click)="saveV2()" [disabled]="busy()">Enregistrer le texte et le lien</button></div>
             <div class="file">
               @if (v2Draft()?.fileName) {
                 <span>📎 {{ v2Draft()!.fileName }} · {{ size(v2Draft()!.fileSize) }}</span>
@@ -396,6 +402,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
           <div class="card">
             <h2>{{ v.label }} <small>{{ v.status === 'LIVREE' ? 'livrée' : v.status === 'A_REVISER' ? 'renvoyée en révision' : 'brouillon' }}{{ v.deliveredAt ? ' le ' + (v.deliveredAt | date:'d MMM') : '' }}{{ v.authorName ? ' · ' + v.authorName : '' }}</small></h2>
             @if (v.reviewComment) { <p class="note warn"><b>Révision demandée :</b> {{ v.reviewComment }}</p> }
+            @if (v.linkUrl) { <div class="file"><a class="canva" [href]="v.linkUrl" target="_blank" rel="noopener noreferrer">{{ isCanva(v.linkUrl) ? 'Ouvrir la présentation Canva' : 'Ouvrir la présentation' }} ↗</a></div> }
             @if (v.body) { <p class="body">{{ v.body }}</p> }
             @if (v.fileName) {
               <div class="file"><span>📎 {{ v.fileName }} · {{ size(v.fileSize) }}</span>
@@ -466,6 +473,8 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .muted, .hint { color: var(--text-muted); margin: 0; font-size: 13.5px; }
     .note { margin: 0; color: var(--text-muted); }
     .ok { color: #30a46c; margin: 0; }
+    .canva { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); color: var(--text-primary); text-decoration: none; font-size: 14px; font-weight: 600; }
+    .canva:hover { background: var(--bg-hover); }
     .warn { padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, #e5484d 45%, transparent); color: var(--text-primary); }
     .answer { border-color: var(--accent); }
     .danger-bg { background: #e5484d; color: #fff; }
@@ -540,11 +549,15 @@ export class DemandeComponent {
   form: { title: string; product: string; objective: string; target: string; keyMessage: string; airDate: string } =
     { title: '', product: '', objective: '', target: '', keyMessage: '', airDate: '' };
   v0Text = '';
+  /** Lien de la présentation Canva de chaque version (facultatif). */
+  v0Link = '';
+  v1Link = '';
+  v2Link = '';
   agencyId: string | null = null;
 
   readonly editable = computed(() => !this.d() || this.d()!.canEdit);
   readonly v0 = computed(() => this.d()?.versions.find(v => v.kind === 'V0') ?? null);
-  readonly hasV0 = computed(() => !!(this.v0()?.body?.trim() || this.v0()?.fileName));
+  readonly hasV0 = computed(() => !!(this.v0()?.body?.trim() || this.v0()?.fileName || this.v0()?.linkUrl));
   readonly stepIndex = computed(() => { const s = this.d()?.status; return s ? STEPS.findIndex(x => x.key.includes(s)) : 0; });
   private readonly auth = inject(AuthService);
   /** Annuler reste réservé à la marque ; le serveur le vérifie aussi. */
@@ -559,6 +572,7 @@ export class DemandeComponent {
   }
 
   statusLabel(s: DemandeStatus) { return STATUS_LABEL[s]; }
+  isCanva(u: string) { try { const h = new URL(u).hostname; return h.endsWith('canva.com') || h.endsWith('canva.link'); } catch { return false; } }
   size(n: number | null) { if (!n) return ''; return n < 1024 * 1024 ? Math.max(1, Math.round(n / 1024)) + ' Ko' : (n / 1024 / 1024).toFixed(1).replace('.', ',') + ' Mo'; }
 
   private load(id: string) {
@@ -576,11 +590,14 @@ export class DemandeComponent {
     this.d.set(x);
     this.form = { title: x.title, product: x.product ?? '', objective: x.objective ?? '', target: x.target ?? '', keyMessage: x.keyMessage ?? '', airDate: x.airDate ?? '' };
     this.v0Text = x.versions.find(v => v.kind === 'V0')?.body ?? '';
+    this.v0Link = x.versions.find(v => v.kind === 'V0')?.linkUrl ?? '';
     this.agencyId = x.agencyId ?? this.agencyId;
     const v1 = [...x.versions].reverse().find(v => v.kind === 'V1');
     this.v1Text = v1 && v1.status === 'BROUILLON' ? (v1.body ?? '') : (x.canEditV1 && v1 ? (v1.body ?? '') : '');
+    this.v1Link = v1 && (v1.status === 'BROUILLON' || x.canEditV1) ? (v1.linkUrl ?? '') : '';
     this.revising.set(false); this.comment = '';
     this.v2Text = x.versions.find(v => v.kind === 'V2' && v.status === 'BROUILLON')?.body ?? this.v2Text;
+    this.v2Link = x.versions.find(v => v.kind === 'V2' && v.status === 'BROUILLON')?.linkUrl ?? this.v2Link;
     if (x.canChooseProduction && !this.productions().length) this.loadProductions();
   }
 
@@ -603,7 +620,7 @@ export class DemandeComponent {
     if (!x) this.run(this.api.create(this.body()), 'Demande créée. Déposez maintenant votre V0.', r => { this.apply(r); this.router.navigate(['/demandes', r.id], { replaceUrl: true }); });
     else this.run(this.api.update(x.id, this.body()), 'Projet enregistré.', r => this.apply(r));
   }
-  saveV0() { const x = this.d(); if (x) this.run(this.api.saveV0(x.id, this.v0Text), 'Texte de la V0 enregistré.', r => this.apply(r)); }
+  saveV0() { const x = this.d(); if (x) this.run(this.api.saveV0(x.id, this.v0Text, this.v0Link.trim() || null), 'V0 enregistrée.', r => this.apply(r)); }
   upload(ev: Event) {
     const input = ev.target as HTMLInputElement; const file = input.files?.[0]; const x = this.d();
     if (!file || !x) return;
@@ -617,7 +634,8 @@ export class DemandeComponent {
     // le texte en cours est enregistré avant l'envoi, pour ne rien perdre
     const text = this.v0Text; const id = x.id; const ag = this.agencyId;
     const go = () => this.run(this.api.send(id, ag), 'Demande envoyée. L’agence a été notifiée.', r => this.apply(r));
-    if ((this.v0()?.body ?? '') !== text) { this.busy.set(true); this.api.saveV0(id, text).subscribe({ next: () => go(), error: () => go() }); }
+    const link = this.v0Link.trim() || null;
+    if ((this.v0()?.body ?? '') !== text || (this.v0()?.linkUrl ?? null) !== link) { this.busy.set(true); this.api.saveV0(id, text, link).subscribe({ next: () => go(), error: () => go() }); }
     else go();
   }
   cancel() { const x = this.d(); if (x) this.run(this.api.cancel(x.id), 'Demande annulée.', r => this.apply(r)); }
@@ -638,7 +656,7 @@ export class DemandeComponent {
       error: (e: HttpErrorResponse) => { this.analysing.set(false); this.error.set(e.error?.message || 'L’analyse a échoué. Réessayez.'); }
     });
   }
-  saveV1() { const x = this.d(); if (x) this.run(this.api.saveV1(x.id, this.v1Text), 'Texte enregistré.', r => this.apply(r)); }
+  saveV1() { const x = this.d(); if (x) this.run(this.api.saveV1(x.id, this.v1Text, this.v1Link.trim() || null), 'Enregistré.', r => this.apply(r)); }
   uploadV1(ev: Event) {
     const input = ev.target as HTMLInputElement; const file = input.files?.[0]; const x = this.d();
     if (!file || !x) return;
@@ -650,7 +668,8 @@ export class DemandeComponent {
     const x = this.d(); if (!x) return; const id = x.id, label = this.draftLabel();
     const go = () => this.run(this.api.deliverV1(id), label + ' livrée. La marque est prévenue.', r => this.apply(r));
     // le texte en cours est enregistré avant la livraison, pour ne rien perdre
-    if ((this.v1Draft()?.body ?? '') !== this.v1Text) { this.busy.set(true); this.api.saveV1(id, this.v1Text).subscribe({ next: () => go(), error: () => go() }); }
+    const link = this.v1Link.trim() || null;
+    if ((this.v1Draft()?.body ?? '') !== this.v1Text || (this.v1Draft()?.linkUrl ?? null) !== link) { this.busy.set(true); this.api.saveV1(id, this.v1Text, link).subscribe({ next: () => go(), error: () => go() }); }
     else go();
   }
   validateV1() { const x = this.d(); if (x) this.run(this.api.validateV1(x.id), 'V1 validée. L’agence va choisir la boîte de production.', r => this.apply(r)); }
@@ -679,7 +698,7 @@ export class DemandeComponent {
     const age = r.minAge != null && r.maxAge != null ? `${r.minAge} à ${r.maxAge} ans` : r.minAge != null ? `${r.minAge} ans et plus` : r.maxAge != null ? `jusqu'à ${r.maxAge} ans` : '';
     return [r.gender, age].filter(Boolean).join(' · ');
   }
-  saveV2() { const x = this.d(); if (x) this.run(this.api.saveV2(x.id, this.v2Text), 'Texte enregistré.', r => this.apply(r)); }
+  saveV2() { const x = this.d(); if (x) this.run(this.api.saveV2(x.id, this.v2Text, this.v2Link.trim() || null), 'Enregistré.', r => this.apply(r)); }
   uploadV2(ev: Event) {
     const input = ev.target as HTMLInputElement; const file = input.files?.[0]; const x = this.d();
     if (!file || !x) return;
@@ -716,7 +735,8 @@ export class DemandeComponent {
   publishV2() {
     const x = this.d(); if (!x) return; const id = x.id;
     const go = () => this.run(this.api.publishV2(id), 'V2 publiée : les rôles sont au casting, les propositions peuvent commencer.', r => this.apply(r));
-    if ((this.v2Draft()?.body ?? '') !== this.v2Text) { this.busy.set(true); this.api.saveV2(id, this.v2Text).subscribe({ next: () => go(), error: () => go() }); }
+    const link = this.v2Link.trim() || null;
+    if ((this.v2Draft()?.body ?? '') !== this.v2Text || (this.v2Draft()?.linkUrl ?? null) !== link) { this.busy.set(true); this.api.saveV2(id, this.v2Text, link).subscribe({ next: () => go(), error: () => go() }); }
     else go();
   }
   copyQuestions(q: string[]) {

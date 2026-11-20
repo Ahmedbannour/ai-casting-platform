@@ -33,6 +33,8 @@ public class AdVersion {
     @Column(name = "file_name", length = 255) private String fileName;
     @Column(name = "file_type", length = 120) private String fileType;
     @Column(name = "file_size") private Long fileSize;
+    /** Lien d'une présentation en ligne (Canva, le plus souvent), à côté du texte et du fichier. */
+    @Column(name = "link_url", length = 500) private String linkUrl;
 
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 12)
     private Status status = Status.BROUILLON;
@@ -44,4 +46,7 @@ public class AdVersion {
     @Column(name = "reviewed_at") private LocalDateTime reviewedAt;
 
     @PrePersist void onCreate() { createdAt = LocalDateTime.now(); }
+
+    /** La version a-t-elle un contenu : un texte, un fichier ou un lien de présentation ? */
+    public boolean hasContent() { return body != null || fileKey != null || linkUrl != null; }
 }

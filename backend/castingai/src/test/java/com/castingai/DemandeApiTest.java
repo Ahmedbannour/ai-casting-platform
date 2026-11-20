@@ -360,6 +360,35 @@ class DemandeApiTest {
         assertThat(read(send("GET", "/api/me/notifications", brand, null)).get("items").toString()).contains("V2 publiée");
     }
 
+    /** Une V0 ou une V1 peut être une présentation Canva : lien https seul suffit ; l'analyse signale qu'il faut aussi le PDF. */
+    @Test
+    void uneVersionPeutEtreUnePresentationCanva() throws Exception {
+        String admin = login("ahmed@casting.com", "password123");
+        String brandOrg = org(admin, "Marque Canva", "MARQUE"), agOrg = org(admin, "Agence Canva", "AGENCE_MARKETING");
+        String brand = account(admin, "marque@canva-test.tn", "MARQUE", brandOrg);
+        String agency = account(admin, "agence@canva-test.tn", "AGENCE_MARKETING", agOrg);
+        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Pub Canva\"}")).get("id").asString();
+        send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":null,\"link\":\"http://www.canva.com/design/x/view\"}").andExpect(status().isBadRequest());
+        send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":null,\"link\":\"javascript:alert(1)\"}").andExpect(status().isBadRequest());
+        JsonNode d = read(send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":null,\"link\":\"https://www.canva.com/design/DAF123/view\"}").andExpect(status().isOk()));
+        assertThat(d.get("versions").get(0).get("linkUrl").asString()).isEqualTo("https://www.canva.com/design/DAF123/view");
+        // Le lien seul suffit pour envoyer la V0
+        send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}").andExpect(status().isOk());
+        assertThat(read(send("GET", "/api/demandes", brand, null)).get(0).get("hasV0").asBoolean()).isTrue();
+        JsonNode an = read(send("POST", "/api/demandes/" + id + "/analyse", agency, null).andExpect(status().isOk())).get("analysis");
+        assertThat(an.get("missing").get(0).asString()).contains("présentation Canva").contains("PDF");
+        send("POST", "/api/demandes/" + id + "/accepter", agency, null).andExpect(status().isOk());
+        send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"link\":\"https://www.canva.com/design/V1/view\"}").andExpect(status().isOk());
+        JsonNode v1 = read(send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null).andExpect(status().isOk()));
+        assertThat(v1.get("versions").toString()).contains("https://www.canva.com/design/V1/view");
+        // La V1.1 reprend le lien de la V1 renvoyée en révision
+        send("POST", "/api/demandes/" + id + "/v1/revision", brand, "{\"comment\":\"Plus court\"}").andExpect(status().isOk());
+        JsonNode v11 = read(send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Version courte\",\"link\":\"https://www.canva.com/design/V1/view\"}"));
+        JsonNode last = v11.get("versions").get(v11.get("versions").size() - 1);
+        assertThat(last.get("label").asString()).isEqualTo("V1.1");
+        assertThat(last.get("linkUrl").asString()).isEqualTo("https://www.canva.com/design/V1/view");
+    }
+
     private String userId(String admin, String email) throws Exception {
         JsonNode list = read(send("GET", "/api/admin/users", admin, null));
         JsonNode arr = list.isArray() ? list : list.get("content");

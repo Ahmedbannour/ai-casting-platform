@@ -50,8 +50,11 @@ public class V0Analyzer {
         contraintes de la marque (logo, mentions, produits à montrer), ton, nombre et type de personnages. Pas de questions sur la vie privée des personnages.
         """;
 
-    public Result analyse(AdRequest r, String v0Body, String fileText, String fileName) {
+    public Result analyse(AdRequest r, String v0Body, String fileText, String fileName) { return analyse(r, v0Body, fileText, fileName, null); }
+
+    public Result analyse(AdRequest r, String v0Body, String fileText, String fileName, String link) {
         List<String> missing = new ArrayList<>(rules(r, v0Body, fileText, fileName));
+        if (link != null && fileText == null) missing.add(0, "La présentation Canva ne peut pas être lue par l'IA : demandez-la aussi en PDF (Partager › Télécharger › PDF) pour une analyse complète.");
         String text = context(r, v0Body, fileText);
         try {
             Map<String, Object> body = new LinkedHashMap<>();

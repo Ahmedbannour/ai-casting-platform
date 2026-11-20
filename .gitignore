@@ -6,3 +6,5 @@ outils/
 pilotage/tests/.recette-admin.json
 pilotage/nav/
 pilotage/tests/.demo-agence.json
+pilotage/tests/.comptes-demo.txt
+sauvegardes/
