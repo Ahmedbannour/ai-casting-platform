@@ -43,7 +43,7 @@ async function login(b, a) {
   await j(`/demandes/${id}/v1/valider`, { method: 'POST' }, M);
   const pr = await j(`/demandes/${id}/production`, { method: 'POST', body: JSON.stringify({ productionId: acc.p.o }) }, A);
   if (pr.s !== 200) throw new Error('production ' + pr.s);
-  const b = await chromium.launch({ channel: 'msedge', headless: true });
+  const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   // Production : deux personnages, une modification, transmission
   const p = await login(b, acc.p);
   await p.goto(BASE + '/demandes/' + id); await p.waitForTimeout(1500);

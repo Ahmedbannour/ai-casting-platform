@@ -10,7 +10,7 @@ const j = async (url, opt = {}, tk) => { const r = await fetch(API + url, { ...o
   const intention = 'Une mère chaleureuse et pressée, qui garde son humour au petit-déjeuner. On doit sentir la complicité avec ses enfants.';
   const prj = (await j('/projects', { method: 'POST', body: JSON.stringify({ title: 'Recette Pub intention', type: 'PUBLICITE' }) }, adm)).b;
   await j(`/projects/${prj.id}/roles`, { method: 'POST', body: JSON.stringify({ name: 'La mère', gender: 'Femme', minAge: 30, maxAge: 45, intention }) }, adm);
-  const b = await chromium.launch({ channel: 'msedge', headless: true });
+  const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   const p = await (await b.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: 'dark' })).newPage(); p.setDefaultTimeout(10000);
   const errs = []; p.on('pageerror', x => errs.push(x.message));
   const res = {};

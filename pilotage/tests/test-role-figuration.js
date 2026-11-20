@@ -13,7 +13,7 @@ const j = async (url, opt = {}, tk) => { const r = await fetch(API + url, { ...o
     await j('/actors/' + a.id, { method: 'PUT', body: JSON.stringify({ figuration: fig }) }, adm); made.push(a.id);
   }
   const prj = (await j('/projects', { method: 'POST', body: JSON.stringify({ title: 'Recette Pub figuration ' + st, type: 'PUBLICITE' }) }, adm)).b;
-  const b = await chromium.launch({ channel: 'msedge', headless: true });
+  const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   const p = await (await b.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: 'dark' })).newPage(); p.setDefaultTimeout(10000);
   const errs = []; p.on('pageerror', x => errs.push(x.message));
   const bodies = []; p.on('request', r => { if (r.url().includes('/api/ai/search')) bodies.push(r.postDataJSON()); });

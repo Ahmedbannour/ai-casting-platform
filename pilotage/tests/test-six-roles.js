@@ -22,7 +22,7 @@ const j = async (url, opt = {}, tk) => { const r = await fetch(API + url, { ...o
   const bad = await j('/admin/agents', { method: 'POST', body: JSON.stringify({ email: `recette.bad.${stamp}@exemple.tn`, firstName: 'Mauvais', lastName: 'Type', role: 'MARQUE', agencyId: org.BOITE_PROD, password: 'Rec3tte-' + stamp + '!' }) }, adm);
   res.mauvais_type = bad.s;
   const roles = { MARQUE: org.MARQUE, AGENCE_MARKETING: org.AGENCE_MARKETING, REALISATEUR: null, BOITE_PROD: org.BOITE_PROD };
-  const b = await chromium.launch({ channel: 'msedge', headless: true });
+  const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   for (const [role, orgId] of Object.entries(roles)) {
     const email = `recette.${role.toLowerCase()}.${stamp}@exemple.tn`, pw = 'Rec3tte-' + Math.random().toString(36).slice(2, 10) + '!';
     const c = await j('/admin/agents', { method: 'POST', body: JSON.stringify({ email, firstName: 'Test', lastName: role, role, agencyId: orgId, password: pw }) }, adm);

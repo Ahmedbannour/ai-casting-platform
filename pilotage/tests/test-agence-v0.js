@@ -27,7 +27,7 @@ async function login(b, a) {
     if (c.s >= 300) throw new Error('compte ' + k + ' ' + c.s);
     acc[k] = { email, pw, o, nom: `Recette ${nom} ${st}` };
   }
-  const b = await chromium.launch({ channel: 'msedge', headless: true });
+  const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   // Marque : demande + V0 (texte et PDF), envoi à Alpha
   const m = await login(b, acc.M);
   await m.goto(BASE + '/demandes/nouvelle'); await m.waitForTimeout(800);

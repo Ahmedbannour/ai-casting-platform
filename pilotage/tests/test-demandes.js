@@ -29,7 +29,7 @@ async function login(b, email, pw) {
     if (c.s >= 300) throw new Error('compte ' + kind + ' ' + c.s + ' ' + JSON.stringify(c.b));
     acc[kind] = { email, pw };
   }
-  const b = await chromium.launch({ channel: 'msedge', headless: true });
+  const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   // ── Marque ──
   const m = await login(b, acc.MARQUE.email, acc.MARQUE.pw);
   await m.goto(BASE + '/mes-demandes'); await m.waitForTimeout(1500);

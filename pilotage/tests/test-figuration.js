@@ -6,7 +6,7 @@ const API = 'http://localhost:8080/api', BASE = 'http://localhost:4200';
 const OUT = path.join(__dirname, '..', 'nav');
 (async () => {
   const email = `recette.figuration.${Date.now()}@exemple.tn`, pw = 'Rec3tte-' + Math.random().toString(36).slice(2, 10) + '!';
-  const b = await chromium.launch({ channel: 'msedge', headless: true });
+  const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   const ctx = await b.newContext({ viewport: { width: 1280, height: 1100 }, colorScheme: 'dark' }); const p = await ctx.newPage(); p.setDefaultTimeout(8000);
   const res = {};
   await p.goto(BASE + '/auth/inscription'); await p.waitForTimeout(1500);

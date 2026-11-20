@@ -49,7 +49,7 @@ async function login(b, a) {
   const uid = e => ul.find(u => u.email === e).id;
   const tr = await j(`/demandes/${id}/transmettre`, { method: 'POST', body: JSON.stringify({ directorId: uid(acc.r.email), firstAdId: uid(acc.ad.email) }) }, P);
   if (tr.s !== 200) throw new Error('transmission ' + tr.s);
-  const b = await chromium.launch({ channel: 'msedge', headless: true });
+  const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   const r = await login(b, acc.r);
   await r.goto(BASE + '/demandes/' + id); await r.waitForTimeout(1500);
   res.publierBloque = await r.getByRole('button', { name: 'Publier la V2 et lancer le casting' }).isDisabled();

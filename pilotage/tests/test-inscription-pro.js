@@ -8,7 +8,7 @@ const j = async (url, opt = {}, tk) => { const r = await fetch(API + url, { ...o
 (async () => {
   const stamp = Date.now(), email = `recette.pro.${stamp}@exemple.tn`, pw = 'Rec3tte-' + Math.random().toString(36).slice(2, 10) + '!';
   const res = {};
-  const b = await chromium.launch({ channel: 'msedge', headless: true });
+  const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   const p = await (await b.newContext({ viewport: { width: 1280, height: 1000 }, colorScheme: 'dark' })).newPage(); p.setDefaultTimeout(8000);
   await p.goto(BASE + '/auth/login'); await p.waitForTimeout(1200);
   res.lienDepuisConnexion = await p.locator('a[href="/auth/inscription-pro"]').count();

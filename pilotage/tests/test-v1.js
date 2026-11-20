@@ -32,7 +32,7 @@ async function login(b, a) {
   await j(`/demandes/${id}/v0`, { method: 'PUT', body: JSON.stringify({ body: 'Une caravane au coucher du soleil, des dattes partagées.' }) }, acc.M.tk);
   await j(`/demandes/${id}/envoyer`, { method: 'POST', body: JSON.stringify({ agencyId: acc.A.o }) }, acc.M.tk);
   await j(`/demandes/${id}/accepter`, { method: 'POST' }, acc.A.tk);
-  const b = await chromium.launch({ channel: 'msedge', headless: true });
+  const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   // Agence : écrit et livre la V1
   const a = await login(b, acc.A);
   await a.goto(BASE + '/demandes/' + id); await a.waitForTimeout(1500);
