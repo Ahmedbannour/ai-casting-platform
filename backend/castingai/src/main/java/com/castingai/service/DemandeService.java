@@ -504,7 +504,7 @@ public class DemandeService {
                     : new String[]{ agence, "choisit la boîte de production" };
             case V2_EN_COURS -> r.getExpectationsSentAt() == null ? new String[]{ prod, "recueille les attentes sur les profils, personnage par personnage" }
                     : new String[]{ real, "écrit la V2 : scènes et fiches de rôle" };
-            case V2_LIVREE, CASTING -> new String[]{ "AI Casting", "propose des acteurs pour chaque rôle" };
+            case V2_LIVREE, CASTING -> new String[]{ "Cercle", "propose des acteurs pour chaque rôle" };
             case PPM -> new String[]{ "Toute l'équipe", "valide le casting, les décors et les costumes" };
             case ACTEURS_VALIDES -> new String[]{ "Toute l'équipe", "a validé les acteurs" };
             case CLOTUREE -> new String[]{ "", "Publicité clôturée" };

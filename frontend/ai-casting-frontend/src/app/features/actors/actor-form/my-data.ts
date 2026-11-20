@@ -36,7 +36,7 @@ import { TokenService } from '../../../core/services/token.service';
     </div>
     @if (open()) {
       @if (done()) {
-        <p class="bye" role="status">Votre compte est supprimé. Au revoir et merci d’avoir utilisé AI Casting.</p>
+        <p class="bye" role="status">Votre compte est supprimé. Au revoir et merci d’avoir utilisé Cercle.</p>
       } @else {
         <form class="confirm" (ngSubmit)="remove()" novalidate>
           <p>Pensez à télécharger vos données avant : après la suppression, plus rien ne pourra être récupéré.</p>

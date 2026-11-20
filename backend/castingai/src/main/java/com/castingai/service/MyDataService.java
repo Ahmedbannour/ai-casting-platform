@@ -45,7 +45,7 @@ public class MyDataService {
     @Transactional
     public byte[] export(User u) throws Exception {
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("export", Map.of("plateforme", "AI Casting", "date", new Date().toString(),
+        data.put("export", Map.of("plateforme", "Cercle", "date", new Date().toString(),
                 "contenu", "Toutes les données personnelles liées à votre compte au moment de l'export."));
         data.put("compte", one("select email, first_name as prenom, last_name as nom, role, auth_provider as connexion, created_at as cree_le, email_verified_at as email_verifie_le from users where id = ?", u.getId()));
         data.put("consentements", list("select document, version, accepted_at as accepte_le, source, age_statement as age, guardian_name as representant_legal from consents where user_id = ? order by accepted_at", u.getId()));
@@ -85,7 +85,7 @@ public class MyDataService {
             zip.write(JSON.writeValueAsBytes(data));
             zip.closeEntry();
             zip.putNextEntry(new ZipEntry("LISEZ-MOI.txt"));
-            zip.write(("Export de vos données AI Casting.\r\n\r\n"
+            zip.write(("Export de vos données Cercle.\r\n\r\n"
                     + "donnees.json : votre compte, vos accords, votre fiche, vos consultations et vos propositions de rôle.\r\n"
                     + "photos/ et documents/ : les fichiers que vous avez déposés.\r\n\r\n"
                     + "Pour corriger, mettre en pause ou supprimer vos données : « Mon profil » > « Mes données ».\r\n").getBytes(StandardCharsets.UTF_8));

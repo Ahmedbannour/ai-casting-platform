@@ -40,7 +40,7 @@ const SCENES: Record<string, string> = {
   contenu: 'Accueil', methode: 'Comment ça marche', agences: 'Agences', acteurs: 'Acteurs', engagements: 'Vos données', contact: 'Contact',
 };
 
-/** Page vitrine publique : présente AI Casting aux visiteurs non connectés. */
+/** Page vitrine publique : présente Cercle aux visiteurs non connectés. */
 @Component({
   selector: 'app-landing',
   standalone: true,

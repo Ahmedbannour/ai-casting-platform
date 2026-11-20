@@ -15,7 +15,7 @@ export const routes: Routes = [
     pathMatch: 'full',
     canActivate: [visitorOnly],
     loadComponent: () => import('./features/landing/landing').then(m => m.LandingComponent),
-    title: 'AI Casting · De l’intention du réalisateur aux bons acteurs'
+    title: 'Cercle · De l’intention du réalisateur aux bons acteurs'
   },
   {
     path: 'auth/login',
@@ -26,7 +26,7 @@ export const routes: Routes = [
   {
     path: 'auth/inscription-pro',
     loadComponent: () => import('./features/auth/inscription-pro').then(m => m.InscriptionProComponent),
-    title: 'AI Casting · Compte professionnel'
+    title: 'Cercle · Compte professionnel'
   },
   {
     path: 'auth/inscription',
@@ -39,31 +39,31 @@ export const routes: Routes = [
     path: 'legal/conditions',
     loadComponent: () => import('./features/legal/legal-page').then(m => m.LegalPageComponent),
     data: { doc: 'conditions' },
-    title: 'Conditions d’utilisation · AI Casting'
+    title: 'Conditions d’utilisation · Cercle'
   },
   {
     path: 'legal/confidentialite',
     loadComponent: () => import('./features/legal/legal-page').then(m => m.LegalPageComponent),
     data: { doc: 'confidentialite' },
-    title: 'Politique de confidentialité · AI Casting'
+    title: 'Politique de confidentialité · Cercle'
   },
   {
     // T-113 · lien de vérification de l'adresse e-mail (public, à usage unique)
     path: 'verification/:token',
     loadComponent: () => import('./features/legal/verify-page').then(m => m.VerifyPageComponent),
-    title: 'Vérification de l’adresse e-mail · AI Casting'
+    title: 'Vérification de l’adresse e-mail · Cercle'
   },
   {
     // T-112 · lien de réinitialisation du mot de passe (public, à usage unique, 1 heure)
     path: 'reinitialisation/:token',
     loadComponent: () => import('./features/legal/reset-page').then(m => m.ResetPageComponent),
-    title: 'Nouveau mot de passe · AI Casting'
+    title: 'Nouveau mot de passe · Cercle'
   },
   {
     // T-102 · lien d'invitation d'un acteur (public, à usage unique)
     path: 'invitation/:token',
     loadComponent: () => import('./features/legal/invitation-page').then(m => m.InvitationPageComponent),
-    title: 'Invitation · AI Casting'
+    title: 'Invitation · Cercle'
   },
   {
     // T-101 · accord demandé quand il manque ou que les textes ont changé

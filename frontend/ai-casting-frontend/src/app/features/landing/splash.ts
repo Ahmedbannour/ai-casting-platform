@@ -10,7 +10,7 @@ import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, inject, output
   selector: 'app-splash',
   standalone: true,
   template: `
-  <div class="splash" role="status" aria-label="Ouverture d'AI Casting" (click)="skip()">
+  <div class="splash" role="status" aria-label="Ouverture de Cercle" (click)="skip()">
     <svg class="grain" aria-hidden="true"><filter id="sp-grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .07 0"/></filter><rect width="100%" height="100%" filter="url(#sp-grain)"/></svg>
     <div class="beam" aria-hidden="true"></div>
 
@@ -104,7 +104,7 @@ import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, inject, output
 })
 export class SplashComponent implements AfterViewInit, OnDestroy {
   readonly done = output<void>();
-  readonly letters = [...'AI Casting'];
+  readonly letters = [...'Cercle'];
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly zone = inject(NgZone);
   private timers: ReturnType<typeof setTimeout>[] = [];

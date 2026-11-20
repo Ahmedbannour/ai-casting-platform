@@ -6,7 +6,7 @@
   </div>
   <a class="skip" href="#contenu" (click)="go('contenu', $event)">Aller au contenu</a>
   <header class="nav" [class.open]="menu()">
-    <a class="logo" href="#contenu" (click)="go('contenu', $event)" aria-label="AI Casting, haut de page"><span class="ring" aria-hidden="true"></span>AI Casting</a>
+    <a class="logo" href="#contenu" (click)="go('contenu', $event)" aria-label="Cercle, haut de page"><span class="ring" aria-hidden="true"></span>Cercle</a>
     <nav id="menu-mobile" aria-label="Sections">
       <a href="#methode" [class.on]="section() === 'methode'" (click)="go('methode', $event)">Comment ça marche</a>
       <a href="#agences" [class.on]="section() === 'agences'" (click)="go('agences', $event)">Agences</a>
@@ -27,7 +27,7 @@
     <canvas #scene class="scene" aria-hidden="true"></canvas>
     <div class="hero-text">
       <h1><span class="h1-line"><span>L’intention du réalisateur.</span></span><span class="h1-line"><span>Les bons acteurs.</span></span></h1>
-      <p class="lead">AI Casting aide les agences de casting à trouver, comparer et proposer les bons acteurs en quelques minutes, et aide les acteurs à être trouvés pour les rôles qui leur ressemblent.</p>
+      <p class="lead">Cercle aide les agences de casting à trouver, comparer et proposer les bons acteurs en quelques minutes, et aide les acteurs à être trouvés pour les rôles qui leur ressemblent.</p>
       <div class="cta">
         <a class="btn solid big" routerLink="/auth/inscription">Créer mon profil d’acteur</a>
         <a class="btn line big" href="#agences" (click)="go('agences', $event)">Je suis une agence</a>
@@ -239,12 +239,12 @@
   </section>
 
   <footer class="foot">
-    <a class="logo" routerLink="/"><span class="ring" aria-hidden="true"></span>AI Casting</a>
+    <a class="logo" routerLink="/"><span class="ring" aria-hidden="true"></span>Cercle</a>
     <nav aria-label="Informations légales">
       <a routerLink="/legal/conditions">Conditions d’utilisation</a>
       <a routerLink="/legal/confidentialite">Confidentialité</a>
       <a href="#contact" (click)="go('contact', $event)">Contact</a>
     </nav>
-    <p>© {{ year }} AI Casting · {{ place.label }}</p>
+    <p>© {{ year }} Cercle · {{ place.label }}</p>
   </footer>
 </div>

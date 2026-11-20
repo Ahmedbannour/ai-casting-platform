@@ -14,7 +14,7 @@ type ProRole = 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'BOITE_PROD';
   imports: [FormsModule, RouterLink],
   template: `
   <main class="pro">
-    <a class="logo" routerLink="/" aria-label="AI Casting, accueil"><span class="brand-mark" aria-hidden="true"></span>AI Casting</a>
+    <a class="logo" routerLink="/" aria-label="Cercle, accueil"><span class="brand-mark" aria-hidden="true"></span>Cercle</a>
     @if (sent()) {
       <section class="card done" role="status">
         <h1>Demande envoyée</h1>
@@ -25,7 +25,7 @@ type ProRole = 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'BOITE_PROD';
     } @else {
       <form class="card" (ngSubmit)="submit()" novalidate>
         <h1>Créer un compte professionnel</h1>
-        <p class="lead">Marques, agences, réalisateurs et boîtes de production. L'équipe AI Casting valide chaque compte avant son ouverture.</p>
+        <p class="lead">Marques, agences, réalisateurs et boîtes de production. L'équipe Cercle valide chaque compte avant son ouverture.</p>
 
         <fieldset class="roles">
           <legend>Votre métier</legend>

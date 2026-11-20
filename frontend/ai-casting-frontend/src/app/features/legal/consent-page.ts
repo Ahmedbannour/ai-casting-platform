@@ -14,7 +14,7 @@ import { LEGAL_VERSION_LABEL } from './legal-page';
   template: `
   <main class="gate">
     <h1>Avant de continuer</h1>
-    <p class="lead">Nos conditions d'utilisation et notre politique de confidentialité (version du {{ version }}) précisent ce que la plateforme fait de vos données et qui peut voir votre profil. Votre accord est nécessaire pour utiliser AI Casting.</p>
+    <p class="lead">Nos conditions d'utilisation et notre politique de confidentialité (version du {{ version }}) précisent ce que la plateforme fait de vos données et qui peut voir votre profil. Votre accord est nécessaire pour utiliser Cercle.</p>
     <p class="docs"><a routerLink="/legal/conditions" target="_blank">Lire les conditions d'utilisation</a><a routerLink="/legal/confidentialite" target="_blank">Lire la politique de confidentialité</a></p>
 
     <fieldset>

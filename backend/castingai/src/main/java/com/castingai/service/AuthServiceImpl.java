@@ -82,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.findByEmail(request.getEmail() == null ? "" : request.getEmail().trim().toLowerCase())
                 .filter(User::isPendingApproval)
                 .ifPresent(u -> { throw new com.castingai.exception.ForbiddenException(
-                        "Votre compte attend la validation de l'équipe AI Casting. Vous recevrez l'accès dès qu'il sera validé."); });
+                        "Votre compte attend la validation de l'équipe Cercle. Vous recevrez l'accès dès qu'il sera validé."); });
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())

@@ -2,7 +2,7 @@ package com.castingai.entity;
 
 /**
  * Rôles de la plateforme (cahier des charges v2, 19/11/2026). Chaque participant du cycle a son compte.
- * ADMIN : équipe AI Casting ; valide les organisations, gère comptes et abonnements.
+ * ADMIN : équipe Cercle ; valide les organisations, gère comptes et abonnements.
  * MARQUE : le client (annonceur) ; crée la demande de publicité et dépose la V0.
  * AGENCE_MARKETING : analyse la V0 et livre la V1 (le concept).
  * REALISATEUR : reprend la V1, écrit la V2 et l'intention de chaque rôle ; choisit ses acteurs.

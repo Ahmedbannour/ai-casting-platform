@@ -152,7 +152,7 @@ export class MesDemandesComponent {
     { key: 'v1', who: 'Agence marketing', what: 'analyse la V0, livre la V1 : le concept' },
     { key: 'attentes', who: 'Boîte de production', what: 'recueille vos attentes sur les profils' },
     { key: 'v2', who: 'Réalisateur et 1er AD', what: 'écrivent la V2 et l’intention de chaque rôle' },
-    { key: 'ia', who: 'AI Casting', what: 'propose des acteurs pour chaque intention' },
+    { key: 'ia', who: 'Cercle', what: 'propose des acteurs pour chaque intention' },
     { key: 'ppm', who: 'PPM', what: 'tous valident ensemble le casting, les décors, les costumes' }
   ];
 }

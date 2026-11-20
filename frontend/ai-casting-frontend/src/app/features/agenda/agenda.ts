@@ -179,7 +179,7 @@ export class AgendaComponent implements OnInit {
     const endH = String(Math.min(23, +h + 1)).padStart(2, '0');
     const title = this.isActor() ? `Audition · ${it.roleName}` : `Audition · ${it.actorName} (${it.roleName})`;
     const esc = (s: string) => s.replace(/[\\,;]/g, m => '\\' + m).replace(/\n/g, ' ');
-    const body = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//AI Casting//Agenda//FR', 'BEGIN:VEVENT',
+    const body = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Cercle//Agenda//FR', 'BEGIN:VEVENT',
       `UID:${it.entryId}@ai-casting`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
       `DTSTART:${start}`, `DTEND:${day}T${endH}${mi}00`, `SUMMARY:${esc(title)}`,
       `LOCATION:${esc(it.place ?? '')}`, `DESCRIPTION:${esc(it.projectTitle + ' · ' + it.agencyName)}`,

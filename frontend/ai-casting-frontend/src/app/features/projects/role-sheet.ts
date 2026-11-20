@@ -53,7 +53,7 @@ import { CastingRole, CastingService, EntryStatus, ShortlistEntry, criteria } fr
           <p class="empty">La shortlist de ce rôle est vide.</p>
         }
       </div>
-      <footer>AI Casting · document de travail confidentiel · données personnelles des acteurs : ne pas diffuser hors production.</footer>
+      <footer>Cercle · document de travail confidentiel · données personnelles des acteurs : ne pas diffuser hors production.</footer>
     </article>
   }
   `,

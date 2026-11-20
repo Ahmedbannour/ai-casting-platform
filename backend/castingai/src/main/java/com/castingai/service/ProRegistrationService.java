@@ -79,6 +79,6 @@ public class ProRegistrationService {
         users.saveAndFlush(u);
         consents.record(u.getId(), consent, "INSCRIPTION");
         audit.log("INSCRIPTION_PRO", email, r.role().name() + (org == null ? " · indépendant" : " · " + org.getName()));
-        return new Result("EN_ATTENTE", "Votre demande est envoyée. L'équipe AI Casting valide votre compte, puis vous pourrez vous connecter.");
+        return new Result("EN_ATTENTE", "Votre demande est envoyée. L'équipe Cercle valide votre compte, puis vous pourrez vous connecter.");
     }
 }

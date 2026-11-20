@@ -8,13 +8,13 @@ interface Doc { title: string; intro: string; sections: Section[]; }
 export const LEGAL_VERSION = '2026-11-17';
 export const LEGAL_VERSION_LABEL = '17 novembre 2026';
 
-const EDITEUR = 'AI Casting — [raison sociale, adresse et numéro d’immatriculation à compléter avant le lancement]';
+const EDITEUR = 'Cercle — [raison sociale, adresse et numéro d’immatriculation à compléter avant le lancement]';
 const CONTACT = '[adresse e-mail de contact à compléter]';
 
 const DOCS: Record<string, Doc> = {
   conditions: {
     title: 'Conditions d’utilisation',
-    intro: 'Ces conditions encadrent l’usage de la plateforme AI Casting par les agences de casting sous contrat, leurs agents et les acteurs et actrices qui y tiennent leur profil.',
+    intro: 'Ces conditions encadrent l’usage de la plateforme Cercle par les agences de casting sous contrat, leurs agents et les acteurs et actrices qui y tiennent leur profil.',
     sections: [
       { id: 'objet', h: 'Objet du service', p: [
         `La plateforme est éditée par ${EDITEUR}. Elle permet aux agences de casting de rechercher des profils d’acteurs, de les présenter à des réalisateurs et de leur proposer des rôles ; elle permet aux acteurs de tenir leur profil à jour et de répondre aux propositions.`,
@@ -30,7 +30,7 @@ const DOCS: Record<string, Doc> = {
       { id: 'contenus', h: 'Contenus et propriété', p: [
         'L’acteur reste propriétaire de ses photos et documents. Il autorise la plateforme à les afficher aux agences et aux réalisateurs auxquels un profil est présenté, pour la durée de son inscription.' ] },
       { id: 'responsabilite', h: 'Disponibilité et responsabilité', p: [
-        'Le service est fourni avec soin mais peut être interrompu pour maintenance ou incident. AI Casting n’est pas partie aux contrats conclus entre agences, réalisateurs et acteurs.' ] },
+        'Le service est fourni avec soin mais peut être interrompu pour maintenance ou incident. Cercle n’est pas partie aux contrats conclus entre agences, réalisateurs et acteurs.' ] },
       { id: 'fin', h: 'Suspension et suppression', p: [
         'Un compte peut être suspendu en cas d’usage contraire à ces conditions. Chacun peut demander la suppression de son compte ; les données sont alors effacées comme le prévoit la politique de confidentialité.' ] },
       { id: 'droit', h: 'Droit applicable', p: [
@@ -77,7 +77,7 @@ const DOCS: Record<string, Doc> = {
   imports: [RouterLink],
   template: `
   <main class="legal">
-    <a class="back" routerLink="/auth/login">← AI Casting</a>
+    <a class="back" routerLink="/auth/login">← Cercle</a>
     <h1>{{ doc.title }}</h1>
     <p class="ver">Version du {{ version }} · <span class="draft">version de travail, relue par un juriste avant le lancement</span></p>
     <p class="intro">{{ doc.intro }}</p>
