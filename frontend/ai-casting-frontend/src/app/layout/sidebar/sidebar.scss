@@ -162,13 +162,19 @@
      le compte, le mode sombre et la déconnexion restent au-dessus de la barre de gestes. */
   .sidebar { height: 100vh; height: 100dvh; width: min(var(--w), 86vw); overflow-y: auto; overscroll-behavior: contain;
     padding: calc(14px + env(safe-area-inset-top, 0px)) 14px calc(16px + env(safe-area-inset-bottom, 0px)); gap: 4px; }
-  .sidebar > * { flex-shrink: 0; }
+  .sidebar > *:not(.history) { flex-shrink: 0; }
   .nav { gap: 4px; }
   .nav-link { height: 48px; }
   .new-search { height: 46px; margin: 4px 0 12px; }
-  .history { flex: 1 0 auto; min-height: 72px; max-height: 32dvh; margin-top: 16px; }
-  .bottom { margin-top: auto; padding-top: 12px; gap: 6px; }
-  .theme-switch, .logout { height: 46px; }
+  /* Le menu ne défile plus en entier : seul l'historique défile, le bas (compte, mode clair/sombre,
+     déconnexion) reste toujours visible. */
+  .sidebar { overflow: hidden; }
+  .history { flex: 1 1 0; min-height: 0; max-height: none; margin-top: 12px; }
+  .bottom { margin-top: auto; padding-top: 10px; gap: 4px; }
+  .who { margin-bottom: 0; }
+  .theme-switch, .logout { height: 44px; }
+  /* Écran très bas : on resserre les lignes du menu pour garder le bas visible. */
+  @media (max-height: 700px) { .history { display: none; } .nav-link { height: 42px; } .new-search { height: 42px; margin: 2px 0 8px; } .theme-switch, .logout { height: 40px; } }
   .collapse { display: none; }
   .drawer-backdrop { display: block; position: fixed; inset: 0; z-index: 40; background: rgba(10,10,12,.5);
     -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .25s; }

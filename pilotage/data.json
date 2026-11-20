@@ -1067,6 +1067,21 @@
     "T-171"
    ],
    "statut": "En cours"
+  },
+  {
+   "id": "P-063",
+   "date": "2026-11-20",
+   "titre": "Remettre le mode clair",
+   "original": "Merci de remettre la partie Light Mode en fait et passer cette note au expert UI UX et React Native.",
+   "ameliore": "Rendre de nouveau visible la bascule mode clair / mode sombre dans le menu mobile, et ajouter le mode clair à la revue UI mobile (T-171) avec l'UX/UI Designer.",
+   "departements": [
+    "front",
+    "prod"
+   ],
+   "livrables": [
+    "T-171"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -3320,7 +3335,7 @@
    "statut": "en_cours",
    "prompt": "P-062",
    "jour": "J8",
-   "detail": "Notes de design du client (20/11, captures sur téléphone) à appliquer sur toute l'app mobile : 1) aucune popup ne tasse ses champs : elle défile (fait : projet, rôle, proposition, partage) ; 2) le bas des pages et du menu reste au-dessus de la barre d'onglets et de la barre de gestes (fait : 100dvh + zone sûre, pages Projets, Projet, Rôle, Acteurs, Fiche, Galerie, tiroir de menu) ; 3) menu tiroir aéré : lignes de 48 px, menu qui défile, compte / mode sombre / déconnexion toujours atteignables (fait) ; 4) reste à faire : passer en revue tous les écrans à 360 × 640 et 412 × 860 (espaces, tailles de texte, cibles tactiles de 44 px minimum, rien sous la barre d'onglets), corriger les textes dépassés de la page de connexion (« prompt », « Agence ou acteur »), et ajouter un test mobile par écran."
+   "detail": "Notes de design du client (20/11, captures sur téléphone) à appliquer sur toute l'app mobile : 1) aucune popup ne tasse ses champs : elle défile (fait : projet, rôle, proposition, partage) ; 2) le bas des pages et du menu reste au-dessus de la barre d'onglets et de la barre de gestes (fait : 100dvh + zone sûre, pages Projets, Projet, Rôle, Acteurs, Fiche, Galerie, tiroir de menu) ; 3) menu tiroir aéré : lignes de 48 px, menu qui défile, compte / mode sombre / déconnexion toujours atteignables (fait) ; 4) reste à faire : passer en revue tous les écrans à 360 × 640 et 412 × 860 (espaces, tailles de texte, cibles tactiles de 44 px minimum, rien sous la barre d'onglets), corriger les textes dépassés de la page de connexion (« prompt », « Agence ou acteur »), et ajouter un test mobile par écran. | Note du client (20/11) : remettre le mode clair. Corrigé : l'interrupteur « Mode sombre » (bascule vers le mode clair) était passé sous l'historique dans le menu mobile ; le bas du menu (compte, mode clair/sombre, déconnexion) est maintenant fixe et toujours visible, seul l'historique défile (masqué sur les écrans très bas). Reste à faire en mode clair : la page de connexion reste toujours sombre ; vérifier contrastes, cartes, badges et photos de chaque écran en mode clair à 360 × 640 et 412 × 860. Revue partagée avec Inès Garnier (UX/UI Designer). L'application est un site web Angular, pas une application React Native."
   }
  ],
  "journal": [
@@ -3829,6 +3844,12 @@
    "nom": "Yanis Belhadj",
    "t": "2026-11-20T10:50:00Z",
    "texte": "Notes de design du client reçues : popups qui défilent, bas de page et menu au-dessus de la barre d'onglets corrigés ; revue mobile de tous les écrans lancée (T-171)."
+  },
+  {
+   "h": "J8",
+   "nom": "Inès Garnier",
+   "t": "2026-11-20T11:10:00Z",
+   "texte": "Mode clair : la bascule est de nouveau visible en bas du menu mobile ; revue du mode clair écran par écran ajoutée à T-171 avec Yanis Belhadj."
   }
  ],
  "plan": {

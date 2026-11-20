@@ -1,4 +1,4 @@
-// Téléphone : le tiroir de menu tient dans l'écran visible et laisse atteindre « Mode sombre » et « Déconnexion ».
+// Téléphone : à l'ouverture du menu, « Mode sombre » (bascule mode clair) et « Déconnexion » sont visibles sans défiler.
 const { chromium } = require('playwright-core');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
@@ -14,11 +14,13 @@ const BASE = 'http://localhost:4200', OUT = path.join(__dirname, '..', 'nav');
     await p.locator('.tabbar').getByText('Menu').click(); await p.waitForTimeout(600);
     await p.screenshot({ path: path.join(OUT, `menu-mobile-${nom}.jpg`), type: 'jpeg', quality: 70 });
     const r = await p.evaluate(() => {
-      const s = document.querySelector('.sidebar'); s.scrollTop = s.scrollHeight;
+      const s = document.querySelector('.sidebar');
       const lo = document.querySelector('.sidebar .logout').getBoundingClientRect();
-      return { hauteurMenu: Math.round(s.getBoundingClientRect().height), ecran: innerHeight, defile: s.scrollHeight > s.clientHeight, basDeconnexion: Math.round(lo.bottom), largeur: Math.round(s.getBoundingClientRect().width) };
+      const th = document.querySelector('.sidebar .theme-switch').getBoundingClientRect();
+      return { hauteurMenu: Math.round(s.getBoundingClientRect().height), ecran: innerHeight, basDeconnexion: Math.round(lo.bottom), basModeClair: Math.round(th.bottom), largeur: Math.round(s.getBoundingClientRect().width) };
     });
-    r.deconnexionVisible = r.basDeconnexion <= r.ecran;
+    r.deconnexionVisibleSansDefiler = r.basDeconnexion <= r.ecran;
+    r.modeClairVisibleSansDefiler = r.basModeClair <= r.ecran;
     res[nom] = r;
     await p.screenshot({ path: path.join(OUT, `menu-mobile-${nom}-bas.jpg`), type: 'jpeg', quality: 70 });
   }
