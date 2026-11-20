@@ -55,7 +55,7 @@ import { EmailBannerComponent } from './email-banner';
       }
       .tab svg { transition: transform .25s cubic-bezier(.2,1.4,.4,1); }
       .tab.active { color: var(--text-primary); background: var(--accent-dim); }
-      .tab.active svg { color: var(--accent); transform: translateY(-2px) scale(1.08); }
+      .tab.active svg { color: var(--accent-ink); transform: translateY(-2px) scale(1.08); }
       .tab:active svg { transform: scale(.9); }
     }
   `],

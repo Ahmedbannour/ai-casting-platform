@@ -21,7 +21,7 @@ import { AuthService } from '../../core/services/auth.service';
     .eb { display: flex; align-items: center; gap: 10px; margin: 12px 32px 0; padding: 10px 12px 10px 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.45;
       background: var(--accent-dim); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); color: var(--text-primary); }
     svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-    .eb > svg:first-child { color: var(--accent); }
+    .eb > svg:first-child { color: var(--accent-ink); }
     span { flex: 1; } b { font-weight: 600; }
     button { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--text-muted); cursor: pointer; flex: none;
       &:hover { background: var(--bg-hover); color: var(--text-primary); } }

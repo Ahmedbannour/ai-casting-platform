@@ -42,7 +42,7 @@ import { LEGAL_VERSION_LABEL } from './legal-page';
     h1 { font-size: 26px; margin: 0 0 10px; }
     .lead { color: var(--text-muted); line-height: 1.55; margin: 0 0 12px; }
     .docs { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 20px; font-size: 14px; }
-    a { color: var(--accent); }
+    a { color: var(--accent-ink); }
     fieldset { border: 0; padding: 0; margin: 0 0 14px; }
     legend { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
     .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

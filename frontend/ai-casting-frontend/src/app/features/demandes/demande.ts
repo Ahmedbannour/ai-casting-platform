@@ -452,7 +452,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
     .send { height: 40px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent); color: #111; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
     .ghost { height: 38px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text-primary); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-    .link { border: 0; background: none; padding: 4px; color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .link { border: 0; background: none; padding: 4px; color: var(--accent-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
     .danger { color: #e5484d; }
     button:disabled { opacity: .45; cursor: not-allowed; }
     button:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; }

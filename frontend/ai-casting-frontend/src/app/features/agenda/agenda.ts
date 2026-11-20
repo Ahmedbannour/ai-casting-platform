@@ -108,7 +108,7 @@ interface Day { iso: string; items: AgendaItem[]; }
   .item.pending .time { color: var(--text-muted); }
   .time.none { font-size: 12.5px; font-weight: 600; line-height: 1.3; color: var(--text-muted); padding-top: 3px; }
   .what { display: flex; flex-direction: column; gap: 3px; min-width: 0; a { color: inherit; text-decoration: none; } a:hover b { text-decoration: underline; } b { font-size: 16px; } }
-  .place { display: inline-flex; gap: 6px; align-items: center; font-size: 13.5px; color: var(--accent) !important; margin-top: 2px; }
+  .place { display: inline-flex; gap: 6px; align-items: center; font-size: 13.5px; color: var(--accent-ink) !important; margin-top: 2px; }
   .muted { color: var(--text-muted); font-size: 13.5px; } .small { font-size: 12.5px; }
   .side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
   .pill { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; white-space: nowrap; background: var(--accent-dim); color: var(--text-primary); }
@@ -116,7 +116,7 @@ interface Day { iso: string; items: AgendaItem[]; }
   .ics { border: 1px solid var(--border); background: none; color: var(--text-muted); font-size: 12.5px; height: 28px; padding: 0 10px; border-radius: 999px; cursor: pointer;
     &:hover { color: var(--text-primary); border-color: var(--accent); } }
   .empty { padding: 40px 20px; text-align: center; border-radius: var(--radius-m); border: 1px dashed var(--border); display: grid; justify-items: center; gap: 10px; color: var(--text-muted);
-    h2 { font-size: 20px; color: var(--text-primary); } p { max-width: 52ch; line-height: 1.55; } a { color: var(--accent); } }
+    h2 { font-size: 20px; color: var(--text-primary); } p { max-width: 52ch; line-height: 1.55; } a { color: var(--accent-ink); } }
   .btn-ghost { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--glass); color: var(--text-primary) !important; font-weight: 600; text-decoration: none; }
   .skel { height: 120px; border-radius: var(--radius-l); background: var(--bg-hover); } .skel.short { height: 80px; }
   @container page (max-width: 760px) {

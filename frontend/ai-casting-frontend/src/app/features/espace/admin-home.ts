@@ -136,7 +136,7 @@ type Metric = 'signups' | 'searches' | 'offers' | 'answers';
   .block { padding: 16px 18px; border-radius: var(--radius-l); border: 1px solid var(--border); background: var(--glass);
     -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
   .bh { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px;
-    h2 { font-size: 18px; font-stretch: 100%; } a { font-size: 13px; color: var(--accent); } }
+    h2 { font-size: 18px; font-stretch: 100%; } a { font-size: 13px; color: var(--accent-ink); } }
   .count { font-size: 13px; color: var(--text-muted); }
   ul, ol { list-style: none; margin: 0; padding: 0; }
   .todos li { display: grid; grid-template-columns: 6px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }

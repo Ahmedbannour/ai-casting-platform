@@ -156,7 +156,7 @@ interface Home { activeProjects: number; openRoles: number; filledRoles: number;
   .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
   .hello { color: var(--text-muted); font-size: 14px; }
   h1 { font-size: 40px; line-height: 1.05; margin-top: 2px; }
-  .contract { margin-top: 6px; font-size: 13px; color: var(--text-muted); &.warn { color: var(--accent); font-weight: 600; } }
+  .contract { margin-top: 6px; font-size: 13px; color: var(--text-muted); &.warn { color: var(--accent-ink); font-weight: 600; } }
   .cta { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: var(--radius-s); border: 1px solid transparent;
     background: var(--accent); color: var(--on-accent); font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap;
@@ -175,7 +175,7 @@ interface Home { activeProjects: number; openRoles: number; filledRoles: number;
   .block { padding: 16px 18px; border-radius: var(--radius-l); border: 1px solid var(--border); background: var(--glass);
     -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); scroll-margin-top: 16px; }
   .bh { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px;
-    h2 { font-size: 18px; font-stretch: 100%; } a { font-size: 13px; color: var(--accent); } }
+    h2 { font-size: 18px; font-stretch: 100%; } a { font-size: 13px; color: var(--accent-ink); } }
   ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
   .what { display: flex; flex-direction: column; min-width: 0; color: inherit; text-decoration: none;
     b { font-size: 14.5px; } span { font-size: 13px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -183,7 +183,7 @@ interface Home { activeProjects: number; openRoles: number; filledRoles: number;
   .week li, .wait li, .answers li { display: grid; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
   .week li:first-child, .wait li:first-child, .answers li:first-child { border-top: none; }
   .week li { grid-template-columns: 92px 1fr auto; }
-  .when { display: flex; flex-direction: column; b { font-size: 13.5px; } span { font-size: 13px; color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; } }
+  .when { display: flex; flex-direction: column; b { font-size: 13.5px; } span { font-size: 13px; color: var(--accent-ink); font-weight: 700; font-variant-numeric: tabular-nums; } }
   .week li.pending .when span { color: var(--text-muted); }
   .pill { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--accent-dim); white-space: nowrap; &.wait { background: var(--bg-hover); color: var(--text-muted); } }
   .wait li { grid-template-columns: auto 1fr auto; }
@@ -195,7 +195,7 @@ interface Home { activeProjects: number; openRoles: number; filledRoles: number;
   .r-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
   .imp { font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--bg-hover); color: var(--text-muted);
     &[data-i="PRINCIPAL"] { background: var(--accent); color: var(--on-accent); } }
-  .shoot { font-size: 12px; color: var(--text-muted); &.soon { color: var(--accent); font-weight: 700; } }
+  .shoot { font-size: 12px; color: var(--text-muted); &.soon { color: var(--accent-ink); font-weight: 700; } }
   .r-name { color: inherit; text-decoration: none; h3 { font-size: 18px; line-height: 1.2; } &:hover h3 { text-decoration: underline; } }
   .r-proj { font-size: 13px; color: var(--text-muted); }
   .bar { display: flex; gap: 2px; height: 8px; border-radius: 999px; overflow: hidden; margin-top: 4px; background: var(--bg-hover);

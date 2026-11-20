@@ -16,7 +16,7 @@ svg { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; s
   &.placeholder .val { color: var(--text-subtle); }
   &.compact { height: 32px; padding: 0 8px 0 10px; font-size: 13px; border-radius: 6px; }
   svg { color: var(--text-subtle); transition: transform .22s cubic-bezier(.2,.8,.2,1), color .15s; }
-  &.open svg { transform: rotate(180deg); color: var(--accent); }
+  &.open svg { transform: rotate(180deg); color: var(--accent-ink); }
 }
 .val { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -37,7 +37,7 @@ li {
   font-size: 14px; white-space: nowrap; cursor: pointer; transition: background .1s;
   &.active { background: var(--bg-hover); }
   &.sel { font-weight: 650; }
-  &.sel svg { color: var(--accent); }
+  &.sel svg { color: var(--accent-ink); }
 }
 
 @keyframes sf-in { from { opacity: 0; transform: translateY(-4px) scale(.98); } }

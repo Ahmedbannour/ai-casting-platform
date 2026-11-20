@@ -118,13 +118,13 @@ interface FeedEvent { at: number; icon: string; title: string; body: string; lin
   .tile.hot { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--glass)); }
   .k { font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
   .n { font-size: 40px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; }
-  .n.sm { font-size: 22px; line-height: 1.2; span { color: var(--accent); } }
+  .n.sm { font-size: 22px; line-height: 1.2; span { color: var(--accent-ink); } }
   .s { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
   .skel { background: var(--bg-hover); border: none; }
   .block { padding: 16px 18px; border-radius: var(--radius-l); border: 1px solid var(--border); background: var(--glass);
     -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
   .bh { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px;
-    h2 { font-size: 18px; font-stretch: 100%; } a { font-size: 13px; color: var(--accent); } }
+    h2 { font-size: 18px; font-stretch: 100%; } a { font-size: 13px; color: var(--accent-ink); } }
   .offers { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px;
     li { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: var(--radius-m); background: var(--bg-surface); border: 1px solid var(--border); } }
   .badge { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--bg-hover); color: var(--text-muted);

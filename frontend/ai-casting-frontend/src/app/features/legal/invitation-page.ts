@@ -66,7 +66,7 @@ interface Preview { firstName: string; agencyName: string | null; email: string 
   styles: [`
     :host { display: grid; place-items: start center; min-height: 100vh; background: var(--bg-primary); color: var(--text-primary); padding: 40px 16px; }
     .inv { width: 100%; max-width: 500px; }
-    .brand { font-weight: 700; color: var(--accent); margin: 0 0 18px; }
+    .brand { font-weight: 700; color: var(--accent-ink); margin: 0 0 18px; }
     h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; }
     .lead { color: var(--text-muted); line-height: 1.55; margin: 0 0 22px; }
     .muted { color: var(--text-muted); line-height: 1.5; } .small { font-size: 13px; margin-top: 16px; }
@@ -85,7 +85,7 @@ interface Preview { firstName: string; agencyName: string | null; email: string 
     .seg button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); font-weight: 600; }
     .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; font-size: 14px; line-height: 1.45; margin: 4px 0 16px; cursor: pointer; }
     .check input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--accent); flex: none; }
-    a { color: var(--accent); }
+    a { color: var(--accent-ink); }
     .err { color: var(--danger); font-size: 14px; margin: 0 0 12px; }
     .primary { height: 46px; border-radius: 999px; border: 0; background: var(--accent); color: var(--on-accent, #111); font: inherit; font-weight: 600; cursor: pointer; }
     .primary:disabled { opacity: .6; cursor: progress; }

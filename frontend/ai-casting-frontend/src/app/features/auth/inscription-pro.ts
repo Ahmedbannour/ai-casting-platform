@@ -84,7 +84,7 @@ type ProRole = 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'BOITE_PROD';
     .send { align-self: flex-start; display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 12px; border: 0; background: var(--accent); color: #111;
       font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none; }
     .send:disabled { opacity: .6; cursor: progress; }
-    a { color: var(--accent); }
+    a { color: var(--accent-ink); }
     @media (max-width: 560px) { .roles, .grid { grid-template-columns: 1fr; } .card { padding: 20px; } h1 { font-size: 26px; } }
   `]
 })

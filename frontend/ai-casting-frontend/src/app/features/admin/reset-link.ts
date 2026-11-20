@@ -34,8 +34,8 @@ import { environment } from '../../../environments/environment';
   styles: [`
     :host { position: relative; display: inline-flex; }
     .key { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--border); background: transparent; cursor: pointer; color: var(--text-muted);
-      &:hover, &[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
-      &.mail { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--accent-dim); } svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; } }
+      &:hover, &[aria-expanded="true"] { color: var(--accent-ink); border-color: var(--accent); }
+      &.mail { color: var(--accent-ink); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--accent-dim); } svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; } }
     .pop { position: fixed; z-index: 1000; width: min(380px, calc(100vw - 16px)); padding: 14px; border-radius: 12px; background: var(--bg-surface);
       border: 1px solid var(--border); box-shadow: 0 14px 40px rgba(0,0,0,.35); display: grid; gap: 8px; text-align: left; font-size: 13.5px; }
     b { font-size: 14px; } p { margin: 0; color: var(--text-muted); line-height: 1.45; } .small { font-size: 12.5px; } .err { color: var(--danger); }

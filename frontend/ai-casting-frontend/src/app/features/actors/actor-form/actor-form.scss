@@ -71,7 +71,7 @@ svg { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; s
 
 .f { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .f > label, .lbl { font-size: 13px; font-weight: 600; color: var(--text-primary);
-  i { font-style: normal; color: var(--accent); } }
+  i { font-style: normal; color: var(--accent-ink); } }
 
 input, select, textarea {
   width: 100%; min-width: 0; height: 42px; padding: 0 12px; border-radius: var(--radius-s); border: 1px solid var(--border);

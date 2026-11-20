@@ -36,7 +36,7 @@ const MAX_BATCH = 50 * 1024 * 1024;
     transition: border-color .15s, background .15s; }
   .drop svg { width: 28px; height: 28px; fill: none; stroke: var(--text-subtle); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s, stroke .15s; }
   .drop b { color: var(--text-primary); font-size: 14.5px; font-weight: 600; }
-  .drop u { color: var(--accent); text-underline-offset: 3px; }
+  .drop u { color: var(--accent-ink); text-underline-offset: 3px; }
   .drop small { font-size: 12.5px; color: var(--text-subtle); }
   .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-dim); }
   .drop:hover svg, .drop.over svg { transform: translateY(-3px); stroke: var(--accent); }

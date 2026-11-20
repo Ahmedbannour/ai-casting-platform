@@ -32,7 +32,7 @@ import { ActorSummary } from '../../../core/services/actor.service';
     .actor-initials {
       width: 48px; height: 48px; border-radius: 50%;
       background: var(--accent-dim); border: 2px solid var(--accent);
-      color: var(--accent); font-size: 16px; font-weight: 700;
+      color: var(--accent-ink); font-size: 16px; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
       margin-bottom: 12px;
     }
@@ -44,7 +44,7 @@ import { ActorSummary } from '../../../core/services/actor.service';
       font-size: 11px; padding: 4px 10px; border-radius: 6px;
       border: 1px solid var(--border); background: transparent;
       color: var(--text-muted); cursor: pointer; transition: all 0.15s;
-      &:hover { border-color: var(--accent); color: var(--accent); }
+      &:hover { border-color: var(--accent); color: var(--accent-ink); }
       &.danger:hover { border-color: var(--danger); color: var(--danger); }
     }
   `]

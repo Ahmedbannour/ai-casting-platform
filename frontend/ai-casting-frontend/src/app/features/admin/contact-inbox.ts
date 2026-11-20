@@ -38,7 +38,7 @@ interface Msg { id: string; name: string; email: string; organisation: string | 
     .tag { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--accent-dim); color: var(--text-primary); }
     time { margin-left: auto; font-size: 12.5px; color: var(--text-subtle); }
     .body { margin: 8px 0; white-space: pre-wrap; line-height: 1.5; font-size: 14.5px; }
-    a { color: var(--accent); font-size: 13.5px; }
+    a { color: var(--accent-ink); font-size: 13.5px; }
   `]
 })
 export class ContactInboxComponent implements OnInit {

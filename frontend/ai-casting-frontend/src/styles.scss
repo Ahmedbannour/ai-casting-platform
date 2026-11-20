@@ -21,6 +21,7 @@
   --accent-hover:  #FFD45A;
   --accent-dim:    rgba(242,194,48,0.14);
   --on-accent:     #1F2024;   /* texte posé sur le jaune */
+  --accent-ink:    #F2C230;   /* jaune utilisé comme couleur de texte */
   --keep:          #F2C230;   /* retenu */
   --reject:        #E4685D;   /* écarté */
   --danger:        #E4685D;
@@ -54,11 +55,12 @@
   --text-primary:  #1B1C20;
   --text-muted:    #575C66;
   --text-subtle:   #8F95A0;
-  --accent:        #9A6B00;   /* jaune foncé : lisible sur fond clair */
-  --accent-hover:  #7E5700;
-  --accent-dim:    rgba(214,160,20,0.16);
-  --on-accent:     #FFFFFF;
-  --keep:          #C99400;
+  --accent:        #F2C230;   /* même jaune vif qu'en mode sombre pour les boutons, pastilles et repères */
+  --accent-hover:  #E3B21C;
+  --accent-dim:    rgba(242,194,48,0.24);
+  --on-accent:     #1F2024;   /* texte foncé posé sur le jaune */
+  --accent-ink:    #8A5F00;   /* jaune foncé pour les TEXTES (le jaune vif sur blanc serait illisible) */
+  --keep:          #D9A400;
   --reject:        #C2453A;
   --danger:        #C2453A;
   --shadow:        0 1px 2px rgba(20,24,32,0.08), 0 8px 24px rgba(20,24,32,0.08);

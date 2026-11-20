@@ -1082,6 +1082,21 @@
     "T-171"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-064",
+   "date": "2026-11-20",
+   "titre": "Mode clair : couleurs et animation",
+   "original": "En fait, non. J'aime bien de redéposer les couleurs, en fait, et remettre l'animation en mode light et passer ça à mon expert UI pour fixer ce problème.",
+   "ameliore": "En mode clair : jaune vif comme en mode sombre, page de connexion en mode clair avec son animation ; note à l'expert UI (T-171).",
+   "departements": [
+    "front",
+    "prod"
+   ],
+   "livrables": [
+    "T-171"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -3335,7 +3350,7 @@
    "statut": "en_cours",
    "prompt": "P-062",
    "jour": "J8",
-   "detail": "Notes de design du client (20/11, captures sur téléphone) à appliquer sur toute l'app mobile : 1) aucune popup ne tasse ses champs : elle défile (fait : projet, rôle, proposition, partage) ; 2) le bas des pages et du menu reste au-dessus de la barre d'onglets et de la barre de gestes (fait : 100dvh + zone sûre, pages Projets, Projet, Rôle, Acteurs, Fiche, Galerie, tiroir de menu) ; 3) menu tiroir aéré : lignes de 48 px, menu qui défile, compte / mode sombre / déconnexion toujours atteignables (fait) ; 4) reste à faire : passer en revue tous les écrans à 360 × 640 et 412 × 860 (espaces, tailles de texte, cibles tactiles de 44 px minimum, rien sous la barre d'onglets), corriger les textes dépassés de la page de connexion (« prompt », « Agence ou acteur »), et ajouter un test mobile par écran. | Note du client (20/11) : remettre le mode clair. Corrigé : l'interrupteur « Mode sombre » (bascule vers le mode clair) était passé sous l'historique dans le menu mobile ; le bas du menu (compte, mode clair/sombre, déconnexion) est maintenant fixe et toujours visible, seul l'historique défile (masqué sur les écrans très bas). Reste à faire en mode clair : la page de connexion reste toujours sombre ; vérifier contrastes, cartes, badges et photos de chaque écran en mode clair à 360 × 640 et 412 × 860. Revue partagée avec Inès Garnier (UX/UI Designer). L'application est un site web Angular, pas une application React Native."
+   "detail": "Notes de design du client (20/11, captures sur téléphone) à appliquer sur toute l'app mobile : 1) aucune popup ne tasse ses champs : elle défile (fait : projet, rôle, proposition, partage) ; 2) le bas des pages et du menu reste au-dessus de la barre d'onglets et de la barre de gestes (fait : 100dvh + zone sûre, pages Projets, Projet, Rôle, Acteurs, Fiche, Galerie, tiroir de menu) ; 3) menu tiroir aéré : lignes de 48 px, menu qui défile, compte / mode sombre / déconnexion toujours atteignables (fait) ; 4) reste à faire : passer en revue tous les écrans à 360 × 640 et 412 × 860 (espaces, tailles de texte, cibles tactiles de 44 px minimum, rien sous la barre d'onglets), corriger les textes dépassés de la page de connexion (« prompt », « Agence ou acteur »), et ajouter un test mobile par écran. | Note du client (20/11) : remettre le mode clair. Corrigé : l'interrupteur « Mode sombre » (bascule vers le mode clair) était passé sous l'historique dans le menu mobile ; le bas du menu (compte, mode clair/sombre, déconnexion) est maintenant fixe et toujours visible, seul l'historique défile (masqué sur les écrans très bas). Reste à faire en mode clair : la page de connexion reste toujours sombre ; vérifier contrastes, cartes, badges et photos de chaque écran en mode clair à 360 × 640 et 412 × 860. Revue partagée avec Inès Garnier (UX/UI Designer). L'application est un site web Angular, pas une application React Native. | Note du client (20/11, 2) : en mode clair, remettre les couleurs et l'animation. Fait : jaune vif identique au mode sombre pour les boutons, pastilles et repères (texte foncé dessus) ; jaune foncé réservé aux textes (--accent-ink, 60 usages repris) ; page de connexion en mode clair dès le chargement, avec la planche contact animée (portraits éclaircis, cercle jaune lisible). À vérifier par Yanis Belhadj et Inès Garnier : contrastes du jaune vif sur fond clair (boutons, onglets actifs), photos et cartes acteurs, bandeaux, et proposer une bascule clair/sombre sur la page de connexion."
   }
  ],
  "journal": [
@@ -3850,6 +3865,12 @@
    "nom": "Inès Garnier",
    "t": "2026-11-20T11:10:00Z",
    "texte": "Mode clair : la bascule est de nouveau visible en bas du menu mobile ; revue du mode clair écran par écran ajoutée à T-171 avec Yanis Belhadj."
+  },
+  {
+   "h": "J8",
+   "nom": "Yanis Belhadj",
+   "t": "2026-11-20T11:25:00Z",
+   "texte": "Mode clair : jaune vif rétabli, page de connexion et son animation en mode clair ; revue des contrastes ajoutée à T-171."
   }
  ],
  "plan": {

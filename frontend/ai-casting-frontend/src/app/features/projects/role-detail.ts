@@ -211,10 +211,10 @@ import { ShareService, VOTE_LABEL, VoteRow } from '../../core/services/share.ser
     b { color: var(--text-primary); } }
   .offer[data-s="ACCEPTEE"] { background: color-mix(in srgb, var(--series-3) 18%, transparent); }
   .offer[data-s="DECLINEE"], .offer[data-s="ANNULEE"] { background: var(--bg-hover); }
-  .offer-cancel { border: none; background: none; padding: 0; margin-left: 4px; color: var(--accent); font-size: 12px; font-weight: 600; cursor: pointer; }
+  .offer-cancel { border: none; background: none; padding: 0; margin-left: 4px; color: var(--accent-ink); font-size: 12px; font-weight: 600; cursor: pointer; }
   /* Enveloppe en haut à droite, à côté de la corbeille : le statut garde toute la largeur */
   .card-foot .propose { position: absolute; top: 3px; right: 29px; width: 24px; height: 24px; display: grid; place-items: center; border: none; border-radius: 6px;
-    background: none; color: var(--text-subtle); cursor: pointer; opacity: .7; &:hover { color: var(--accent); background: var(--bg-hover); opacity: 1; } }
+    background: none; color: var(--text-subtle); cursor: pointer; opacity: .7; &:hover { color: var(--accent-ink); background: var(--bg-hover); opacity: 1; } }
   .card:has(.propose) .who { padding-right: 40px; }
   .vote { font-size: 12px; line-height: 1.4; padding: 5px 7px; border-radius: 4px; border-left: 3px solid var(--text-subtle); background: var(--bg-hover); color: var(--text-muted);
     b { color: var(--text-primary); } }
@@ -228,7 +228,7 @@ import { ShareService, VOTE_LABEL, VoteRow } from '../../core/services/share.ser
   textarea { width: 100%; padding: 6px 8px; border-radius: 4px; border: 1px solid var(--accent); background: var(--glass); color: var(--text-primary);
     font-size: 13px; resize: vertical; outline: none; }
   .note-actions { display: flex; justify-content: flex-end; gap: 6px;
-    button { border: none; background: none; color: var(--text-muted); font-size: 12.5px; cursor: pointer; } .ok { color: var(--accent); font-weight: 600; } }
+    button { border: none; background: none; color: var(--text-muted); font-size: 12.5px; cursor: pointer; } .ok { color: var(--accent-ink); font-weight: 600; } }
   .card-foot { display: flex; align-items: center; gap: 6px; }
   /* Corbeille en haut à droite de la carte : le statut garde toute la largeur. */
   .card { position: relative; }
@@ -242,7 +242,7 @@ import { ShareService, VOTE_LABEL, VoteRow } from '../../core/services/share.ser
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 14px;
     padding: 10px 14px 10px 16px; border-radius: var(--radius-m); background: var(--glass-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
     border: 1px solid var(--border); box-shadow: 0 16px 40px rgba(0,0,0,.35); font-size: 14px; animation: up .25s cubic-bezier(.2,.8,.2,1) both;
-    button { border: none; background: none; color: var(--accent); font-weight: 700; cursor: pointer; } }
+    button { border: none; background: none; color: var(--accent-ink); font-weight: 700; cursor: pointer; } }
   @keyframes up { from { opacity: 0; transform: translate(-50%, 12px); } }
   .empty { padding: 44px 24px; text-align: center; border-radius: var(--radius-m); border: 1px dashed var(--border); background: var(--glass);
     h3 { font-size: 22px; margin-bottom: 8px; } p { color: var(--text-muted); margin-bottom: 16px; } }

@@ -85,7 +85,7 @@ interface Step { key: string; who: string; what: string; }
     .mine .n { background: var(--accent); color: #111; }
     .cycle b { display: block; font-size: 14px; }
     .cycle span:not(.n) { display: block; margin-top: 2px; color: var(--text-muted); font-size: 13px; line-height: 1.4; }
-    .cycle em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--accent); }
+    .cycle em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--accent-ink); }
     .empty { padding: 28px; border-radius: 16px; border: 1px dashed var(--border); display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
     .empty h2 { margin: 0; font-size: 20px; }
     .empty p { margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.5; max-width: 62ch; }

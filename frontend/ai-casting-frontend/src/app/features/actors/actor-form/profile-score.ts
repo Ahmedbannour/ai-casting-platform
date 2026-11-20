@@ -59,7 +59,7 @@ interface Check { key: string; label: string; tip: string; weight: number; ok: b
   p { margin-top: 4px; font-size: 13.5px; color: var(--text-muted); line-height: 1.5; }
   ul { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
   li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 13.5px;
-    a, button { border: none; background: none; padding: 0; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; }
+    a, button { border: none; background: none; padding: 0; color: var(--accent-ink); font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; }
     a:hover, button:hover { text-decoration: underline; }
     span { color: var(--text-muted); font-size: 12.5px; } }
   @container page (max-width: 560px) { .score { flex-direction: column; align-items: center; text-align: center; } li { justify-content: center; } }

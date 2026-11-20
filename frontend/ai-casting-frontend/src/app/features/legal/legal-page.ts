@@ -96,10 +96,10 @@ const DOCS: Record<string, Doc> = {
     :host { display: block; min-height: 100vh; background: var(--bg-primary); color: var(--text-primary); }
     .legal { max-width: 760px; margin: 0 auto; padding: 32px 22px 80px; font-size: 16px; line-height: 1.65; }
     .back { color: var(--text-muted); text-decoration: none; font-size: 14px; }
-    .back:hover { color: var(--accent); }
+    .back:hover { color: var(--accent-ink); }
     h1 { font-size: 36px; line-height: 1.15; margin: 18px 0 6px; }
     .ver { color: var(--text-muted); font-size: 14px; margin: 0 0 18px; }
-    .draft { color: var(--accent); }
+    .draft { color: var(--accent-ink); }
     .intro { font-size: 17px; color: var(--text-primary); }
     .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 8px; }
     .toc a { font-size: 13.5px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-muted); text-decoration: none; }
@@ -108,7 +108,7 @@ const DOCS: Record<string, Doc> = {
     h2 { font-size: 20px; margin: 0 0 6px; }
     p { margin: 0 0 10px; }
     .other { margin-top: 34px; color: var(--text-muted); }
-    a { color: var(--accent); }
+    a { color: var(--accent-ink); }
     @media (max-width: 600px) { h1 { font-size: 28px; } .legal { padding: 22px 16px 60px; } }
   `]
 })

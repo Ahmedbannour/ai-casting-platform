@@ -121,7 +121,7 @@ export class NotificationStore {
   header > div { flex: 1; min-width: 0; }
   h2 { font-size: 17px; font-weight: 700; margin: 0; }
   .sub { margin: 2px 0 0; font-size: 12.5px; color: var(--text-muted); }
-  .all { flex: none; border: none; background: none; color: var(--accent); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  .all { flex: none; border: none; background: none; color: var(--accent-ink); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
     padding: 6px 8px; border-radius: var(--radius-s); }
   .all:hover { background: var(--accent-dim); }
   .close { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: none; border-radius: var(--radius-s); background: none;
@@ -138,7 +138,7 @@ export class NotificationStore {
   .item.unread { color: var(--text-primary); }
   .ic { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--bg-hover); color: var(--text-muted); }
   .ic svg, .none-ic svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .item.unread .ic { background: var(--accent-dim); color: var(--accent); }
+  .item.unread .ic { background: var(--accent-dim); color: var(--accent-ink); }
   .item[data-k="CONTRAT"] .ic { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--danger); }
   .item[data-k="REPONSE"].unread .ic { background: color-mix(in srgb, var(--keep) 20%, transparent); color: var(--keep); }
   .txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-size: 13.5px; line-height: 1.4; }

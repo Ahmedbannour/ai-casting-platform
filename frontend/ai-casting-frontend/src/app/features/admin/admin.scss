@@ -35,7 +35,7 @@ svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; s
 .btn-ghost { @extend %glass; color: var(--text-primary); font-weight: 500; &:hover { background: var(--bg-hover); } &.sm { height: 30px; font-size: 13px; } }
 .btn-primary { border: 0; background: var(--accent); color: var(--on-accent); &:hover:not(:disabled) { background: var(--accent-hover); }
   &:disabled { opacity: .5; cursor: default; } }
-.link { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+.link { border: 0; background: none; padding: 0; color: var(--accent-ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
   &:hover { text-decoration: underline; text-underline-offset: 3px; } }
 .icon { width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: var(--radius-s); background: transparent;
   color: var(--text-subtle); cursor: pointer; &:hover { background: var(--bg-hover); color: var(--text-primary); } }
@@ -111,7 +111,7 @@ input:not([type="checkbox"]) { height: 40px; padding: 0 12px; border-radius: var
   mark { background: var(--accent-dim); color: var(--text-primary); border-radius: 3px; padding: 0 1px; } }
 .prov { padding: 1px 7px; border-radius: 99px; font-weight: 600; border: 1px solid var(--border); color: var(--text-muted);
   &.g { color: #8AB4F8; border-color: color-mix(in srgb, #8AB4F8 40%, transparent); } &.f { color: #6FA8FF; border-color: color-mix(in srgb, #1877F2 50%, transparent); } }
-.unverif { padding: 1px 7px; border-radius: 99px; background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+.unverif { padding: 1px 7px; border-radius: 99px; background: var(--accent-dim); color: var(--accent-ink); font-weight: 600; }
 .offtag.wait { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--text-primary); }
 .validate { height: 32px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--accent); background: var(--accent); color: #111; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 .offtag { padding: 1px 7px; border-radius: 99px; background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); font-weight: 600; }
@@ -152,9 +152,9 @@ input:not([type="checkbox"]) { height: 40px; padding: 0 12px; border-radius: var
   border: 1.5px dashed var(--border); border-radius: var(--radius-l); background: var(--glass); color: var(--text-muted);
   transition: border-color .15s, background .15s;
   svg { width: 34px; height: 34px; color: var(--text-subtle); transition: transform .2s, color .15s; }
-  b { color: var(--text-primary); font-size: 16px; font-weight: 600; } u { color: var(--accent); text-underline-offset: 3px; }
+  b { color: var(--text-primary); font-size: 16px; font-weight: 600; } u { color: var(--accent-ink); text-underline-offset: 3px; }
   small { max-width: 52ch; font-size: 13px; color: var(--text-subtle); line-height: 1.5; }
-  &:hover, &.over { border-color: var(--accent); background: var(--accent-dim); svg { transform: translateY(-3px); color: var(--accent); } }
+  &:hover, &.over { border-color: var(--accent); background: var(--accent-dim); svg { transform: translateY(-3px); color: var(--accent-ink); } }
   &:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
   &.busy { cursor: progress; } }
 .spin { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--accent); animation: spin .8s linear infinite; }
@@ -206,7 +206,7 @@ tr.doublon .badge { background: var(--bg-hover); color: var(--text-primary); }
   .field-hint { margin-right: auto; } }
 
 .done { @extend %glass; display: flex; gap: 14px; padding: 18px; border-radius: var(--radius-m); border-color: var(--accent);
-  > svg { width: 28px; height: 28px; color: var(--accent); }
+  > svg { width: 28px; height: 28px; color: var(--accent-ink); }
   b { font-size: 16px; } p { margin-top: 4px; color: var(--text-muted); font-size: 13.5px; }
   .done-actions { display: flex; gap: 10px; margin-top: 12px; } }
 
@@ -221,7 +221,7 @@ tr.doublon .badge { background: var(--bg-hover); color: var(--text-primary); }
   b { font-size: 34px; line-height: 1.05; font-weight: 700; font-stretch: var(--narrow); font-variant-numeric: tabular-nums; }
   small { font-size: 12px; color: var(--text-subtle); }
   .delta { margin-top: auto; font-weight: 600; color: var(--text-muted); span { font-size: 13px; } }
-  .delta.up span { color: var(--accent); } .delta.down span { color: var(--danger); } }
+  .delta.up span { color: var(--accent-ink); } .delta.down span { color: var(--danger); } }
 .ratio { display: block; height: 4px; border-radius: 4px; background: var(--bg-hover); overflow: hidden; margin: 2px 0;
   i { display: block; height: 100%; background: var(--accent); border-radius: 4px; transform-origin: left; animation: growx .8s cubic-bezier(.2,.8,.2,1) .2s both; } }
 .skel-k { min-height: 128px; background: linear-gradient(90deg, var(--bg-hover) 25%, var(--bg-surface) 50%, var(--bg-hover) 75%); background-size: 200% 100%; animation: skel 1.4s linear infinite; }
