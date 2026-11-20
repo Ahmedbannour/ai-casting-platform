@@ -31,7 +31,9 @@ public final class CastingDtos {
             String city,
             LocalDate shootStart,
             LocalDate shootEnd,
-            CastingRole.Importance importance) {}
+            CastingRole.Importance importance,
+            /** T-165 · Rôle de figuration : EXTRA, SILHOUETTE ou FIGURANT_SPECIAL ; null = tout figurant. */
+            String figurationType) {}
 
     public record RoleResponse(
             UUID id,
@@ -49,6 +51,7 @@ public final class CastingDtos {
             LocalDate shootStart,
             LocalDate shootEnd,
             CastingRole.Importance importance,
+            String figurationType,
             int position,
             boolean filled,
             long shortlistCount,

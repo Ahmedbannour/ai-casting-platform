@@ -130,6 +130,8 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
           AND (:gender = '' OR a.gender = :gender)
           AND (:minAge = 0 OR a.birth_date <= CURRENT_DATE - make_interval(years => CAST(:minAge AS int)))
           AND (:maxAge = 150 OR a.birth_date > CURRENT_DATE - make_interval(years => CAST(:maxAge AS int) + 1))
+          AND (:fig = '' OR (a.figuration IS NOT NULL AND a.figuration <> ''
+               AND (:fig = 'ANY' OR (',' || a.figuration || ',') LIKE '%,' || :fig || ',%')))
         ORDER BY (
             (CASE WHEN :language <> '' AND EXISTS (SELECT 1 FROM actor_languages l WHERE l.actor_id = a.id
                   AND lower(l.name) LIKE '%' || lower(:language) || '%') THEN 30 ELSE 0 END)
@@ -146,6 +148,8 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
           AND (:gender = '' OR a.gender = :gender)
           AND (:minAge = 0 OR a.birth_date <= CURRENT_DATE - make_interval(years => CAST(:minAge AS int)))
           AND (:maxAge = 150 OR a.birth_date > CURRENT_DATE - make_interval(years => CAST(:maxAge AS int) + 1))
+          AND (:fig = '' OR (a.figuration IS NOT NULL AND a.figuration <> ''
+               AND (:fig = 'ANY' OR (',' || a.figuration || ',') LIKE '%,' || :fig || ',%')))
         """)
     Page<UUID> rankedSearch(@Param("gender") String gender,
                             @Param("minAge") int minAge,
@@ -156,5 +160,6 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
                             @Param("hair") String hair,
                             @Param("all") boolean all,
                             @Param("agency") UUID agency,
+                            @Param("fig") String figuration,
                             Pageable pageable);
 }

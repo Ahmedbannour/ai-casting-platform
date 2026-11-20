@@ -48,8 +48,9 @@ export class AiSearchAngularService {
 
   constructor(private http: HttpClient) {}
 
-  search(query: string, page = 0, size = 10): Observable<SearchResponse> {
-    return this.http.post<SearchResponse>(`${this.url}/search`, { query, page, size });
+  /** roleId (T-165) : pour un rôle de figuration, seuls les acteurs qui acceptent ce type sont proposés. */
+  search(query: string, page = 0, size = 10, roleId: string | null = null): Observable<SearchResponse> {
+    return this.http.post<SearchResponse>(`${this.url}/search`, { query, page, size, roleId });
   }
 
   /** Analyse de l'IA pour les meilleurs profils, demandée après l'affichage des résultats. */

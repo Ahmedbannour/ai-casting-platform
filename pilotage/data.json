@@ -3197,10 +3197,10 @@
    "resp": "Antoine Roux",
    "prio": "P1",
    "phase": "PH4",
-   "statut": "a_faire",
-   "prompt": "P-049",
+   "statut": "fait",
+   "prompt": "P-059",
    "jour": "J7",
-   "detail": "Sprint 5. Un rôle d'importance « figuration » ne propose que les acteurs ayant accepté ce type."
+   "detail": "Livré : un rôle « figuration » précise le type demandé (tout figurant, extra, silhouette, figurant spécial) ; la recherche lancée depuis ce rôle ne propose que les acteurs qui ont accepté ce type (réponse donnée à l'inscription ou dans le profil). Les rôles non figuration ne filtrent rien. Migration V39, FigurationSearchTest, 83 tests serveur verts, recette navigateur test-role-figuration. À noter : aucun des 103 acteurs actuels n'a encore répondu à la question de la figuration."
   },
   {
    "id": "T-166",
@@ -3341,7 +3341,7 @@
   }
  ],
  "maintenant": {
-  "titre": "P-059 · T-163 livré : la V2 ouvre le casting",
+  "titre": "P-059 · T-163 et T-165 livrés",
   "etape": 59,
   "agents": [
    {
@@ -3371,8 +3371,8 @@
    ]
   },
   "derniere": {
-   "t": "2026-11-20T01:00:00Z",
-   "texte": "T-163 livré : V2 du réalisateur (scènes, fiches de rôle), publication qui crée le casting ; 82 tests verts"
+   "t": "2026-11-20T01:10:00Z",
+   "texte": "T-165 livré : un rôle de figuration ne propose que les acteurs qui acceptent ce type ; 83 tests verts"
   }
  },
  "activite": [
@@ -3741,6 +3741,12 @@
    "nom": "Sarra Mansouri",
    "t": "2026-11-20T01:00:00Z",
    "texte": "T-163 livré : éditeur de la V2 et création automatique des rôles au casting. Recette navigateur réussie."
+  },
+  {
+   "h": "J8",
+   "nom": "Antoine Roux",
+   "t": "2026-11-20T01:10:00Z",
+   "texte": "T-165 livré : filtre de figuration sur les propositions d'un rôle. Recette navigateur réussie."
   }
  ],
  "plan": {
@@ -3903,7 +3909,6 @@
   ],
   "file": [
    "T-164",
-   "T-165",
    "T-166",
    "T-167",
    "T-168",
@@ -4168,8 +4173,9 @@
     "fin": "2026-12-25"
    },
    "T-165": {
-    "debut": "2026-12-21",
-    "fin": "2026-12-25"
+    "debut": "2026-11-20",
+    "fin": "2026-11-20",
+    "reel": true
    },
    "T-166": {
     "debut": "2026-12-21",

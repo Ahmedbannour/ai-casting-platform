@@ -149,7 +149,7 @@ export class ChatComponent implements OnInit {
     }]);
     this.scrollTo(this.messages().length - 2, 'start');
 
-    this.aiService.search(text).subscribe({
+    this.aiService.search(text, 0, 10, this.roleCtx()?.id ?? null).subscribe({
       next: (response) => {
         this.loading.set(false);
         this.messages.update(msgs => {
@@ -205,7 +205,7 @@ export class ChatComponent implements OnInit {
     const msg = this.messages()[index];
     if (!msg?.response || msg.loadingMore) return;
     this.patch(index, m => ({ ...m, loadingMore: true }));
-    this.aiService.search(msg.response.query, msg.response.page + 1).subscribe({
+    this.aiService.search(msg.response.query, msg.response.page + 1, 10, this.roleCtx()?.id ?? null).subscribe({
       next: (next) => this.patch(index, m => ({
         ...m,
         loadingMore: false,

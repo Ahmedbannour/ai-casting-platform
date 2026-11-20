@@ -47,6 +47,8 @@ public class AiSearchServiceImpl implements AiSearchService {
     private final com.castingai.service.ShortlistService shortlistService;
     private final ObjectMapper objectMapper;
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
+    private final com.castingai.repository.CastingRoleRepository castingRoleRepository;
+    private final com.castingai.service.AccessService accessService;
 
     /** T-131 · Vocabulaire du vivier (villes, langues, compétences) pour comprendre la demande ; relu toutes les 10 min. */
     private volatile Vocabulary vocab;
@@ -137,6 +139,7 @@ public class AiSearchServiceImpl implements AiSearchService {
                 c.getMaxAge() == null ? 150 : c.getMaxAge(),
                 nz(c.getLanguage()), nz(c.getSkill()), nz(c.getCity()), nz(c.getHairColor()),
                 scope.all(), scope.agency(),
+                figurationFilter(request.getRoleId(), userEmail),
                 PageRequest.of(page, size));
 
         // 2. Charger uniquement les acteurs de la page (sous-tables en lots) et leurs photos principales
@@ -174,6 +177,22 @@ public class AiSearchServiceImpl implements AiSearchService {
                 .hasMore(ids.hasNext())
                 .results(results)
                 .build();
+    }
+
+    /**
+     * T-165 · Pour un rôle de figuration visible de l'utilisateur : « ANY » (tout figurant) ou le type demandé ;
+     * sinon « » (pas de filtre). Un rôle inconnu ou invisible ne filtre rien.
+     */
+    private String figurationFilter(UUID roleId, String userEmail) {
+        if (roleId == null) return "";
+        try {
+            com.castingai.entity.CastingRole r = castingRoleRepository.findById(roleId).orElse(null);
+            if (r == null || r.getImportance() != com.castingai.entity.CastingRole.Importance.FIGURATION) return "";
+            userRepository.findByEmail(userEmail).ifPresent(u -> accessService.requireVisible(u, r.getProject()));
+            return r.getFigurationType() == null ? "ANY" : r.getFigurationType();
+        } catch (com.castingai.exception.ResourceNotFoundException e) {
+            return "";
+        }
     }
 
     private static String nz(String s) {

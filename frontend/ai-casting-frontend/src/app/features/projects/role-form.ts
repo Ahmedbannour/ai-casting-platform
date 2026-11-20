@@ -29,6 +29,17 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
                   (click)="importance = i.value">{{ i.label }}</button>
         }
       </div></div>
+    @if (importance === 'FIGURATION') {
+      <div class="f"><span>Type de figuration</span>
+        <div class="chips" role="radiogroup" aria-label="Type de figuration">
+          @for (t of figurationTypes; track t.value) {
+            <button type="button" role="radio" [attr.aria-checked]="figurationType === t.value" [class.on]="figurationType === t.value"
+                    (click)="figurationType = t.value">{{ t.label }}</button>
+          }
+        </div>
+        <small class="hint-fig">Seuls les acteurs qui ont accepté ce type de figuration seront proposés.</small>
+      </div>
+    }
 
     <div class="row">
       <div class="f"><span>Genre</span>
@@ -102,6 +113,7 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
   </form>
   `,
   styles: [`
+    .hint-fig { display: block; margin-top: 6px; color: var(--text-muted); font-size: 12.5px; }
   :host { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; }
   .backdrop { position: absolute; inset: 0; background: rgba(10,10,12,.55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); animation: fade .2s both; }
   .panel { position: relative; width: min(620px, 100%); max-height: calc(100vh - 40px); overflow: auto; display: flex; flex-direction: column; gap: 14px;
@@ -158,6 +170,12 @@ export class RoleFormComponent implements OnInit {
 
   name = '';
   importance: Importance = 'SECONDAIRE';
+  /** T-165 · null = tout figurant. */
+  figurationType: string | null = null;
+  readonly figurationTypes = [
+    { value: null, label: 'Tout figurant' }, { value: 'EXTRA', label: 'Extra' },
+    { value: 'SILHOUETTE', label: 'Silhouette' }, { value: 'FIGURANT_SPECIAL', label: 'Figurant spécial' }
+  ];
   gender = '';
   minAge: number | null = null;
   maxAge: number | null = null;
@@ -172,7 +190,7 @@ export class RoleFormComponent implements OnInit {
   ngOnInit(): void {
     const r = this.role;
     if (!r) return;
-    this.name = r.name; this.importance = r.importance; this.gender = r.gender ?? '';
+    this.name = r.name; this.importance = r.importance; this.figurationType = r.figurationType ?? null; this.gender = r.gender ?? '';
     this.minAge = r.minAge; this.maxAge = r.maxAge;
     this.languages = new Set(r.languages); this.skills = new Set(r.skills);
     this.city = r.city ?? ''; this.shootStart = r.shootStart ?? ''; this.shootEnd = r.shootEnd ?? '';
@@ -208,6 +226,7 @@ export class RoleFormComponent implements OnInit {
     if (this.ageError() || f.invalid) { this.error.set('Corrigez les champs signalés en rouge.'); return; }
     const req: RoleRequest = {
       name: this.name.trim(), importance: this.importance, gender: this.gender || null,
+      figurationType: this.importance === 'FIGURATION' ? this.figurationType : null,
       minAge: this.num(this.minAge), maxAge: this.num(this.maxAge),
       languages: [...this.languages], skills: [...this.skills],
       city: this.city.trim() || null, shootStart: this.shootStart || null, shootEnd: this.shootEnd || null,

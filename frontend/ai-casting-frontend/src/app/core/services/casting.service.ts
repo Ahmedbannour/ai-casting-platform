@@ -23,6 +23,8 @@ export interface CastingRole {
   shootStart: string | null;
   shootEnd: string | null;
   importance: Importance;
+  /** T-165 · Rôle de figuration : type demandé ; null = tout figurant. */
+  figurationType: string | null;
   position: number;
   filled: boolean;
   shortlistCount: number;
@@ -44,6 +46,7 @@ export interface RoleRequest {
   shootStart?: string | null;
   shootEnd?: string | null;
   importance?: Importance;
+  figurationType?: string | null;
 }
 
 export interface ShortlistEntry {

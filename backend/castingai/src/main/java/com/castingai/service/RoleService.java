@@ -136,6 +136,9 @@ public class RoleService {
         r.setShootStart(req.shootStart());
         r.setShootEnd(req.shootEnd());
         r.setImportance(req.importance() == null ? CastingRole.Importance.SECONDAIRE : req.importance());
+        String ft = blank(req.figurationType());
+        if (ft != null && !java.util.List.of("EXTRA", "SILHOUETTE", "FIGURANT_SPECIAL").contains(ft)) throw new IllegalArgumentException("Type de figuration inconnu");
+        r.setFigurationType(r.getImportance() == CastingRole.Importance.FIGURATION ? ft : null);
     }
 
     private Map<UUID, Map<String, Long>> counts(List<UUID> roleIds) {
@@ -152,7 +155,7 @@ public class RoleService {
         long total = c.values().stream().mapToLong(Long::longValue).sum();
         return new RoleResponse(r.getId(), r.getProject().getId(), r.getProject().getTitle(), r.getName(),
                 r.getDescription(), r.getIntention(), r.getGender(), r.getMinAge(), r.getMaxAge(), split(r.getLanguages()),
-                split(r.getSkills()), r.getCity(), r.getShootStart(), r.getShootEnd(), r.getImportance(),
+                split(r.getSkills()), r.getCity(), r.getShootStart(), r.getShootEnd(), r.getImportance(), r.getFigurationType(),
                 r.getPosition(), r.isFilled(), total, c, intentionQuery(r));
     }
 

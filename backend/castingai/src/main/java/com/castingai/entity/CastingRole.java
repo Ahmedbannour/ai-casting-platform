@@ -57,6 +57,10 @@ public class CastingRole {
     @Column(length = 100)
     private String city;
 
+    /** T-165 · Pour un rôle de figuration : le type demandé (EXTRA, SILHOUETTE, FIGURANT_SPECIAL) ; null = tout figurant. */
+    @Column(name = "figuration_type", length = 20)
+    private String figurationType;
+
     @Column(name = "shoot_start")
     private LocalDate shootStart;
 
