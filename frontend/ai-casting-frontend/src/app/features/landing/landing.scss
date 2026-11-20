@@ -2,7 +2,7 @@
 :host {
   --ink: #1F2024; --ink-deep: #17181B; --panel: #26272C; --line: #3A3C44;
   --paper: #EEEEEA; --muted: #A4A6AD; --subtle: #767983;
-  --pencil: #F2C230; --pencil-hi: #FFD45A; --red: #E4685D;
+  --pencil: var(--crayon-400); --pencil-hi: var(--crayon-300); --red: var(--rouge-400);
   display: block; background: var(--ink); color: var(--paper);
   font-family: 'Archivo', system-ui, sans-serif; font-variation-settings: 'wdth' 100;
 }

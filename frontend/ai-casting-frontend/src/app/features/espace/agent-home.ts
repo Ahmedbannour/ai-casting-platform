@@ -188,7 +188,7 @@ interface Home { activeProjects: number; openRoles: number; filledRoles: number;
   .pill { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--accent-dim); white-space: nowrap; &.wait { background: var(--bg-hover); color: var(--text-muted); } }
   .wait li { grid-template-columns: auto 1fr auto; }
   .badge { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--bg-hover); color: var(--text-muted); &.aud { background: var(--accent); color: var(--on-accent); } }
-  .age { font-size: 12.5px; color: var(--text-muted); white-space: nowrap; &.old { color: var(--danger, #e4685d); font-weight: 600; } }
+  .age { font-size: 12.5px; color: var(--text-muted); white-space: nowrap; &.old { color: var(--danger); font-weight: 600; } }
   .more { margin-top: 6px; font-size: 13px; color: var(--text-muted); }
   .roles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
   .role { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: var(--radius-m); border: 1px solid var(--border); background: var(--bg-surface); }
@@ -200,11 +200,11 @@ interface Home { activeProjects: number; openRoles: number; filledRoles: number;
   .r-proj { font-size: 13px; color: var(--text-muted); }
   .bar { display: flex; gap: 2px; height: 8px; border-radius: 999px; overflow: hidden; margin-top: 4px; background: var(--bg-hover);
     i { display: block; min-width: 0; } .b1 { background: color-mix(in srgb, var(--accent) 35%, var(--bg-hover)); } .b2 { background: color-mix(in srgb, var(--accent) 65%, var(--bg-hover)); }
-    .b3 { background: var(--accent); } .b4 { background: var(--series-3, #3fb950); } .b0 { flex: 1; } }
+    .b3 { background: var(--accent); } .b4 { background: var(--success); } .b0 { flex: 1; } }
   .legend { font-size: 12px; color: var(--text-muted); }
   .r-act { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
   .answers li { grid-template-columns: 10px 1fr auto; }
-  .answers .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--series-3, #3fb950); }
+  .answers .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--success); }
   .answers li[data-s="DECLINEE"] .dot { background: var(--text-subtle); }
   time { font-size: 12px; color: var(--text-subtle); white-space: nowrap; }
   .empty { color: var(--text-muted); font-size: 14px; line-height: 1.55; }

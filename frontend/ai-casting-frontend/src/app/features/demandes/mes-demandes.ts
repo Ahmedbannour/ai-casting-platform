@@ -90,7 +90,7 @@ interface Step { key: string; who: string; what: string; }
     .empty h2 { margin: 0; font-size: 20px; }
     .empty p { margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.5; max-width: 62ch; }
     .muted { color: var(--text-muted); margin: 0; }
-    .err { color: #e5484d; margin: 0; }
+    .err { color: var(--danger); margin: 0; }
     .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .bar h2 { margin: 0; font-size: 18px; }
     .send { display: inline-flex; align-items: center; height: 40px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent);

@@ -453,7 +453,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .send { height: 40px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent); color: #111; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
     .ghost { height: 38px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text-primary); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
     .link { border: 0; background: none; padding: 4px; color: var(--accent-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-    .danger { color: #e5484d; }
+    .danger { color: var(--danger); }
     button:disabled { opacity: .45; cursor: not-allowed; }
     button:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; }
     .file { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 14px; }
@@ -472,12 +472,12 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .journal em { color: var(--text-muted); font-style: normal; }
     .muted, .hint { color: var(--text-muted); margin: 0; font-size: 13.5px; }
     .note { margin: 0; color: var(--text-muted); }
-    .ok { color: #30a46c; margin: 0; }
+    .ok { color: var(--success); margin: 0; }
     .canva { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); color: var(--text-primary); text-decoration: none; font-size: 14px; font-weight: 600; }
     .canva:hover { background: var(--bg-hover); }
-    .warn { padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, #e5484d 45%, transparent); color: var(--text-primary); }
+    .warn { padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent); color: var(--text-primary); }
     .answer { border-color: var(--accent); }
-    .danger-bg { background: #e5484d; color: #fff; }
+    .danger-bg { background: var(--danger); color: #fff; }
     .ai-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .ai h3 { margin: 4px 0 0; font-size: 14px; }
     .src { margin: 0; font-size: 12.5px; color: var(--text-muted); }
@@ -493,7 +493,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     a.send { display: inline-flex; align-items: center; text-decoration: none; }
     @media (max-width: 900px) { .three { grid-template-columns: 1fr 1fr; } }
     .pts { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.45; }
-    .err { color: #e5484d; margin: 0; }
+    .err { color: var(--danger); margin: 0; }
     @media (max-width: 900px) { .page { padding: 18px 14px 104px; } .two { grid-template-columns: 1fr; } .head h1 { font-size: 28px; } }
   `]
 })

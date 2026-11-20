@@ -7,24 +7,80 @@
  * Graphite chaud pour le fond, jaune crayon gras pour les décisions et les actions.
  */
 
-/* ── Thème sombre (par défaut) : la table lumineuse le soir ─────────── */
+/* ══ Palette AI Casting · une seule palette, deux modes ══════════════════════════
+ * Cinq gammes, du plus clair (50) au plus foncé (950). Les deux modes piochent dans les MÊMES
+ * gammes : seuls les crans changent. Ne jamais écrire une couleur en dur dans un écran :
+ * utiliser les jetons de sens ci-dessous (--bg-*, --text-*, --accent, --success, --danger…).
+ *   Graphite  neutres chauds : fonds, bordures, textes
+ *   Crayon    jaune crayon gras : actions, choix retenus, marque
+ *   Rouge     écarté, erreurs, suppressions
+ *   Vert      réussite, validé, en ligne
+ *   Bleu      information, lumière froide du fond, graphiques
+ */
 :root {
-  --bg-primary:    #1F2024;   /* graphite */
-  --bg-secondary:  #26272C;   /* panneau latéral */
-  --bg-surface:    #2E3036;   /* cartes, champs */
-  --bg-hover:      #383A41;
-  --border:        #3C3E46;
-  --text-primary:  #EEEEEA;
-  --text-muted:    #A4A6AD;
-  --text-subtle:   #6E717B;
-  --accent:        #F2C230;   /* crayon gras jaune */
-  --accent-hover:  #FFD45A;
-  --accent-dim:    rgba(242,194,48,0.14);
-  --on-accent:     #1F2024;   /* texte posé sur le jaune */
-  --accent-ink:    #F2C230;   /* jaune utilisé comme couleur de texte */
-  --keep:          #F2C230;   /* retenu */
-  --reject:        #E4685D;   /* écarté */
-  --danger:        #E4685D;
+  --graphite-0:   #FFFFFF;
+  --graphite-50:  #F5F4F0;
+  --graphite-100: #ECEBE6;
+  --graphite-150: #E3E1DB;
+  --graphite-200: #D3D1CA;
+  --graphite-300: #A9AAB0;
+  --graphite-400: #8E9099;
+  --graphite-500: #6E717B;
+  --graphite-600: #5A5D66;
+  --graphite-700: #3C3E46;
+  --graphite-750: #383A41;
+  --graphite-800: #2E3036;
+  --graphite-850: #26272C;
+  --graphite-900: #1F2024;
+  --graphite-950: #17181B;
+  --paper:        #EEEEEA;   /* texte clair sur graphite */
+
+  --crayon-50:  #FFF8E1;
+  --crayon-100: #FCECB3;
+  --crayon-200: #F8DC7A;
+  --crayon-300: #FFD45A;
+  --crayon-400: #F2C230;   /* le jaune de la marque */
+  --crayon-500: #E0A800;
+  --crayon-600: #B98A00;
+  --crayon-700: #8A5F00;
+  --crayon-800: #5E4100;
+
+  --rouge-300: #FF7F73;
+  --rouge-400: #E4685D;
+  --rouge-600: #C2453A;
+  --rouge-700: #962F27;
+
+  --vert-300: #6FD58A;
+  --vert-400: #3FB950;
+  --vert-600: #1F7A43;
+
+  --bleu-300: #8AB4F8;
+  --bleu-400: #6E84BE;
+  --bleu-500: #3987E5;
+  --bleu-600: #2A78D6;
+}
+
+/* ── Mode sombre (par défaut) : la table lumineuse le soir ─────────── */
+:root {
+  --bg-primary:    var(--graphite-900);
+  --bg-secondary:  var(--graphite-850);
+  --bg-surface:    var(--graphite-800);
+  --bg-hover:      var(--graphite-750);
+  --border:        var(--graphite-700);
+  --text-primary:  var(--paper);
+  --text-muted:    var(--graphite-300);
+  --text-subtle:   var(--graphite-500);
+  --accent:        var(--crayon-400);   /* boutons, onglet actif, pastilles */
+  --accent-hover:  var(--crayon-300);
+  --accent-dim:    color-mix(in srgb, var(--crayon-400) 14%, transparent);
+  --on-accent:     var(--graphite-900); /* texte posé sur le jaune */
+  --accent-ink:    var(--crayon-400);   /* jaune utilisé comme couleur de texte */
+  --keep:          var(--crayon-400);   /* retenu */
+  --reject:        var(--rouge-400);    /* écarté */
+  --danger:        var(--rouge-400);
+  --success:       var(--vert-400);
+  --info:          var(--bleu-300);
+  --warning:       var(--crayon-500);
   --shadow:        0 1px 2px rgba(0,0,0,0.35), 0 8px 24px rgba(0,0,0,0.18);
 
   --font:          'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -33,43 +89,46 @@
   --radius-m:      10px;
   --radius-l:      16px;
 
-  /* Verre dépoli et lumières du fond animé */
-  --glass:         rgba(46, 48, 54, 0.52);
-  --glass-strong:  rgba(36, 37, 42, 0.70);
+  /* Verre dépoli et lumières du fond animé (mêmes gammes) */
+  --glass:         color-mix(in srgb, var(--graphite-800) 52%, transparent);
+  --glass-strong:  color-mix(in srgb, var(--graphite-850) 70%, transparent);
   --blur:          blur(18px) saturate(140%);
-  --pool-warm:     rgba(242, 194, 48, 0.26);
-  --pool-cool:     rgba(110, 132, 190, 0.26);
-  --pool-red:      rgba(228, 104, 93, 0.16);
-  --lamp:          rgba(242, 194, 48, 0.12);
+  --pool-warm:     color-mix(in srgb, var(--crayon-400) 26%, transparent);
+  --pool-cool:     color-mix(in srgb, var(--bleu-400) 26%, transparent);
+  --pool-red:      color-mix(in srgb, var(--rouge-400) 16%, transparent);
+  --lamp:          color-mix(in srgb, var(--crayon-400) 12%, transparent);
   --mx: 50%;
   --my: 35%;
 }
 
-/* ── Thème clair : la table lumineuse en plein jour ─────────── */
+/* ── Mode clair : la table lumineuse en plein jour (mêmes gammes, crans inversés) ── */
 :root.light {
-  --bg-primary:    #F3F4F6;
-  --bg-secondary:  #E8EAEE;
-  --bg-surface:    #FFFFFF;
-  --bg-hover:      #DFE2E7;
-  --border:        #D0D4DB;
-  --text-primary:  #1B1C20;
-  --text-muted:    #575C66;
-  --text-subtle:   #8F95A0;
-  --accent:        #F2C230;   /* même jaune vif qu'en mode sombre pour les boutons, pastilles et repères */
-  --accent-hover:  #E3B21C;
-  --accent-dim:    rgba(242,194,48,0.24);
-  --on-accent:     #1F2024;   /* texte foncé posé sur le jaune */
-  --accent-ink:    #8A5F00;   /* jaune foncé pour les TEXTES (le jaune vif sur blanc serait illisible) */
-  --keep:          #D9A400;
-  --reject:        #C2453A;
-  --danger:        #C2453A;
-  --shadow:        0 1px 2px rgba(20,24,32,0.08), 0 8px 24px rgba(20,24,32,0.08);
-  --glass:         rgba(255, 255, 255, 0.58);
-  --glass-strong:  rgba(255, 255, 255, 0.72);
-  --pool-warm:     rgba(242, 194, 48, 0.22);
-  --pool-cool:     rgba(110, 140, 210, 0.20);
-  --pool-red:      rgba(228, 104, 93, 0.16);
-  --lamp:          rgba(214, 160, 20, 0.10);
+  --bg-primary:    var(--graphite-50);
+  --bg-secondary:  var(--graphite-100);
+  --bg-surface:    var(--graphite-0);
+  --bg-hover:      var(--graphite-150);
+  --border:        var(--graphite-200);
+  --text-primary:  var(--graphite-900);
+  --text-muted:    var(--graphite-600);
+  --text-subtle:   var(--graphite-400);
+  --accent:        var(--crayon-400);   /* même jaune vif qu'en mode sombre */
+  --accent-hover:  var(--crayon-500);
+  --accent-dim:    color-mix(in srgb, var(--crayon-400) 24%, transparent);
+  --on-accent:     var(--graphite-900);
+  --accent-ink:    var(--crayon-700);   /* jaune foncé pour les textes : lisible sur blanc */
+  --keep:          var(--crayon-500);
+  --reject:        var(--rouge-600);
+  --danger:        var(--rouge-600);
+  --success:       var(--vert-600);
+  --info:          var(--bleu-600);
+  --warning:       var(--crayon-700);
+  --shadow:        0 1px 2px rgba(31,32,36,0.08), 0 8px 24px rgba(31,32,36,0.08);
+  --glass:         color-mix(in srgb, var(--graphite-0) 62%, transparent);
+  --glass-strong:  color-mix(in srgb, var(--graphite-0) 76%, transparent);
+  --pool-warm:     color-mix(in srgb, var(--crayon-400) 24%, transparent);
+  --pool-cool:     color-mix(in srgb, var(--bleu-400) 20%, transparent);
+  --pool-red:      color-mix(in srgb, var(--rouge-400) 14%, transparent);
+  --lamp:          color-mix(in srgb, var(--crayon-500) 10%, transparent);
 }
 
 /* ── Base ─────────────────────────────────────────── */
@@ -216,5 +275,5 @@ app-main-layout .tabbar { transition: transform .28s cubic-bezier(.2,.8,.2,1), o
 body:has([aria-modal="true"]) app-main-layout .tabbar { transform: translateY(calc(100% + 24px)); opacity: 0; pointer-events: none; }
 
 /* ── Graphiques : palette catégorielle validée (contraste et daltonisme), une teinte par entité ── */
-:root { --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --chart-grid: rgba(255,255,255,.07); }
-:root.light { --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --chart-grid: rgba(20,24,32,.08); }
+:root { --series-1: var(--bleu-500); --series-2: #d95926; --series-3: #199e70; --chart-grid: color-mix(in srgb, var(--paper) 7%, transparent); }
+:root.light { --series-1: var(--bleu-600); --series-2: #eb6834; --series-3: #1baf7a; --chart-grid: color-mix(in srgb, var(--graphite-900) 8%, transparent); }

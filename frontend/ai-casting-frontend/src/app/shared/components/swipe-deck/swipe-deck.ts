@@ -195,7 +195,7 @@ const COACH_KEY = 'aic.swipe.coach';
   .score circle { fill: none; stroke-width: 3; }
   .score .trk { stroke: rgba(255,255,255,.18); }
   .score .val { stroke: #CFCBC2; stroke-linecap: round; }
-  .score.high .val { stroke: #F2C230; }
+  .score.high .val { stroke: var(--crayon-400); }
   .score b { font-size: 13px; color: #fff; font-weight: 800; }
 
   /* Infos posées sur la photo : la fiche garde toujours sa taille, le détail se déplie à l'intérieur */
@@ -240,8 +240,8 @@ const COACH_KEY = 'aic.swipe.coach';
 
   .stamp { position: absolute; top: 26px; z-index: 3; font-size: 30px; font-weight: 900; font-stretch: var(--narrow); padding: 2px 14px; border-radius: 8px;
     border: 4px solid; pointer-events: none; letter-spacing: .02em; }
-  .stamp.ok { left: 18px; color: #F2C230; border-color: #F2C230; transform: rotate(-12deg) scale(calc(.8 + .2 * var(--ok))); opacity: var(--ok); }
-  .stamp.ko { right: 18px; color: #FF7F73; border-color: #FF7F73; transform: rotate(12deg) scale(calc(.8 + .2 * var(--ko))); opacity: var(--ko); }
+  .stamp.ok { left: 18px; color: var(--crayon-400); border-color: var(--crayon-400); transform: rotate(-12deg) scale(calc(.8 + .2 * var(--ok))); opacity: var(--ok); }
+  .stamp.ko { right: 18px; color: var(--rouge-300); border-color: var(--rouge-300); transform: rotate(12deg) scale(calc(.8 + .2 * var(--ko))); opacity: var(--ko); }
 
   .coach { position: absolute; left: 0; right: 0; top: 42%; display: flex; justify-content: space-between; align-items: center; padding: 0 14px;
     z-index: 20; pointer-events: none; color: #fff; font-weight: 700; font-size: 13px; }

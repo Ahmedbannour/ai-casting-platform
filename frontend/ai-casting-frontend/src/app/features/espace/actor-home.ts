@@ -107,7 +107,7 @@ interface FeedEvent { at: number; icon: string; title: string; body: string; lin
   h1 { font-size: 40px; line-height: 1.05; margin-top: 2px; }
   .vis { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border);
     background: var(--glass); color: var(--text-primary); font-size: 13px; font-weight: 600; text-decoration: none;
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--series-3, #3fb950); box-shadow: 0 0 0 4px color-mix(in srgb, var(--series-3, #3fb950) 22%, transparent); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 22%, transparent); }
     &.pause .dot { background: var(--text-subtle); box-shadow: none; } &:hover { border-color: var(--accent); } }
   .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
   .tile { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; border-radius: var(--radius-l); border: 1px solid var(--border);
