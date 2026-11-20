@@ -161,7 +161,7 @@ import { ShareService, VOTE_LABEL, VoteRow } from '../../core/services/share.ser
   }
   `,
   styles: [`
-  :host { display: block; height: 100%; }
+  :host { display: block; flex: 1 0 auto; }  /* au moins la hauteur de l'écran, et grandit avec le contenu (le bas de page reste au-dessus du menu mobile) */
   .page { min-height: 100%; padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 16px; }
   .back { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px 0 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); color: var(--text-muted); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: color .15s, border-color .15s, background .15s; svg { transition: transform .2s cubic-bezier(.2,.8,.2,1); } &:hover { color: var(--text-primary); border-color: var(--accent); } &:hover svg { transform: translateX(-3px); } }
   .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap; padding: 22px;

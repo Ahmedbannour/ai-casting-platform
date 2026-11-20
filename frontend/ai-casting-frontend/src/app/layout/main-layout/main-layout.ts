@@ -13,9 +13,9 @@ import { EmailBannerComponent } from './email-banner';
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, SidebarComponent, NotificationBellComponent, EmailBannerComponent],
   styles: [`
-    :host { display: flex; height: 100vh; width: 100%; overflow: hidden; }
+    :host { display: flex; height: 100vh; height: 100dvh; width: 100%; overflow: hidden; }
     .content {
-      flex: 1; min-width: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column;
+      flex: 1; min-width: 0; height: 100vh; height: 100dvh; overflow-y: auto; display: flex; flex-direction: column;
       view-transition-name: page;  /* zone animée lors du changement de page */
       /* Les pages s'adaptent à la place réellement disponible (menu ouvert ou replié), pas à la fenêtre. */
       container-type: inline-size; container-name: page;
@@ -31,7 +31,11 @@ import { EmailBannerComponent } from './email-banner';
     @keyframes bannerIn { from { opacity: 0; transform: translateY(-6px); } }
     @media (max-width: 860px) { .contract-banner { margin: 12px 14px 0; } }
     @media (max-width: 860px) {
-      .content { padding-bottom: 76px; }
+      /* Sur téléphone, la hauteur suit l'écran réellement visible (100dvh, barres du navigateur exclues)
+         et le bas de chaque page reste au-dessus de la barre d'onglets : 62 px de barre + 12 px d'écart + une marge. */
+      /* Espace réservé en fin de page (un padding-bottom est ignoré par les colonnes flex qui défilent). */
+      .content { scroll-padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+      .content::after { content: ''; display: block; flex: none; height: calc(100px + env(safe-area-inset-bottom, 0px)); }
       /* T-132 · Barre du haut sur mobile : logo + cloche ; plus rien ne flotte au-dessus des pages */
       .m-top { display: flex; position: sticky; top: 0; z-index: 25; align-items: center; justify-content: space-between; gap: 10px;
         min-height: 54px; padding: 8px 14px; border-bottom: 1px solid var(--border);
@@ -39,7 +43,7 @@ import { EmailBannerComponent } from './email-banner';
       .m-top .m-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text-primary); font-weight: 700; font-size: 16px; }
       .m-bell { display: inline-flex !important; }
       .tabbar {
-        position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 20; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); grid-auto-flow: column;
+        position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 20; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); grid-auto-flow: column;
         height: 62px; padding: 6px; border-radius: 20px; border: 1px solid var(--border);
         background: var(--glass-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
         box-shadow: 0 16px 40px rgba(0,0,0,.35);

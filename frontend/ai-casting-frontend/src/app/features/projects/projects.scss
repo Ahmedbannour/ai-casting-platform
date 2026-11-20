@@ -1,4 +1,4 @@
-:host { display: block; height: 100%; }
+:host { display: block; flex: 1 0 auto; }  /* au moins la hauteur de l'écran, et grandit avec le contenu (le bas de page reste au-dessus du menu mobile) */
 .projects { min-height: 100%; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 18px; }
 
 .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
