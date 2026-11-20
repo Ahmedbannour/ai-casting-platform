@@ -1,4 +1,4 @@
-// Démo / tunnel : sert la version compilée d'AI Casting (rapide, compressée) et relaie /api vers le serveur Spring.
+// Démo / tunnel : sert la version compilée de Cercle (rapide, compressée) et relaie /api vers le serveur Spring.
 // node scripts/serveur-demo.js [port=4200]   — compiler avant : cd frontend/ai-casting-frontend && npx ng build
 const http = require('http'), fs = require('fs'), path = require('path'), zlib = require('zlib');
 const PORT = +(process.argv[2] || 4200);
@@ -8,7 +8,8 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
   '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
   '.webp': 'image/webp', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff', '.txt': 'text/plain; charset=utf-8',
   '.webmanifest': 'application/manifest+json', '.glb': 'model/gltf-binary', '.wasm': 'application/wasm', '.pbf': 'application/x-protobuf', '.ttf': 'font/ttf', '.gif': 'image/gif', '.mp4': 'video/mp4', '.webm': 'video/webm' };
-const INDEX = ['index.csr.html', 'index.html'].map(f => path.join(ROOT, f)).find(f => fs.existsSync(f));
+// Cherché à chaque demande : une compilation vide puis réécrit le dossier.
+const index = () => ['index.csr.html', 'index.html'].map(f => path.join(ROOT, f)).find(f => fs.existsSync(f));
 const cache = new Map();   // fichiers compressés en mémoire
 
 function relay(req, res, port) {
@@ -32,7 +33,10 @@ function send(req, res, file, immutable) {
   res.writeHead(200, h); res.end(req.method === 'HEAD' ? undefined : body);
 }
 
-http.createServer((req, res) => {
+// Une erreur (fichier effacé pendant une compilation…) ne doit jamais arrêter le serveur.
+process.on('uncaughtException', e => console.error('Erreur ignorée :', e.message));
+
+http.createServer((req, res) => { try {
   for (const [prefix, port] of PROXY) if (req.url === prefix || req.url.startsWith(prefix + '/')) return relay(req, res, port);
   let rel; try { rel = decodeURIComponent(req.url.split('?')[0]); } catch { res.writeHead(400); return res.end(); }
   const file = path.normalize(path.join(ROOT, rel));
@@ -40,5 +44,7 @@ http.createServer((req, res) => {
     return send(req, res, file, /[-.][A-Z0-9]{8,}\.(js|css)$/i.test(file) || /\/media\//.test(rel));
   }
   if (path.extname(rel)) { res.writeHead(404); return res.end(); }
-  send(req, res, INDEX, false);   // application à page unique : toute route renvoie l'index
-}).listen(PORT, () => console.log(`AI Casting (version compilée) sur http://localhost:${PORT}`));
+  const idx = index();
+  if (!idx) { res.writeHead(503, { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '5' }); return res.end('Compilation en cours, réessayez dans quelques secondes.'); }
+  send(req, res, idx, false);   // application à page unique : toute route renvoie l'index
+} catch (e) { if (!res.headersSent) res.writeHead(503, { 'Retry-After': '5' }); res.end(); } }).listen(PORT, () => console.log(`Cercle (version compilée) sur http://localhost:${PORT}`));
