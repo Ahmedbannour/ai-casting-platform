@@ -502,7 +502,8 @@ public class DemandeService {
             case V1_EN_COURS -> new String[]{ agence, "écrit la V1 (le concept)" };
             case V1_LIVREE -> r.getV1ValidatedAt() == null ? new String[]{ "La marque", "relit la V1 pour la valider ou demander une révision" }
                     : new String[]{ agence, "choisit la boîte de production" };
-            case V2_EN_COURS -> r.getExpectationsSentAt() == null ? new String[]{ prod, "recueille les attentes sur les profils, personnage par personnage" }
+            case V2_EN_COURS -> r.getDirector() == null ? new String[]{ prod, "recueille les attentes et écrit la V2 (pas de réalisateur rattaché)" }
+                    : r.getExpectationsSentAt() == null ? new String[]{ prod, "recueille les attentes sur les profils, personnage par personnage" }
                     : new String[]{ real, "écrit la V2 : scènes et fiches de rôle" };
             case V2_LIVREE, CASTING -> new String[]{ "Cercle", "propose des acteurs pour chaque rôle" };
             case PPM -> new String[]{ "Toute l'équipe", "valide le casting, les décors et les costumes" };
@@ -728,10 +729,15 @@ public class DemandeService {
 
     private AdRequest v2Editable(User me, UUID id) {
         AdRequest r = visible(me, id);
-        if (!isDirectorSide(me, r)) throw new ForbiddenException("Seuls le réalisateur et le 1er AD écrivent la V2");
+        if (!writesV2(me, r)) throw new ForbiddenException("Seuls le réalisateur et le 1er AD écrivent la V2 (ou la production, quand il n'y a pas de réalisateur)");
         if (r.getStatus() != AdRequest.Status.V2_EN_COURS) throw new IllegalArgumentException("La V2 n'est plus modifiable");
-        if (r.getExpectationsSentAt() == null) throw new IllegalArgumentException("La V2 s'écrit une fois les attentes de la production reçues");
+        if (r.getDirector() != null && r.getExpectationsSentAt() == null) throw new IllegalArgumentException("La V2 s'écrit une fois les attentes de la production reçues");
         return r;
+    }
+
+    /** Qui écrit la V2 : le réalisateur et le 1er AD ; sans réalisateur rattaché, la boîte de production elle-même. */
+    private boolean writesV2(User me, AdRequest r) {
+        return isDirectorSide(me, r) || (r.getDirector() == null && isProductionSide(me, r));
     }
 
     private AdVersion draftV2(AdRequest r, User me) {
@@ -745,7 +751,7 @@ public class DemandeService {
 
     /** Les scènes et fiches de rôle sont visibles du réalisateur et du 1er AD pendant l'écriture, de tous une fois la V2 publiée. */
     private boolean seesV2(User me, AdRequest r) {
-        return r.getV2PublishedAt() != null || isDirectorSide(me, r) || me.getRole() == Role.ADMIN;
+        return r.getV2PublishedAt() != null || writesV2(me, r) || me.getRole() == Role.ADMIN;
     }
 
     private void fillRole(AdRequest r, AdRole x, RoleSheetRequest q) {
@@ -925,7 +931,7 @@ public class DemandeService {
         List<VersionView> vs = versions.findByRequestIdOrderByCreatedAtAsc(r.getId()).stream()
                 // l'agence ne voit une version qu'une fois livrée
                 .filter(v -> v.getStatus() != AdVersion.Status.BROUILLON
-                        || (v.getKind() == AdVersion.Kind.V0 ? isBrandSide(me, r) : v.getKind() == AdVersion.Kind.V1 ? isAgencySide(me, r) : isDirectorSide(me, r)))
+                        || (v.getKind() == AdVersion.Kind.V0 ? isBrandSide(me, r) : v.getKind() == AdVersion.Kind.V1 ? isAgencySide(me, r) : writesV2(me, r)))
                 .map(v -> new VersionView(v.getId(), v.getKind(), v.getLabel(), v.getStatus(), v.getBody(), v.getFileName(), v.getFileType(),
                         v.getFileSize(), v.getAuthor() == null ? null : name(v.getAuthor()), v.getCreatedAt(), v.getDeliveredAt(),
                         v.getReviewComment(), v.getReviewedAt(), v.getLinkUrl())).toList();
@@ -946,7 +952,7 @@ public class DemandeService {
                         .map(c -> new CharacterView(c.getId(), c.getName(), c.getStory(), c.getBrandWish(), c.getAgencyWish(), c.getNotes())).toList(),
                 r.getDirector() == null ? null : name(r.getDirector()), r.getFirstAd() == null ? null : name(r.getFirstAd()),
                 r.getExpectationsSentAt(),
-                isDirectorSide(me, r) && r.getStatus() == AdRequest.Status.V2_EN_COURS && r.getExpectationsSentAt() != null,
+                writesV2(me, r) && r.getStatus() == AdRequest.Status.V2_EN_COURS && (r.getDirector() == null || r.getExpectationsSentAt() != null),
                 seesV2(me, r) ? scenes.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId()).stream()
                         .map(x -> new SceneView(x.getId(), x.getTitle(), x.getDescription())).toList() : List.of(),
                 seesV2(me, r) ? roleSheets.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId()).stream().map(this::roleView).toList() : List.of(),

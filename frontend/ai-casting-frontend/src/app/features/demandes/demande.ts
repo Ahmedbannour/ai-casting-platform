@@ -256,7 +256,8 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
         @if (x.canAttachTeam && !x.canEditExpectations) {
           <div class="card answer">
             <h2>Votre équipe</h2>
-            <p class="muted">Rattachez dès maintenant le réalisateur et le 1er AD : ils suivent la publicité et écriront la V2 dès que vous leur aurez transmis les attentes.</p>
+            <p class="muted">Rattachez dès maintenant le réalisateur et le 1er AD : ils suivent la publicité et écriront la V2 dès que vous leur aurez transmis les attentes.
+              Pas de réalisateur sur ce projet ? Laissez vide : vous écrirez la V2 vous-même et la publierez pour lancer le casting.</p>
             @if (directors().length) {
               <div class="two">
                 <label>Réalisateur<app-select name="tdirector" [options]="personOptions(directors(), null, 'Pas encore choisi')"
@@ -304,6 +305,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
               @else if (!editingId()) { <div class="row"><button type="button" class="ghost" (click)="newChar()">Ajouter un personnage</button></div> }
 
               <h3>Transmettre au réalisateur et au 1er AD</h3>
+              @if (!x.directorName) { <p class="hint">Facultatif : sans réalisateur, vous écrivez vous-même la V2 un peu plus bas.</p> }
               @if (directors().length) {
                 <div class="two">
                   <label>Réalisateur *<app-select name="director" [options]="personOptions(directors(), null)" placeholder="Choisissez le réalisateur"
@@ -320,6 +322,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
         @if (x.canEditV2) {
           <div class="card answer">
             <h2>Votre V2</h2>
+            @if (!x.directorName) { <p class="note">Aucun réalisateur n'est rattaché : la production écrit la V2 et lance le casting.</p> }
             <p class="muted">La version détaillée de la publicité : découpage en scènes et une fiche par rôle, avec votre intention. À la publication, les rôles sont créés au casting et les propositions d'acteurs commencent.</p>
             <label>Texte de la V2<textarea name="v2" [(ngModel)]="v2Text" rows="6" maxlength="20000" placeholder="Note d'intention, ton, rythme, durée…"></textarea></label>
             <label>Lien de la présentation Canva (facultatif)<input name="v2link" type="url" [(ngModel)]="v2Link" maxlength="500" placeholder="https://www.canva.com/design/…/view" inputmode="url"></label>

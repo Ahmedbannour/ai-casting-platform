@@ -354,6 +354,37 @@ class DemandeApiTest {
         assertThat(read(send("GET", "/api/me/notifications", director, null)).get("items").toString()).contains("Nouvelle publicité");
     }
 
+    /** Sans réalisateur ni 1er AD : la boîte de production écrit la V2 elle-même et la publie ; le casting est lancé. */
+    @Test
+    void sansRealisateurLaProductionEcritEtPublieLaV2() throws Exception {
+        String admin = login("ahmed@casting.com", "password123");
+        String brandOrg = org(admin, "Marque Nu", "MARQUE"), agOrg = org(admin, "Agence Xi", "AGENCE_MARKETING"), prodOrg = org(admin, "Prod Omicron", "BOITE_PROD");
+        String brand = account(admin, "solo.marque@exemple.tn", "MARQUE", brandOrg);
+        String agency = account(admin, "solo.agence@exemple.tn", "AGENCE_MARKETING", agOrg);
+        String prod = account(admin, "solo.prod@exemple.tn", "BOITE_PROD", prodOrg);
+        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Thé Solo\"}")).get("id").asString();
+        send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Une tasse de thé au souk.\"}");
+        send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}");
+        send("POST", "/api/demandes/" + id + "/accepter", agency, null);
+        send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Concept : le thé partagé.\"}");
+        send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null);
+        send("POST", "/api/demandes/" + id + "/v1/valider", brand, null);
+        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}").andExpect(status().isOk());
+
+        // Aucun réalisateur : la production a la main sur la V2, sans transmission d'attentes
+        JsonNode d = read(send("GET", "/api/demandes/" + id, prod, null));
+        assertThat(d.get("canEditV2").asBoolean()).isTrue();
+        assertThat(d.get("nowWhat").asString()).contains("écrit la V2");
+        send("PUT", "/api/demandes/" + id + "/v2", agency, "{\"body\":\"x\"}").andExpect(status().isForbidden());
+        send("PUT", "/api/demandes/" + id + "/v2", prod, "{\"body\":\"V2 : deux plans au souk, 20 secondes.\"}").andExpect(status().isOk());
+        send("POST", "/api/demandes/" + id + "/roles", prod, "{\"name\":\"Le vendeur de thé\",\"intention\":\"Un homme chaleureux qui offre le thé comme on offre son temps.\",\"importance\":\"PRINCIPAL\"}").andExpect(status().isOk());
+        JsonNode pub = read(send("POST", "/api/demandes/" + id + "/v2/publier", prod, null).andExpect(status().isOk()));
+        assertThat(pub.get("status").asString()).isEqualTo("CASTING");
+        String projectId = pub.get("projectId").asString();
+        JsonNode roles = read(send("GET", "/api/projects/" + projectId + "/roles", prod, null).andExpect(status().isOk()));
+        assertThat(roles.toString()).contains("Le vendeur de thé").contains("offre le thé");
+    }
+
     /** Sprint 4 · T-163 : le réalisateur écrit la V2 (scènes, fiches de rôle) et la publie : projet de casting et rôles créés. */
     @Test
     void leRealisateurPublieLaV2EtLesRolesSontCrees() throws Exception {
