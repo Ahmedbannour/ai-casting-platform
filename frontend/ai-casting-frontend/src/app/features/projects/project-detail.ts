@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Project, ProjectService, typeLabel } from '../../core/services/project.service';
 import { CastingRole, CastingService, criteria, importanceLabel } from '../../core/services/casting.service';
@@ -11,7 +12,7 @@ import { ProjectActivityComponent } from './project-activity';
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [RouterLink, ProjectFormComponent, RoleFormComponent, ProjectTeamComponent, ProjectActivityComponent],
+  imports: [RouterLink, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder, ProjectFormComponent, RoleFormComponent, ProjectTeamComponent, ProjectActivityComponent],
   template: `
   <div class="page">
     <a routerLink="/projects" class="back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg> Projets</a>
@@ -80,13 +81,16 @@ import { ProjectActivityComponent } from './project-activity';
           </div>
         }
 
-        <ol class="role-list">
+        @if (roles().length > 1) { <p class="drag-hint">Glissez un rôle par sa poignée pour changer l'ordre.</p> }
+        <ol class="role-list" cdkDropList [cdkDropListData]="roles()" (cdkDropListDropped)="drop($event)" cdkDropListLockAxis="y">
           @for (r of roles(); track r.id; let i = $index, last = $last, first = $first) {
-            <li class="role" [class.filled]="r.filled">
-              <div class="order">
-                <button type="button" [disabled]="first" (click)="move(i, -1)" [attr.aria-label]="'Monter ' + r.name">▲</button>
-                <button type="button" [disabled]="last" (click)="move(i, 1)" [attr.aria-label]="'Descendre ' + r.name">▼</button>
-              </div>
+            <li class="role" [class.filled]="r.filled" cdkDrag [cdkDragData]="r" cdkDragPreviewContainer="parent">
+              <div class="role-ph" *cdkDragPlaceholder></div>
+              <button type="button" class="grip" cdkDragHandle [attr.aria-label]="'Déplacer ' + r.name + ' (flèches haut et bas)'" [title]="'Glisser pour déplacer'"
+                      (keydown.arrowup)="first || move(i, -1); $event.preventDefault()" (keydown.arrowdown)="last || move(i, 1); $event.preventDefault()">
+                <span class="pos">{{ i + 1 }}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+              </button>
               <a class="role-main" [routerLink]="['/roles', r.id]">
                 <div class="role-top">
                   <span class="tag">{{ importanceLabel(r.importance) }}</span>
@@ -167,9 +171,24 @@ import { ProjectActivityComponent } from './project-activity';
   .role { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius-m); border: 1px solid var(--border);
     background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); transition: border-color .2s;
     &:hover { border-color: var(--accent); } &.filled { border-left: 3px solid var(--accent); } }
-  .order { display: flex; flex-direction: column; gap: 2px;
-    button { width: 26px; height: 22px; border: none; border-radius: 4px; background: transparent; color: var(--text-subtle); cursor: pointer; font-size: 10px;
-      &:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); } &:disabled { opacity: .25; cursor: default; } } }
+  .drag-hint { margin: -2px 0 10px; font-size: 13px; color: var(--text-subtle); }
+  /* Poignée : numéro d'ordre + six points ; tout le reste de la carte reste cliquable et défilable au doigt. */
+  .grip { flex: none; align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 40px; margin: -4px 0 -4px -4px;
+    border: none; border-radius: 10px; background: transparent; color: var(--text-subtle); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; transition: background .15s, color .15s;
+    svg { fill: currentColor; }
+    .pos { font-size: 12px; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    &:hover, &:focus-visible { background: var(--bg-hover); color: var(--accent-ink); outline: none; }
+    &:focus-visible { box-shadow: 0 0 0 3px var(--accent-dim); }
+    &:active { cursor: grabbing; } }
+  /* Pendant le glissement : les autres cartes s'écartent en douceur, la place d'arrivée est marquée. */
+  .role-list.cdk-drop-list-dragging { user-select: none; -webkit-user-select: none; }
+  .role-list.cdk-drop-list-dragging .role:not(.cdk-drag-placeholder) { transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+  .role-ph { min-height: 96px; border-radius: var(--radius-m); border: 2px dashed var(--accent); background: var(--accent-dim); }
+  .role.cdk-drag-placeholder { padding: 0; border: none; background: none; }
+  .role.cdk-drag-animating { transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+  .role.cdk-drag-preview { box-shadow: 0 22px 50px color-mix(in srgb, var(--graphite-950) 45%, transparent), 0 0 0 2px var(--accent);
+    transform-origin: center; rotate: -1.2deg; scale: 1.02; background: var(--bg-secondary); opacity: .97; }
+  .role.cdk-drag-preview .grip { color: var(--accent-ink); cursor: grabbing; }
   .role-main { flex: 1 1 240px; min-width: 0; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 3px; }
   .role-top { display: flex; gap: 6px; }
   .role-main h3 { font-size: 20px; font-stretch: var(--narrow); }
@@ -231,6 +250,16 @@ export class ProjectDetailComponent implements OnInit {
     [list[i], list[j]] = [list[j], list[i]];
     this.roles.set(list);                                    // affichage immédiat
     this.casting.reorder(this.project()!.id, list.map(r => r.id)).subscribe({ next: r => this.roles.set(r) });
+  }
+
+  /** Glisser-déposer : nouvel ordre affiché tout de suite, puis enregistré. */
+  drop(e: CdkDragDrop<CastingRole[]>): void {
+    if (e.previousIndex === e.currentIndex) return;
+    const list = [...this.roles()];
+    moveItemInArray(list, e.previousIndex, e.currentIndex);
+    this.roles.set(list);
+    navigator.vibrate?.(12);
+    this.casting.reorder(this.project()!.id, list.map(r => r.id)).subscribe({ next: r => this.roles.set(r), error: () => this.loadRoles(this.project()!.id) });
   }
 
   remove(r: CastingRole): void {

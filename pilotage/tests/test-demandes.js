@@ -38,7 +38,7 @@ async function login(b, email, pw) {
   await m.click('a.send'); await m.waitForURL(/demandes\/nouvelle/);
   await m.fill('input[name=title]', 'Recette Lancement printemps ' + stamp);
   await m.fill('input[name=product]', 'Jus d’orange');
-  await m.fill('textarea[name=objective]', 'Faire connaître la nouvelle bouteille');
+  await m.click('button.next'); await m.fill('textarea[name=objective]', 'Faire connaître la nouvelle bouteille');
   await m.click('button[type=submit]'); await m.waitForURL(u => /\/demandes\/[0-9a-f-]{36}$/.test(u.pathname), { timeout: 10000 });
   res.creee = await m.locator('.ok').innerText().catch(() => '');
   const id = m.url().split('/').pop();

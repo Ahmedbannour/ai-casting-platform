@@ -16,8 +16,11 @@ const j = async (url, opt = {}, tk) => { const r = await fetch(API + url, { ...o
   await p.click('button[type=submit]'); await p.waitForTimeout(300);
   res.erreursVides = await p.locator('.msg').count();
   await p.locator('.role', { hasText: 'Marque' }).click();
+  await p.click('button[type=submit]'); await p.waitForTimeout(300);   // étape 2 : vous
   await p.fill('input[name=org]', 'Recette Marque ' + stamp); await p.fill('input[name=city]', 'Tunis');
-  await p.fill('input[name=first]', 'Sana'); await p.fill('input[name=last]', 'Recette'); await p.fill('input[name=email]', email); await p.fill('input[name=pw]', pw);
+  await p.fill('input[name=first]', 'Sana'); await p.fill('input[name=last]', 'Recette');
+  await p.click('button[type=submit]'); await p.waitForTimeout(300);   // étape 3 : l'accès
+  await p.fill('input[name=email]', email); await p.fill('input[name=pw]', pw);
   await p.locator('.consent input').check();
   await p.screenshot({ path: path.join(__dirname, '..', 'nav', 'v2-inscription-pro.jpg'), type: 'jpeg', quality: 75, fullPage: true });
   await p.click('button[type=submit]'); await p.waitForTimeout(1500);

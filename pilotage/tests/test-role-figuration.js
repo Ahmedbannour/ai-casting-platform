@@ -27,6 +27,7 @@ const j = async (url, opt = {}, tk) => { const r = await fetch(API + url, { ...o
   res.typesProposes = await p.getByRole('radiogroup', { name: 'Type de figuration' }).getByRole('radio').allInnerTexts();
   await p.getByRole('radio', { name: 'Silhouette' }).click();
   await p.screenshot({ path: path.join(OUT, 'v2-role-figuration.jpg'), type: 'jpeg', quality: 75 });
+  await p.click('form.panel button.next'); await p.click('form.panel button.next');
   await p.getByRole('button', { name: 'Créer le rôle' }).click(); await p.waitForTimeout(1500);
   const roles = (await j(`/projects/${prj.id}/roles`, {}, adm)).b;
   res.roleEnregistre = roles.map(r => `${r.name} · ${r.importance} · ${r.figurationType}`);

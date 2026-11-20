@@ -30,7 +30,7 @@ const j = async (url, opt = {}, tk) => { const r = await fetch(API + url, { ...o
     await p.screenshot({ path: path.join(OUT, `champs-${T}-calendrier.png`) });
     await p.locator('.df-cal .day:not(.off):not(.out)').nth(10).click(); await p.waitForTimeout(300);
     out[T + '-date'] = await df.locator('input').inputValue();
-    await p.click('button[type=submit]'); await p.waitForURL(u => /\/demandes\/[0-9a-f-]{36}$/.test(u.pathname), { timeout: 10000 });
+    await p.click('button.next'); await p.click('button[type=submit]'); await p.waitForURL(u => /\/demandes\/[0-9a-f-]{36}$/.test(u.pathname), { timeout: 10000 });
     await p.waitForTimeout(800);
     const sel = p.locator('app-select[name=agency]'); await sel.scrollIntoViewIfNeeded();
     await sel.locator('button.sf').click(); await p.waitForTimeout(400);

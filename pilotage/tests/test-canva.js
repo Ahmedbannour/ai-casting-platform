@@ -34,7 +34,7 @@ async function login(b, email, pw) {
   const m = await login(b, acc.MARQUE.email, acc.MARQUE.pw);
   await m.goto(BASE + '/demandes/nouvelle'); await m.waitForTimeout(800);
   await m.fill('input[name=title]', 'Recette Pub Canva ' + stamp);
-  await m.click('button[type=submit]'); await m.waitForURL(u => /\/demandes\/[0-9a-f-]{36}$/.test(u.pathname), { timeout: 10000 });
+  await m.click('button.next'); await m.click('button[type=submit]'); await m.waitForURL(u => /\/demandes\/[0-9a-f-]{36}$/.test(u.pathname), { timeout: 10000 });
   const id = m.url().split('/').pop();
   res.champLien = await m.locator('input[name=v0link]').count();
   await m.fill('input[name=v0link]', 'http://pas-https.example');

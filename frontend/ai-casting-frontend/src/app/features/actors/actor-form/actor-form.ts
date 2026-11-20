@@ -14,7 +14,7 @@ import { MyDataComponent } from './my-data';
 import { ProfileScoreComponent } from './profile-score';
 import { RULES, email, errorMessage, intBetween, noOverlap, notBlank, periodOrder, personName, phone, uniqueNames } from '../../../shared/forms/rules';
 
-type SectionId = 'identite' | 'physique' | 'talents' | 'parcours' | 'dispos';
+type SectionId = 'identite' | 'contact' | 'physique' | 'talents' | 'parcours' | 'dispos';
 
 /** Création / modification d'un acteur, avec contrôles en direct alignés sur ceux du serveur. */
 @Component({
@@ -48,7 +48,7 @@ export class ActorFormComponent implements OnInit {
   readonly submitted = signal(false);
   readonly active = signal<SectionId>('identite');
   /** Nombre d'erreurs visibles par section, recalculé à chaque saisie. */
-  readonly sectionErrors = signal<Record<SectionId, number>>({ identite: 0, physique: 0, talents: 0, parcours: 0, dispos: 0 });
+  readonly sectionErrors = signal<Record<SectionId, number>>({ identite: 0, contact: 0, physique: 0, talents: 0, parcours: 0, dispos: 0 });
 
   readonly R = RULES;
   readonly today = todayIso();
@@ -56,6 +56,7 @@ export class ActorFormComponent implements OnInit {
   readonly frDate = frDate;
   readonly sections: { id: SectionId; label: string }[] = [
     { id: 'identite', label: 'Identité' },
+    { id: 'contact', label: 'Contact' },
     { id: 'physique', label: 'Physique' },
     { id: 'talents', label: 'Langues et talents' },
     { id: 'parcours', label: 'Parcours' },
@@ -288,7 +289,8 @@ export class ActorFormComponent implements OnInit {
       arr.controls.reduce((n, g) => n + count(Object.values((g as FormGroup).controls)) + (g.errors && (g.touched || this.submitted()) ? 1 : 0), 0) + extra;
     const dupes = (arr: FormArray) => (arr.errors?.['duplicate']?.length ?? 0);
     this.sectionErrors.set({
-      identite: count(['firstName', 'lastName', 'birthDate', 'gender', 'city', 'country', 'phone', 'email'].map(k => f.get(k))),
+      identite: count(['firstName', 'lastName', 'birthDate', 'gender'].map(k => f.get(k))),
+      contact: count(['city', 'country', 'phone', 'email'].map(k => f.get(k))),
       physique: count(['height', 'weight', 'eyeColor', 'hairColor', 'bio'].map(k => f.get(k))),
       talents: rowsInvalid(this.languages, dupes(this.languages)) + rowsInvalid(this.skills, dupes(this.skills)),
       parcours: rowsInvalid(this.experiences, (f.errors?.['yearBeforeBirth']?.length ?? 0)),
@@ -302,16 +304,22 @@ export class ActorFormComponent implements OnInit {
   private follow = true;
   private frame = 0;
 
+  /* Formulaire en étapes (5 questions au plus par étape) : une rubrique à la fois. */
+  stepIndex(): number { return this.sections.findIndex(s => s.id === this.active()); }
+  stepBy(d: number): void {
+    const i = Math.min(this.sections.length - 1, Math.max(0, this.stepIndex() + d));
+    this.scrollTo(this.sections[i].id);
+  }
+
   scrollTo(id: SectionId): void {
     this.active.set(id);
     this.follow = false;
-    this.host.nativeElement.querySelector(`#${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Haut de l'étape visible (sous le sommaire collé).
+    setTimeout(() => this.host.nativeElement.querySelector('.layout')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
-  onScroll(): void {
-    if (!this.follow || this.frame) return;
-    this.frame = requestAnimationFrame(() => { this.frame = 0; if (this.follow) this.spy(); });
-  }
+  /** Une seule rubrique visible à la fois : plus de suivi du sommaire au défilement. */
+  onScroll(): void { /* rien */ }
 
   private spy(): void {
     // Section active = la dernière dont le haut est passé sous l'en-tête.
@@ -332,6 +340,8 @@ export class ActorFormComponent implements OnInit {
     this.refreshCounts();
     if (this.form.invalid) {
       this.error.set('');
+      const bad = this.sections.find(sec => this.sectionErrors()[sec.id] > 0);
+      if (bad) this.active.set(bad.id);
       setTimeout(() => {
         const first = this.host.nativeElement.querySelector('.invalid, [aria-invalid="true"], .field-msg') as HTMLElement | null;
         first?.scrollIntoView({ behavior: 'smooth', block: 'center' });

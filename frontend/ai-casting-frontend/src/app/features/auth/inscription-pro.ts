@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { FormStepsComponent } from '../../shared/components/form-steps/form-steps';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -11,7 +12,7 @@ type ProRole = 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'BOITE_PROD';
 @Component({
   selector: 'app-inscription-pro',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, FormStepsComponent],
   template: `
   <main class="pro">
     <a class="logo" routerLink="/" aria-label="Cercle, accueil"><span class="brand-mark" aria-hidden="true"></span><span class="wordmark">Cercle</span></a>
@@ -27,6 +28,10 @@ type ProRole = 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'BOITE_PROD';
         <h1>Créer un compte professionnel</h1>
         <p class="lead">Marques, agences, réalisateurs et boîtes de production. L'équipe Cercle valide chaque compte avant son ouverture.</p>
 
+        <app-form-steps [labels]="stepLabels" [current]="step()" [reached]="reached()" (go)="goTo($event)" />
+
+        @if (step() === 0) {
+        <div class="form-step" [class.back]="back()">
         <fieldset class="roles">
           <legend>Votre métier</legend>
           @for (r of roles; track r.value) {
@@ -37,7 +42,9 @@ type ProRole = 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'BOITE_PROD';
           }
           @if (err('role'); as m) { <small class="msg">{{ m }}</small> }
         </fieldset>
-
+        </div>
+        } @else if (step() === 1) {
+        <div class="form-step" [class.back]="back()">
         <div class="grid">
           <label class="f"><span>Prénom</span><input name="first" [(ngModel)]="firstName" maxlength="80" autocomplete="given-name" />
             @if (err('firstName'); as m) { <small class="msg">{{ m }}</small> }</label>
@@ -47,6 +54,11 @@ type ProRole = 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'BOITE_PROD';
             <input name="org" [(ngModel)]="organisation" maxlength="160" [placeholder]="role === 'REALISATEUR' ? 'Vide si vous êtes indépendant' : 'Nom de l’organisation'" />
             @if (err('organisation'); as m) { <small class="msg">{{ m }}</small> }</label>
           <label class="f"><span>Ville</span><input name="city" [(ngModel)]="city" maxlength="100" placeholder="Tunis" /></label>
+        </div>
+        </div>
+        } @else {
+        <div class="form-step" [class.back]="back()">
+        <div class="grid">
           <label class="f wide"><span>E-mail professionnel</span><input name="email" type="email" [(ngModel)]="email" autocomplete="email" inputmode="email" />
             @if (err('email'); as m) { <small class="msg">{{ m }}</small> }</label>
           <label class="f wide"><span>Mot de passe</span><input name="pw" type="password" [(ngModel)]="password" autocomplete="new-password" />
@@ -56,9 +68,14 @@ type ProRole = 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'BOITE_PROD';
         <label class="consent"><input type="checkbox" name="terms" [(ngModel)]="accept" />
           <span>J'accepte les <a routerLink="/legal/conditions" target="_blank">conditions d'utilisation</a> et la <a routerLink="/legal/confidentialite" target="_blank">politique de confidentialité</a>.</span></label>
         @if (err('accept'); as m) { <small class="msg">{{ m }}</small> }
+        </div>
+        }
 
         @if (error()) { <p class="msg big" role="alert">{{ error() }}</p> }
-        <button type="submit" class="send" [disabled]="busy()">{{ busy() ? 'Envoi…' : 'Envoyer ma demande' }}</button>
+        <div class="nav">
+          @if (step() > 0) { <button type="button" class="prev" (click)="goTo(step() - 1)">Précédent</button> }
+          <button type="submit" class="send" [disabled]="busy()">{{ step() < 2 ? 'Suivant' : busy() ? 'Envoi…' : 'Envoyer ma demande' }}</button>
+        </div>
         <p class="small">Déjà un compte ? <a routerLink="/auth/login">Se connecter</a> · Acteur ou actrice ? <a routerLink="/auth/inscription">Créer votre profil</a></p>
       </form>
     }
@@ -71,6 +88,8 @@ type ProRole = 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'BOITE_PROD';
     h1 { margin: 0; font-size: 30px; line-height: 1.1; }
     .lead, .small { margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.5; }
     .roles { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .nav { display: flex; justify-content: flex-end; gap: 10px; } .nav .prev { margin-right: auto; height: 46px; padding: 0 18px; border-radius: 12px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-primary); font: inherit; font-weight: 600; cursor: pointer; }
     legend { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted); }
     .role { display: flex; gap: 10px; padding: 12px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; transition: border-color .15s, background .15s; }
     .role.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
@@ -81,7 +100,7 @@ type ProRole = 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'BOITE_PROD';
     .f input { height: 44px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-surface, transparent); color: var(--text-primary); padding: 0 12px; font: inherit; font-weight: 400; font-size: 14px; }
     .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--text-muted); } .consent input { margin-top: 2px; accent-color: var(--accent); }
     .msg { color: var(--danger); font-size: 12.5px; font-weight: 500; } .msg.big { font-size: 14px; margin: 0; }
-    .send { align-self: flex-start; display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 12px; border: 0; background: var(--accent); color: #111;
+    .send { align-self: flex-start; display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 12px; border: 0; background: var(--accent); color: var(--on-accent);
       font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none; }
     .send:disabled { opacity: .6; cursor: progress; }
     a { color: var(--accent-ink); }
@@ -121,9 +140,26 @@ export class InscriptionProComponent {
     return '';
   }
 
+  /* Trois étapes : le métier, la personne, l'accès (5 questions au plus par étape). */
+  readonly stepLabels = ['Votre métier', 'Vous', 'Votre accès'];
+  private readonly stepFields = [['role'], ['firstName', 'lastName', 'organisation'], ['email', 'password', 'accept']];
+  readonly step = signal(0);
+  readonly reached = signal(0);
+  readonly back = signal(false);
+  private stepOk(i: number): boolean { const t = this.tried(); this.tried.set(true); const ok = !this.stepFields[i].some(f => this.err(f)); this.tried.set(t); return ok; }
+  goTo(i: number): void {
+    if (i > this.step()) {
+      for (let k = this.step(); k < i; k++) if (!this.stepOk(k)) { this.tried.set(true); this.step.set(k); return; }
+    }
+    this.back.set(i < this.step()); this.tried.set(false); this.error.set('');
+    this.step.set(i); this.reached.update(r => Math.max(r, i));
+  }
+
   submit(): void {
+    if (this.step() < 2) { this.goTo(this.step() + 1); return; }
     this.tried.set(true); this.error.set('');
-    if (['role', 'organisation', 'firstName', 'lastName', 'email', 'password', 'accept'].some(f => this.err(f))) return;
+    const bad = this.stepFields.findIndex((_, i) => !this.stepOk(i));
+    if (bad >= 0) { this.step.set(bad); return; }
     this.busy.set(true);
     this.auth.registerPro({ role: this.role, firstName: this.firstName.trim(), lastName: this.lastName.trim(), email: this.email.trim(),
       password: this.password, organisation: this.organisation.trim() || null, city: this.city.trim() || null, acceptTerms: this.accept })

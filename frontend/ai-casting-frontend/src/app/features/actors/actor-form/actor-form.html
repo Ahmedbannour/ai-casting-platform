@@ -23,20 +23,21 @@
     <div class="skel"></div>
   } @else {
   <div class="layout">
-    <div class="toc-wrap"><nav class="toc" aria-label="Sections du formulaire">
+    <div class="toc-wrap"><nav class="toc" aria-label="Étapes du formulaire">
       <span class="ind" aria-hidden="true"></span>
       @for (s of sections; track s.id) {
-        <button type="button" [class.on]="active() === s.id" (click)="scrollTo(s.id)" [attr.aria-current]="active() === s.id ? 'true' : null">
-          {{ s.label }}
+        <button type="button" [class.on]="active() === s.id" (click)="scrollTo(s.id)" [attr.aria-current]="active() === s.id ? 'step' : null">
+          <span class="num" aria-hidden="true">{{ $index + 1 }}</span><span class="sl">{{ s.label }}</span>
           @if (sectionErrors()[s.id]; as n) { <span class="bad" [attr.aria-label]="n + ' erreur' + (n > 1 ? 's' : '')">{{ n }}</span> }
         </button>
       }
     </nav></div>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="sections">
+      <p class="step-count" aria-live="polite">Étape {{ stepIndex() + 1 }} sur {{ sections.length }} · <b>{{ sections[stepIndex()].label }}</b></p>
 
       <!-- Identité -->
-      <section id="identite" class="card">
+      <section id="identite" class="card" [class.step-off]="active() !== 'identite'">
         <h2>Identité</h2>
         <div class="grid g2">
           <div class="f" [class.invalid]="show(form.get('firstName'))">
@@ -67,6 +68,13 @@
               }
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- Contact -->
+      <section id="contact" class="card" [class.step-off]="active() !== 'contact'">
+        <h2>Contact</h2>
+        <div class="grid g2">
           <div class="f" [class.invalid]="show(form.get('city'))">
             <label for="a-city">Ville</label>
             <input id="a-city" formControlName="city" autocomplete="address-level2" placeholder="Paris" />
@@ -96,7 +104,7 @@
       </section>
 
       <!-- Physique -->
-      <section id="physique" class="card">
+      <section id="physique" class="card" [class.step-off]="active() !== 'physique'">
         <h2>Physique</h2>
         <div class="grid g4">
           <div class="f" [class.invalid]="show(form.get('height'))">
@@ -129,7 +137,7 @@
       </section>
 
       <!-- Langues et talents -->
-      <section id="talents" class="card">
+      <section id="talents" class="card" [class.step-off]="active() !== 'talents'">
         <h2>Langues et talents</h2>
         <div class="grid g2 top">
           <div class="list langs" formArrayName="languages">
@@ -169,7 +177,7 @@
       </section>
 
       <!-- Parcours -->
-      <section id="parcours" class="card" formArrayName="experiences">
+      <section id="parcours" class="card" [class.step-off]="active() !== 'parcours'" formArrayName="experiences">
         <div class="list-head"><h2>Parcours</h2>
           <button type="button" class="add" (click)="addExperience()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Expérience</button></div>
         @for (e of experiences.controls; track e; let i = $index) {
@@ -207,7 +215,7 @@
       </section>
 
       <!-- Disponibilités -->
-      <section id="dispos" class="card" formArrayName="availabilities">
+      <section id="dispos" class="card" [class.step-off]="active() !== 'dispos'" formArrayName="availabilities">
         <div class="list-head"><h2>Disponibilités</h2>
           <button type="button" class="add" (click)="addAvailability()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Période</button></div>
         <app-figuration-picker [value]="form.get('figuration')?.value" (valueChange)="setFiguration($event)"
@@ -248,6 +256,8 @@
           @else if (form.dirty) { <span class="field-hint">Modifications non enregistrées</span> }
         </div>
         <button type="button" class="btn-ghost" (click)="cancel()" [disabled]="self && !form.dirty">{{ self ? 'Annuler les modifications' : 'Annuler' }}</button>
+        @if (stepIndex() > 0) { <button type="button" class="btn-ghost step-prev" (click)="stepBy(-1)">Précédent</button> }
+        @if (stepIndex() < sections.length - 1) { <button type="button" class="btn-ghost step-next" (click)="stepBy(1)">Suivant</button> }
         <button type="submit" class="btn-primary" [disabled]="loading()">
           {{ loading() ? 'Enregistrement…' : (isEdit() ? 'Enregistrer' : "Créer l'acteur") }}
         </button>

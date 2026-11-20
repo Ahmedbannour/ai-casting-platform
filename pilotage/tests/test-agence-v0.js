@@ -33,7 +33,7 @@ async function login(b, a) {
   const m = await login(b, acc.M);
   await m.goto(BASE + '/demandes/nouvelle'); await m.waitForTimeout(800);
   await m.fill('input[name=title]', 'Recette Huile du Sahel ' + st); await m.fill('input[name=product]', 'Huile d’olive vierge extra');
-  await m.fill('textarea[name=objective]', 'Faire connaître la nouvelle marque');
+  await m.click('button.next'); await m.fill('textarea[name=objective]', 'Faire connaître la nouvelle marque');
   await m.click('button[type=submit]'); await m.waitForURL(u => /\/demandes\/[0-9a-f-]{36}$/.test(u.pathname), { timeout: 10000 });
   const id = m.url().split('/').pop();
   await m.fill('textarea[name=v0]', 'Un grand-père récolte les olives avec sa petite-fille au lever du soleil, dans les collines du Sahel.');

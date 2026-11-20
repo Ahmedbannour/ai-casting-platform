@@ -256,6 +256,13 @@ app-main-layout .content > router-outlet + * { flex: 1 0 auto; }
   to   { opacity: 1; transform: none; }
 }
 
+/* Formulaires en étapes : chaque étape arrive en glissant (de la droite en avançant, de la gauche en revenant). */
+.form-step { display: flex; flex-direction: column; gap: 14px; animation: stepIn .3s cubic-bezier(.2,.8,.2,1) both; }
+.form-step.back { animation-name: stepBack; }
+@keyframes stepIn { from { opacity: 0; transform: translateX(18px); } }
+@keyframes stepBack { from { opacity: 0; transform: translateX(-18px); } }
+@media (prefers-reduced-motion: reduce) { .form-step { animation: none; } }
+
 /* Texte lu par les lecteurs d'écran uniquement */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 

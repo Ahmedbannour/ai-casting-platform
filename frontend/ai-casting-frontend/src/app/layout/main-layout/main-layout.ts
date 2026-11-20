@@ -2,6 +2,7 @@ import { NotificationBellComponent } from '../notification-bell/notification-bel
 import { Component, DestroyRef, ElementRef, NgZone, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { CdkScrollable } from '@angular/cdk/scrolling';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { NavStateService } from '../nav-state.service';
 import { MeService } from '../../core/services/me.service';
@@ -12,7 +13,7 @@ import { EmailBannerComponent } from './email-banner';
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, SidebarComponent, NotificationBellComponent, EmailBannerComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CdkScrollable, SidebarComponent, NotificationBellComponent, EmailBannerComponent],
   styles: [`
     :host { display: flex; height: 100vh; height: 100dvh; width: 100%; overflow: hidden; }
     .content {
@@ -93,7 +94,7 @@ import { EmailBannerComponent } from './email-banner';
   `],
   template: `
     <app-sidebar />
-    <div #content class="content">
+    <div #content class="content" cdkScrollable>
       <header class="m-top">
         <a class="m-logo" [routerLink]="role() === 'ACTEUR' ? '/mon-profil' : role() === 'MARQUE' || role() === 'AGENCE_MARKETING' ? '/mes-demandes' : '/chat'" aria-label="Cercle, accueil"><span class="brand-mark" aria-hidden="true"></span><span class="wordmark">Cercle</span></a>
         <app-notification-bell class="m-bell" />

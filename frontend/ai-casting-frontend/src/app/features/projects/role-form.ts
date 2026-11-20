@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field';
+import { FormStepsComponent } from '../../shared/components/form-steps/form-steps';
 import { frDate } from '../../shared/forms/dates';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } from '../../core/services/casting.service';
@@ -9,12 +10,16 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
 @Component({
   selector: 'app-role-form',
   standalone: true,
-  imports: [FormsModule, DateFieldComponent],
+  imports: [FormsModule, DateFieldComponent, FormStepsComponent],
   template: `
   <div class="backdrop" (click)="cancel.emit()"></div>
-  <form class="panel" #f="ngForm" novalidate (ngSubmit)="submit(f)" role="dialog" aria-modal="true" (keydown.escape)="cancel.emit()"
+  <form class="panel" #f="ngForm" novalidate (ngSubmit)="submit(f)" (input)="error() && error.set('')" role="dialog" aria-modal="true" (keydown.escape)="cancel.emit()"
         [attr.aria-label]="role ? 'Modifier le rôle' : 'Nouveau rôle'">
     <h2>{{ role ? 'Modifier le rôle' : 'Nouveau rôle' }}</h2>
+    <app-form-steps [labels]="stepLabels" [current]="step()" [reached]="reached()" (go)="goTo($event)" />
+
+    @if (step() === 0) {
+    <div class="form-step" [class.back]="back()">
 
     <div class="f"><label for="r-name">Nom du rôle</label>
       <input id="r-name" name="name" [(ngModel)]="name" #n="ngModel" required maxlength="120" placeholder="Léa, avocate bilingue" autofocus
@@ -41,6 +46,19 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
       </div>
     }
 
+    <label class="f intention"><span>Intention du réalisateur <em>conseillé</em></span>
+      <textarea name="intention" rows="4" maxlength="4000" [(ngModel)]="intention"
+        placeholder="Qui est le personnage, ce qu’il doit dégager, le ton et le jeu attendus. Ex. : une avocate de 30 ans, rigoureuse, un humour pince-sans-rire qui désamorce les scènes tendues."></textarea>
+      <small class="field-hint">L’IA part de cette intention pour proposer les acteurs, et dit pour chacun ce qui y répond.</small></label>
+
+    <label class="f"><span>Description <em>facultatif</em></span>
+      <textarea name="desc" rows="3" maxlength="2000" [(ngModel)]="description" placeholder="Avocate pénaliste, rigoureuse, un humour pince-sans-rire."></textarea></label>
+
+    </div>
+    }
+
+    @if (step() === 1) {
+    <div class="form-step" [class.back]="back()">
     <div class="row">
       <div class="f"><span>Genre</span>
         <div class="chips" role="radiogroup" aria-label="Genre">
@@ -76,6 +94,11 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
         }
       </div></div>
 
+    </div>
+    }
+
+    @if (step() === 2) {
+    <div class="form-step" [class.back]="back()">
     <div class="f"><label for="r-city">Ville de tournage</label><input id="r-city" name="city" [(ngModel)]="city" maxlength="80" placeholder="Paris" /></div>
 
     <div class="row">
@@ -96,19 +119,17 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
       <p class="field-hint period">Période du projet : {{ projectStart ? 'du ' + frDate(projectStart) : '' }} {{ projectEnd ? 'au ' + frDate(projectEnd) : '' }}</p>
     }
 
-    <label class="f intention"><span>Intention du réalisateur <em>conseillé</em></span>
-      <textarea name="intention" rows="4" maxlength="4000" [(ngModel)]="intention"
-        placeholder="Qui est le personnage, ce qu’il doit dégager, le ton et le jeu attendus. Ex. : une avocate de 30 ans, rigoureuse, un humour pince-sans-rire qui désamorce les scènes tendues."></textarea>
-      <small class="field-hint">L’IA part de cette intention pour proposer les acteurs, et dit pour chacun ce qui y répond.</small></label>
-
-    <label class="f"><span>Description <em>facultatif</em></span>
-      <textarea name="desc" rows="3" maxlength="2000" [(ngModel)]="description" placeholder="Avocate pénaliste, rigoureuse, un humour pince-sans-rire."></textarea></label>
+    </div>
+    }
 
     @if (error()) { <p class="err" role="alert">{{ error() }}</p> }
 
     <div class="actions">
-      <button type="button" class="ghost" (click)="cancel.emit()">Annuler</button>
-      <button type="submit" class="primary" [disabled]="saving()">{{ saving() ? 'Enregistrement…' : (role ? 'Enregistrer' : 'Créer le rôle') }}</button>
+      @if (step() === 0) { <button type="button" class="ghost" (click)="cancel.emit()">Annuler</button> }
+      @else { <button type="button" class="ghost" (click)="prev()">Précédent</button> }
+      @if (role && !isLast()) { <button type="button" class="ghost save-now" (click)="submit(f, true)" [disabled]="saving()">Enregistrer</button> }
+      @if (!isLast()) { <button type="submit" class="primary next">Suivant</button> }
+      @else { <button type="submit" class="primary" [disabled]="saving()">{{ saving() ? 'Enregistrement…' : (role ? 'Enregistrer' : 'Créer le rôle') }}</button> }
     </div>
   </form>
   `,
@@ -139,6 +160,7 @@ import { CastingRole, CastingService, IMPORTANCES, Importance, RoleRequest } fro
   .chips button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
   .err { color: var(--danger); font-size: 13.5px; }
   .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+  .actions .ghost:first-child { margin-right: auto; }
   .actions button { height: 40px; padding: 0 16px; border-radius: var(--radius-s); font-size: 14px; font-weight: 600; cursor: pointer; }
   .ghost { border: 1px solid var(--border); background: transparent; color: var(--text-primary); }
   .primary { border: none; background: var(--accent); color: var(--on-accent); }
@@ -170,6 +192,32 @@ export class RoleFormComponent implements OnInit {
   readonly error = signal('');
   readonly tried = signal(false);
   readonly frDate = frDate;
+
+  /* Étapes : 5 questions au plus par étape. */
+  readonly stepLabels = ['Le rôle', 'Le profil', 'Le tournage'];
+  readonly step = signal(0);
+  readonly reached = signal(0);
+  readonly back = signal(false);
+  isLast(): boolean { return this.step() === this.stepLabels.length - 1; }
+  /** Ce qui bloque l'étape en cours (null : on peut avancer). */
+  private stepError(i: number): string | null {
+    if (i === 0 && !this.name.trim()) return 'Donnez un nom au rôle.';
+    if (i === 1 && this.ageError()) return this.ageMessage();
+    return null;
+  }
+  next(): void {
+    this.tried.set(true);
+    const e = this.stepError(this.step());
+    if (e) { this.error.set(e); return; }
+    this.error.set(''); this.tried.set(false); this.back.set(false);
+    this.step.update(s => s + 1); this.reached.update(r => Math.max(r, this.step()));
+  }
+  prev(): void { this.error.set(''); this.back.set(true); this.step.update(s => Math.max(0, s - 1)); }
+  goTo(i: number): void {
+    if (i === this.step()) return;
+    if (i > this.step()) { for (let k = this.step(); k < i; k++) { const e = this.stepError(k); if (e) { this.tried.set(true); this.error.set(e); return; } } }
+    this.error.set(''); this.back.set(i < this.step()); this.step.set(i);
+  }
 
   name = '';
   importance: Importance = 'SECONDAIRE';
@@ -222,8 +270,10 @@ export class RoleFormComponent implements OnInit {
     }
   }
 
-  submit(f: NgForm): void {
+  submit(f: NgForm, now = false): void {
+    if (!now && !this.isLast()) { this.next(); return; }   // Entrée ou « Suivant » : étape suivante
     this.tried.set(true);
+    for (let k = 0; k < this.stepLabels.length; k++) { const e = this.stepError(k); if (e) { this.error.set(e); this.step.set(k); return; } }
     f.control.markAllAsTouched();
     if (!this.name.trim()) { this.error.set('Donnez un nom au rôle.'); return; }
     if (this.ageError() || f.invalid) { this.error.set('Corrigez les champs signalés en rouge.'); return; }

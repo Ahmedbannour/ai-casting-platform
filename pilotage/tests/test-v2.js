@@ -61,15 +61,18 @@ async function login(b, a) {
   await r.getByRole('button', { name: 'Ajouter la scène' }).click(); await r.waitForTimeout(1200);
   await r.getByRole('button', { name: 'Ajouter une fiche de rôle' }).click();
   await choisir(r, 'rchar', 'Leila'); await r.waitForTimeout(300);
-  res.prerempli = { nom: await r.inputValue('input[name=rname]'), apparence: await r.inputValue('textarea[name=rapp]') };
+  const nomPrerempli = await r.inputValue('input[name=rname]');
   await r.fill('textarea[name=rintent]', 'Une femme libre et sereine, qui s’arrête pour respirer le jasmin : un instant pour elle.');
+  await choisir(r, 'rimp', 'Principal');
+  await r.click('.char-form button.next');   // étape 2 : le profil
+  res.prerempli = { nom: nomPrerempli, apparence: await r.inputValue('textarea[name=rapp]') };
   await choisir(r, 'rgender', 'Femme');
   await r.fill('input[name=rmin]', '30'); await r.fill('input[name=rmax]', '40');
-  await choisir(r, 'rimp', 'Principal');
   await r.getByRole('button', { name: 'Ajouter la fiche' }).click(); await r.waitForTimeout(1200);
   await r.getByRole('button', { name: 'Ajouter une fiche de rôle' }).click();
   await r.fill('input[name=rname]', 'Passants de la médina');
   await choisir(r, 'rimp', 'Figuration');
+  await r.click('.char-form button.next');
   await r.getByRole('button', { name: 'Ajouter la fiche' }).click(); await r.waitForTimeout(1200);
   res.bloqueSansIntention = await r.getByRole('button', { name: 'Publier la V2 et lancer le casting' }).isDisabled();
   await r.locator('.chars li', { hasText: 'Passants de la médina' }).getByRole('button', { name: 'Modifier' }).click();

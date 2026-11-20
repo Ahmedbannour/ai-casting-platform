@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { SelectFieldComponent, SelectOption } from '../../shared/components/select-field/select-field';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field';
+import { FormStepsComponent } from '../../shared/components/form-steps/form-steps';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -29,7 +30,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
 @Component({
   selector: 'app-demande',
   standalone: true,
-  imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, SelectFieldComponent, DateFieldComponent],
+  imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, SelectFieldComponent, DateFieldComponent, FormStepsComponent],
   template: `
   <section class="page">
     <a class="back" routerLink="/mes-demandes">← Mes demandes</a>
@@ -80,15 +81,29 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
       @if (editable()) {
         <form class="card" (ngSubmit)="save()" #f="ngForm">
           <h2>Le projet</h2>
-          <label>Titre de la demande *<input name="title" [(ngModel)]="form.title" required maxlength="160" placeholder="Ex. Lancement printemps 2027"></label>
-          <div class="two">
-            <label>Produit ou service<input name="product" [(ngModel)]="form.product" maxlength="160"></label>
-            <label>Date de diffusion souhaitée<app-date-field name="airDate" [(ngModel)]="form.airDate" [min]="today" /></label>
+          <app-form-steps [labels]="['Le projet', 'Le message']" [current]="pStep()" [reached]="pStep() === 1 || !!form.title.trim() ? 1 : 0" (go)="pGo($event)" />
+          @if (pStep() === 0) {
+            <div class="form-step" [class.back]="pBack()">
+              <label>Titre de la demande *<input name="title" [(ngModel)]="form.title" required maxlength="160" placeholder="Ex. Lancement printemps 2027"></label>
+              <label>Produit ou service<input name="product" [(ngModel)]="form.product" maxlength="160"></label>
+              <label>Date de diffusion souhaitée<app-date-field name="airDate" [(ngModel)]="form.airDate" [min]="today" /></label>
+            </div>
+          } @else {
+            <div class="form-step" [class.back]="pBack()">
+              <label>Objectif<textarea name="objective" [(ngModel)]="form.objective" rows="2" maxlength="2000" placeholder="Ce que la publicité doit faire : faire connaître, faire acheter…"></textarea></label>
+              <label>Cible<textarea name="target" [(ngModel)]="form.target" rows="2" maxlength="2000" placeholder="À qui elle s'adresse"></textarea></label>
+              <label>Message clé<textarea name="keyMessage" [(ngModel)]="form.keyMessage" rows="2" maxlength="2000"></textarea></label>
+            </div>
+          }
+          <div class="row steps-nav">
+            @if (pStep() === 1) { <button type="button" class="ghost" (click)="pGo(0)">Précédent</button> }
+            @if (pStep() === 0) {
+              @if (d()) { <button type="button" class="ghost" (click)="save()" [disabled]="busy() || !form.title.trim()">Enregistrer le projet</button> }
+              <button type="button" class="send next" (click)="pGo(1)" [disabled]="!form.title.trim()">Suivant</button>
+            } @else {
+              <button class="send" type="submit" [disabled]="busy() || !form.title.trim()">{{ d() ? 'Enregistrer le projet' : 'Créer la demande' }}</button>
+            }
           </div>
-          <label>Objectif<textarea name="objective" [(ngModel)]="form.objective" rows="2" maxlength="2000" placeholder="Ce que la publicité doit faire : faire connaître, faire acheter…"></textarea></label>
-          <label>Cible<textarea name="target" [(ngModel)]="form.target" rows="2" maxlength="2000" placeholder="À qui elle s'adresse"></textarea></label>
-          <label>Message clé<textarea name="keyMessage" [(ngModel)]="form.keyMessage" rows="2" maxlength="2000"></textarea></label>
-          <div class="row"><button class="send" type="submit" [disabled]="busy() || !form.title.trim()">{{ d() ? 'Enregistrer le projet' : 'Créer la demande' }}</button></div>
         </form>
 
         @if (d(); as x) {
@@ -395,21 +410,37 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
         </ng-template>
         <ng-template #roleEditor>
           <div class="char-form">
+            <app-form-steps [labels]="['Le rôle', 'Le profil']" [current]="rStep()" [reached]="roleForm.name.trim() ? 1 : 0" (go)="rGo($event)" />
+            @if (rStep() === 0) {
+            <div class="form-step" [class.back]="rBack()">
             @if (x.characters.length) {
               <label>À partir d'un personnage<app-select name="rchar" [options]="characterOptions(x.characters)"
                 [ngModel]="roleForm.characterId ?? ''" (ngModelChange)="roleForm.characterId = $event || null; fromCharacter($event || null)" /></label>
             }
             <label>Nom du rôle *<input name="rname" [(ngModel)]="roleForm.name" maxlength="120"></label>
             <label>Intention du réalisateur *<textarea name="rintent" [(ngModel)]="roleForm.intention" rows="3" maxlength="4000" placeholder="Ce que l'acteur doit faire passer : émotion, présence, rapport aux autres…"></textarea></label>
+            <label>Importance<app-select name="rimp" [options]="importanceOptions" [(ngModel)]="roleForm.importance" /></label>
+            </div>
+            } @else {
+            <div class="form-step" [class.back]="rBack()">
             <div class="three">
               <label>Sexe<app-select name="rgender" [options]="genderOptions" [ngModel]="roleForm.gender ?? ''" (ngModelChange)="roleForm.gender = $event || null" /></label>
               <label>Âge minimum<input name="rmin" type="number" min="0" max="100" [(ngModel)]="roleForm.minAge"></label>
               <label>Âge maximum<input name="rmax" type="number" min="0" max="100" [(ngModel)]="roleForm.maxAge"></label>
             </div>
             <label>Apparence<textarea name="rapp" [(ngModel)]="roleForm.appearance" rows="2" maxlength="4000" placeholder="Silhouette, style, signes particuliers…"></textarea></label>
-            <label>Importance<app-select name="rimp" [options]="importanceOptions" [(ngModel)]="roleForm.importance" /></label>
-            <div class="row"><button type="button" class="send" (click)="saveRole()" [disabled]="busy() || !roleForm.name.trim()">{{ roleEditing() === 'new' ? 'Ajouter la fiche' : 'Enregistrer' }}</button>
-              <button type="button" class="link" (click)="roleEditing.set(null)">Annuler</button></div>
+            </div>
+            }
+            <div class="row steps-nav">
+              @if (rStep() === 1) { <button type="button" class="ghost" (click)="rGo(0)">Précédent</button> }
+              @else { <button type="button" class="link" (click)="roleEditing.set(null)">Annuler</button> }
+              @if (rStep() === 0) {
+                @if (roleEditing() !== 'new') { <button type="button" class="ghost" (click)="saveRole()" [disabled]="busy() || !roleForm.name.trim()">Enregistrer</button> }
+                <button type="button" class="send next" (click)="rGo(1)" [disabled]="!roleForm.name.trim()">Suivant</button>
+              } @else {
+                <button type="button" class="send" (click)="saveRole()" [disabled]="busy() || !roleForm.name.trim()">{{ roleEditing() === 'new' ? 'Ajouter la fiche' : 'Enregistrer' }}</button>
+              }
+            </div>
           </div>
         </ng-template>
         <ng-template #charEditor>
@@ -487,6 +518,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .card { display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 14px; border: 1px solid var(--border); }
     .card h2 { margin: 0; font-size: 18px; }
     .card h2 small { font-size: 12.5px; font-weight: 500; color: var(--text-muted); margin-left: 6px; }
+    .steps-nav { justify-content: flex-end; } .steps-nav > :first-child:not(:only-child) { margin-right: auto; }
     label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
     input:not([type=file]), textarea, select { font: inherit; font-size: 14.5px; font-weight: 400; color: var(--text-primary); background: var(--bg-input, transparent);
       border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
@@ -598,6 +630,12 @@ export class DemandeComponent {
   v1Link = '';
   v2Link = '';
   agencyId: string | null = null;
+
+  /* Formulaires en étapes (5 questions au plus par étape) : le projet de la demande, la fiche de rôle de la V2. */
+  readonly pStep = signal(0); readonly pBack = signal(false);
+  pGo(i: number) { if (i > 0 && !this.form.title.trim()) return; this.pBack.set(i < this.pStep()); this.pStep.set(i); }
+  readonly rStep = signal(0); readonly rBack = signal(false);
+  rGo(i: number) { if (i > 0 && !this.roleForm.name.trim()) return; this.rBack.set(i < this.rStep()); this.rStep.set(i); }
 
   /* Options des listes déroulantes (même composant que le reste de l'application, plus de menu système). */
   readonly genderOptions: SelectOption[] = [{ value: '', label: 'Indifférent' }, { value: 'Femme', label: 'Femme' }, { value: 'Homme', label: 'Homme' }];
@@ -791,8 +829,9 @@ export class DemandeComponent {
     this.run(e === 'new' ? this.api.addScene(x.id, b) : this.api.updateScene(x.id, e, b), e === 'new' ? 'Scène ajoutée.' : 'Scène enregistrée.', r => { this.sceneEditing.set(null); this.apply(r); });
   }
   deleteScene(sc: DemandeScene) { const x = this.d(); if (x) this.run(this.api.deleteScene(x.id, sc.id), 'Scène retirée.', r => this.apply(r)); }
-  newRole() { this.roleForm = this.emptyRole(); this.roleEditing.set('new'); }
+  newRole() { this.roleForm = this.emptyRole(); this.rStep.set(0); this.roleEditing.set('new'); }
   editRole(r: RoleSheet) {
+    this.rStep.set(0);
     this.roleForm = { characterId: r.characterId, name: r.name, intention: r.intention, gender: r.gender, minAge: r.minAge, maxAge: r.maxAge, appearance: r.appearance, importance: r.importance };
     this.roleEditing.set(r.id);
   }
