@@ -211,7 +211,8 @@ body::after {
 ::view-transition-old(page) { animation: page-out 200ms cubic-bezier(.4, 0, 1, 1) both; }
 ::view-transition-new(page) { animation: page-in 1ms 190ms both; }
 
-@keyframes page-out { to { opacity: 0; transform: scale(0.98) translateY(-6px); filter: blur(6px); } }
+/* Sans flou : un filtre sur la photo pleine page coûte cher et saccade. */
+@keyframes page-out { to { opacity: 0; transform: scale(0.985) translateY(-6px); } }
 @keyframes page-in  { from { opacity: 0; } to { opacity: 1; } }
 
 /* Blocs de la page (zone de contenu et page de connexion), pas la barre latérale.

@@ -26,8 +26,21 @@ const ok = (c, m) => { if (!c) throw new Error('ÉCHEC : ' + m); console.log('OK
     ok(JSON.stringify(await labels()) === '["Accueil"]', `${T} · seul « Accueil » montre son nom (${await labels()})`);
     const clip = async n => { const bb = await bar.boundingBox(); await p.screenshot({ path: path.join(OUT, `onglets-${T}-${n}.png`), clip: { x: 0, y: bb.y - 14, width: 412, height: bb.height + 28 } }); };
     await clip('accueil');
+    // Aucune « photo » de page pendant le changement d'onglet (c'est elle qui figeait le fond), et pas d'image bloquée.
+    await p.evaluate(() => {
+      window.__vt = { n: 0, skipped: 0 }; window.__gaps = [];
+      const orig = document.startViewTransition?.bind(document);
+      if (orig) document.startViewTransition = (...a) => { const t = orig(...a); window.__vt.n++;
+        const sk = t.skipTransition.bind(t); t.skipTransition = () => { window.__vt.skipped++; return sk(); }; return t; };
+      let last = performance.now(); const end = last + 1500;
+      const loop = now => { window.__gaps.push(now - last); last = now; if (now < end) requestAnimationFrame(loop); }; requestAnimationFrame(loop);
+    });
     await bar.getByRole('link', { name: 'Projets' }).click(); await p.waitForTimeout(160); await clip('glisse');
     await p.waitForTimeout(600);
+    await p.waitForTimeout(900);
+    const vt = await p.evaluate(() => ({ ...window.__vt, maxGap: Math.round(Math.max(...window.__gaps)) }));
+    ok(vt.n === vt.skipped, `${T} · pas de photo figée pendant le changement (${vt.skipped}/${vt.n} transitions sautées)`);
+    console.log(`    image la plus longue pendant le changement : ${vt.maxGap} ms`);
     ok(await idx() === '2' && await aligned(), `${T} · pastille glisse sur « Projets »`);
     ok(JSON.stringify(await labels()) === '["Projets"]', `${T} · seul « Projets » montre son nom`); await clip('projets');
     await bar.getByRole('link', { name: 'Acteurs' }).click(); await p.waitForTimeout(800);

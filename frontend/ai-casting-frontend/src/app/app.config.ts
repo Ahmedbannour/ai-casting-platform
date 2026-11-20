@@ -27,7 +27,15 @@ function restoreSession() {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes, withViewTransitions({ skipInitialTransition: true })),
+    provideRouter(routes, withViewTransitions({
+      skipInitialTransition: true,
+      // Sur téléphone, la transition « photo » du navigateur fige toute la page (fond animé, barre d'onglets)
+      // le temps du changement : on la saute. Les blocs de la nouvelle page montent quand même (.nav-enter),
+      // sans aucun gel. Sur ordinateur, la transition reste.
+      onViewTransitionCreated: ({ transition }) => {
+        if (matchMedia('(max-width: 860px)').matches) transition.skipTransition();
+      }
+    })),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideAppInitializer(restoreSession)
   ]
