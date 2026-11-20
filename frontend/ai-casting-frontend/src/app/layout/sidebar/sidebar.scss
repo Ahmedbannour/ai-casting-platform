@@ -158,6 +158,17 @@
   .sidebar { position: fixed; left: 0; top: 0; bottom: 0; --w: 290px; transform: translateX(-105%);
     transition: transform .3s cubic-bezier(.2,.8,.2,1); box-shadow: 20px 0 60px rgba(0,0,0,.35); z-index: 41; }
   .sidebar.open { transform: none; }
+  /* Tiroir à la hauteur réellement visible (barres du navigateur exclues), qui défile au besoin ;
+     le compte, le mode sombre et la déconnexion restent au-dessus de la barre de gestes. */
+  .sidebar { height: 100vh; height: 100dvh; width: min(var(--w), 86vw); overflow-y: auto; overscroll-behavior: contain;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 14px calc(16px + env(safe-area-inset-bottom, 0px)); gap: 4px; }
+  .sidebar > * { flex-shrink: 0; }
+  .nav { gap: 4px; }
+  .nav-link { height: 48px; }
+  .new-search { height: 46px; margin: 4px 0 12px; }
+  .history { flex: 1 0 auto; min-height: 72px; max-height: 32dvh; margin-top: 16px; }
+  .bottom { margin-top: auto; padding-top: 12px; gap: 6px; }
+  .theme-switch, .logout { height: 46px; }
   .collapse { display: none; }
   .drawer-backdrop { display: block; position: fixed; inset: 0; z-index: 40; background: rgba(10,10,12,.5);
     -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .25s; }

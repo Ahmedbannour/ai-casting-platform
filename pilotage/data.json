@@ -7,7 +7,7 @@
   "debut": "2026-11-15",
   "maj": "2026-11-20",
   "jour": "J8",
-  "avancement": 83,
+  "avancement": 82,
   "avancement_veille": 97,
   "phase_courante": "PH4"
  },
@@ -1053,6 +1053,20 @@
     "EX-73"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-062",
+   "date": "2026-11-20",
+   "titre": "Menu mobile trop serré",
+   "original": "Le menu et trop serrée , merci de le remettre conveneblement (passe les notes de design a notre expert ui ux react native)",
+   "ameliore": "Corriger le tiroir de menu sur téléphone (coupé en bas, déconnexion invisible) et confier les notes de design à l'expert UI/UX du front pour une revue mobile de tous les écrans.",
+   "departements": [
+    "front"
+   ],
+   "livrables": [
+    "T-171"
+   ],
+   "statut": "En cours"
   }
  ],
  "bibliotheques": [
@@ -3295,6 +3309,18 @@
    "prompt": "P-055",
    "jour": "J7",
    "detail": "Critères appliqués à chacun : tâches livrées en 7 jours au regard du niveau, tâches ouvertes sans avancer depuis J3 à J5, effet sur le calendrier. Résiliation : Nicolas Perrin (QA senior, aucune tâche livrée, équipe QA en sureffectif ; non remplacé). Remplacement : Philippe Garnier (budget T-034 ouvert depuis J3, il bloque le chiffrage des recrutements) par Khaled Mzoughi. Sous objectif jusqu'au 26/11 : Mehdi Amrani, Aurélie Fontaine, Inès Garnier, Thomas Girard."
+  },
+  {
+   "id": "T-171",
+   "titre": "Revue UI mobile complète (notes de design du client)",
+   "dept": "front",
+   "resp": "Yanis Belhadj",
+   "prio": "P1",
+   "phase": "PH4",
+   "statut": "en_cours",
+   "prompt": "P-062",
+   "jour": "J8",
+   "detail": "Notes de design du client (20/11, captures sur téléphone) à appliquer sur toute l'app mobile : 1) aucune popup ne tasse ses champs : elle défile (fait : projet, rôle, proposition, partage) ; 2) le bas des pages et du menu reste au-dessus de la barre d'onglets et de la barre de gestes (fait : 100dvh + zone sûre, pages Projets, Projet, Rôle, Acteurs, Fiche, Galerie, tiroir de menu) ; 3) menu tiroir aéré : lignes de 48 px, menu qui défile, compte / mode sombre / déconnexion toujours atteignables (fait) ; 4) reste à faire : passer en revue tous les écrans à 360 × 640 et 412 × 860 (espaces, tailles de texte, cibles tactiles de 44 px minimum, rien sous la barre d'onglets), corriger les textes dépassés de la page de connexion (« prompt », « Agence ou acteur »), et ajouter un test mobile par écran."
   }
  ],
  "journal": [
@@ -3797,6 +3823,12 @@
    "nom": "Antoine Roux",
    "t": "2026-11-20T09:20:00Z",
    "texte": "V0, V1, V2 en présentation Canva : lien de la présentation à côté du texte et du fichier (migration V40). 87 tests serveur verts, recette test-canva réussie."
+  },
+  {
+   "h": "J8",
+   "nom": "Yanis Belhadj",
+   "t": "2026-11-20T10:50:00Z",
+   "texte": "Notes de design du client reçues : popups qui défilent, bas de page et menu au-dessus de la barre d'onglets corrigés ; revue mobile de tous les écrans lancée (T-171)."
   }
  ],
  "plan": {
@@ -3934,7 +3966,8 @@
     "taches": [
      "T-164",
      "T-165",
-     "T-166"
+     "T-166",
+     "T-171"
     ]
    },
    {
@@ -3958,6 +3991,7 @@
    }
   ],
   "file": [
+   "T-171",
    "T-166",
    "T-167",
    "T-168",
