@@ -1126,6 +1126,20 @@
     "T-171"
    ],
    "statut": "Livré"
+  },
+  {
+   "id": "P-067",
+   "date": "2026-11-20",
+   "titre": "Barre d'onglets moins serrée",
+   "original": "En fait, c'est bien comme ça, mais le problème de menu, c'est qu'on a mis les icônes ainsi que le texte. Du coup, ils sont très compressés pour moi. Donc, merci de passer ça à mon expert UI pour le remettre comme il faut.",
+   "ameliore": "Barre d'onglets : icônes seules pour les onglets inactifs, nom affiché uniquement sur l'onglet actif qui s'élargit, en gardant les animations.",
+   "departements": [
+    "front"
+   ],
+   "livrables": [
+    "T-171"
+   ],
+   "statut": "Livré"
   }
  ],
  "bibliotheques": [
@@ -3379,7 +3393,7 @@
    "statut": "en_cours",
    "prompt": "P-062",
    "jour": "J8",
-   "detail": "Notes de design du client (20/11, captures sur téléphone) à appliquer sur toute l'app mobile : 1) aucune popup ne tasse ses champs : elle défile (fait : projet, rôle, proposition, partage) ; 2) le bas des pages et du menu reste au-dessus de la barre d'onglets et de la barre de gestes (fait : 100dvh + zone sûre, pages Projets, Projet, Rôle, Acteurs, Fiche, Galerie, tiroir de menu) ; 3) menu tiroir aéré : lignes de 48 px, menu qui défile, compte / mode sombre / déconnexion toujours atteignables (fait) ; 4) reste à faire : passer en revue tous les écrans à 360 × 640 et 412 × 860 (espaces, tailles de texte, cibles tactiles de 44 px minimum, rien sous la barre d'onglets), corriger les textes dépassés de la page de connexion (« prompt », « Agence ou acteur »), et ajouter un test mobile par écran. | Note du client (20/11) : remettre le mode clair. Corrigé : l'interrupteur « Mode sombre » (bascule vers le mode clair) était passé sous l'historique dans le menu mobile ; le bas du menu (compte, mode clair/sombre, déconnexion) est maintenant fixe et toujours visible, seul l'historique défile (masqué sur les écrans très bas). Reste à faire en mode clair : la page de connexion reste toujours sombre ; vérifier contrastes, cartes, badges et photos de chaque écran en mode clair à 360 × 640 et 412 × 860. Revue partagée avec Inès Garnier (UX/UI Designer). L'application est un site web Angular, pas une application React Native. | Note du client (20/11, 2) : en mode clair, remettre les couleurs et l'animation. Fait : jaune vif identique au mode sombre pour les boutons, pastilles et repères (texte foncé dessus) ; jaune foncé réservé aux textes (--accent-ink, 60 usages repris) ; page de connexion en mode clair dès le chargement, avec la planche contact animée (portraits éclaircis, cercle jaune lisible). À vérifier par Yanis Belhadj et Inès Garnier : contrastes du jaune vif sur fond clair (boutons, onglets actifs), photos et cartes acteurs, bandeaux, et proposer une bascule clair/sombre sur la page de connexion. | Palette unifiée (20/11) : cinq gammes (graphite, crayon, rouge, vert, bleu) dans styles.scss, utilisées par les deux modes ; jetons de sens --bg-*, --text-*, --accent / --accent-ink / --on-accent, --success, --danger, --info, --warning ; plus aucun vert ou rouge écrit en dur dans les écrans. Règle pour l'équipe : jamais de couleur en dur, toujours un jeton. Reste : passer les dernières couleurs fixes (fonds de photo, ombres) sur les jetons. | Barre d'onglets mobile animée (20/11) : pastille jaune qui glisse sous l'onglet actif (effet élastique), icône qui rebondit, barre qui se range quand on descend dans la page et revient en remontant, entrée en douceur, mouvements coupés si le téléphone demande moins d'animations. Test test-barre-onglets.js (2 modes)."
+   "detail": "Notes de design du client (20/11, captures sur téléphone) à appliquer sur toute l'app mobile : 1) aucune popup ne tasse ses champs : elle défile (fait : projet, rôle, proposition, partage) ; 2) le bas des pages et du menu reste au-dessus de la barre d'onglets et de la barre de gestes (fait : 100dvh + zone sûre, pages Projets, Projet, Rôle, Acteurs, Fiche, Galerie, tiroir de menu) ; 3) menu tiroir aéré : lignes de 48 px, menu qui défile, compte / mode sombre / déconnexion toujours atteignables (fait) ; 4) reste à faire : passer en revue tous les écrans à 360 × 640 et 412 × 860 (espaces, tailles de texte, cibles tactiles de 44 px minimum, rien sous la barre d'onglets), corriger les textes dépassés de la page de connexion (« prompt », « Agence ou acteur »), et ajouter un test mobile par écran. | Note du client (20/11) : remettre le mode clair. Corrigé : l'interrupteur « Mode sombre » (bascule vers le mode clair) était passé sous l'historique dans le menu mobile ; le bas du menu (compte, mode clair/sombre, déconnexion) est maintenant fixe et toujours visible, seul l'historique défile (masqué sur les écrans très bas). Reste à faire en mode clair : la page de connexion reste toujours sombre ; vérifier contrastes, cartes, badges et photos de chaque écran en mode clair à 360 × 640 et 412 × 860. Revue partagée avec Inès Garnier (UX/UI Designer). L'application est un site web Angular, pas une application React Native. | Note du client (20/11, 2) : en mode clair, remettre les couleurs et l'animation. Fait : jaune vif identique au mode sombre pour les boutons, pastilles et repères (texte foncé dessus) ; jaune foncé réservé aux textes (--accent-ink, 60 usages repris) ; page de connexion en mode clair dès le chargement, avec la planche contact animée (portraits éclaircis, cercle jaune lisible). À vérifier par Yanis Belhadj et Inès Garnier : contrastes du jaune vif sur fond clair (boutons, onglets actifs), photos et cartes acteurs, bandeaux, et proposer une bascule clair/sombre sur la page de connexion. | Palette unifiée (20/11) : cinq gammes (graphite, crayon, rouge, vert, bleu) dans styles.scss, utilisées par les deux modes ; jetons de sens --bg-*, --text-*, --accent / --accent-ink / --on-accent, --success, --danger, --info, --warning ; plus aucun vert ou rouge écrit en dur dans les écrans. Règle pour l'équipe : jamais de couleur en dur, toujours un jeton. Reste : passer les dernières couleurs fixes (fonds de photo, ombres) sur les jetons. | Barre d'onglets mobile animée (20/11) : pastille jaune qui glisse sous l'onglet actif (effet élastique), icône qui rebondit, barre qui se range quand on descend dans la page et revient en remontant, entrée en douceur, mouvements coupés si le téléphone demande moins d'animations. Test test-barre-onglets.js (2 modes). | Note client (20/11) transmise à Yanis Belhadj : icônes + texte trop serrés dans la barre d'onglets. Corrigé : icônes seules (22 px) ; seul l'onglet actif s'élargit et montre son nom à côté de l'icône, la pastille épouse sa taille ; nom lu par les lecteurs d'écran (aria-label). Vérifié : « Propositions » (nom le plus long) tient sans être coupé, deux modes."
   }
  ],
  "journal": [
@@ -3912,6 +3926,12 @@
    "nom": "Yanis Belhadj",
    "t": "2026-11-20T12:30:00Z",
    "texte": "Barre d'onglets mobile animée : pastille qui glisse, icône qui rebondit, barre qui se range au défilement. Recette complète 10/10."
+  },
+  {
+   "h": "J8",
+   "nom": "Yanis Belhadj",
+   "t": "2026-11-20T12:40:00Z",
+   "texte": "Barre d'onglets aérée : icônes seules, l'onglet actif s'élargit et affiche son nom. Testée dans les deux modes."
   }
  ],
  "plan": {

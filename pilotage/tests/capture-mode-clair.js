@@ -18,7 +18,7 @@ const BASE = 'http://localhost:4200', OUT = path.join(__dirname, '..', 'nav');
     await p.goto(BASE + u); await p.waitForTimeout(1800);
     await p.screenshot({ path: path.join(OUT, `${P}-${n}.jpg`), type: 'jpeg', quality: 70 });
   }
-  await p.locator('.tabbar').getByText('Menu').click(); await p.waitForTimeout(600);
+  await p.locator('.tabbar .tab.menu').click(); await p.waitForTimeout(600);
   await p.screenshot({ path: path.join(OUT, `${P}-menu.jpg`), type: 'jpeg', quality: 70 });
   console.log(JSON.stringify({ theme: await p.evaluate(() => document.documentElement.className), errs }));
   await b.close();

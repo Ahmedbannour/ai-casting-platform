@@ -47,8 +47,8 @@ import { EmailBannerComponent } from './email-banner';
          la barre se range quand on descend dans la page et revient dès qu'on remonte. */
       .tabbar {
         position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 20;
-        display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr));
-        height: 64px; padding: 6px; border-radius: 22px; border: 1px solid var(--border);
+        display: flex; align-items: stretch; gap: 2px;
+        height: 60px; padding: 6px; border-radius: 22px; border: 1px solid var(--border);
         background: var(--glass-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
         box-shadow: 0 18px 44px color-mix(in srgb, var(--graphite-950) 38%, transparent), inset 0 1px 0 color-mix(in srgb, var(--graphite-0) 8%, transparent);
         transition: transform .38s cubic-bezier(.2,.9,.3,1), opacity .25s;
@@ -56,30 +56,29 @@ import { EmailBannerComponent } from './email-banner';
       }
       .tabbar.hidden { transform: translateY(calc(100% + 28px)); opacity: 0; pointer-events: none; }
       @keyframes tabbarIn { from { transform: translateY(calc(100% + 28px)); opacity: 0; } }
-      /* La pastille qui suit l'onglet actif */
+      /* La pastille prend la position et la largeur exactes de l'onglet actif (mesurées en JS). */
       .pill {
-        position: absolute; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / var(--n, 4));
-        transform: translateX(calc(var(--i, 0) * 100%)); transition: transform .45s cubic-bezier(.3,1.35,.45,1), opacity .2s;
-        pointer-events: none; z-index: 0;
+        position: absolute; top: 6px; bottom: 6px; left: 0; width: var(--w, 0px);
+        transform: translateX(var(--x, 0px));
+        transition: transform .45s cubic-bezier(.3,1.25,.45,1), width .45s cubic-bezier(.3,1.25,.45,1), opacity .2s;
+        pointer-events: none; z-index: 0; border-radius: 16px; background: var(--accent-dim);
+        border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
       }
-      .pill::before { content: ''; position: absolute; inset: 0 4px; border-radius: 16px; background: var(--accent-dim);
-        border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
-      .pill::after { content: ''; position: absolute; left: 50%; bottom: -1px; width: 22px; height: 3px; margin-left: -11px; border-radius: 3px;
-        background: var(--accent); box-shadow: 0 0 12px var(--accent); }
       .tabbar:not(.has-active) .pill { opacity: 0; }
-      .tabbar.moving .pill::before { animation: stretch .45s ease-out; }
-      @keyframes stretch { 40% { transform: scaleX(1.18) scaleY(.92); } }
+      /* Onglets : l'icône seule, sauf l'onglet actif qui s'élargit et montre son nom à côté de l'icône. */
       .tab {
-        position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-        border: none; border-radius: 16px; background: transparent; color: var(--text-muted); font-size: 11px; font-weight: 600;
-        text-decoration: none; cursor: pointer; transition: color .2s, transform .15s; -webkit-tap-highlight-color: transparent;
+        position: relative; z-index: 1; flex: 1 1 0; min-width: 44px; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 0;
+        border: none; border-radius: 16px; background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 700;
+        text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+        transition: flex-grow .45s cubic-bezier(.3,1.25,.45,1), color .2s, gap .3s, transform .15s;
       }
-      .tab svg { transition: transform .3s cubic-bezier(.2,1.4,.4,1), color .2s; }
-      .tab span { transition: letter-spacing .25s, opacity .2s; opacity: .85; }
-      .tab.active { color: var(--text-primary); }
-      .tab.active span { opacity: 1; letter-spacing: .01em; }
-      .tab.active svg { color: var(--accent-ink); animation: pop .5s cubic-bezier(.2,1.5,.4,1); transform: translateY(-2px); }
-      @keyframes pop { 0% { transform: scale(.7) translateY(2px); } 55% { transform: scale(1.22) translateY(-4px) rotate(-6deg); } 100% { transform: translateY(-2px); } }
+      .tab svg { flex: none; width: 22px; height: 22px; transition: transform .3s cubic-bezier(.2,1.4,.4,1), color .2s; }
+      .tab span { max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; transition: max-width .45s cubic-bezier(.3,1,.4,1), opacity .25s .05s; }
+      .tab.active { flex-grow: 2.6; gap: 7px; color: var(--text-primary); }
+      .tab.active span { max-width: 110px; opacity: 1; }
+      .tab.active svg { color: var(--accent-ink); animation: pop .5s cubic-bezier(.2,1.5,.4,1); }
+      @keyframes pop { 0% { transform: scale(.7); } 55% { transform: scale(1.2) rotate(-6deg); } 100% { transform: none; } }
+      .tab:not(.active):hover { color: var(--text-secondary); }
       .tab:active { transform: scale(.92); }
       /* Bouton Menu : les trois traits bougent */
       .tab.menu svg path { transition: transform .3s cubic-bezier(.2,1.4,.4,1); transform-origin: center; }
@@ -87,7 +86,7 @@ import { EmailBannerComponent } from './email-banner';
       .tab.menu:active svg path:nth-child(3) { transform: translateY(-2px) scaleX(1.6); }
       .tab.menu svg path:nth-child(3) { transform-origin: 4px 17px; }
       @media (prefers-reduced-motion: reduce) {
-        .tabbar, .pill, .tab, .tab svg { transition: none !important; animation: none !important; }
+        .tabbar, .pill, .tab, .tab svg, .tab span { transition: none !important; animation: none !important; }
       }
     }
   `],
@@ -113,41 +112,41 @@ import { EmailBannerComponent } from './email-banner';
     <nav #tabbar class="tabbar" [class.hidden]="tabHidden()" aria-label="Navigation">
       <span class="pill" aria-hidden="true"></span>
       @if (role() === 'ACTEUR') {
-      <a class="tab" routerLink="/mon-espace" routerLinkActive="active">
+      <a class="tab" routerLink="/mon-espace" routerLinkActive="active" aria-label="Accueil">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
         <span>Accueil</span>
       </a>
-      <a class="tab" routerLink="/mon-profil" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <a class="tab" routerLink="/mon-profil" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" aria-label="Profil">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
         <span>Profil</span>
       </a>
-      <a class="tab" routerLink="/mes-propositions" routerLinkActive="active">
+      <a class="tab" routerLink="/mes-propositions" routerLinkActive="active" aria-label="Propositions">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
         <span>Propositions</span>
       </a>
       } @else if (role() === 'MARQUE' || role() === 'AGENCE_MARKETING') {
-      <a class="tab" routerLink="/mes-demandes" routerLinkActive="active">
+      <a class="tab" routerLink="/mes-demandes" routerLinkActive="active" aria-label="Demandes">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-8l-2-3H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1z"/></svg>
         <span>Demandes</span>
       </a>
-      <a class="tab" routerLink="/agenda" routerLinkActive="active">
+      <a class="tab" routerLink="/agenda" routerLinkActive="active" aria-label="Agenda">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
         <span>Agenda</span>
       </a>
       } @else {
-      <a class="tab" routerLink="/accueil" routerLinkActive="active">
+      <a class="tab" routerLink="/accueil" routerLinkActive="active" aria-label="Accueil">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
         <span>Accueil</span>
       </a>
-      <a class="tab" routerLink="/chat" routerLinkActive="active">
+      <a class="tab" routerLink="/chat" routerLinkActive="active" aria-label="Propositions">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <span>Propositions</span>
       </a>
-      <a class="tab" routerLink="/projects" routerLinkActive="active">
+      <a class="tab" routerLink="/projects" routerLinkActive="active" aria-label="Projets">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-8l-2-3H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1z"/></svg>
         <span>Projets</span>
       </a>
-      <a class="tab" routerLink="/dashboard" routerLinkActive="active">
+      <a class="tab" routerLink="/dashboard" routerLinkActive="active" aria-label="Acteurs">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1.5"/><rect width="7" height="5" x="14" y="3" rx="1.5"/><rect width="7" height="9" x="14" y="12" rx="1.5"/><rect width="7" height="5" x="3" y="16" rx="1.5"/></svg>
         <span>Acteurs</span>
       </a>
@@ -178,22 +177,29 @@ export class MainLayoutComponent {
     });
     inject(DestroyRef).onDestroy(() => sub.unsubscribe());
     afterNextRender(() => { this.placePill(false); setTimeout(() => this.placePill(false), 300); });
+    const onResize = () => this.placePill(false);
+    window.addEventListener('resize', onResize);
+    inject(DestroyRef).onDestroy(() => window.removeEventListener('resize', onResize));
   }
 
-  /** Place la pastille sous l'onglet actif (index et nombre d'onglets en variables CSS). */
-  private placePill(animate = true) {
+  /** Place la pastille sur l'onglet actif : position et largeur mesurées une fois l'élargissement fini. */
+  private placePill(_animate = true) {
     const bar = this.tabbar()?.nativeElement;
     if (!bar) return;
     const tabs = Array.from(bar.querySelectorAll<HTMLElement>('.tab'));
-    const i = tabs.findIndex(t => t.classList.contains('active'));
-    const prev = bar.style.getPropertyValue('--i');
-    bar.style.setProperty('--n', String(tabs.length));
-    bar.classList.toggle('has-active', i >= 0);
-    if (i < 0) return;
-    bar.style.setProperty('--i', String(i));
-    if (animate && prev !== '' && prev !== String(i)) {
-      bar.classList.remove('moving'); void bar.offsetWidth; bar.classList.add('moving');
-    }
+    const active = tabs.find(t => t.classList.contains('active'));
+    bar.classList.toggle('has-active', !!active);
+    if (!active) return;
+    // L'onglet actif s'élargit en CSS : on vise sa taille finale en lisant la grille de flex après coup.
+    const measure = () => {
+      bar.style.setProperty('--x', active.offsetLeft + 'px');
+      bar.style.setProperty('--w', active.offsetWidth + 'px');
+    };
+    // Taille finale sans attendre la transition : on la calcule en désactivant brièvement les transitions.
+    const saved = tabs.map(t => t.style.transition);
+    tabs.forEach(t => t.style.transition = 'none');
+    measure();
+    tabs.forEach((t, k) => t.style.transition = saved[k]);
   }
 
   /** La barre se range quand on descend dans la page et revient dès qu'on remonte. */

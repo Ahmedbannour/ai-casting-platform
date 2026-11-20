@@ -11,7 +11,7 @@ const BASE = 'http://localhost:4200', OUT = path.join(__dirname, '..', 'nav');
     await p.goto(BASE + '/auth/login'); await p.fill('#email', QA.email); await p.fill('#password', QA.password); await p.click('button.submit-btn');
     await p.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 15000 }).catch(() => {});
     await p.goto(BASE + '/dashboard'); await p.waitForTimeout(1500);
-    await p.locator('.tabbar').getByText('Menu').click(); await p.waitForTimeout(600);
+    await p.locator('.tabbar .tab.menu').click(); await p.waitForTimeout(600);
     await p.screenshot({ path: path.join(OUT, `menu-mobile-${nom}.jpg`), type: 'jpeg', quality: 70 });
     const r = await p.evaluate(() => {
       const s = document.querySelector('.sidebar');
