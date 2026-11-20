@@ -10,7 +10,7 @@ import { environment } from '../../../environments/environment';
   imports: [RouterLink],
   template: `
   <main class="box">
-    <a class="brand" routerLink="/"><span class="ring" aria-hidden="true"></span>Cercle</a>
+    <a class="brand" routerLink="/"><span class="ring" aria-hidden="true"></span><span class="wordmark">Cercle</span></a>
     @if (state() === 'wait') {
       <p class="muted" role="status">Vérification de votre adresse…</p>
     } @else if (state() === 'ok') {

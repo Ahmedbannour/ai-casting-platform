@@ -13,7 +13,7 @@ interface Preview { firstName: string; email: string; expiresAt: number; }
   imports: [FormsModule, RouterLink],
   template: `
   <main class="box">
-    <a class="brand" routerLink="/"><span class="ring" aria-hidden="true"></span>Cercle</a>
+    <a class="brand" routerLink="/"><span class="ring" aria-hidden="true"></span><span class="wordmark">Cercle</span></a>
     @if (loading()) { <p class="muted">Vérification du lien…</p> }
     @else if (done()) {
       <h1>Mot de passe changé</h1>

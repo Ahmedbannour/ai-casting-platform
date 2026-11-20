@@ -14,7 +14,7 @@ type ProRole = 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'BOITE_PROD';
   imports: [FormsModule, RouterLink],
   template: `
   <main class="pro">
-    <a class="logo" routerLink="/" aria-label="Cercle, accueil"><span class="brand-mark" aria-hidden="true"></span>Cercle</a>
+    <a class="logo" routerLink="/" aria-label="Cercle, accueil"><span class="brand-mark" aria-hidden="true"></span><span class="wordmark">Cercle</span></a>
     @if (sent()) {
       <section class="card done" role="status">
         <h1>Demande envoyée</h1>

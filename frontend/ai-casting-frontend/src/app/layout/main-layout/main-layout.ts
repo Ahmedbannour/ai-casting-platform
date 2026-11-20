@@ -95,7 +95,7 @@ import { EmailBannerComponent } from './email-banner';
     <app-sidebar />
     <div #content class="content">
       <header class="m-top">
-        <a class="m-logo" [routerLink]="role() === 'ACTEUR' ? '/mon-profil' : role() === 'MARQUE' || role() === 'AGENCE_MARKETING' ? '/mes-demandes' : '/chat'" aria-label="Cercle, accueil"><span class="brand-mark" aria-hidden="true"></span>Cercle</a>
+        <a class="m-logo" [routerLink]="role() === 'ACTEUR' ? '/mon-profil' : role() === 'MARQUE' || role() === 'AGENCE_MARKETING' ? '/mes-demandes' : '/chat'" aria-label="Cercle, accueil"><span class="brand-mark" aria-hidden="true"></span><span class="wordmark">Cercle</span></a>
         <app-notification-bell class="m-bell" />
       </header>
       @if (contract(); as c) {

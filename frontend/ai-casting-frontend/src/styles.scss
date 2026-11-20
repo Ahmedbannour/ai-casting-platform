@@ -177,6 +177,12 @@ h1, h2, h3 { font-stretch: var(--narrow); font-weight: 700; letter-spacing: -0.0
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
 
+/* Nom de la marque « Cercle » : la même police partout (logo, menu, connexion, vitrine, splash).
+   Archivo extra-grasse, resserrée ; la taille reste celle de chaque endroit. */
+:root { --font-brand-weight: 800; --font-brand-stretch: 82%; --font-brand-tracking: -.015em; }
+.wordmark { font-family: var(--font) !important; font-weight: var(--font-brand-weight) !important; font-stretch: var(--font-brand-stretch) !important;
+  letter-spacing: var(--font-brand-tracking) !important; line-height: 1; }
+
 /* Marque : le cercle au crayon gras, repris partout (logo, accueil de la recherche) */
 .brand-mark { display: inline-block; flex: none; width: 20px; height: 20px; border-radius: 50%;
   border: 3px solid var(--accent); transform: rotate(-8deg) scaleX(1.12); }

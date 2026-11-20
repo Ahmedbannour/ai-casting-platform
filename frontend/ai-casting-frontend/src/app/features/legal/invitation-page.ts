@@ -15,7 +15,7 @@ interface Preview { firstName: string; agencyName: string | null; email: string 
   imports: [FormsModule, RouterLink],
   template: `
   <main class="inv">
-    <p class="brand">Cercle</p>
+    <p class="brand wordmark">Cercle</p>
     @if (loading()) { <p class="muted">Ouverture de votre invitation…</p> }
     @else if (!pv()) {
       <h1>Lien plus valable</h1>
