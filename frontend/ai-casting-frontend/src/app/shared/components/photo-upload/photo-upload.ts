@@ -1,3 +1,4 @@
+import { DropzoneComponent } from '../dropzone/dropzone';
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PhotoService, PhotoResponse } from '../../../core/services/photo.service';
@@ -11,20 +12,10 @@ const MAX_BATCH = 50 * 1024 * 1024;
 @Component({
   selector: 'app-photo-upload',
   standalone: true,
+  imports: [DropzoneComponent],
   template: `
-  <label class="drop" [class.over]="dragOver()" [class.busy]="uploading()"
-         (dragover)="onDragOver($event)" (dragleave)="dragOver.set(false)" (drop)="onDrop($event)">
-    <input type="file" class="sr-only" multiple accept="image/jpeg,image/png,image/webp"
-           [disabled]="uploading()" (change)="onFileSelected($event)" />
-    @if (uploading()) {
-      <span class="spin" aria-hidden="true"></span>
-      <b>Envoi de {{ pending() }} photo{{ pending() > 1 ? 's' : '' }}…</b>
-    } @else {
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 8"/></svg>
-      <b>Déposez des photos ou <u>parcourez</u></b>
-      <small>JPEG, PNG ou WebP · 10 Mo par photo</small>
-    }
-  </label>
+  <app-dropzone title="Déposer des photos" icon="photo" [multiple]="true" accept="image/jpeg,image/png,image/webp" [formats]="['JPEG', 'PNG', 'WebP']"
+                [maxMb]="10" [busy]="uploading()" [busyText]="'Envoi de ' + pending() + ' photo' + (pending() > 1 ? 's' : '') + '…'" (files)="uploadFiles($event)" />
   @for (m of rejected(); track $index) { <small class="field-msg" role="alert">{{ m }}</small> }
   @if (error()) { <small class="field-msg" role="alert">{{ error() }}</small> }
   @if (done()) { <small class="ok" role="status">{{ done() }}</small> }
@@ -79,7 +70,7 @@ export class PhotoUploadComponent {
     this.dragOver.set(true);
   }
 
-  private uploadFiles(files: File[]): void {
+  uploadFiles(files: File[]): void {
     this.error.set(''); this.done.set('');
     const refused: string[] = [];
     const ok: File[] = [];

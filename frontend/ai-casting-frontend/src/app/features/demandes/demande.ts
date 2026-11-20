@@ -3,6 +3,7 @@ import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { SelectFieldComponent, SelectOption } from '../../shared/components/select-field/select-field';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field';
 import { FormStepsComponent } from '../../shared/components/form-steps/form-steps';
+import { DropzoneComponent } from '../../shared/components/dropzone/dropzone';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -30,7 +31,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
 @Component({
   selector: 'app-demande',
   standalone: true,
-  imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, SelectFieldComponent, DateFieldComponent, FormStepsComponent],
+  imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, SelectFieldComponent, DateFieldComponent, FormStepsComponent, DropzoneComponent],
   template: `
   <section class="page">
     <a class="back" routerLink="/mes-demandes">← Mes demandes</a>
@@ -121,10 +122,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
                 <button type="button" class="link" (click)="download(v0()!)">Télécharger</button>
                 <button type="button" class="link danger" (click)="removeFile()" [disabled]="busy()">Retirer</button>
               } @else {
-                <label class="drop">
-                  <input type="file" [accept]="acceptTypes" (change)="upload($event)" [disabled]="busy()">
-                  <b>Déposer un fichier</b><span>PDF, Word, PowerPoint, Keynote, image… 20 Mo maximum</span>
-                </label>
+                <app-dropzone title="Déposer le fichier de la V0" [accept]="acceptTypes" [formats]="formats" [busy]="busy()" (file)="upload($event)" />
               }
             </div>
           </div>
@@ -214,10 +212,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
                 <button type="button" class="link" (click)="download(v1Draft()!)">Télécharger</button>
                 <button type="button" class="link danger" (click)="removeV1File()" [disabled]="busy()">Retirer</button>
               } @else {
-                <label class="drop">
-                  <input type="file" [accept]="acceptTypes" (change)="uploadV1($event)" [disabled]="busy()">
-                  <b>Déposer le fichier de la {{ draftLabel() }}</b><span>PDF, Word, PowerPoint, Keynote, image… 20 Mo maximum</span>
-                </label>
+                <app-dropzone [title]="'Déposer le fichier de la ' + draftLabel()" [accept]="acceptTypes" [formats]="formats" [busy]="busy()" (file)="uploadV1($event)" />
               }
             </div>
             <div class="row"><button type="button" class="send" (click)="deliverV1()" [disabled]="busy() || !(v1Text.trim() || v1Link.trim() || v1Draft()?.fileName)">Livrer la {{ draftLabel() }} à la marque</button></div>
@@ -336,8 +331,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
                 <button type="button" class="link" (click)="download(v2Draft()!)">Télécharger</button>
                 <button type="button" class="link danger" (click)="removeV2File()" [disabled]="busy()">Retirer</button>
               } @else {
-                <label class="drop"><input type="file" [accept]="acceptTypes" (change)="uploadV2($event)" [disabled]="busy()">
-                  <b>Déposer le fichier de la V2</b><span>Découpage, storyboard… 20 Mo maximum</span></label>
+                <app-dropzone title="Déposer le fichier de la V2 (découpage, storyboard…)" [accept]="acceptTypes" [formats]="formats" [busy]="busy()" (file)="uploadV2($event)" />
               }
             </div>
           </div>
@@ -630,6 +624,7 @@ export class DemandeComponent {
   v1Link = '';
   v2Link = '';
   agencyId: string | null = null;
+  readonly formats = ['PDF', 'Word', 'PowerPoint', 'Keynote', 'Image'];
 
   /* Formulaires en étapes (5 questions au plus par étape) : le projet de la demande, la fiche de rôle de la V2. */
   readonly pStep = signal(0); readonly pBack = signal(false);
@@ -718,12 +713,11 @@ export class DemandeComponent {
     else this.run(this.api.update(x.id, this.body()), 'Projet enregistré.', r => this.apply(r));
   }
   saveV0() { const x = this.d(); if (x) this.run(this.api.saveV0(x.id, this.v0Text, this.v0Link.trim() || null), 'V0 enregistrée.', r => this.apply(r)); }
-  upload(ev: Event) {
-    const input = ev.target as HTMLInputElement; const file = input.files?.[0]; const x = this.d();
+  upload(file: File) {
+    const x = this.d();
     if (!file || !x) return;
-    if (file.size > 20 * 1024 * 1024) { this.error.set('Le fichier dépasse 20 Mo.'); input.value = ''; return; }
+    if (file.size > 20 * 1024 * 1024) { this.error.set('Le fichier dépasse 20 Mo.'); return; }
     this.run(this.api.uploadV0(x.id, file), 'Fichier déposé.', r => this.apply(r));
-    input.value = '';
   }
   removeFile() { const x = this.d(); if (x) this.run(this.api.removeV0File(x.id), 'Fichier retiré.', r => this.apply(r)); }
   send() {
@@ -754,11 +748,11 @@ export class DemandeComponent {
     });
   }
   saveV1() { const x = this.d(); if (x) this.run(this.api.saveV1(x.id, this.v1Text, this.v1Link.trim() || null), 'Enregistré.', r => this.apply(r)); }
-  uploadV1(ev: Event) {
-    const input = ev.target as HTMLInputElement; const file = input.files?.[0]; const x = this.d();
+  uploadV1(file: File) {
+    const x = this.d();
     if (!file || !x) return;
-    if (file.size > 20 * 1024 * 1024) { this.error.set('Le fichier dépasse 20 Mo.'); input.value = ''; return; }
-    this.run(this.api.uploadV1(x.id, file), 'Fichier déposé.', r => this.apply(r)); input.value = '';
+    if (file.size > 20 * 1024 * 1024) { this.error.set('Le fichier dépasse 20 Mo.'); return; }
+    this.run(this.api.uploadV1(x.id, file), 'Fichier déposé.', r => this.apply(r));
   }
   removeV1File() { const x = this.d(); if (x) this.run(this.api.removeV1File(x.id), 'Fichier retiré.', r => this.apply(r)); }
   deliverV1() {
@@ -814,11 +808,11 @@ export class DemandeComponent {
     return [r.gender, age].filter(Boolean).join(' · ');
   }
   saveV2() { const x = this.d(); if (x) this.run(this.api.saveV2(x.id, this.v2Text, this.v2Link.trim() || null), 'Enregistré.', r => this.apply(r)); }
-  uploadV2(ev: Event) {
-    const input = ev.target as HTMLInputElement; const file = input.files?.[0]; const x = this.d();
+  uploadV2(file: File) {
+    const x = this.d();
     if (!file || !x) return;
-    if (file.size > 20 * 1024 * 1024) { this.error.set('Le fichier dépasse 20 Mo.'); input.value = ''; return; }
-    this.run(this.api.uploadV2(x.id, file), 'Fichier déposé.', r => this.apply(r)); input.value = '';
+    if (file.size > 20 * 1024 * 1024) { this.error.set('Le fichier dépasse 20 Mo.'); return; }
+    this.run(this.api.uploadV2(x.id, file), 'Fichier déposé.', r => this.apply(r));
   }
   removeV2File() { const x = this.d(); if (x) this.run(this.api.removeV2File(x.id), 'Fichier retiré.', r => this.apply(r)); }
   newScene() { this.sceneForm = { title: '', description: '' }; this.sceneEditing.set('new'); }

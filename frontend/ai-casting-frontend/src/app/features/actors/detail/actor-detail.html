@@ -222,14 +222,7 @@
     <!-- Documents -->
     @if (tab() === 'documents') {
       <section class="pane docs">
-        <label class="drop" [class.over]="dragOver()" [class.busy]="uploading()"
-               (dragover)="$event.preventDefault(); dragOver.set(true)" (dragleave)="dragOver.set(false)" (drop)="onDrop($event)">
-          <input type="file" class="sr-only" (change)="onDocInput($event)" [disabled]="uploading()" />
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
-          @if (uploading()) { <b>Envoi en cours…</b> }
-          @else { <b>Déposez un fichier ou <u>parcourez</u></b> }
-          <small>CV, contrat, autorisation… 10 Mo au plus</small>
-        </label>
+        <app-dropzone title="Déposer un document" hint="CV, contrat, autorisation… 10 Mo au plus" [maxMb]="10" [busy]="uploading()" (file)="uploadDoc($event)" />
         @if (docError()) { <small class="field-msg" role="alert">{{ docError() }}</small> }
 
         @if (a.documents.length) {

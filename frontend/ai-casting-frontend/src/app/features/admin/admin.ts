@@ -1,3 +1,4 @@
+import { DropzoneComponent } from '../../shared/components/dropzone/dropzone';
 import { ORG_KIND, ORG_LABELS, roleLabel as labelOf, Role } from '../../core/roles';
 import { HostListener, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -28,7 +29,7 @@ const STATUS_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, RouterLink, SelectFieldComponent, DateFieldComponent, StackedColumnsComponent, AreaSparkComponent, HBarsComponent, ContactInboxComponent, ResetLinkComponent, RetentionPanelComponent],
+  imports: [FormsModule, RouterLink, SelectFieldComponent, DateFieldComponent, StackedColumnsComponent, AreaSparkComponent, HBarsComponent, ContactInboxComponent, ResetLinkComponent, RetentionPanelComponent, DropzoneComponent],
   templateUrl: './admin.html',
   styleUrl: './admin.scss'
 })
@@ -419,6 +420,8 @@ export class AdminComponent implements OnInit {
   }
 
   // ── Import ──
+  importFile(f: File): void { this.analyse(f); }
+
   onFile(ev: Event): void {
     const input = ev.target as HTMLInputElement;
     const f = input.files?.[0];

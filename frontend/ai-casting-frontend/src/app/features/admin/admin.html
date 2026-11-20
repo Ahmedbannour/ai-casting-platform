@@ -454,17 +454,9 @@
       }
 
       @if (!preview() && !result()) {
-        <label class="drop" [class.over]="dragOver()" [class.busy]="previewing()"
-               (dragover)="$event.preventDefault(); dragOver.set(true)" (dragleave)="dragOver.set(false)" (drop)="onDrop($event)">
-          <input type="file" class="sr-only" accept=".xlsx,.xlsm,.csv,.txt" (change)="onFile($event)" [disabled]="previewing()" />
-          @if (previewing()) {
-            <span class="spin" aria-hidden="true"></span><b>Lecture et contrôle du fichier…</b>
-          } @else {
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
-            <b>Déposez un fichier Excel ou CSV, ou <u>parcourez</u></b>
-            <small>Une ligne par acteur, la première ligne pour les titres de colonnes. Rien n'est enregistré avant votre validation.</small>
-          }
-        </label>
+        <app-dropzone title="Déposer un fichier Excel ou CSV" icon="sheet" accept=".xlsx,.xlsm,.csv,.txt" [formats]="['Excel', 'CSV']"
+                      hint="Une ligne par acteur, la première pour les titres de colonnes. Rien n'est enregistré avant votre validation."
+                      busyText="Lecture et contrôle du fichier…" [busy]="previewing()" (file)="importFile($event)" />
 
         <details class="help">
           <summary>Colonnes reconnues</summary>

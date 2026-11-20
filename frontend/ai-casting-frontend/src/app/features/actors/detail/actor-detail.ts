@@ -1,3 +1,4 @@
+import { DropzoneComponent } from '../../../shared/components/dropzone/dropzone';
 import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -16,7 +17,7 @@ const MAX_NOTE = 2000;
 @Component({
   selector: 'app-actor-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink, InvitePanelComponent],
+  imports: [FormsModule, RouterLink, InvitePanelComponent, DropzoneComponent],
   templateUrl: './actor-detail.html',
   styleUrl: './actor-detail.scss'
 })
@@ -151,6 +152,8 @@ export class ActorDetailComponent implements OnInit {
   }
 
   // --- Documents ---
+  uploadDoc(f: File): void { this.upload(f); }
+
   onDocInput(ev: Event): void {
     const input = ev.target as HTMLInputElement;
     const f = input.files?.[0];
