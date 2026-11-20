@@ -143,6 +143,17 @@ export const routes: Routes = [
           import('./features/demandes/demande')
             .then(m => m.DemandeComponent)
       },
+      // ── Rooms de casting : toute l'équipe d'un projet ──
+      {
+        path: 'rooms',
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'REALISATEUR', 'ADMIN')],
+        loadComponent: () => import('./features/rooms/rooms').then(m => m.RoomsComponent)
+      },
+      {
+        path: 'rooms/:id',
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'REALISATEUR', 'ADMIN')],
+        loadComponent: () => import('./features/rooms/room').then(m => m.RoomComponent)
+      },
       // ── Administration ──
       {
         path: 'admin',

@@ -23,6 +23,7 @@ const ICONS = {
   projects: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-8l-2-3H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1z"/></svg>',
   profile: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
   home: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>',
+  rooms: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="3" width="12" height="16" rx="2.5" transform="rotate(8 11 11)"/><circle cx="12" cy="10" r="2.6"/><path d="M8.5 15.5c1-1.4 2-2 3.5-2s2.6.6 3.5 2"/></svg>',
   agenda: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
   offers: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>',
   photos: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 8"/></svg>',
@@ -77,6 +78,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
     if (this.role() === 'MARQUE' || this.role() === 'AGENCE_MARKETING') {
       return [
         { path: '/mes-demandes', label: 'Mes demandes', key: 'Alt+1', icon: this.icon('projects') },
+        { path: '/rooms', label: 'Rooms', key: 'Alt+3', icon: this.icon('rooms') },
         { path: '/agenda', label: 'Agenda', key: 'Alt+2', icon: this.icon('agenda') }
       ];
     }
@@ -89,6 +91,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
     ];
     // Cahier v2 · les publicités confiées par les agences (T-161) ; l'admin les voit toutes
     if (this.role() === 'BOITE_PROD' || this.role() === 'REALISATEUR' || this.role() === 'ADMIN') items.splice(3, 0, { path: '/mes-demandes', label: 'Publicités', key: 'Alt+7', icon: this.icon('projects') });
+    items.splice(4, 0, { path: '/rooms', label: 'Rooms', key: 'Alt+8', icon: this.icon('rooms') });
     if (this.role() === 'ADMIN') items.push({ path: '/admin', label: 'Administration', key: 'Alt+6', icon: this.icon('admin') });
     return items;
   });

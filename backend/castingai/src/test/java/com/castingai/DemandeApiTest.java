@@ -445,7 +445,7 @@ class DemandeApiTest {
         JsonNode after = read(send("GET", "/api/demandes/" + id, brand, null));
         assertThat(after.get("roles").size()).isEqualTo(2);
         assertThat(after.get("versions").toString()).contains("lumière rasante");
-        assertThat(after.get("projectId").isNull()).isTrue();
+        assertThat(after.get("projectId").asString()).isEqualTo(projectId); // la marque rejoint la room du projet
         assertThat(read(send("GET", "/api/me/notifications", brand, null)).get("items").toString()).contains("V2 publiée");
     }
 

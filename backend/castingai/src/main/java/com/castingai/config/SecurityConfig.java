@@ -70,6 +70,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/me/**", "/api/auth/logout").authenticated()
                         // Cahier v2 · demandes de publicité : marque, agence marketing (et administrateur)
                         .requestMatchers("/api/demandes/**").hasAnyRole("ADMIN", "MARQUE", "AGENCE_MARKETING", "BOITE_PROD", "REALISATEUR")
+                        // Room de casting d'un projet : toute l'équipe (l'accès fin est vérifié par projet)
+                        .requestMatchers("/api/rooms/**").hasAnyRole("ADMIN", "MARQUE", "AGENCE_MARKETING", "BOITE_PROD", "REALISATEUR")
                         // Tout le reste (acteurs, projets, recherche IA…) : agence uniquement
                         .requestMatchers("/api/**").hasAnyRole("ADMIN", "BOITE_PROD", "REALISATEUR")
                         .anyRequest().authenticated()

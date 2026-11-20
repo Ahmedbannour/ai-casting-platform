@@ -131,6 +131,10 @@ import { EmailBannerComponent } from './email-banner';
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-8l-2-3H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1z"/></svg>
         <span>Demandes</span>
       </a>
+      <a class="tab" routerLink="/rooms" routerLinkActive="active" aria-label="Rooms">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="3" width="12" height="16" rx="2.5" transform="rotate(8 11 11)"/><circle cx="12" cy="10" r="2.6"/><path d="M8.5 15.5c1-1.4 2-2 3.5-2s2.6.6 3.5 2"/></svg>
+        <span>Rooms</span>
+      </a>
       <a class="tab" routerLink="/agenda" routerLinkActive="active" aria-label="Agenda">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
         <span>Agenda</span>

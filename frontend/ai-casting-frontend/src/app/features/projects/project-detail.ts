@@ -34,6 +34,7 @@ import { ProjectActivityComponent } from './project-activity';
             <div class="bar"><span [style.width.%]="roles().length ? 100 * filledCount() / roles().length : 0"></span></div>
           </div>
           <div class="actions">
+            <a class="btn-room" [routerLink]="['/rooms', p.id]"><i aria-hidden="true"></i>Ouvrir la room</a>
             <button type="button" class="btn-ghost" (click)="editOpen.set(true)">Modifier</button>
             @if (p.status === 'ARCHIVE') {
               <button type="button" class="btn-ghost" (click)="restore()">Restaurer</button>
@@ -171,6 +172,11 @@ import { ProjectActivityComponent } from './project-activity';
   .role { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius-m); border: 1px solid var(--border);
     background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); transition: border-color .2s;
     &:hover { border-color: var(--accent); } &.filled { border-left: 3px solid var(--accent); } }
+  .btn-room { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: var(--radius-s); background: var(--accent);
+    color: var(--on-accent); font-weight: 700; font-size: 14px; text-decoration: none; transition: transform .15s cubic-bezier(.2,1.4,.4,1); }
+  .btn-room:hover { transform: translateY(-2px); } .btn-room:active { transform: scale(.96); }
+  .btn-room i { width: 8px; height: 8px; border-radius: 50%; background: var(--on-accent); animation: roomLive 1.8s ease-in-out infinite; }
+  @keyframes roomLive { 50% { opacity: .3; } }
   .drag-hint { margin: -2px 0 10px; font-size: 13px; color: var(--text-subtle); }
   /* Poignée : numéro d'ordre + six points ; tout le reste de la carte reste cliquable et défilable au doigt. */
   .grip { flex: none; align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 40px; margin: -4px 0 -4px -4px;

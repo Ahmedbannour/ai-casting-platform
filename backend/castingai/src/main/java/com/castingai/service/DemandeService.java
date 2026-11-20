@@ -701,11 +701,16 @@ public class DemandeService {
         Set<UUID> team = new LinkedHashSet<>();
         if (r.getFirstAd() != null) team.add(r.getFirstAd().getId());
         if (!owner.getId().equals(me.getId())) team.add(me.getId());
-        if (r.getProduction() != null) users.findAll().stream()
-                .filter(u -> u.getAgency() != null && u.getAgency().getId().equals(r.getProduction().getId()) && u.isEnabled())
+        // La room réunit toute l'équipe : production, marque et agence (le réalisateur en est propriétaire ou membre).
+        for (Agency org : java.util.Arrays.asList(r.getProduction(), r.getBrand(), r.getAgency())) if (org != null) users.findAll().stream()
+                .filter(u -> u.getAgency() != null && u.getAgency().getId().equals(org.getId()) && u.isEnabled())
                 .forEach(u -> team.add(u.getId()));
         team.remove(owner.getId());
-        for (UUID u : team) members.save(new ProjectMember(p.getId(), u, LocalDateTime.now()));
+        for (UUID u : team) {
+            ProjectMember pm = new ProjectMember(p.getId(), u, LocalDateTime.now());
+            users.findById(u).ifPresent(x -> RoomService.defaults(pm, x.getRole()));
+            members.save(pm);
+        }
         int pos = 0;
         for (AdRole x : sheets) {
             CastingRole cr = CastingRole.builder().project(p).position(pos++).name(x.getName())
@@ -956,7 +961,7 @@ public class DemandeService {
                 seesV2(me, r) ? scenes.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId()).stream()
                         .map(x -> new SceneView(x.getId(), x.getTitle(), x.getDescription())).toList() : List.of(),
                 seesV2(me, r) ? roleSheets.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId()).stream().map(this::roleView).toList() : List.of(),
-                r.getProject() == null || !(isDirectorSide(me, r) || isProductionSide(me, r)) ? null : r.getProject().getId(),
+                r.getProject() == null ? null : r.getProject().getId(),   // la room du projet : toute l'équipe y a accès
                 r.getV2PublishedAt(), isProductionSide(me, r) && teamAttachable(r),
                 isProductionSide(me, r) && r.getDirector() != null ? r.getDirector().getId() : null,
                 isProductionSide(me, r) && r.getFirstAd() != null ? r.getFirstAd().getId() : null,

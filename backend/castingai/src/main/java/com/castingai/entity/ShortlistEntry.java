@@ -39,6 +39,10 @@ public class ShortlistEntry {
     @Column(columnDefinition = "TEXT")
     private String note;
 
+    /** Room : 1 = premier choix, 2 = remplaçant, 3 = suppléant. */
+    @Column(name = "pick_rank")
+    private Short pickRank;
+
     @Column(name = "audition_date")
     private LocalDate auditionDate;
 

@@ -66,6 +66,13 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             <p>@if (x.nowWho) { <b>{{ x.nowWho }}</b> }{{ x.nowWho ? ' ' : '' }}{{ x.nowWhat }}</p>
           </div>
         </section>
+        @if (x.projectId) {
+          <a class="room-cta" [routerLink]="['/rooms', x.projectId]">
+            <span class="rc-ring" aria-hidden="true"></span>
+            <span class="rc-txt"><b>La room de casting est ouverte</b><small>Swipez les candidats, suivez les résultats, partagez documents et tâches avec toute l'équipe.</small></span>
+            <span class="rc-go" aria-hidden="true">→</span>
+          </a>
+        }
         <ul class="team" aria-label="L'équipe de la publicité">
           @for (m of team(x); track m.role) {
             <li [class.now]="m.now" [class.empty]="!m.name">
@@ -491,6 +498,14 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .back:hover { color: var(--text-primary); }
     .head h1 { font-size: 34px; line-height: 1.08; margin: 0; }
     .head p { margin: 6px 0 0; color: var(--text-muted); font-size: 14.5px; }
+    .room-cta { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; text-decoration: none; color: var(--on-accent);
+      background: linear-gradient(120deg, var(--accent), color-mix(in srgb, var(--accent) 70%, var(--crayon-600))); box-shadow: 0 12px 28px color-mix(in srgb, var(--accent) 30%, transparent);
+      transition: transform .2s cubic-bezier(.2,1.2,.4,1); animation: rcIn .45s cubic-bezier(.2,1.2,.4,1) both; }
+    .room-cta:hover { transform: translateY(-2px); }
+    @keyframes rcIn { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+    .rc-ring { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 4px solid var(--on-accent); transform: rotate(-8deg) scaleX(1.1); }
+    .rc-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; } .rc-txt b { font-size: 15.5px; } .rc-txt small { font-size: 13px; opacity: .85; }
+    .rc-go { font-size: 22px; font-weight: 800; transition: transform .2s; } .room-cta:hover .rc-go { transform: translateX(4px); }
     .now-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px;
       border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--accent-dim); }
     .now-card small { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .02em; color: var(--accent-ink); }
