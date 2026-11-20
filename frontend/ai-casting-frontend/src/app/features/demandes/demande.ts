@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import { SelectFieldComponent, SelectOption } from '../../shared/components/select-field/select-field';
+import { DateFieldComponent } from '../../shared/components/date-field/date-field';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -27,7 +29,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
 @Component({
   selector: 'app-demande',
   standalone: true,
-  imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet],
+  imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, SelectFieldComponent, DateFieldComponent],
   template: `
   <section class="page">
     <a class="back" routerLink="/mes-demandes">← Mes demandes</a>
@@ -65,7 +67,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
           <label>Titre de la demande *<input name="title" [(ngModel)]="form.title" required maxlength="160" placeholder="Ex. Lancement printemps 2027"></label>
           <div class="two">
             <label>Produit ou service<input name="product" [(ngModel)]="form.product" maxlength="160"></label>
-            <label>Date de diffusion souhaitée<input name="airDate" type="date" [(ngModel)]="form.airDate" [min]="today"></label>
+            <label>Date de diffusion souhaitée<app-date-field name="airDate" [(ngModel)]="form.airDate" [min]="today" /></label>
           </div>
           <label>Objectif<textarea name="objective" [(ngModel)]="form.objective" rows="2" maxlength="2000" placeholder="Ce que la publicité doit faire : faire connaître, faire acheter…"></textarea></label>
           <label>Cible<textarea name="target" [(ngModel)]="form.target" rows="2" maxlength="2000" placeholder="À qui elle s'adresse"></textarea></label>
@@ -99,10 +101,8 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
           <div class="card">
             <h2>Envoyer à l'agence marketing</h2>
             @if (agencies().length) {
-              <label>Agence<select name="agency" [(ngModel)]="agencyId">
-                <option [ngValue]="null" disabled>Choisissez l'agence</option>
-                @for (a of agencies(); track a.id) { <option [ngValue]="a.id">{{ a.name }}{{ a.city ? ' · ' + a.city : '' }}</option> }
-              </select></label>
+              <label>Agence<app-select name="agency" [options]="orgOptions(agencies())" placeholder="Choisissez l'agence"
+                [ngModel]="agencyId ?? ''" (ngModelChange)="agencyId = $event || null" /></label>
             } @else { <p class="muted">Aucune agence marketing n'est encore inscrite sur la plateforme.</p> }
             <p class="muted">Une fois envoyée, la V0 est figée et l'agence reçoit une notification.</p>
             <div class="row">
@@ -215,10 +215,8 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             <h2>Confier à une boîte de production</h2>
             <p class="muted">La marque a validé votre V1. La production recueillera les attentes sur les profils, puis le réalisateur écrira la V2.</p>
             @if (productions().length) {
-              <label>Boîte de production<select name="prod" [(ngModel)]="productionId">
-                <option [ngValue]="null" disabled>Choisissez la boîte de production</option>
-                @for (p of productions(); track p.id) { <option [ngValue]="p.id">{{ p.name }}{{ p.city ? ' · ' + p.city : '' }}</option> }
-              </select></label>
+              <label>Boîte de production<app-select name="prod" [options]="orgOptions(productions())" placeholder="Choisissez la boîte de production"
+                [ngModel]="productionId ?? ''" (ngModelChange)="productionId = $event || null" /></label>
               <div class="row"><button type="button" class="send" (click)="chooseProduction()" [disabled]="busy() || !productionId">Confier la production</button></div>
             } @else { <p class="muted">Aucune boîte de production n'est encore inscrite sur la plateforme.</p> }
           </div>
@@ -261,14 +259,10 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
               <h3>Transmettre au réalisateur et au 1er AD</h3>
               @if (directors().length) {
                 <div class="two">
-                  <label>Réalisateur *<select name="director" [(ngModel)]="directorId">
-                    <option [ngValue]="null" disabled>Choisissez le réalisateur</option>
-                    @for (p of directors(); track p.id) { <option [ngValue]="p.id">{{ p.name }}{{ p.organisation ? ' · ' + p.organisation : '' }}</option> }
-                  </select></label>
-                  <label>1er AD (facultatif)<select name="firstAd" [(ngModel)]="firstAdId">
-                    <option [ngValue]="null">Aucun pour l'instant</option>
-                    @for (p of directors(); track p.id) { @if (p.id !== directorId) { <option [ngValue]="p.id">{{ p.name }}{{ p.organisation ? ' · ' + p.organisation : '' }}</option> } }
-                  </select></label>
+                  <label>Réalisateur *<app-select name="director" [options]="personOptions(directors(), null)" placeholder="Choisissez le réalisateur"
+                    [ngModel]="directorId ?? ''" (ngModelChange)="directorId = $event || null" /></label>
+                  <label>1er AD (facultatif)<app-select name="firstAd" [options]="personOptions(directors(), directorId, 'Aucun pour l’instant')"
+                    [ngModel]="firstAdId ?? ''" (ngModelChange)="firstAdId = $event || null" /></label>
                 </div>
                 <div class="row"><button type="button" class="send" (click)="transmit()" [disabled]="busy() || !directorId || !x.characters.length">{{ x.expectationsSentAt ? 'Transmettre la mise à jour' : 'Transmettre les attentes' }}</button></div>
                 @if (!x.characters.length) { <p class="hint">Ajoutez au moins un personnage avant de transmettre.</p> }
@@ -365,20 +359,18 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
         <ng-template #roleEditor>
           <div class="char-form">
             @if (x.characters.length) {
-              <label>À partir d'un personnage<select name="rchar" [(ngModel)]="roleForm.characterId" (ngModelChange)="fromCharacter($event)">
-                <option [ngValue]="null">Aucun</option>
-                @for (c of x.characters; track c.id) { <option [ngValue]="c.id">{{ c.name }}</option> }
-              </select></label>
+              <label>À partir d'un personnage<app-select name="rchar" [options]="characterOptions(x.characters)"
+                [ngModel]="roleForm.characterId ?? ''" (ngModelChange)="roleForm.characterId = $event || null; fromCharacter($event || null)" /></label>
             }
             <label>Nom du rôle *<input name="rname" [(ngModel)]="roleForm.name" maxlength="120"></label>
             <label>Intention du réalisateur *<textarea name="rintent" [(ngModel)]="roleForm.intention" rows="3" maxlength="4000" placeholder="Ce que l'acteur doit faire passer : émotion, présence, rapport aux autres…"></textarea></label>
             <div class="three">
-              <label>Sexe<select name="rgender" [(ngModel)]="roleForm.gender"><option [ngValue]="null">Indifférent</option><option value="Femme">Femme</option><option value="Homme">Homme</option></select></label>
+              <label>Sexe<app-select name="rgender" [options]="genderOptions" [ngModel]="roleForm.gender ?? ''" (ngModelChange)="roleForm.gender = $event || null" /></label>
               <label>Âge minimum<input name="rmin" type="number" min="0" max="100" [(ngModel)]="roleForm.minAge"></label>
               <label>Âge maximum<input name="rmax" type="number" min="0" max="100" [(ngModel)]="roleForm.maxAge"></label>
             </div>
             <label>Apparence<textarea name="rapp" [(ngModel)]="roleForm.appearance" rows="2" maxlength="4000" placeholder="Silhouette, style, signes particuliers…"></textarea></label>
-            <label>Importance<select name="rimp" [(ngModel)]="roleForm.importance"><option value="PRINCIPAL">Principal</option><option value="SECONDAIRE">Secondaire</option><option value="FIGURATION">Figuration</option></select></label>
+            <label>Importance<app-select name="rimp" [options]="importanceOptions" [(ngModel)]="roleForm.importance" /></label>
             <div class="row"><button type="button" class="send" (click)="saveRole()" [disabled]="busy() || !roleForm.name.trim()">{{ roleEditing() === 'new' ? 'Ajouter la fiche' : 'Enregistrer' }}</button>
               <button type="button" class="link" (click)="roleEditing.set(null)">Annuler</button></div>
           </div>
@@ -554,6 +546,20 @@ export class DemandeComponent {
   v1Link = '';
   v2Link = '';
   agencyId: string | null = null;
+
+  /* Options des listes déroulantes (même composant que le reste de l'application, plus de menu système). */
+  readonly genderOptions: SelectOption[] = [{ value: '', label: 'Indifférent' }, { value: 'Femme', label: 'Femme' }, { value: 'Homme', label: 'Homme' }];
+  readonly importanceOptions: SelectOption[] = [{ value: 'PRINCIPAL', label: 'Principal' }, { value: 'SECONDAIRE', label: 'Secondaire' }, { value: 'FIGURATION', label: 'Figuration' }];
+  orgOptions(list: { id: string; name: string; city?: string | null }[]): SelectOption[] {
+    return list.map(o => ({ value: o.id, label: o.name + (o.city ? ' · ' + o.city : '') }));
+  }
+  personOptions(list: { id: string; name: string; organisation?: string | null }[], exclude: string | null, none?: string): SelectOption[] {
+    const opts: SelectOption[] = list.filter(p => p.id !== exclude).map(p => ({ value: p.id, label: p.name + (p.organisation ? ' · ' + p.organisation : '') }));
+    return none ? [{ value: '', label: none }, ...opts] : opts;
+  }
+  characterOptions(list: { id: string; name: string }[]): SelectOption[] {
+    return [{ value: '', label: 'Aucun' }, ...list.map(c => ({ value: c.id, label: c.name }))];
+  }
 
   readonly editable = computed(() => !this.d() || this.d()!.canEdit);
   readonly v0 = computed(() => this.d()?.versions.find(v => v.kind === 'V0') ?? null);

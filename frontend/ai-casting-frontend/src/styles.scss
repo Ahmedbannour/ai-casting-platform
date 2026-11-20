@@ -215,6 +215,10 @@ body::after {
 @keyframes page-out { to { opacity: 0; transform: scale(0.985) translateY(-6px); } }
 @keyframes page-in  { from { opacity: 0; } to { opacity: 1; } }
 
+/* Toute page affichée dans la zone de contenu s'allonge avec son contenu au lieu de se tasser :
+   sans cela, une page plus haute que l'écran déborde et son bas devient inaccessible au défilement. */
+app-main-layout .content > router-outlet + * { flex: 1 0 auto; }
+
 /* Blocs de la page (zone de contenu et page de connexion), pas la barre latérale.
    fill-mode « backwards » : l'animation se termine vraiment et ne laisse aucun effet résiduel. */
 .nav-enter .content > router-outlet + * > * > *,
@@ -268,6 +272,49 @@ input[aria-invalid="true"]:not(.df-input), select[aria-invalid="true"], textarea
 @keyframes field-msg { from { opacity: 0; transform: translateY(-3px); } }
 
 input::placeholder, textarea::placeholder { color: var(--text-subtle); }
+
+/* Cases à cocher et boutons radio : dessinés avec la palette (plus de bleu système).
+   « !important » : certaines pages ont des règles « input { height… } » qui ne visaient que les champs texte. */
+input[type="checkbox"]:not(.bare), input[type="radio"]:not(.bare) {
+  -webkit-appearance: none !important; appearance: none !important; flex: none;
+  width: 19px !important; height: 19px !important; min-width: 0 !important; padding: 0 !important; margin: 0;
+  display: inline-grid !important; place-content: center; vertical-align: -4px; cursor: pointer;
+  border: 1.5px solid color-mix(in srgb, var(--text-subtle) 75%, transparent) !important; border-radius: 6px !important;
+  background: var(--glass) !important; box-shadow: none !important;
+  transition: background .18s, border-color .18s, box-shadow .18s, transform .12s;
+}
+input[type="radio"]:not(.bare) { border-radius: 50% !important; }
+input[type="checkbox"]:not(.bare)::before {
+  content: ''; width: 11px; height: 11px; background: var(--on-accent); transform: scale(0); transition: transform .2s cubic-bezier(.2,1.5,.4,1);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 12.5l5 5L19.5 7'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 12.5l5 5L19.5 7'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+input[type="radio"]:not(.bare)::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--on-accent); transform: scale(0); transition: transform .2s cubic-bezier(.2,1.5,.4,1);
+}
+input[type="checkbox"]:not(.bare):checked, input[type="radio"]:not(.bare):checked {
+  background: var(--accent) !important; border-color: var(--accent) !important;
+}
+input[type="checkbox"]:not(.bare):checked::before, input[type="radio"]:not(.bare):checked::before { transform: scale(1); }
+input[type="checkbox"]:not(.bare):hover:not(:disabled), input[type="radio"]:not(.bare):hover:not(:disabled) { border-color: var(--accent) !important; }
+input[type="checkbox"]:not(.bare):active:not(:disabled), input[type="radio"]:not(.bare):active:not(:disabled) { transform: scale(.88); }
+input[type="checkbox"]:not(.bare):focus-visible, input[type="radio"]:not(.bare):focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-dim) !important; }
+
+/* Champs remplis automatiquement par le navigateur : pas de fond jaune ou bleu système. */
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, textarea:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-primary);
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-secondary) inset !important;
+  caret-color: var(--text-primary);
+  transition: background-color 9999s ease-out 0s;
+}
+/* Bouton « Choisir un fichier » natif, quand il est visible. */
+input[type="file"]::file-selector-button {
+  margin-right: 10px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--accent-dim); color: var(--text-primary); font: inherit; font-weight: 600; cursor: pointer;
+}
+/* Curseur, sélection de texte et barres de progression natives aux couleurs de la palette. */
+input, textarea { caret-color: var(--accent-ink); accent-color: var(--accent); }
+progress, meter { accent-color: var(--accent); }
 input:disabled, select:disabled, textarea:disabled { opacity: .55; cursor: not-allowed; }
 
 /* Une fenêtre (formulaire, visionneuse) est ouverte : la barre d'onglets mobile s'efface en glissant

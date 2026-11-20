@@ -1,6 +1,7 @@
 // Sprint 2 · T-158 / T-159 : la marque crée une demande, écrit sa V0, dépose un PDF, l'envoie ; l'agence la reçoit et est notifiée.
 // Comptes recette.*@exemple.tn et organisations « Recette … », effacés ensuite par nettoyer-recette.sql.
 const { chromium } = require('playwright-core');
+const choisir = require('./choisir');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
 const API = 'http://localhost:8080/api', BASE = 'http://localhost:4200', OUT = path.join(__dirname, '..', 'nav');
@@ -48,7 +49,7 @@ async function login(b, email, pw) {
   const [dl] = await Promise.all([m.waitForEvent('download', { timeout: 8000 }).catch(() => null), m.getByRole('button', { name: 'Télécharger' }).first().click()]);
   res.telechargementMarque = dl ? dl.suggestedFilename() : null;
   res.envoyerActifSansAgence = await m.getByRole('button', { name: "Envoyer à l'agence" }).isEnabled();
-  await m.selectOption('select[name=agency]', { label: `Recette Agence ${stamp}` });
+  await choisir(m, 'agency', `Recette Agence ${stamp}`);
   await m.screenshot({ path: path.join(OUT, 'v2-demande-brouillon.jpg'), type: 'jpeg', quality: 75, fullPage: true });
   await m.getByRole('button', { name: "Envoyer à l'agence" }).click(); await m.waitForTimeout(1500);
   res.envoi = await m.locator('.ok').innerText().catch(() => '');

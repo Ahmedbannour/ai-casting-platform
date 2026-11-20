@@ -1,4 +1,5 @@
 import { Component, inject, input, output, signal } from '@angular/core';
+import { SelectFieldComponent } from '../../shared/components/select-field/select-field';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { OfferKind, OfferRow, OfferService } from '../../core/services/offer.service';
@@ -9,7 +10,7 @@ import { todayIso } from '../../shared/forms/dates';
 @Component({
   selector: 'app-offer-dialog',
   standalone: true,
-  imports: [FormsModule, DateFieldComponent],
+  imports: [FormsModule, DateFieldComponent, SelectFieldComponent],
   template: `
   <div class="backdrop" (click)="close.emit()"></div>
   <form class="panel" role="dialog" aria-modal="true" aria-labelledby="od-t" (ngSubmit)="send()" (keydown.escape)="onEscape($event)" novalidate>
@@ -30,7 +31,7 @@ import { todayIso } from '../../shared/forms/dates';
       <div class="row2">
         <div class="f">
           <label for="od-time">Heure</label>
-          <input id="od-time" name="time" type="time" step="900" [(ngModel)]="time" />
+          <app-select inputId="od-time" name="time" [options]="timeOptions" placeholder="Choisir l'heure" [(ngModel)]="time" />
         </div>
         <div class="f grow">
           <label for="od-place">Lieu</label>
@@ -80,6 +81,8 @@ import { todayIso } from '../../shared/forms/dates';
   `]
 })
 export class OfferDialogComponent {
+  /** Heures par quart d'heure (même liste déroulante que le reste de l'application). */
+  readonly timeOptions = Array.from({ length: 96 }, (_, i) => `${String(Math.floor(i / 4)).padStart(2, '0')}:${String((i % 4) * 15).padStart(2, '0')}`);
   private readonly api = inject(OfferService);
   readonly entryId = input.required<string>();
   readonly actorName = input('');

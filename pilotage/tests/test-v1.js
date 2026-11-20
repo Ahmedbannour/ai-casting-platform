@@ -1,6 +1,7 @@
 // Sprint 3 · T-161 : l'agence livre sa V1, la marque demande une révision, V1.1 livrée puis validée, l'agence confie la production.
 // Comptes recette.*@exemple.tn et organisations « Recette … », effacés ensuite par nettoyer-recette.sql.
 const { chromium } = require('playwright-core');
+const choisir = require('./choisir');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
 const API = 'http://localhost:8080/api', BASE = 'http://localhost:4200', OUT = path.join(__dirname, '..', 'nav');
@@ -63,7 +64,7 @@ async function login(b, a) {
   res.validation = await m.locator('.ok').innerText().catch(() => '');
   // Agence : confie à la production
   await a.goto(BASE + '/demandes/' + id); await a.waitForTimeout(1500);
-  await a.selectOption('select[name=prod]', { label: acc.P.nom });
+  await choisir(a, 'prod', acc.P.nom);
   await a.getByRole('button', { name: 'Confier la production' }).click(); await a.waitForTimeout(1500);
   res.production = await a.locator('.ok').innerText().catch(() => '');
   res.etape = await a.locator('.steps .now').innerText();

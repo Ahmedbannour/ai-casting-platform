@@ -1,6 +1,7 @@
 // Sprint 3 · T-160 : l'agence analyse la V0 (IA locale), refuse avec un motif ; la marque renvoie à une autre agence, qui accepte.
 // Comptes recette.*@exemple.tn et organisations « Recette … », effacés ensuite par nettoyer-recette.sql.
 const { chromium } = require('playwright-core');
+const choisir = require('./choisir');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
 const API = 'http://localhost:8080/api', BASE = 'http://localhost:4200', OUT = path.join(__dirname, '..', 'nav');
@@ -37,7 +38,7 @@ async function login(b, a) {
   const id = m.url().split('/').pop();
   await m.fill('textarea[name=v0]', 'Un grand-père récolte les olives avec sa petite-fille au lever du soleil, dans les collines du Sahel.');
   await m.setInputFiles('.drop input[type=file]', path.join(__dirname, 'v0-recette.pdf')); await m.waitForTimeout(1500);
-  await m.selectOption('select[name=agency]', { label: acc.A.nom });
+  await choisir(m, 'agency', acc.A.nom);
   await m.getByRole('button', { name: "Envoyer à l'agence" }).click(); await m.waitForTimeout(1500);
   res.envoiAlpha = await m.locator('.steps .now').innerText();
   // Alpha : analyse puis refus
@@ -64,7 +65,7 @@ async function login(b, a) {
   await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1500);
   res.banniereRefus = await m.locator('.warn').innerText().catch(() => '');
   res.marqueModifiable = await m.locator('input[name=title]').count() === 1;
-  await m.selectOption('select[name=agency]', { label: acc.B.nom });
+  await choisir(m, 'agency', acc.B.nom);
   await m.getByRole('button', { name: "Envoyer à l'agence" }).click(); await m.waitForTimeout(1500);
   // Beta : accepte
   const bb = await login(b, acc.B);

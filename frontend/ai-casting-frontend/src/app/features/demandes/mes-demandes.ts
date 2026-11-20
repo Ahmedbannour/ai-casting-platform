@@ -82,7 +82,7 @@ interface Step { key: string; who: string; what: string; }
     .cycle li.mine { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
     .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700;
       background: var(--bg-hover); color: var(--text-primary); }
-    .mine .n { background: var(--accent); color: #111; }
+    .mine .n { background: var(--accent); color: var(--on-accent); }
     .cycle b { display: block; font-size: 14px; }
     .cycle span:not(.n) { display: block; margin-top: 2px; color: var(--text-muted); font-size: 13px; line-height: 1.4; }
     .cycle em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--accent-ink); }
@@ -108,7 +108,14 @@ interface Step { key: string; who: string; what: string; }
     time { color: var(--text-muted); font-size: 12.5px; }
     .soon { height: 40px; padding: 0 18px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text-muted);
       font: inherit; font-size: 14px; font-weight: 600; cursor: not-allowed; }
-    @media (max-width: 900px) { .list a { grid-template-columns: minmax(0,1fr) auto; } time { display: none; } .cycle { grid-template-columns: 1fr; } .page { padding: 18px 14px 104px; } .head h1 { font-size: 30px; } }
+    @media (max-width: 900px) { .list a { grid-template-columns: minmax(0,1fr) auto; } time { display: none; } .page { padding: 18px 14px 24px; gap: 16px; } .head h1 { font-size: 30px; }
+      /* Sur téléphone, le cycle tient en quatre lignes compactes (numéro + rôle + ce qu'il fait). */
+      .cycle { grid-template-columns: 1fr; gap: 6px; }
+      .cycle li { flex-direction: row; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; }
+      .cycle li > div { flex: 1; min-width: 0; }
+      .cycle b { font-size: 13.5px; } .cycle span:not(.n) { font-size: 12.5px; line-height: 1.35; }
+      .n { flex: none; }
+      .cycle em { flex: none; font-size: 11px; padding: 3px 8px; border-radius: 999px; background: var(--accent-dim); } }
   `]
 })
 export class MesDemandesComponent {

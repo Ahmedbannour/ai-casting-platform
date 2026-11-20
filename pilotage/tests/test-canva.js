@@ -1,6 +1,7 @@
 // Cahier v2 · Une V0 peut être une présentation Canva : la marque donne le lien, l'agence l'ouvre ; l'analyse demande aussi le PDF.
 // Comptes recette.*@exemple.tn et organisations « Recette … », effacés ensuite par nettoyer-recette.sql.
 const { chromium } = require('playwright-core');
+const choisir = require('./choisir');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
 const API = 'http://localhost:8080/api', BASE = 'http://localhost:4200', OUT = path.join(__dirname, '..', 'nav');
@@ -42,7 +43,7 @@ async function login(b, email, pw) {
   await m.fill('input[name=v0link]', 'https://www.canva.com/design/DAFdemo/view');
   res.envoiActifAvecLienSeul = null;
   await m.getByRole('button', { name: 'Enregistrer le texte et le lien' }).click(); await m.waitForTimeout(1000);
-  await m.selectOption('select[name=agency]', { label: `Recette Agence ${stamp}` });
+  await choisir(m, 'agency', `Recette Agence ${stamp}`);
   res.envoiActifAvecLienSeul = await m.getByRole('button', { name: "Envoyer à l'agence" }).isEnabled();
   await m.getByRole('button', { name: "Envoyer à l'agence" }).click(); await m.waitForTimeout(1500);
   res.envoi = await m.locator('.ok').innerText().catch(() => '');

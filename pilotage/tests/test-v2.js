@@ -1,6 +1,7 @@
 // Sprint 4 · T-163 : la réalisatrice écrit la V2 (scènes, fiches de rôle à partir des personnages) et la publie ; le casting s'ouvre.
 // Comptes recette.*@exemple.tn et organisations « Recette … », effacés ensuite par nettoyer-recette.sql.
 const { chromium } = require('playwright-core');
+const choisir = require('./choisir');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
 const API = 'http://localhost:8080/api', BASE = 'http://localhost:4200', OUT = path.join(__dirname, '..', 'nav');
@@ -59,16 +60,16 @@ async function login(b, a) {
   await r.fill('textarea[name=sdesc]', 'Leila passe devant les échoppes encore fermées.');
   await r.getByRole('button', { name: 'Ajouter la scène' }).click(); await r.waitForTimeout(1200);
   await r.getByRole('button', { name: 'Ajouter une fiche de rôle' }).click();
-  await r.selectOption('select[name=rchar]', { label: 'Leila' }); await r.waitForTimeout(300);
+  await choisir(r, 'rchar', 'Leila'); await r.waitForTimeout(300);
   res.prerempli = { nom: await r.inputValue('input[name=rname]'), apparence: await r.inputValue('textarea[name=rapp]') };
   await r.fill('textarea[name=rintent]', 'Une femme libre et sereine, qui s’arrête pour respirer le jasmin : un instant pour elle.');
-  await r.selectOption('select[name=rgender]', 'Femme');
+  await choisir(r, 'rgender', 'Femme');
   await r.fill('input[name=rmin]', '30'); await r.fill('input[name=rmax]', '40');
-  await r.selectOption('select[name=rimp]', 'PRINCIPAL');
+  await choisir(r, 'rimp', 'Principal');
   await r.getByRole('button', { name: 'Ajouter la fiche' }).click(); await r.waitForTimeout(1200);
   await r.getByRole('button', { name: 'Ajouter une fiche de rôle' }).click();
   await r.fill('input[name=rname]', 'Passants de la médina');
-  await r.selectOption('select[name=rimp]', 'FIGURATION');
+  await choisir(r, 'rimp', 'Figuration');
   await r.getByRole('button', { name: 'Ajouter la fiche' }).click(); await r.waitForTimeout(1200);
   res.bloqueSansIntention = await r.getByRole('button', { name: 'Publier la V2 et lancer le casting' }).isDisabled();
   await r.locator('.chars li', { hasText: 'Passants de la médina' }).getByRole('button', { name: 'Modifier' }).click();

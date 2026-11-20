@@ -1,6 +1,7 @@
 // Sprint 3 · T-162 : la production saisit les attentes par personnage et les transmet au réalisateur et au 1er AD.
 // Comptes recette.*@exemple.tn et organisations « Recette … », effacés ensuite par nettoyer-recette.sql.
 const { chromium } = require('playwright-core');
+const choisir = require('./choisir');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
 const API = 'http://localhost:8080/api', BASE = 'http://localhost:4200', OUT = path.join(__dirname, '..', 'nav');
@@ -62,8 +63,8 @@ async function login(b, a) {
   await p.fill('textarea[name=cnotes]', 'Figurant spécial, tournage le samedi');
   await p.getByRole('button', { name: 'Enregistrer', exact: true }).click(); await p.waitForTimeout(1200);
   res.personnages = await p.locator('.chars .char-head b').allInnerTexts();
-  await p.selectOption('select[name=director]', { label: acc.r.full });
-  await p.selectOption('select[name=firstAd]', { label: acc.ad.full });
+  await choisir(p, 'director', acc.r.full);
+  await choisir(p, 'firstAd', acc.ad.full);
   await p.screenshot({ path: path.join(OUT, 'v2-attentes-production.jpg'), type: 'jpeg', quality: 75, fullPage: true });
   await p.getByRole('button', { name: 'Transmettre les attentes' }).click(); await p.waitForTimeout(1500);
   res.transmission = await p.locator('.ok').innerText().catch(() => '');
