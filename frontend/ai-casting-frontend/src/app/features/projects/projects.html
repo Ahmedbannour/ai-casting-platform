@@ -19,6 +19,24 @@
     }
   </div>
 
+  @if (tab() === 'EN_COURS' && pubs().length) {
+    <section class="pubs" aria-label="Publicités en préparation">
+      <h2>Publicités en préparation</h2>
+      <p class="sub">Leur projet de casting sera créé automatiquement à la publication de la V2. Suivez-les ici en attendant.</p>
+      <ul>
+        @for (d of pubs(); track d.id) {
+          <li>
+            <a [routerLink]="['/demandes', d.id]">
+              <div class="pt"><b>{{ d.title }}</b><span>Marque : {{ d.brandName }}{{ d.agencyName ? ' · agence ' + d.agencyName : '' }}</span>
+                <span class="now"><i aria-hidden="true"></i>{{ d.nowWho ? d.nowWho + ' ' : '' }}{{ d.nowWhat }}</span></div>
+              <span class="st">{{ statusLabel[d.status] }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
   <section class="list" aria-live="polite">
     @if (loading()) {
       @for (i of [1, 2, 3]; track i) { <div class="card skel"></div> }
@@ -28,7 +46,10 @@
     } @else if (!visible().length) {
       <div class="empty">
         <span class="brand-mark big" aria-hidden="true"></span>
-        @if (tab() === 'EN_COURS') {
+        @if (tab() === 'EN_COURS' && pubs().length) {
+          <h2>Aucun projet de casting pour l'instant</h2>
+          <p>Vos publicités en préparation deviendront des projets dès la publication de leur V2.</p>
+        } @else if (tab() === 'EN_COURS') {
           <h2>Créez votre premier projet</h2>
           <p>Un film, une série ou une publicité : ajoutez-y ensuite les rôles à pourvoir.</p>
           <button type="button" class="btn-primary" (click)="openCreate()">Nouveau projet</button>

@@ -1,5 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { DemandeService, DemandeSummary, STATUS_LABEL } from '../../core/services/demande.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Project, ProjectService, ProjectStatus, typeLabel } from '../../core/services/project.service';
 import { ProjectFormComponent } from './project-form';
 
@@ -7,13 +9,25 @@ import { ProjectFormComponent } from './project-form';
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [ProjectFormComponent],
+  imports: [ProjectFormComponent, RouterLink],
   templateUrl: './projects.html',
   styleUrl: './projects.scss'
 })
 export class ProjectsComponent implements OnInit {
   private readonly service = inject(ProjectService);
   private readonly router = inject(Router);
+  private readonly demandes = inject(DemandeService);
+  private readonly auth = inject(AuthService);
+
+  /** Publicités en préparation (avant la V2 publiée) : pas encore de projet de casting, mais l'équipe les suit d'ici. */
+  readonly pubs = signal<DemandeSummary[]>([]);
+  readonly statusLabel = STATUS_LABEL;
+  private loadPubs(): void {
+    const role = this.auth.role();
+    if (role !== 'BOITE_PROD' && role !== 'REALISATEUR' && role !== 'ADMIN') return;
+    const before = ['V0_ENVOYEE', 'V1_EN_COURS', 'V1_LIVREE', 'V2_EN_COURS'];
+    this.demandes.mine().subscribe({ next: l => this.pubs.set(l.filter(d => before.includes(d.status))), error: () => this.pubs.set([]) });
+  }
 
   readonly tabs: { value: ProjectStatus; label: string }[] = [
     { value: 'EN_COURS', label: 'En cours' },
@@ -36,7 +50,7 @@ export class ProjectsComponent implements OnInit {
 
   typeLabel = typeLabel;
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void { this.load(); this.loadPubs(); }
 
   load(): void {
     this.loading.set(true);

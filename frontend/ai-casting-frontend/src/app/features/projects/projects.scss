@@ -49,3 +49,19 @@ h1 { font-size: 34px; line-height: 1; }
   h2 { font-size: 22px; margin-bottom: 6px; } p { color: var(--text-muted); margin-bottom: 18px; } }
 
 @container page (max-width: 760px) { .projects { padding: 20px 16px; } .card-actions { opacity: 1; } }
+
+/* Publicités en préparation (production, réalisateur) */
+.pubs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.pubs h2 { margin: 0; font-size: 17px; }
+.pubs ul { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.pubs a { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius-m);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); background: var(--glass); color: var(--text-primary); text-decoration: none;
+  transition: border-color .15s, transform .15s; }
+.pubs a:hover { border-color: var(--accent); }
+.pubs a:active { transform: scale(.99); }
+.pubs .pt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pubs .pt b { font-size: 15px; }
+.pubs .pt span { font-size: 13px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pubs .pt .now { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); white-space: normal; }
+.pubs .pt .now i { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.pubs .st { flex: none; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--accent-dim); color: var(--accent-ink); }

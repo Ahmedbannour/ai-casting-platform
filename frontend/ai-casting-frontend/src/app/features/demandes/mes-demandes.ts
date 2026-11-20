@@ -141,9 +141,9 @@ export class MesDemandesComponent {
   readonly isDirector = computed(() => this.role() === 'REALISATEUR');
   readonly mine = computed(() => this.role() === 'AGENCE_MARKETING' ? 'v1' : this.isProd() ? 'attentes' : this.isDirector() ? 'v2' : 'v0');
   readonly lead = computed(() => this.isDirector()
-    ? 'Les boîtes de production vous transmettent les publicités avec les attentes de la marque et de l’agence, personnage par personnage : vous écrivez la V2 et l’intention de chaque rôle.'
+    ? 'Une boîte de production vous rattache à ses publicités : vous suivez leur avancement, puis vous écrivez la V2 et l’intention de chaque rôle dès que les attentes vous sont transmises.'
     : this.isProd()
-    ? 'Les agences vous confient leurs publicités une fois la V1 validée par la marque : vous recueillez les attentes sur les profils, puis le réalisateur et le 1er AD écrivent la V2.'
+    ? 'Une agence vous rattache à ses publicités dès la V1 en cours : vous suivez leur avancement, rattachez votre réalisateur, puis recueillez les attentes sur les profils une fois la V1 validée par la marque.'
     : this.isMarque()
     ? 'Vous déposez l’idée de votre publicité (V0) ; l’agence, la production et le réalisateur la font avancer jusqu’aux acteurs validés en PPM.'
     : 'Vous recevez la V0 des marques et livrez la V1 : le concept que le réalisateur détaillera.');
