@@ -2,6 +2,7 @@
 // → « C'est un match ! » ; la production (chef de room) voit le classement, fixe le 1er choix, partage un document réservé
 // au réalisateur et confie une tâche ; la marque ne voit pas ce document. Comptes recette.*@exemple.tn effacés à la fin.
 const { chromium } = require('playwright-core');
+const projet = require('./projet');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
 const API = 'http://localhost:8080/api', BASE = 'http://localhost:4200', OUT = path.join(__dirname, '..', 'nav');
@@ -20,14 +21,13 @@ const ok = (c, m) => { if (!c) throw new Error('ÉCHEC : ' + m); console.log('OK
   const users = (await j('/admin/users?size=500', {}, adm)).b; const list = Array.isArray(users) ? users : users.content;
   const uid = e => list.find(u => u.email === e).id;
   // Cycle publicitaire jusqu'à la V2 publiée (par l'API)
-  const id = (await j('/demandes', { method: 'POST', body: JSON.stringify({ title: 'Recette Room Eau ' + st }) }, acc.m.tk)).b.id;
+  const id = await projet(j, { prodTk: acc.p.tk, title: 'Recette Room Eau ' + st, brand: acc.m.email, agency: acc.a.email });
   await j(`/demandes/${id}/v0`, { method: 'PUT', body: JSON.stringify({ body: 'Une source en montagne.' }) }, acc.m.tk);
-  await j(`/demandes/${id}/envoyer`, { method: 'POST', body: JSON.stringify({ agencyId: acc.a.o }) }, acc.m.tk);
+  await j(`/demandes/${id}/envoyer`, { method: 'POST', body: '{}' }, acc.m.tk);
   await j(`/demandes/${id}/accepter`, { method: 'POST' }, acc.a.tk);
   await j(`/demandes/${id}/v1`, { method: 'PUT', body: JSON.stringify({ body: 'Concept : la source.' }) }, acc.a.tk);
   await j(`/demandes/${id}/v1/livrer`, { method: 'POST' }, acc.a.tk);
   await j(`/demandes/${id}/v1/valider`, { method: 'POST' }, acc.m.tk);
-  await j(`/demandes/${id}/production`, { method: 'POST', body: JSON.stringify({ productionId: acc.p.o }) }, acc.a.tk);
   await j(`/demandes/${id}/personnages`, { method: 'POST', body: JSON.stringify({ name: 'La randonneuse' }) }, acc.p.tk);
   await j(`/demandes/${id}/transmettre`, { method: 'POST', body: JSON.stringify({ directorId: uid(acc.r.email) }) }, acc.p.tk);
   await j(`/demandes/${id}/v2`, { method: 'PUT', body: JSON.stringify({ body: 'V2 : un plan-séquence.' }) }, acc.r.tk);

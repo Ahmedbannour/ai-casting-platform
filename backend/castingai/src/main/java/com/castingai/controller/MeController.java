@@ -43,7 +43,7 @@ public class MeController {
 
     public record MeResponse(UUID id, String email, String firstName, String lastName, String role,
                              String provider, UUID actorId, String agencyName, String contractStatus,
-                             java.time.LocalDate contractEnd) {}
+                             java.time.LocalDate contractEnd, java.util.List<String> perms) {}
 
     @GetMapping
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
@@ -51,9 +51,9 @@ public class MeController {
         User u = user(principal);
         UUID actorId = actors.findByAccount_Id(u.getId()).map(Actor::getId).orElse(null);
         var ag = u.getAgency();
-        String contract = u.getRole() != Role.BOITE_PROD ? null : ag == null ? "SANS_AGENCE" : ag.contractStatus();
+        String contract = !u.getRole().production() ? null : ag == null ? "SANS_AGENCE" : ag.contractStatus();
         return new MeResponse(u.getId(), u.getEmail(), u.getFirstName(), u.getLastName(), u.getRole().name(),
-                u.getAuthProvider(), actorId, ag == null ? null : ag.getName(), contract, ag == null ? null : ag.getContractEnd());
+                u.getAuthProvider(), actorId, ag == null ? null : ag.getName(), contract, ag == null ? null : ag.getContractEnd(), u.perms());
     }
 
     public record VisibilityResponse(String visibility, java.time.LocalDateTime changedAt) {}

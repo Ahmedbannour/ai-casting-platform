@@ -1,6 +1,7 @@
 // Cahier v2 · Une V0 peut être une présentation Canva : la marque donne le lien, l'agence l'ouvre ; l'analyse demande aussi le PDF.
 // Comptes recette.*@exemple.tn et organisations « Recette … », effacés ensuite par nettoyer-recette.sql.
 const { chromium } = require('playwright-core');
+const projet = require('./projet');
 const choisir = require('./choisir');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
@@ -22,8 +23,8 @@ async function login(b, email, pw) {
   const adm = (await j('/auth/login', { method: 'POST', body: JSON.stringify({ email: QA.email, password: QA.password }) })).b.accessToken;
   const today = new Date().toISOString().slice(0, 10), stamp = Date.now(), res = {};
   const org = {}, acc = {};
-  for (const kind of ['MARQUE', 'AGENCE_MARKETING']) {
-    const r = await j('/admin/agencies', { method: 'POST', body: JSON.stringify({ name: `Recette ${kind === 'MARQUE' ? 'Marque' : 'Agence'} ${stamp}`, contractStart: today, kind }) }, adm);
+  for (const kind of ['MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD']) {
+    const r = await j('/admin/agencies', { method: 'POST', body: JSON.stringify({ name: `Recette ${kind === 'MARQUE' ? 'Marque' : kind === 'BOITE_PROD' ? 'Prod' : 'Agence'} ${stamp}`, contractStart: today, kind }) }, adm);
     org[kind] = r.b.id;
     const email = `recette.canva.${kind.toLowerCase()}.${stamp}@exemple.tn`, pw = 'Rec3tte-' + Math.random().toString(36).slice(2, 10) + '!';
     const c = await j('/admin/agents', { method: 'POST', body: JSON.stringify({ email, firstName: 'Test', lastName: kind, role: kind, agencyId: org[kind], password: pw }) }, adm);
@@ -32,10 +33,9 @@ async function login(b, email, pw) {
   }
   const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   const m = await login(b, acc.MARQUE.email, acc.MARQUE.pw);
-  await m.goto(BASE + '/demandes/nouvelle'); await m.waitForTimeout(800);
-  await m.fill('input[name=title]', 'Recette Pub Canva ' + stamp);
-  await m.click('button.next'); await m.click('button[type=submit]'); await m.waitForURL(u => /\/demandes\/[0-9a-f-]{36}$/.test(u.pathname), { timeout: 10000 });
-  const id = m.url().split('/').pop();
+  const ptk = (await j('/auth/login', { method: 'POST', body: JSON.stringify({ email: acc.BOITE_PROD.email, password: acc.BOITE_PROD.pw }) })).b.accessToken;
+  const id = await projet(j, { prodTk: ptk, title: 'Recette Pub Canva ' + stamp, brand: acc.MARQUE.email, agency: acc.AGENCE_MARKETING.email });
+  await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1200);
   res.champLien = await m.locator('input[name=v0link]').count();
   await m.fill('input[name=v0link]', 'http://pas-https.example');
   await m.getByRole('button', { name: 'Enregistrer le texte et le lien' }).click(); await m.waitForTimeout(1000);
@@ -43,9 +43,9 @@ async function login(b, email, pw) {
   await m.fill('input[name=v0link]', 'https://www.canva.com/design/DAFdemo/view');
   res.envoiActifAvecLienSeul = null;
   await m.getByRole('button', { name: 'Enregistrer le texte et le lien' }).click(); await m.waitForTimeout(1000);
-  await choisir(m, 'agency', `Recette Agence ${stamp}`);
-  res.envoiActifAvecLienSeul = await m.getByRole('button', { name: "Envoyer à l'agence" }).isEnabled();
-  await m.getByRole('button', { name: "Envoyer à l'agence" }).click(); await m.waitForTimeout(1500);
+  const envoyer = m.locator('button.send', { hasText: 'Envoyer à' });
+  res.envoiActifAvecLienSeul = await envoyer.isEnabled();
+  await envoyer.click(); await m.waitForTimeout(1500);
   res.envoi = await m.locator('.ok').innerText().catch(() => '');
   const a = await login(b, acc.AGENCE_MARKETING.email, acc.AGENCE_MARKETING.pw);
   await a.goto(BASE + '/demandes/' + id); await a.waitForTimeout(1500);

@@ -50,7 +50,7 @@ public class AdminController {
         String kind = switch (role) {
             case MARQUE -> "MARQUE";
             case AGENCE_MARKETING -> "AGENCE_MARKETING";
-            case BOITE_PROD, REALISATEUR -> "BOITE_PROD";
+            case BOITE_PROD, ASSISTANT_PROD, REALISATEUR -> "BOITE_PROD";
             default -> null;
         };
         if (kind == null) return null;
@@ -95,6 +95,7 @@ public class AdminController {
         return switch (r) {
             case ADMIN -> "Administrateur";
             case BOITE_PROD -> "Boîte de production";
+            case ASSISTANT_PROD -> "Assistante de production";
             case ACTEUR -> "Acteur";
             case MARQUE -> "Marque";
             case AGENCE_MARKETING -> "Agence marketing";

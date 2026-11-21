@@ -1,6 +1,7 @@
 // Sprint 3 · T-162 : la production saisit les attentes par personnage et les transmet au réalisateur et au 1er AD.
 // Comptes recette.*@exemple.tn et organisations « Recette … », effacés ensuite par nettoyer-recette.sql.
 const { chromium } = require('playwright-core');
+const projet = require('./projet');
 const choisir = require('./choisir');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
@@ -35,15 +36,13 @@ async function login(b, a) {
   await mk('r', 'REALISATEUR', null, '', 'Recette' + st, 'Réalisatrice');
   await mk('ad', 'REALISATEUR', null, '', 'Recette' + st, 'Assistant');
   const M = acc.m.tk, A = acc.a.tk;
-  const id = (await j('/demandes', { method: 'POST', body: JSON.stringify({ title: 'Recette Parfum Jasmin ' + st }) }, M)).b.id;
+  const id = await projet(j, { prodTk: acc.p.tk, title: 'Recette Parfum Jasmin ' + st, brand: acc.m.email, agency: acc.a.email });
   await j(`/demandes/${id}/v0`, { method: 'PUT', body: JSON.stringify({ body: 'Une femme marche dans la médina au petit matin.' }) }, M);
-  await j(`/demandes/${id}/envoyer`, { method: 'POST', body: JSON.stringify({ agencyId: acc.a.o }) }, M);
+  await j(`/demandes/${id}/envoyer`, { method: 'POST', body: '{}' }, M);
   await j(`/demandes/${id}/accepter`, { method: 'POST' }, A);
   await j(`/demandes/${id}/v1`, { method: 'PUT', body: JSON.stringify({ body: 'Concept : la médina s’éveille, le parfum suit Leila.' }) }, A);
   await j(`/demandes/${id}/v1/livrer`, { method: 'POST' }, A);
   await j(`/demandes/${id}/v1/valider`, { method: 'POST' }, M);
-  const pr = await j(`/demandes/${id}/production`, { method: 'POST', body: JSON.stringify({ productionId: acc.p.o }) }, A);
-  if (pr.s !== 200) throw new Error('production ' + pr.s);
   const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   // Production : deux personnages, une modification, transmission
   const p = await login(b, acc.p);

@@ -36,7 +36,8 @@ public class DemandeService {
     /** Texte d'une version et, au besoin, le lien de sa présentation Canva (ou autre présentation en ligne). */
     public record V0Text(@Size(max = 20000, message = "Le texte ne dépasse pas 20 000 caractères") String body,
                          @Size(max = 500, message = "Le lien ne dépasse pas 500 caractères") String link) {}
-    public record Send(@NotNull(message = "Choisissez l'agence marketing") UUID agencyId) {}
+    /** L'agence est celle que le producer a invitée ; à défaut (ancien parcours), celle choisie par la marque. */
+    public record Send(UUID agencyId) {}
 
     public record Summary(UUID id, String title, String product, AdRequest.Status status, String brandName, String agencyName,
                           LocalDate airDate, LocalDateTime updatedAt, boolean hasV0, String nowWho, String nowWhat) {}
@@ -51,6 +52,7 @@ public class DemandeService {
                          boolean canEditExpectations, List<CharacterView> characters, String directorName, String firstAdName, LocalDateTime expectationsSentAt,
                          boolean canEditV2, List<SceneView> scenes, List<RoleSheetView> roles, UUID projectId, LocalDateTime v2PublishedAt,
                          boolean canAttachTeam, UUID directorId, UUID firstAdId, String nowWho, String nowWhat,
+                         boolean canInvite, boolean canEditInfo, boolean hasBrand, boolean canCancel,
                          List<VersionView> versions, List<EventView> events) {}
     public record AgencyOption(UUID id, String name, String city) {}
     public record CharacterRequest(@NotBlank(message = "Donnez un nom au personnage") @Size(max = 120) String name,
@@ -102,7 +104,7 @@ public class DemandeService {
             case ADMIN -> requests.findAllByOrderByUpdatedAtDesc();
             case MARQUE -> requests.forBrand(me.getId(), me.getAgency() == null ? null : me.getAgency().getId());
             case AGENCE_MARKETING -> me.getAgency() == null ? List.of() : requests.forAgency(me.getAgency().getId());
-            case BOITE_PROD -> me.getAgency() == null ? List.of() : requests.forProduction(me.getAgency().getId());
+            case BOITE_PROD, ASSISTANT_PROD -> me.getAgency() == null ? List.of() : requests.forProduction(me.getAgency().getId());
             case REALISATEUR -> requests.forDirector(me.getId());
             default -> List.of();
         };
@@ -132,25 +134,34 @@ public class DemandeService {
         catch (Exception e) { throw new IllegalStateException("Fichier indisponible pour le moment", e); }
     }
 
-    // ── Marque : brouillon ──
+    // ── Producer : création du projet ; la marque invitée écrit ensuite sa V0 ──
 
+    /** Le producer (ou l'assistante autorisée) crée la publicité au nom de sa boîte, puis invite la marque et l'agence. */
     @Transactional
     public Detail create(String email, DemandeRequest req) {
         User me = access.user(email);
-        if (me.getRole() != Role.MARQUE && me.getRole() != Role.ADMIN) throw new ForbiddenException("Seule une marque crée une demande de publicité");
+        boolean prod = me.getRole().production() && me.getAgency() != null && me.can("PROJETS");
+        if (!prod && me.getRole() != Role.ADMIN) {
+            throw new ForbiddenException(me.getRole() == Role.ASSISTANT_PROD
+                    ? "Le producer ne vous a pas autorisée à créer des projets"
+                    : "Seule la boîte de production crée un projet de publicité");
+        }
         AdRequest r = new AdRequest();
         r.setCreatedBy(me);
-        r.setBrand(me.getAgency());
+        if (prod) r.setProduction(me.getAgency());
         apply(r, req);
         requests.save(r);
-        log(r, me, "CREEE", "Demande créée par " + name(me));
+        log(r, me, "CREEE", "Projet créé par " + name(me) + (prod ? " (" + me.getAgency().getName() + ")" : ""));
         return detail(me, r);
     }
 
+    /** Les informations du projet : le producer et l'assistante autorisée, ou la marque, tant que la V0 n'est pas envoyée. */
     @Transactional
     public Detail update(String email, UUID id, DemandeRequest req) {
         User me = access.user(email);
-        AdRequest r = editable(me, id);
+        AdRequest r = visible(me, id);
+        if (!isBrandSide(me, r) && !prodCan(me, r, "PROJETS")) throw new ForbiddenException("Seuls le producer et la marque modifient ce projet");
+        if (r.getStatus() != AdRequest.Status.BROUILLON) throw new IllegalArgumentException("La V0 est envoyée : la demande ne se modifie plus");
         apply(r, req);
         return detail(me, r);
     }
@@ -211,14 +222,19 @@ public class DemandeService {
         if (v0 == null || !v0.hasContent()) {
             throw new IllegalArgumentException("Déposez votre V0 (un texte, un fichier ou le lien de votre présentation Canva) avant de l'envoyer");
         }
-        Agency agency = agencies.findById(req.agencyId()).filter(a -> "AGENCE_MARKETING".equals(a.getKind()))
-                .orElseThrow(() -> new IllegalArgumentException("Choisissez une agence marketing inscrite"));
+        Agency agency = r.getAgency() != null ? r.getAgency()
+                : req == null || req.agencyId() == null ? null
+                : agencies.findById(req.agencyId()).filter(a -> "AGENCE_MARKETING".equals(a.getKind())).orElse(null);
+        if (agency == null) throw new IllegalArgumentException(r.getProduction() != null
+                ? "Le producer n'a pas encore invité l'agence marketing : elle recevra votre V0 dès qu'elle aura rejoint le projet"
+                : "Choisissez une agence marketing inscrite");
         r.setAgency(agency);
         r.setStatus(AdRequest.Status.V0_ENVOYEE);
         v0.setStatus(AdVersion.Status.LIVREE);
         v0.setDeliveredAt(LocalDateTime.now());
         versions.save(v0);
         log(r, me, "V0_ENVOYEE", "V0 envoyée à " + agency.getName());
+        if (r.getProduction() != null) notifyOrg(r.getProduction(), "V0 envoyée : " + r.getTitle(), "La marque a envoyé sa V0 à " + agency.getName() + ".", r);
         String brand = r.getBrand() != null ? r.getBrand().getName() : name(me);
         users.findAll().stream().filter(u -> u.getAgency() != null && u.getAgency().getId().equals(agency.getId()) && u.isEnabled())
                 .forEach(u -> notifications.push(u.getId(), "DEMANDE", "Nouvelle demande : " + r.getTitle(),
@@ -230,7 +246,7 @@ public class DemandeService {
     public Detail cancel(String email, UUID id) {
         User me = access.user(email);
         AdRequest r = visible(me, id);
-        if (!isBrandSide(me, r)) throw new ForbiddenException("Seule la marque peut annuler sa demande");
+        if (!isBrandSide(me, r) && !prodCan(me, r, "PROJETS")) throw new ForbiddenException("Seuls le producer et la marque annulent ce projet");
         if (r.getStatus() != AdRequest.Status.BROUILLON && r.getStatus() != AdRequest.Status.V0_ENVOYEE) {
             throw new IllegalArgumentException("La demande est déjà en cours chez l'agence : elle ne s'annule plus ici");
         }
@@ -246,7 +262,9 @@ public class DemandeService {
     @Transactional
     public void delete(String email, UUID id) {
         User me = access.user(email);
-        AdRequest r = editable(me, id);
+        AdRequest r = visible(me, id);
+        if (!prodCan(me, r, "PROJETS") && !(isBrandSide(me, r) && r.getProduction() == null)) throw new ForbiddenException("Seul le producer supprime ce projet");
+        if (r.getStatus() != AdRequest.Status.BROUILLON) throw new IllegalArgumentException("La V0 est envoyée : le projet ne se supprime plus, annulez-le");
         versions.findByRequestIdOrderByCreatedAtAsc(r.getId()).forEach(v -> {
             if (v.getFileKey() != null) { try { storage.delete(v.getFileKey()); } catch (Exception ignored) { } }
         });
@@ -467,7 +485,7 @@ public class DemandeService {
     public Detail attachTeam(String email, UUID id, Team req) {
         User me = access.user(email);
         AdRequest r = visible(me, id);
-        if (!isProductionSide(me, r)) throw new ForbiddenException("Seule la boîte de production rattache le réalisateur");
+        if (!prodCan(me, r, "EQUIPE")) throw new ForbiddenException("Seule la boîte de production rattache le réalisateur");
         if (!teamAttachable(r)) throw new IllegalArgumentException("L'équipe ne se modifie plus une fois la V2 publiée");
         User director = req.directorId() == null ? null : realisateur(req.directorId(), "Choisissez un réalisateur inscrit");
         User firstAd = req.firstAdId() == null ? null : realisateur(req.firstAdId(), "Choisissez un 1er AD inscrit");
@@ -497,7 +515,9 @@ public class DemandeService {
         String prod = r.getProduction() == null ? "La production" : r.getProduction().getName();
         String real = r.getDirector() == null ? "Le réalisateur" : name(r.getDirector());
         return switch (r.getStatus()) {
-            case BROUILLON -> new String[]{ "La marque", "écrit la V0 avant de l'envoyer à l'agence" };
+            case BROUILLON -> r.getBrand() == null ? new String[]{ prod, "invite la marque et l'agence marketing" }
+                    : r.getAgency() == null && r.getProduction() != null ? new String[]{ prod, "invite l'agence marketing ; la marque prépare sa V0" }
+                    : new String[]{ r.getBrand().getName(), "écrit la V0 avant de l'envoyer à l'agence" };
             case V0_ENVOYEE -> new String[]{ agence, "lit la V0 pour l'accepter ou la refuser" };
             case V1_EN_COURS -> new String[]{ agence, "écrit la V1 (le concept)" };
             case V1_LIVREE -> r.getV1ValidatedAt() == null ? new String[]{ "La marque", "relit la V1 pour la valider ou demander une révision" }
@@ -708,7 +728,7 @@ public class DemandeService {
         team.remove(owner.getId());
         for (UUID u : team) {
             ProjectMember pm = new ProjectMember(p.getId(), u, LocalDateTime.now());
-            users.findById(u).ifPresent(x -> RoomService.defaults(pm, x.getRole()));
+            users.findById(u).ifPresent(x -> RoomService.defaults(pm, x));
             members.save(pm);
         }
         int pos = 0;
@@ -742,7 +762,7 @@ public class DemandeService {
 
     /** Qui écrit la V2 : le réalisateur et le 1er AD ; sans réalisateur rattaché, la boîte de production elle-même. */
     private boolean writesV2(User me, AdRequest r) {
-        return isDirectorSide(me, r) || (r.getDirector() == null && isProductionSide(me, r));
+        return isDirectorSide(me, r) || (r.getDirector() == null && prodCan(me, r, "EQUIPE"));
     }
 
     private AdVersion draftV2(AdRequest r, User me) {
@@ -789,7 +809,7 @@ public class DemandeService {
 
     private AdRequest expectationsEditable(User me, UUID id) {
         AdRequest r = visible(me, id);
-        if (!isProductionSide(me, r)) throw new ForbiddenException("Seule la boîte de production saisit les attentes");
+        if (!prodCan(me, r, "EQUIPE")) throw new ForbiddenException("Seule la boîte de production saisit les attentes");
         if (r.getStatus() != AdRequest.Status.V2_EN_COURS) throw new IllegalArgumentException("Les attentes se saisissent pendant la préparation de la V2");
         return r;
     }
@@ -865,10 +885,22 @@ public class DemandeService {
                 || (r.getFirstAd() != null && r.getFirstAd().getId().equals(me.getId())));
     }
 
+    /** Côté production : le producer et ses assistantes (lecture) ; le détail des droits passe par {@link #prodCan}. */
     private boolean isProductionSide(User me, AdRequest r) {
         if (r.getProduction() != null && me.getRole() == Role.ADMIN) return true;
-        return r.getProduction() != null && me.getRole() == Role.BOITE_PROD && me.getAgency() != null
+        return r.getProduction() != null && me.getRole().production() && me.getAgency() != null
                 && me.getAgency().getId().equals(r.getProduction().getId());
+    }
+
+    /** Côté production, avec l'autorisation donnée par le producer à son assistante. */
+    boolean prodCan(User me, AdRequest r, String perm) {
+        return isProductionSide(me, r) && me.can(perm);
+    }
+
+    /** Le producer (ou l'assistante autorisée) invite la marque et l'agence jusqu'à la publication de la V2. */
+    boolean canInvite(User me, AdRequest r) {
+        return prodCan(me, r, "INVITATIONS") && r.getV2PublishedAt() == null
+                && r.getStatus() != AdRequest.Status.ANNULEE && r.getStatus() != AdRequest.Status.CLOTUREE;
     }
 
     // ── Règles ──
@@ -884,8 +916,9 @@ public class DemandeService {
         if (isBrandSide(me, r)) return true;
         if (isProductionSide(me, r)) return true;
         if (isDirectorSide(me, r)) return true;
-        return me.getAgency() != null && r.getAgency() != null && r.getAgency().getId().equals(me.getAgency().getId())
-                && r.getStatus() != AdRequest.Status.BROUILLON;
+        // L'agence invitée par le producer suit le projet dès son arrivée (la V0 lui est montrée une fois envoyée).
+        return me.getRole() == Role.AGENCE_MARKETING && me.getAgency() != null && r.getAgency() != null
+                && r.getAgency().getId().equals(me.getAgency().getId());
     }
 
     private AdRequest visible(User me, UUID id) {
@@ -928,7 +961,7 @@ public class DemandeService {
     private Summary summary(AdRequest r) {
         boolean hasV0 = versions.findFirstByRequestIdAndKindOrderByCreatedAtDesc(r.getId(), AdVersion.Kind.V0)
                 .map(AdVersion::hasContent).orElse(false);
-        return new Summary(r.getId(), r.getTitle(), r.getProduct(), r.getStatus(), r.getBrand() == null ? name(r.getCreatedBy()) : r.getBrand().getName(),
+        return new Summary(r.getId(), r.getTitle(), r.getProduct(), r.getStatus(), brandLabel(r),
                 r.getAgency() == null ? null : r.getAgency().getName(), r.getAirDate(), r.getUpdatedAt(), hasV0, now(r)[0], now(r)[1]);
     }
 
@@ -943,7 +976,7 @@ public class DemandeService {
         List<EventView> ev = events.findByRequestIdOrderByCreatedAtDesc(r.getId()).stream()
                 .map(e -> new EventView(e.getType(), e.getMessage(), e.getActor() == null ? null : name(e.getActor()), e.getCreatedAt())).toList();
         return new Detail(r.getId(), r.getTitle(), r.getProduct(), r.getObjective(), r.getTarget(), r.getKeyMessage(), r.getAirDate(), r.getStatus(),
-                r.getBrand() == null ? name(r.getCreatedBy()) : r.getBrand().getName(), r.getAgency() == null ? null : r.getAgency().getId(),
+                brandLabel(r), r.getAgency() == null ? null : r.getAgency().getId(),
                 r.getAgency() == null ? null : r.getAgency().getName(), name(r.getCreatedBy()), r.getCreatedAt(), r.getUpdatedAt(),
                 isBrandSide(me, r) && r.getStatus() == AdRequest.Status.BROUILLON,
                 isAgencySide(me, r) && r.getStatus() == AdRequest.Status.V0_ENVOYEE,
@@ -965,7 +998,11 @@ public class DemandeService {
                 r.getV2PublishedAt(), isProductionSide(me, r) && teamAttachable(r),
                 isProductionSide(me, r) && r.getDirector() != null ? r.getDirector().getId() : null,
                 isProductionSide(me, r) && r.getFirstAd() != null ? r.getFirstAd().getId() : null,
-                now(r)[0], now(r)[1], vs, ev);
+                now(r)[0], now(r)[1],
+                canInvite(me, r), r.getStatus() == AdRequest.Status.BROUILLON && (isBrandSide(me, r) || prodCan(me, r, "PROJETS")),
+                r.getBrand() != null,
+                (r.getStatus() == AdRequest.Status.BROUILLON || r.getStatus() == AdRequest.Status.V0_ENVOYEE) && (isBrandSide(me, r) || prodCan(me, r, "PROJETS")),
+                vs, ev);
     }
 
     private static Analysis analysis(AdRequest r) {
@@ -988,6 +1025,12 @@ public class DemandeService {
             throw new IllegalArgumentException("Le lien doit être une adresse https, par exemple le lien « Partager » de votre présentation Canva");
         }
         return u;
+    }
+
+    /** Nom de la marque ; un projet du producer sans marque encore invitée l'indique. */
+    private static String brandLabel(AdRequest r) {
+        if (r.getBrand() != null) return r.getBrand().getName();
+        return r.getProduction() != null ? "Marque à inviter" : name(r.getCreatedBy());
     }
 
     private static String name(User u) { return (u.getFirstName() + " " + u.getLastName()).trim(); }

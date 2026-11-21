@@ -69,12 +69,12 @@ import { PROJECT_TYPES, Project, ProjectRequest, ProjectService, ProjectType } f
   :host { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; }
   @media (max-width: 600px) { :host { padding: 12px; } }
   .backdrop { position: absolute; inset: 0; background: rgba(10, 10, 12, .55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); animation: fade .2s both; }
-  .panel { position: relative; width: min(520px, 100%); max-height: calc(100vh - 40px); max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  .panel { position: relative; width: min(520px, 100%); max-height: calc(100vh - 40px); max-height: calc(100dvh - 24px); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     display: flex; flex-direction: column; gap: 16px; padding: 24px; border-radius: var(--radius-l);
     border: 1px solid var(--border); background: var(--glass-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
     box-shadow: 0 30px 80px rgba(0,0,0,.4); animation: pop .32s cubic-bezier(.2,.8,.2,1) both; }
   h2 { font-size: 26px; }
-  .f { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .f { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
   .f > span, .f > label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
   .dur { margin-top: -8px; }
   .f em { font-style: normal; font-weight: 400; color: var(--text-subtle); }

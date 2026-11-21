@@ -30,7 +30,7 @@ public class ProjectService {
     @Transactional(readOnly = true)
     public List<ProjectResponse> list(String email, Project.Status status) {
         User me = user(email);
-        List<Project> projects = projectRepository.findVisible(me.getId(), isAdmin(me), status);
+        List<Project> projects = projectRepository.findVisible(me.getId(), isAdmin(me), AccessService.assistantOrg(me), status);
         Map<UUID, long[]> counts = roleCounts(projects.stream().map(Project::getId).toList());
         return projects.stream().map(p -> toResponse(p, me, counts)).toList();
     }
@@ -107,7 +107,7 @@ public class ProjectService {
         Project p = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Projet introuvable"));
         boolean ok = isAdmin(me) || p.getOwner().getId().equals(me.getId())
-                || projectRepository.isMember(id, me.getId());
+                || projectRepository.isMember(id, me.getId()) || AccessService.assistantSees(me, p);
         if (!ok) throw new ResourceNotFoundException("Projet introuvable");
         return p;
     }

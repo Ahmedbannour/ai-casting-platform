@@ -26,7 +26,8 @@ svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width:
 .df.invalid .ico { color: var(--danger); }
 
 input {
-  flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; padding: 0;
+  /* width: 0 + flex: 1 : le champ prend la place disponible sans jamais élargir la colonne (ni la popup) qui le contient. */
+  flex: 1; width: 0; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; padding: 0;
   color: inherit; font: inherit; font-size: 14.5px; font-variant-numeric: tabular-nums; letter-spacing: .02em;
 }
 input::placeholder { color: var(--text-subtle); letter-spacing: .04em; }

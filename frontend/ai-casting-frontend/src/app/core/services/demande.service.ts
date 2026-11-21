@@ -41,8 +41,14 @@ export interface DemandeDetail {
   canEditExpectations: boolean; characters: DemandeCharacter[]; directorName: string | null; firstAdName: string | null; expectationsSentAt: string | null;
   canEditV2: boolean; scenes: DemandeScene[]; roles: RoleSheet[]; projectId: string | null; v2PublishedAt: string | null;
   /** Synchronisation de l'équipe : qui a la main maintenant, et la production rattache son équipe quand elle veut. */
-  canAttachTeam: boolean; directorId: string | null; firstAdId: string | null; nowWho: string; nowWhat: string; versions: DemandeVersion[]; events: DemandeEvent[];
+  canAttachTeam: boolean; directorId: string | null; firstAdId: string | null; nowWho: string; nowWhat: string;
+  /** Le producer (ou l'assistante autorisée) invite la marque et l'agence ; modifie les informations du projet. */
+  canInvite: boolean; canEditInfo: boolean; hasBrand: boolean; canCancel: boolean;
+  versions: DemandeVersion[]; events: DemandeEvent[];
 }
+
+export interface InviteResult { status: 'RATTACHE' | 'LIEN'; token: string | null; expiresAt: number | null; name: string | null; message: string; }
+export interface PendingInvitation { id: string; email: string; kind: 'MARQUE' | 'AGENCE_MARKETING' | 'ASSISTANT_PROD'; requestId: string | null; requestTitle: string | null; expiresAt: number; perms: string[]; }
 export interface DemandeRequest { title: string; product?: string | null; objective?: string | null; target?: string | null; keyMessage?: string | null; airDate?: string | null; }
 export interface AgencyOption { id: string; name: string; city: string | null; }
 
@@ -63,7 +69,7 @@ export class DemandeService {
     return this.http.post<DemandeDetail>(`${this.url}/${id}/v0/fichier`, f);
   }
   removeV0File(id: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/v0/fichier`); }
-  send(id: string, agencyId: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/envoyer`, { agencyId }); }
+  send(id: string, agencyId: string | null): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/envoyer`, { agencyId }); }
   cancel(id: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/annuler`, {}); }
   accept(id: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/accepter`, {}); }
   refuse(id: string, reason: string): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/refuser`, { reason }); }
@@ -80,6 +86,9 @@ export class DemandeService {
   updateCharacter(id: string, cid: string, c: CharacterRequest): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/personnages/${cid}`, c); }
   deleteCharacter(id: string, cid: string): Observable<DemandeDetail> { return this.http.delete<DemandeDetail>(`${this.url}/${id}/personnages/${cid}`); }
   directors(): Observable<PersonOption[]> { return this.http.get<PersonOption[]>(`${this.url}/realisateurs`); }
+  invite(id: string, email: string, kind: 'MARQUE' | 'AGENCE_MARKETING'): Observable<InviteResult> { return this.http.post<InviteResult>(`${this.url}/${id}/invitations`, { email, kind }); }
+  invitations(id: string): Observable<PendingInvitation[]> { return this.http.get<PendingInvitation[]>(`${this.url}/${id}/invitations`); }
+  revokeInvitation(invitationId: string): Observable<void> { return this.http.delete<void>(`${environment.apiUrl}/production/invitations/${invitationId}`); }
   attachTeam(id: string, directorId: string | null, firstAdId: string | null): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/equipe`, { directorId, firstAdId }); }
   transmit(id: string, directorId: string, firstAdId: string | null): Observable<DemandeDetail> { return this.http.post<DemandeDetail>(`${this.url}/${id}/transmettre`, { directorId, firstAdId }); }
   saveV2(id: string, body: string, link: string | null = null): Observable<DemandeDetail> { return this.http.put<DemandeDetail>(`${this.url}/${id}/v2`, { body, link }); }

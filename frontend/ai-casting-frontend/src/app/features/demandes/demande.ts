@@ -4,6 +4,7 @@ import { SelectFieldComponent, SelectOption } from '../../shared/components/sele
 import { DateFieldComponent } from '../../shared/components/date-field/date-field';
 import { FormStepsComponent } from '../../shared/components/form-steps/form-steps';
 import { DropzoneComponent } from '../../shared/components/dropzone/dropzone';
+import { InviteCardComponent } from './invite-card';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -31,7 +32,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
 @Component({
   selector: 'app-demande',
   standalone: true,
-  imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, SelectFieldComponent, DateFieldComponent, FormStepsComponent, DropzoneComponent],
+  imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, SelectFieldComponent, DateFieldComponent, FormStepsComponent, DropzoneComponent, InviteCardComponent],
   template: `
   <section class="page">
     <a class="back" routerLink="/mes-demandes">← Mes demandes</a>
@@ -40,11 +41,11 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     @else if (fatal()) { <p class="err" role="alert">{{ fatal() }}</p> }
     @else {
       <header class="head">
-        <h1>{{ d()?.title || 'Nouvelle demande de publicité' }}</h1>
+        <h1>{{ d()?.title || 'Nouveau projet de publicité' }}</h1>
         @if (d(); as x) {
           <p>{{ x.brandName }}{{ x.agencyName ? ' → ' + x.agencyName : '' }}{{ x.productionName ? ' → ' + x.productionName : '' }} · {{ statusLabel(x.status) }}{{ x.status === 'V1_LIVREE' && x.v1Validated ? ' · V1 validée' : '' }}</p>
         } @else {
-          <p>Décrivez votre projet, puis déposez votre V0. Vous pourrez la modifier tant qu'elle n'est pas envoyée.</p>
+          <p>Décrivez le projet, puis invitez la marque et l'agence marketing : la marque écrira sa V0 et l'enverra à l'agence.</p>
         }
       </header>
 
@@ -80,6 +81,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             </li>
           }
         </ul>
+        @if (x.canInvite && (!x.hasBrand || !x.agencyName)) { <app-invite-card [d]="x" (changed)="load(x.id)" /> }
       }
 
       @if (refusal(); as r) { <p class="note warn">{{ r }} Vous pouvez la modifier et l'envoyer à une autre agence.</p> }
@@ -109,12 +111,15 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
               @if (d()) { <button type="button" class="ghost" (click)="save()" [disabled]="busy() || !form.title.trim()">Enregistrer le projet</button> }
               <button type="button" class="send next" (click)="pGo(1)" [disabled]="!form.title.trim()">Suivant</button>
             } @else {
-              <button class="send" type="submit" [disabled]="busy() || !form.title.trim()">{{ d() ? 'Enregistrer le projet' : 'Créer la demande' }}</button>
+              <button class="send" type="submit" [disabled]="busy() || !form.title.trim()">{{ d() ? 'Enregistrer le projet' : 'Créer le projet' }}</button>
+            }
+            @if (d()?.canEditInfo && !d()?.canEdit && d()?.status === 'BROUILLON') {
+              <button type="button" class="link danger" (click)="remove()" [disabled]="busy()">Supprimer le projet</button>
             }
           </div>
         </form>
 
-        @if (d(); as x) {
+        @if (d(); as x) { @if (x.canEdit) {
           <div class="card">
             <h2>Votre V0</h2>
             <p class="muted">Le fichier artistique de votre idée : détails du projet, messages, notes, références. Pas de budget.</p>
@@ -136,18 +141,22 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
 
           <div class="card">
             <h2>Envoyer à l'agence marketing</h2>
-            @if (agencies().length) {
+            @if (x.agencyName) {
+              <p class="to-agency"><span aria-hidden="true">→</span> <b>{{ x.agencyName }}</b>, invitée par {{ x.productionName || 'la production' }}</p>
+            } @else if (x.productionName) {
+              <p class="muted">{{ x.productionName }} n'a pas encore invité l'agence marketing. Préparez votre V0 : vous l'enverrez dès que l'agence aura rejoint le projet.</p>
+            } @else if (agencies().length) {
               <label>Agence<app-select name="agency" [options]="orgOptions(agencies())" placeholder="Choisissez l'agence"
                 [ngModel]="agencyId ?? ''" (ngModelChange)="agencyId = $event || null" /></label>
             } @else { <p class="muted">Aucune agence marketing n'est encore inscrite sur la plateforme.</p> }
             <p class="muted">Une fois envoyée, la V0 est figée et l'agence reçoit une notification.</p>
             <div class="row">
-              <button type="button" class="send" (click)="send()" [disabled]="busy() || !agencyId || !hasV0()">Envoyer à l'agence</button>
-              <button type="button" class="link danger" (click)="remove()" [disabled]="busy()">Supprimer le brouillon</button>
+              <button type="button" class="send" (click)="send()" [disabled]="busy() || !agencyId || !hasV0()">{{ x.agencyName ? 'Envoyer à ' + x.agencyName : 'Envoyer à l’agence' }}</button>
+              @if (!x.productionName) { <button type="button" class="link danger" (click)="remove()" [disabled]="busy()">Supprimer le brouillon</button> }
             </div>
             @if (!hasV0()) { <p class="hint">Écrivez votre V0, déposez un fichier ou donnez le lien de votre présentation Canva avant d'envoyer.</p> }
           </div>
-        }
+        } }
       } @else if (d(); as x) {
         <div class="card">
           <h2>Le projet</h2>
@@ -474,7 +483,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             }
           </div>
         }
-        @if (x.status === 'V0_ENVOYEE' && isBrandSide()) {
+        @if (x.status === 'V0_ENVOYEE' && x.canCancel) {
           <div class="row"><button type="button" class="link danger" (click)="cancel()" [disabled]="busy()">Annuler la demande</button></div>
         }
       }
@@ -538,6 +547,8 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
     .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .to-agency { margin: 0; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 10%, transparent); font-size: 14px; }
+    .to-agency span { color: var(--accent-ink); font-weight: 700; }
     .send { height: 40px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent); color: #111; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
     .ghost { height: 38px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text-primary); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
     .link { border: 0; background: none; padding: 4px; color: var(--accent-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
@@ -664,7 +675,7 @@ export class DemandeComponent {
     return [{ value: '', label: 'Aucun' }, ...list.map(c => ({ value: c.id, label: c.name }))];
   }
 
-  readonly editable = computed(() => !this.d() || this.d()!.canEdit);
+  readonly editable = computed(() => !this.d() || this.d()!.canEdit || this.d()!.canEditInfo);
   readonly v0 = computed(() => this.d()?.versions.find(v => v.kind === 'V0') ?? null);
   readonly hasV0 = computed(() => !!(this.v0()?.body?.trim() || this.v0()?.fileName || this.v0()?.linkUrl));
   readonly stepIndex = computed(() => { const s = this.d()?.status; return s ? STEPS.findIndex(x => x.key.includes(s)) : 0; });
@@ -684,7 +695,7 @@ export class DemandeComponent {
   isCanva(u: string) { try { const h = new URL(u).hostname; return h.endsWith('canva.com') || h.endsWith('canva.link'); } catch { return false; } }
   size(n: number | null) { if (!n) return ''; return n < 1024 * 1024 ? Math.max(1, Math.round(n / 1024)) + ' Ko' : (n / 1024 / 1024).toFixed(1).replace('.', ',') + ' Mo'; }
 
-  private load(id: string) {
+  load(id: string) {
     this.loading.set(true);
     this.api.get(id).subscribe({
       next: x => { this.apply(x); this.loading.set(false); if (x.canEdit) this.loadAgencies(); if (x.canChooseProduction) this.loadProductions(); if (x.canEditExpectations || x.canAttachTeam) this.loadDirectors(); },
@@ -750,7 +761,7 @@ export class DemandeComponent {
   cancel() { const x = this.d(); if (x) this.run(this.api.cancel(x.id), 'Demande annulée.', r => this.apply(r)); }
   remove() {
     const x = this.d(); if (!x) return;
-    this.run(this.api.remove(x.id), 'Brouillon supprimé.', () => this.router.navigate(['/mes-demandes']));
+    this.run(this.api.remove(x.id), 'Projet supprimé.', () => this.router.navigate(['/mes-demandes']));
   }
   accept() { const x = this.d(); if (x) this.run(this.api.accept(x.id), 'Demande acceptée. La marque est prévenue : à vous la V1.', r => this.apply(r)); }
   refuse() {

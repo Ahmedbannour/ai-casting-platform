@@ -1,6 +1,7 @@
 // Sprint 3 · T-161 : l'agence livre sa V1, la marque demande une révision, V1.1 livrée puis validée, l'agence confie la production.
 // Comptes recette.*@exemple.tn et organisations « Recette … », effacés ensuite par nettoyer-recette.sql.
 const { chromium } = require('playwright-core');
+const projet = require('./projet');
 const choisir = require('./choisir');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
@@ -29,9 +30,9 @@ async function login(b, a) {
     acc[k] = { email, pw, o, nom: `Recette ${nom} ${st}`, tk: (await j('/auth/login', { method: 'POST', body: JSON.stringify({ email, password: pw }) })).b.accessToken };
   }
   // Mise en place par l'API : demande envoyée et acceptée
-  const id = (await j('/demandes', { method: 'POST', body: JSON.stringify({ title: 'Recette Dattes de Tozeur ' + st }) }, acc.M.tk)).b.id;
+  const id = await projet(j, { prodTk: acc.P.tk, title: 'Recette Dattes de Tozeur ' + st, brand: acc.M.email, agency: acc.A.email });
   await j(`/demandes/${id}/v0`, { method: 'PUT', body: JSON.stringify({ body: 'Une caravane au coucher du soleil, des dattes partagées.' }) }, acc.M.tk);
-  await j(`/demandes/${id}/envoyer`, { method: 'POST', body: JSON.stringify({ agencyId: acc.A.o }) }, acc.M.tk);
+  await j(`/demandes/${id}/envoyer`, { method: 'POST', body: '{}' }, acc.M.tk);
   await j(`/demandes/${id}/accepter`, { method: 'POST' }, acc.A.tk);
   const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   // Agence : écrit et livre la V1
@@ -62,12 +63,12 @@ async function login(b, a) {
   await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1500);
   await m.getByRole('button', { name: 'Valider la V1.1' }).click(); await m.waitForTimeout(1500);
   res.validation = await m.locator('.ok').innerText().catch(() => '');
-  // Agence : confie à la production
+  // La production du projet (le producer qui l'a créé) prend la main dès la V1 validée : l'agence n'a plus rien à choisir
   await a.goto(BASE + '/demandes/' + id); await a.waitForTimeout(1500);
-  await choisir(a, 'prod', acc.P.nom);
-  await a.getByRole('button', { name: 'Confier la production' }).click(); await a.waitForTimeout(1500);
-  res.production = await a.locator('.ok').innerText().catch(() => '');
+  res.agenceChoixProduction = await a.locator('app-select[name=prod]').count();
+  if (res.agenceChoixProduction) throw new Error('ÉCHEC : l’agence choisit encore la production');
   res.etape = await a.locator('.steps .now').innerText();
+  res.maintenant = await a.locator('.now-card p').innerText();
   // Production : voit la publicité dans « Publicités »
   const p = await login(b, acc.P);
   res.menuProd = await p.locator('nav a, .nav-item').allInnerTexts().catch(() => []);

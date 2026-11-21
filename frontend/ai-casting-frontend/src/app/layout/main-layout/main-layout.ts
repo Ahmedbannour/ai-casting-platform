@@ -96,7 +96,7 @@ import { EmailBannerComponent } from './email-banner';
     <app-sidebar />
     <div #content class="content" cdkScrollable>
       <header class="m-top">
-        <a class="m-logo" [routerLink]="role() === 'ACTEUR' ? '/mon-profil' : role() === 'MARQUE' || role() === 'AGENCE_MARKETING' ? '/mes-demandes' : '/chat'" aria-label="Cercle, accueil"><span class="brand-mark" aria-hidden="true"></span><span class="wordmark">Cercle</span></a>
+        <a class="m-logo" [routerLink]="role() === 'ACTEUR' ? '/mon-profil' : role() === 'MARQUE' || role() === 'AGENCE_MARKETING' || role() === 'ASSISTANT_PROD' ? '/mes-demandes' : '/chat'" aria-label="Cercle, accueil"><span class="brand-mark" aria-hidden="true"></span><span class="wordmark">Cercle</span></a>
         <app-notification-bell class="m-bell" />
       </header>
       @if (contract(); as c) {
@@ -126,7 +126,7 @@ import { EmailBannerComponent } from './email-banner';
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
         <span>Propositions</span>
       </a>
-      } @else if (role() === 'MARQUE' || role() === 'AGENCE_MARKETING') {
+      } @else if (role() === 'MARQUE' || role() === 'AGENCE_MARKETING' || (role() === 'ASSISTANT_PROD' && !me.can('CASTING'))) {
       <a class="tab" routerLink="/mes-demandes" routerLinkActive="active" aria-label="Demandes">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-8l-2-3H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1z"/></svg>
         <span>Demandes</span>
@@ -166,7 +166,7 @@ import { EmailBannerComponent } from './email-banner';
 })
 export class MainLayoutComponent {
   readonly nav = inject(NavStateService);
-  private readonly me = inject(MeService);
+  readonly me = inject(MeService);
   private readonly auth = inject(AuthService);
   readonly role = computed(() => this.me.me()?.role ?? this.auth.role());
 
@@ -235,7 +235,7 @@ export class MainLayoutComponent {
   /** Bandeau de l'agent : contrat inactif (lecture seule) ou qui se termine bientôt. */
   readonly contract = computed(() => {
     const m = this.me.me();
-    if (!m || m.role !== 'BOITE_PROD' || !m.contractStatus) return null;
+    if (!m || (m.role !== 'BOITE_PROD' && m.role !== 'ASSISTANT_PROD') || !m.contractStatus) return null;
     const agence = m.agencyName ?? 'votre agence';
     if (m.contractStatus === 'EXPIRE') return { level: 'stop', text: `Le contrat de ${agence} a pris fin : vous pouvez consulter vos projets, mais plus les modifier ni lancer de recherche. Contactez la plateforme pour le renouveler.` };
     if (m.contractStatus === 'A_VENIR') return { level: 'stop', text: `Le contrat de ${agence} n'a pas encore commencé : accès en lecture seule jusqu'à son ouverture.` };

@@ -8,16 +8,22 @@ package com.castingai.entity;
  * REALISATEUR : reprend la V1, écrit la V2 et l'intention de chaque rôle ; choisit ses acteurs.
  * BOITE_PROD : boîte de production ; organise le casting (shortlists, auditions, propositions).
  *              Reprend les comptes « AGENT » (agent de casting) d'avant la v2.
+ * ASSISTANT_PROD : assistante de production, rattachée à une boîte ; fait ce que le producer lui autorise
+ *              (créer les projets, inviter marque et agence, équipe et attentes, room, casting).
  * ACTEUR : comédien inscrit ; ne voit et ne modifie que sa propre fiche.
  */
 public enum Role {
     ADMIN,
     BOITE_PROD,
+    ASSISTANT_PROD,
     ACTEUR,
     MARQUE,
     AGENCE_MARKETING,
     REALISATEUR;
 
     /** Rôles qui travaillent sur le casting (vivier, projets, rôles, shortlists, recherche IA). */
-    public boolean casting() { return this == ADMIN || this == BOITE_PROD || this == REALISATEUR; }
+    public boolean casting() { return this == ADMIN || this == BOITE_PROD || this == ASSISTANT_PROD || this == REALISATEUR; }
+
+    /** Côté production : le producer et ses assistantes. */
+    public boolean production() { return this == BOITE_PROD || this == ASSISTANT_PROD; }
 }

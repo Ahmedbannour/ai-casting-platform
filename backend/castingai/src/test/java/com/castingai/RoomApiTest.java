@@ -87,14 +87,16 @@ class RoomApiTest {
         String outsider = account(admin, "room.autre@exemple.tn", "MARQUE", org(admin, "Room Autre", "MARQUE"));
 
         // Cycle publicitaire jusqu'à la V2 publiée : le projet et sa room naissent
-        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Room Eau\"}")).get("id").asString();
-        send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Une source en montagne.\"}");
-        send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}");
+        // Le producer crée le projet et invite la marque et l'agence (comptes déjà inscrits : rattachés tout de suite)
+        String id = read(send("POST", "/api/demandes", prod, "{\"title\":\"Room Eau\"}").andExpect(status().isCreated())).get("id").asString();
+        send("POST", "/api/demandes/" + id + "/invitations", prod, "{\"email\":\"room.marque@exemple.tn\",\"kind\":\"MARQUE\"}").andExpect(status().isOk());
+        send("POST", "/api/demandes/" + id + "/invitations", prod, "{\"email\":\"room.agence@exemple.tn\",\"kind\":\"AGENCE_MARKETING\"}").andExpect(status().isOk());
+        send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Une source en montagne.\"}").andExpect(status().isOk());
+        send("POST", "/api/demandes/" + id + "/envoyer", brand, "{}").andExpect(status().isOk());
         send("POST", "/api/demandes/" + id + "/accepter", agency, null);
         send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Concept : la source.\"}");
         send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null);
         send("POST", "/api/demandes/" + id + "/v1/valider", brand, null);
-        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}");
         send("POST", "/api/demandes/" + id + "/personnages", prod, "{\"name\":\"La randonneuse\"}");
         send("POST", "/api/demandes/" + id + "/transmettre", prod, "{\"directorId\":\"" + userId(admin, "room.real@exemple.tn") + "\"}").andExpect(status().isOk());
         send("PUT", "/api/demandes/" + id + "/v2", director, "{\"body\":\"V2 : un plan-séquence.\"}");

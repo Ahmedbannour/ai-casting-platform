@@ -19,7 +19,7 @@ interface Step { key: string; who: string; what: string; }
   template: `
   <section class="page">
     <header class="head">
-      <h1>Mes demandes</h1>
+      <h1>{{ isProd() ? 'Publicités' : 'Mes demandes' }}</h1>
       <p>{{ lead() }}</p>
     </header>
 
@@ -40,7 +40,7 @@ interface Step { key: string; who: string; what: string; }
     } @else if (list().length) {
       <div class="bar">
         <h2>{{ list().length }} demande{{ list().length > 1 ? 's' : '' }}</h2>
-        @if (isMarque()) { <a class="send" routerLink="/demandes/nouvelle">Nouvelle demande</a> }
+        @if (canCreate()) { <a class="send" routerLink="/demandes/nouvelle">Nouveau projet</a> }
       </div>
       <ul class="list">
         @for (d of list(); track d.id) {
@@ -59,13 +59,15 @@ interface Step { key: string; who: string; what: string; }
     } @else {
       <div class="empty">
         <h2>Aucune demande pour l'instant</h2>
-        @if (isMarque()) {
-          <p>Créez une demande de publicité et déposez votre V0 : le fichier artistique de votre idée (détails du projet, messages, notes ; PDF, Word ou PowerPoint). Pas de budget dans la V0.</p>
-          <a class="send" routerLink="/demandes/nouvelle">Nouvelle demande</a>
+        @if (canCreate()) {
+          <p>Créez votre premier projet de publicité, puis invitez la marque et l'agence marketing. La marque déposera sa V0, l'agence livrera la V1, et vous suivrez chaque étape jusqu'au casting.</p>
+          <a class="send" routerLink="/demandes/nouvelle">Nouveau projet</a>
+        } @else if (isMarque()) {
+          <p>Les projets sur lesquels une boîte de production vous invite arriveront ici. Vous y déposerez votre V0 : le fichier artistique de votre idée (détails, messages, notes ; PDF, Word ou PowerPoint). Pas de budget dans la V0.</p>
         } @else if (isDirector()) {
           <p>Les publicités auxquelles une boîte de production vous rattache arriveront ici. Vous suivrez leur avancement, puis écrirez la V2 dès que les attentes vous seront transmises.</p>
         } @else if (isProd()) {
-          <p>Les publicités auxquelles une agence vous rattache arriveront ici, dès la V1 en cours. Vous suivrez leur avancement et prendrez la main une fois la V1 validée par la marque.</p>
+          <p>Les projets de votre boîte de production arriveront ici. Le producer vous ouvre la création des projets quand il le souhaite.</p>
         } @else {
           <p>Les demandes que les marques vous envoient arriveront ici, avec leur V0. Vous recevrez une notification à chaque nouvelle demande.</p>
         }
@@ -137,17 +139,20 @@ export class MesDemandesComponent {
   private readonly auth = inject(AuthService);
   private readonly role = computed(() => this.me.me()?.role ?? this.auth.role());
   readonly isMarque = computed(() => this.role() === 'MARQUE' || this.role() === 'ADMIN');
-  readonly isProd = computed(() => this.role() === 'BOITE_PROD');
+  readonly isProd = computed(() => this.role() === 'BOITE_PROD' || this.role() === 'ASSISTANT_PROD');
+  /** Le producer crée les projets ; son assistante aussi, s'il le lui autorise. */
+  readonly canCreate = computed(() => this.role() === 'BOITE_PROD' || this.role() === 'ADMIN' || (this.role() === 'ASSISTANT_PROD' && this.me.can('PROJETS')));
   readonly isDirector = computed(() => this.role() === 'REALISATEUR');
-  readonly mine = computed(() => this.role() === 'AGENCE_MARKETING' ? 'v1' : this.isProd() ? 'attentes' : this.isDirector() ? 'v2' : 'v0');
+  readonly mine = computed(() => this.role() === 'AGENCE_MARKETING' ? 'v1' : this.isProd() ? 'projet' : this.isDirector() ? 'v2' : 'v0');
   readonly lead = computed(() => this.isDirector()
     ? 'Une boîte de production vous rattache à ses publicités : vous suivez leur avancement, puis vous écrivez la V2 et l’intention de chaque rôle dès que les attentes vous sont transmises.'
     : this.isProd()
-    ? 'Une agence vous rattache à ses publicités dès la V1 en cours : vous suivez leur avancement, rattachez votre réalisateur, puis recueillez les attentes sur les profils une fois la V1 validée par la marque.'
+    ? 'Vous créez les projets et invitez la marque et l’agence marketing. Vous suivez chaque étape, rattachez votre réalisateur, puis recueillez les attentes sur les profils une fois la V1 validée.'
     : this.isMarque()
-    ? 'Vous déposez l’idée de votre publicité (V0) ; l’agence, la production et le réalisateur la font avancer jusqu’aux acteurs validés en PPM.'
+    ? 'La boîte de production vous invite sur ses projets : vous déposez l’idée de votre publicité (V0) ; l’agence, la production et le réalisateur la font avancer jusqu’aux acteurs validés en PPM.'
     : 'Vous recevez la V0 des marques et livrez la V1 : le concept que le réalisateur détaillera.');
   readonly steps: Step[] = [
+    { key: 'projet', who: 'Producer', what: 'crée le projet, invite la marque et l’agence' },
     { key: 'v0', who: 'Marque', what: 'dépose la V0 : le fichier artistique' },
     { key: 'v1', who: 'Agence marketing', what: 'analyse la V0, livre la V1 : le concept' },
     { key: 'attentes', who: 'Boîte de production', what: 'recueille vos attentes sur les profils' },

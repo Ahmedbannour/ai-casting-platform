@@ -56,6 +56,10 @@ public class User implements UserDetails {
     @JoinColumn(name = "agency_id")
     private Agency agency;
 
+    /** Assistante de production : autorisations données par le producer (PROJETS, INVITATIONS, EQUIPE, ROOM, CASTING). */
+    @Column(name = "assistant_perms", length = 200)
+    private String assistantPerms;
+
     /** LOCAL, GOOGLE ou FACEBOOK. */
     @Builder.Default
     @Column(name = "auth_provider", nullable = false, length = 20)
@@ -105,4 +109,20 @@ public class User implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() { return true; }
+
+    /** Autorisations de l'assistante. */
+    public static final java.util.List<String> PERMS = java.util.List.of("PROJETS", "INVITATIONS", "EQUIPE", "ROOM", "CASTING");
+
+    /** L'admin et le producer peuvent tout ; l'assistante, ce que le producer lui autorise ; les autres, rien côté production. */
+    public boolean can(String perm) {
+        if (role == Role.ADMIN || role == Role.BOITE_PROD) return true;
+        if (role != Role.ASSISTANT_PROD || assistantPerms == null) return false;
+        return java.util.Arrays.asList(assistantPerms.split(",")).contains(perm);
+    }
+
+    public java.util.List<String> perms() {
+        if (role == Role.ADMIN || role == Role.BOITE_PROD) return PERMS;
+        if (role != Role.ASSISTANT_PROD || assistantPerms == null || assistantPerms.isBlank()) return java.util.List.of();
+        return java.util.Arrays.stream(assistantPerms.split(",")).filter(PERMS::contains).toList();
+    }
 }

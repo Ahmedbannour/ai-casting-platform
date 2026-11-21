@@ -19,6 +19,7 @@ import java.util.Set;
  * Le contrat ouvre l'accès : un agent dont l'agence n'a pas de contrat actif (pas encore commencé, échu,
  * ou agent sans agence) garde la lecture, mais ne peut plus rien créer, modifier ni lancer de recherche IA.
  * Les écritures de l'espace personnel (/api/me) et la déconnexion restent permises.
+ * L'assistante de production suit le contrat de sa boîte, et n'ouvre le casting que si le producer le lui autorise.
  */
 @Component
 @RequiredArgsConstructor
@@ -26,20 +27,35 @@ public class ContractGuardFilter extends OncePerRequestFilter {
 
     private static final Set<String> READ = Set.of("GET", "HEAD", "OPTIONS");
 
+    /** Ce que l'assistante ouvre sans l'autorisation « casting » (chaque service vérifie ensuite ses propres droits). */
+    private static final List<String> CASTING_FREE = List.of("/api/demandes", "/api/rooms", "/api/production", "/api/notifications", "/api/media", "/api/agenda");
+
     private final JdbcTemplate jdbc;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest req) {
         String uri = req.getRequestURI();
-        return READ.contains(req.getMethod()) || !uri.startsWith("/api/")
-                || uri.startsWith("/api/auth/") || uri.startsWith("/api/me");
+        return !uri.startsWith("/api/") || uri.startsWith("/api/auth/") || uri.startsWith("/api/me") || uri.startsWith("/api/public/");
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean agent = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_BOITE_PROD".equals(a.getAuthority()));
+        boolean assistant = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ASSISTANT_PROD".equals(a.getAuthority()));
+        // L'assistante n'ouvre le vivier, les projets et la recherche que si le producer lui a donné le casting.
+        if (assistant && !CASTING_FREE.stream().anyMatch(req.getRequestURI()::startsWith)) {
+            List<String> perms = jdbc.queryForList("select coalesce(assistant_perms, '') from users where email = ?", String.class, auth.getName());
+            boolean casting = !perms.isEmpty() && java.util.Arrays.asList(perms.get(0).split(",")).contains("CASTING");
+            if (!casting) {
+                res.setStatus(403);
+                res.setContentType("application/json;charset=UTF-8");
+                res.getWriter().write("{\"status\":403,\"code\":\"AUTORISATION\",\"message\":\"Le producer ne vous a pas ouvert le casting (acteurs, projets, recherche).\"}");
+                return;
+            }
+        }
+        boolean agent = auth != null && !READ.contains(req.getMethod())
+                && auth.getAuthorities().stream().anyMatch(a -> "ROLE_BOITE_PROD".equals(a.getAuthority()) || "ROLE_ASSISTANT_PROD".equals(a.getAuthority()));
         if (agent) {
             List<String> status = jdbc.queryForList("""
                 select case when a.id is null then 'SANS_AGENCE'

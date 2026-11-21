@@ -1,6 +1,7 @@
 // Sprint 3 · T-160 : l'agence analyse la V0 (IA locale), refuse avec un motif ; la marque renvoie à une autre agence, qui accepte.
 // Comptes recette.*@exemple.tn et organisations « Recette … », effacés ensuite par nettoyer-recette.sql.
 const { chromium } = require('playwright-core');
+const projet = require('./projet');
 const choisir = require('./choisir');
 const fs = require('fs'), path = require('path');
 const QA = JSON.parse(fs.readFileSync(path.join(__dirname, '.recette-admin.json'), 'utf8'));
@@ -21,7 +22,7 @@ async function login(b, a) {
 (async () => {
   const adm = (await j('/auth/login', { method: 'POST', body: JSON.stringify({ email: QA.email, password: QA.password }) })).b.accessToken;
   const today = new Date().toISOString().slice(0, 10), st = Date.now(), res = {}, acc = {};
-  for (const [k, kind, nom] of [['M', 'MARQUE', 'Marque Olive'], ['A', 'AGENCE_MARKETING', 'Agence Alpha'], ['B', 'AGENCE_MARKETING', 'Agence Beta']]) {
+  for (const [k, kind, nom] of [['M', 'MARQUE', 'Marque Olive'], ['A', 'AGENCE_MARKETING', 'Agence Alpha'], ['B', 'AGENCE_MARKETING', 'Agence Beta'], ['P', 'BOITE_PROD', 'Prod Sahel']]) {
     const o = (await j('/admin/agencies', { method: 'POST', body: JSON.stringify({ name: `Recette ${nom} ${st}`, contractStart: today, kind }) }, adm)).b.id;
     const email = `recette.t160.${k.toLowerCase()}.${st}@exemple.tn`, pw = 'Rec3tte-' + Math.random().toString(36).slice(2, 10) + '!';
     const c = await j('/admin/agents', { method: 'POST', body: JSON.stringify({ email, firstName: 'Test', lastName: nom, role: kind, agencyId: o, password: pw }) }, adm);
@@ -31,15 +32,12 @@ async function login(b, a) {
   const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   // Marque : demande + V0 (texte et PDF), envoi à Alpha
   const m = await login(b, acc.M);
-  await m.goto(BASE + '/demandes/nouvelle'); await m.waitForTimeout(800);
-  await m.fill('input[name=title]', 'Recette Huile du Sahel ' + st); await m.fill('input[name=product]', 'Huile d’olive vierge extra');
-  await m.click('button.next'); await m.fill('textarea[name=objective]', 'Faire connaître la nouvelle marque');
-  await m.click('button[type=submit]'); await m.waitForURL(u => /\/demandes\/[0-9a-f-]{36}$/.test(u.pathname), { timeout: 10000 });
-  const id = m.url().split('/').pop();
+  const ptk = (await j('/auth/login', { method: 'POST', body: JSON.stringify({ email: acc.P.email, password: acc.P.pw }) })).b.accessToken;
+  const id = await projet(j, { prodTk: ptk, title: 'Recette Huile du Sahel ' + st, brand: acc.M.email, agency: acc.A.email });
+  await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1200);
   await m.fill('textarea[name=v0]', 'Un grand-père récolte les olives avec sa petite-fille au lever du soleil, dans les collines du Sahel.');
   await m.setInputFiles('.drop input[type=file]', path.join(__dirname, 'v0-recette.pdf')); await m.waitForTimeout(1500);
-  await choisir(m, 'agency', acc.A.nom);
-  await m.getByRole('button', { name: "Envoyer à l'agence" }).click(); await m.waitForTimeout(1500);
+  await m.locator('button.send', { hasText: 'Envoyer à' }).click(); await m.waitForTimeout(1500);
   res.envoiAlpha = await m.locator('.steps .now').innerText();
   // Alpha : analyse puis refus
   const a = await login(b, acc.A);
@@ -65,8 +63,11 @@ async function login(b, a) {
   await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1500);
   res.banniereRefus = await m.locator('.warn').innerText().catch(() => '');
   res.marqueModifiable = await m.locator('input[name=title]').count() === 1;
-  await choisir(m, 'agency', acc.B.nom);
-  await m.getByRole('button', { name: "Envoyer à l'agence" }).click(); await m.waitForTimeout(1500);
+  // Le producer invite une autre agence ; la marque renvoie sa V0
+  const inv = await j(`/demandes/${id}/invitations`, { method: 'POST', body: JSON.stringify({ email: acc.B.email, kind: 'AGENCE_MARKETING' }) }, ptk);
+  if (inv.s !== 200) throw new Error('invitation Beta ' + inv.s);
+  await m.reload(); await m.waitForTimeout(1500);
+  await m.locator('button.send', { hasText: 'Envoyer à' }).click(); await m.waitForTimeout(1500);
   // Beta : accepte
   const bb = await login(b, acc.B);
   await bb.goto(BASE + '/demandes/' + id); await bb.waitForTimeout(1500);

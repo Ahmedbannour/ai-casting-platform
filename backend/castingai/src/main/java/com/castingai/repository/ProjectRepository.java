@@ -17,12 +17,18 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     @Query("""
         select p from Project p join fetch p.owner o
         where (:admin = true or o.id = :userId
-               or exists (select 1 from ProjectMember m where m.projectId = p.id and m.userId = :userId))
+               or exists (select 1 from ProjectMember m where m.projectId = p.id and m.userId = :userId)
+               or (:orgId is not null and o.agency.id = :orgId))
           and (:status is null or p.status = :status)
         order by p.updatedAt desc
         """)
     List<Project> findVisible(@Param("userId") UUID userId, @Param("admin") boolean admin,
-                              @Param("status") Project.Status status);
+                              @Param("orgId") UUID orgId, @Param("status") Project.Status status);
+
+    /** Projets visibles d'un compte sans portée d'organisation. */
+    default List<Project> findVisible(UUID userId, boolean admin, Project.Status status) {
+        return findVisible(userId, admin, null, status);
+    }
 
     /** Nombre de rôles et de rôles pourvus par projet : [project_id, total, pourvus]. */
     @NativeQuery("""

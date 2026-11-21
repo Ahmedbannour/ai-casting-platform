@@ -62,6 +62,27 @@ class DemandeApiTest {
         return login(email, "Motdepasse-123");
     }
 
+    private int autoProd = 0;
+
+    /** Le producer d'une boîte créée pour l'occasion crée le projet et invite la marque (déjà inscrite) ;
+     *  renvoie la création si elle échoue, sinon le projet vu par la marque. */
+    private ResultActions create(String admin, String brand, String body) throws Exception {
+        int n = ++autoProd;
+        String producer = account(admin, "producer" + n + "." + System.nanoTime() + "@auto.tn", "BOITE_PROD",
+                org(admin, "Prod Auto " + n + " " + System.nanoTime(), "BOITE_PROD"));
+        return create(admin, brand, producer, body);
+    }
+
+    /** Le producer donné crée le projet et invite la marque. */
+    private ResultActions create(String admin, String brand, String producer, String body) throws Exception {
+        ResultActions c = send("POST", "/api/demandes", producer, body);
+        if (c.andReturn().getResponse().getStatus() != 201) return c;
+        String id = read(c).get("id").asString();
+        String brandEmail = read(send("GET", "/api/me", brand, null)).get("email").asString();
+        send("POST", "/api/demandes/" + id + "/invitations", producer, "{\"email\":\"" + brandEmail + "\",\"kind\":\"MARQUE\"}").andExpect(status().isOk());
+        return send("GET", "/api/demandes/" + id, brand, null);
+    }
+
     @Test
     void laMarqueDeposeSaV0EtLEnvoieALAgence() throws Exception {
         String admin = login("ahmed@casting.com", "password123");
@@ -74,8 +95,8 @@ class DemandeApiTest {
         // L'agence ne crée pas de demande
         send("POST", "/api/demandes", agency, "{\"title\":\"X\"}").andExpect(status().isForbidden());
 
-        JsonNode d = read(send("POST", "/api/demandes", brand, "{\"title\":\"Spot été\",\"product\":\"Jus d'orange\",\"objective\":\"Lancer la gamme\",\"keyMessage\":\"Le soleil en bouteille\"}")
-                .andExpect(status().isCreated()));
+        JsonNode d = read(create(admin, brand, "{\"title\":\"Spot été\",\"product\":\"Jus d'orange\",\"objective\":\"Lancer la gamme\",\"keyMessage\":\"Le soleil en bouteille\"}")
+                .andExpect(status().isOk()));
         String id = d.get("id").asString();
         assertThat(d.get("status").asString()).isEqualTo("BROUILLON");
         assertThat(d.get("canEdit").asBoolean()).isTrue();
@@ -116,14 +137,14 @@ class DemandeApiTest {
     void reglesDuBrouillon() throws Exception {
         String admin = login("ahmed@casting.com", "password123");
         String brand = account(admin, "marque@etoile.tn", "MARQUE", org(admin, "Marque Étoile", "MARQUE"));
-        send("POST", "/api/demandes", brand, "{\"title\":\"\"}").andExpect(status().isBadRequest());
-        send("POST", "/api/demandes", brand, "{\"title\":\"Spot\",\"airDate\":\"2020-01-01\"}").andExpect(status().isBadRequest());
-        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Spot hiver\"}").andExpect(status().isCreated())).get("id").asString();
+        create(admin, brand, "{\"title\":\"\"}").andExpect(status().isBadRequest());
+        create(admin, brand, "{\"title\":\"Spot\",\"airDate\":\"2020-01-01\"}").andExpect(status().isBadRequest());
+        String id = read(create(admin, brand, "{\"title\":\"Spot hiver\"}").andExpect(status().isOk())).get("id").asString();
         assertThat(read(send("PUT", "/api/demandes/" + id, brand, "{\"title\":\"Spot hiver chaud\",\"target\":\"Familles\"}")).get("target").asString()).isEqualTo("Familles");
         assertThat(read(send("POST", "/api/demandes/" + id + "/annuler", brand, null)).get("status").asString()).isEqualTo("ANNULEE");
-        String id2 = read(send("POST", "/api/demandes", brand, "{\"title\":\"À effacer\"}")).get("id").asString();
-        send("DELETE", "/api/demandes/" + id2, brand, null).andExpect(status().isNoContent());
-        send("GET", "/api/demandes/" + id2, brand, null).andExpect(status().isNotFound());
+        String id2 = read(create(admin, brand, "{\"title\":\"À effacer\"}")).get("id").asString();
+        // Le projet appartient au producer : la marque l'annule, mais ne le supprime pas
+        send("DELETE", "/api/demandes/" + id2, brand, null).andExpect(status().isForbidden());
     }
 
     /** Sprint 3 · T-160 : l'agence refuse (retour en brouillon chez la marque), puis une autre accepte ; analyse de la V0. */
@@ -135,7 +156,7 @@ class DemandeApiTest {
         String brand = account(admin, "marque@figue.tn", "MARQUE", brandOrg);
         String alpha = account(admin, "agence@alpha.tn", "AGENCE_MARKETING", agA);
         String beta = account(admin, "agence@beta.tn", "AGENCE_MARKETING", agB);
-        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Huile d'olive\",\"product\":\"Huile vierge extra\"}")).get("id").asString();
+        String id = read(create(admin, brand, "{\"title\":\"Huile d'olive\",\"product\":\"Huile vierge extra\"}")).get("id").asString();
         send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Un grand-père récolte les olives avec sa petite-fille au lever du soleil.\"}").andExpect(status().isOk());
         send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agA + "\"}").andExpect(status().isOk());
 
@@ -183,7 +204,7 @@ class DemandeApiTest {
         String agency = account(admin, "agence@gamma.tn", "AGENCE_MARKETING", agOrg);
         String prod = account(admin, "prod@delta.tn", "BOITE_PROD", prodOrg);
         String prod2 = account(admin, "prod@epsilon.tn", "BOITE_PROD", otherProd);
-        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Dattes de Tozeur\"}")).get("id").asString();
+        String id = read(create(admin, brand, prod, "{\"title\":\"Dattes de Tozeur\"}")).get("id").asString();
         send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Une caravane au coucher du soleil.\"}").andExpect(status().isOk());
         send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}").andExpect(status().isOk());
 
@@ -221,13 +242,9 @@ class DemandeApiTest {
         JsonNode val = read(send("POST", "/api/demandes/" + id + "/v1/valider", brand, null).andExpect(status().isOk()));
         assertThat(val.get("v1Validated").asBoolean()).isTrue();
         send("POST", "/api/demandes/" + id + "/v1/valider", brand, null).andExpect(status().isBadRequest());
-        assertThat(read(send("GET", "/api/demandes/" + id, agency, null)).get("canChooseProduction").asBoolean()).isTrue();
-
-        // Choix de la production : seulement une boîte de production ; elle voit la demande, l'autre non
-        assertThat(read(send("GET", "/api/demandes/productions", agency, null)).toString()).contains("Prod Delta").doesNotContain("Agence Gamma");
-        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + brandOrg + "\"}").andExpect(status().isBadRequest());
-        send("GET", "/api/demandes/" + id, prod, null).andExpect(status().isNotFound());
-        JsonNode p = read(send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}").andExpect(status().isOk()));
+        // Le producer mène le projet depuis sa création : la V2 démarre dès la V1 validée ; l'agence ne choisit plus de production
+        assertThat(read(send("GET", "/api/demandes/" + id, agency, null)).get("canChooseProduction").asBoolean()).isFalse();
+        JsonNode p = read(send("GET", "/api/demandes/" + id, prod, null).andExpect(status().isOk()));
         assertThat(p.get("status").asString()).isEqualTo("V2_EN_COURS");
         assertThat(p.get("productionName").asString()).isEqualTo("Prod Delta");
         assertThat(read(send("GET", "/api/demandes", prod, null)).size()).isEqualTo(1);
@@ -248,7 +265,7 @@ class DemandeApiTest {
         send("POST", "/api/admin/agents", admin, "{\"email\":\"sync.real@exemple.tn\",\"firstName\":\"Rim\",\"lastName\":\"Real\",\"role\":\"REALISATEUR\",\"password\":\"Motdepasse-123\"}").andExpect(status().isCreated());
         String director = login("sync.real@exemple.tn", "Motdepasse-123"), did = userId(admin, "sync.real@exemple.tn");
 
-        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Huile Olive\"}")).get("id").asString();
+        String id = read(create(admin, brand, "{\"title\":\"Huile Olive\"}")).get("id").asString();
         send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Un verger au lever du jour.\"}");
         send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}");
         // Pas de production avant l'acceptation
@@ -308,16 +325,16 @@ class DemandeApiTest {
         send("POST", "/api/admin/agents", admin, "{\"email\":\"autre@eta.tn\",\"firstName\":\"Sami\",\"lastName\":\"Autre\",\"role\":\"REALISATEUR\",\"password\":\"Motdepasse-123\"}").andExpect(status().isCreated());
         String director = login("real@eta.tn", "Motdepasse-123"), firstAd = login("ad@eta.tn", "Motdepasse-123"), other = login("autre@eta.tn", "Motdepasse-123");
 
-        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Parfum Jasmin\"}")).get("id").asString();
+        String id = read(create(admin, brand, prod, "{\"title\":\"Parfum Jasmin\"}")).get("id").asString();
+        send("POST", "/api/demandes/" + id + "/invitations", prod, "{\"email\":\"agence@zeta.tn\",\"kind\":\"AGENCE_MARKETING\"}").andExpect(status().isOk());
         send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Une femme marche dans la médina.\"}");
         send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}");
         send("POST", "/api/demandes/" + id + "/accepter", agency, null);
-        // Pas d'attentes avant que la production soit choisie
-        send("POST", "/api/demandes/" + id + "/personnages", prod, "{\"name\":\"Leila\"}").andExpect(status().isNotFound());
+        // Pas d'attentes avant la V1 validée
+        send("POST", "/api/demandes/" + id + "/personnages", prod, "{\"name\":\"Leila\"}").andExpect(status().isBadRequest());
         send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Concept : la médina au petit matin.\"}");
         send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null);
-        send("POST", "/api/demandes/" + id + "/v1/valider", brand, null);
-        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}").andExpect(status().isOk());
+        send("POST", "/api/demandes/" + id + "/v1/valider", brand, null).andExpect(status().isOk());
 
         // Saisie : réservée à la production ; nom obligatoire
         assertThat(read(send("GET", "/api/demandes/" + id, prod, null)).get("canEditExpectations").asBoolean()).isTrue();
@@ -362,14 +379,13 @@ class DemandeApiTest {
         String brand = account(admin, "solo.marque@exemple.tn", "MARQUE", brandOrg);
         String agency = account(admin, "solo.agence@exemple.tn", "AGENCE_MARKETING", agOrg);
         String prod = account(admin, "solo.prod@exemple.tn", "BOITE_PROD", prodOrg);
-        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Thé Solo\"}")).get("id").asString();
+        String id = read(create(admin, brand, prod, "{\"title\":\"Thé Solo\"}")).get("id").asString();
         send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Une tasse de thé au souk.\"}");
         send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}");
         send("POST", "/api/demandes/" + id + "/accepter", agency, null);
         send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Concept : le thé partagé.\"}");
         send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null);
-        send("POST", "/api/demandes/" + id + "/v1/valider", brand, null);
-        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}").andExpect(status().isOk());
+        send("POST", "/api/demandes/" + id + "/v1/valider", brand, null).andExpect(status().isOk());
 
         // Aucun réalisateur : la production a la main sur la V2, sans transmission d'attentes
         JsonNode d = read(send("GET", "/api/demandes/" + id, prod, null));
@@ -397,14 +413,13 @@ class DemandeApiTest {
         send("POST", "/api/admin/agents", admin, "{\"email\":\"ad@kappa.tn\",\"firstName\":\"Ali\",\"lastName\":\"AD\",\"role\":\"REALISATEUR\",\"password\":\"Motdepasse-123\"}").andExpect(status().isCreated());
         String director = login("real@kappa.tn", "Motdepasse-123"), firstAd = login("ad@kappa.tn", "Motdepasse-123");
 
-        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Sel de Sfax\"}")).get("id").asString();
+        String id = read(create(admin, brand, prod, "{\"title\":\"Sel de Sfax\"}")).get("id").asString();
         send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":\"Les salines au lever du jour.\"}");
         send("POST", "/api/demandes/" + id + "/envoyer", brand, "{\"agencyId\":\"" + agOrg + "\"}");
         send("POST", "/api/demandes/" + id + "/accepter", agency, null);
         send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Concept : un saunier et sa fille.\"}");
         send("POST", "/api/demandes/" + id + "/v1/livrer", agency, null);
-        send("POST", "/api/demandes/" + id + "/v1/valider", brand, null);
-        send("POST", "/api/demandes/" + id + "/production", agency, "{\"productionId\":\"" + prodOrg + "\"}");
+        send("POST", "/api/demandes/" + id + "/v1/valider", brand, null).andExpect(status().isOk());
         String cid = read(send("POST", "/api/demandes/" + id + "/personnages", prod, "{\"name\":\"Le saunier\",\"brandWish\":\"Homme de 50 à 60 ans, mains marquées\"}")).get("characters").get(0).get("id").asString();
         send("POST", "/api/demandes/" + id + "/transmettre", prod, "{\"directorId\":\"" + userId(admin, "real@kappa.tn") + "\",\"firstAdId\":\"" + userId(admin, "ad@kappa.tn") + "\"}").andExpect(status().isOk());
 
@@ -456,7 +471,7 @@ class DemandeApiTest {
         String brandOrg = org(admin, "Marque Canva", "MARQUE"), agOrg = org(admin, "Agence Canva", "AGENCE_MARKETING");
         String brand = account(admin, "marque@canva-test.tn", "MARQUE", brandOrg);
         String agency = account(admin, "agence@canva-test.tn", "AGENCE_MARKETING", agOrg);
-        String id = read(send("POST", "/api/demandes", brand, "{\"title\":\"Pub Canva\"}")).get("id").asString();
+        String id = read(create(admin, brand, "{\"title\":\"Pub Canva\"}")).get("id").asString();
         send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":null,\"link\":\"http://www.canva.com/design/x/view\"}").andExpect(status().isBadRequest());
         send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":null,\"link\":\"javascript:alert(1)\"}").andExpect(status().isBadRequest());
         JsonNode d = read(send("PUT", "/api/demandes/" + id + "/v0", brand, "{\"body\":null,\"link\":\"https://www.canva.com/design/DAF123/view\"}").andExpect(status().isOk()));

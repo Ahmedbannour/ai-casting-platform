@@ -8,8 +8,10 @@ import { TokenService } from './token.service';
 
 export interface Me {
   id: string; email: string; firstName: string; lastName: string;
-  role: 'ADMIN' | 'BOITE_PROD' | 'ACTEUR' | 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR'; provider: string; actorId: string | null;
+  role: 'ADMIN' | 'BOITE_PROD' | 'ASSISTANT_PROD' | 'ACTEUR' | 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR'; provider: string; actorId: string | null;
   agencyName: string | null; contractStatus: 'ACTIF' | 'A_VENIR' | 'EXPIRE' | 'SANS_AGENCE' | null; contractEnd: string | null;
+  /** Ce que le compte peut faire côté production (tout pour le producer ; ce qu'il autorise pour l'assistante). */
+  perms: string[];
 }
 
 /** Compte connecté et espace personnel de l'acteur freelance. */
@@ -22,6 +24,9 @@ export class MeService {
   private readonly tokens = inject(TokenService);
 
   readonly me = signal<Me | null>(null);
+
+  /** Autorisation côté production : le producer peut tout, l'assistante ce que le producer lui ouvre. */
+  can(perm: string): boolean { return !!this.me()?.perms?.includes(perm); }
 
   load(): Observable<Me> {
     return this.http.get<Me>(this.url).pipe(tap(m => { this.me.set(m); this.tokens.setRole(m.role); }));

@@ -79,6 +79,15 @@ public class RoomService {
     private final NotificationService notifications;
 
     /** Autorisations par défaut d'un nouveau membre, selon son métier. */
+    public static void defaults(ProjectMember m, User u) {
+        defaults(m, u.getRole());
+        if (u.getRole() == Role.ASSISTANT_PROD) {   // l'assistante : la room complète si le producer la lui a confiée
+            boolean room = u.can("ROOM");
+            m.setCanSwipe(false); m.setCanResults(true);
+            m.setCanDocs(room); m.setCanTasks(room); m.setRoomLead(room);
+        }
+    }
+
     public static void defaults(ProjectMember m, Role role) {
         boolean prod = role == Role.BOITE_PROD || role == Role.ADMIN;
         m.setCanSwipe(prod || SIDES.contains(role));
@@ -94,7 +103,7 @@ public class RoomService {
     public List<RoomItem> mine(String email) {
         User me = access.user(email);
         List<RoomItem> out = new ArrayList<>();
-        for (Project p : projects.findVisible(me.getId(), access.isAdmin(me), null)) {
+        for (Project p : projects.findVisible(me.getId(), access.isAdmin(me), AccessService.assistantOrg(me), null)) {
             Perms pr = perms(me, p);
             int toSwipe = 0;
             List<CastingRole> rs = castingRoles.findByProjectIdOrderByPositionAscCreatedAtAsc(p.getId());
@@ -134,7 +143,7 @@ public class RoomService {
                 .orElseThrow(() -> new IllegalArgumentException("Aucun compte actif avec cette adresse"));
         if (u.getId().equals(p.getOwner().getId()) || projects.isMember(p.getId(), u.getId())) throw new IllegalArgumentException("Cette personne est déjà dans la room");
         ProjectMember m = new ProjectMember(p.getId(), u.getId(), LocalDateTime.now());
-        defaults(m, u.getRole());
+        defaults(m, u);
         members.save(m);
         notifications.push(u.getId(), "ROOM", "Vous rejoignez la room : " + p.getTitle(), name(me) + " vous invite dans la room de casting.", "/rooms/" + p.getId());
         return room(email, projectId);
@@ -490,7 +499,8 @@ public class RoomService {
     private boolean seesDoc(User me, Project p, RoomDocument d) {
         if (perms(me, p).lead()) return true;
         if (d.getUploadedBy() != null && d.getUploadedBy().getId().equals(me.getId())) return true;
-        return Arrays.asList(d.getAudience().split(",")).contains(me.getRole().name());
+        String side = me.getRole() == Role.ASSISTANT_PROD ? "BOITE_PROD" : me.getRole().name();   // l'assistante voit ce que voit sa boîte
+        return Arrays.asList(d.getAudience().split(",")).contains(side);
     }
 
     private static String audience(List<String> in) {

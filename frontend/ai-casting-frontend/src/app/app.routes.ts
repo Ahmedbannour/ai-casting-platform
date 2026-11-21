@@ -5,7 +5,7 @@ import { consentGuard } from './features/legal/consent.guard';
 import { visitorOnly } from './features/landing/visitor.guard';
 
 /** Pages du casting : boîte de production, réalisateur et administrateur (cahier v2). */
-const agence = roleGuard('ADMIN', 'BOITE_PROD', 'REALISATEUR');
+const agence = roleGuard('ADMIN', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR');
 import { MainLayoutComponent } from './layout/main-layout/main-layout';
 
 export const routes: Routes = [
@@ -58,6 +58,12 @@ export const routes: Routes = [
     path: 'reinitialisation/:token',
     loadComponent: () => import('./features/legal/reset-page').then(m => m.ResetPageComponent),
     title: 'Nouveau mot de passe · Cercle'
+  },
+  {
+    // Lien d'invitation du producer : marque, agence marketing ou assistante (public, à usage unique)
+    path: 'invitation-pro/:token',
+    loadComponent: () => import('./features/equipe/invitation-pro').then(m => m.InvitationProComponent),
+    title: 'Cercle · Invitation'
   },
   {
     // T-102 · lien d'invitation d'un acteur (public, à usage unique)
@@ -131,14 +137,14 @@ export const routes: Routes = [
       // ── Marque et agence marketing : leurs demandes de publicité (cahier v2) ──
       {
         path: 'mes-demandes',
-        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'REALISATEUR', 'ADMIN')],
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
         loadComponent: () =>
           import('./features/demandes/mes-demandes')
             .then(m => m.MesDemandesComponent)
       },
       {
         path: 'demandes/:id',
-        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'REALISATEUR', 'ADMIN')],
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
         loadComponent: () =>
           import('./features/demandes/demande')
             .then(m => m.DemandeComponent)
@@ -146,13 +152,20 @@ export const routes: Routes = [
       // ── Rooms de casting : toute l'équipe d'un projet ──
       {
         path: 'rooms',
-        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'REALISATEUR', 'ADMIN')],
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
         loadComponent: () => import('./features/rooms/rooms').then(m => m.RoomsComponent)
       },
       {
         path: 'rooms/:id',
-        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'REALISATEUR', 'ADMIN')],
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
         loadComponent: () => import('./features/rooms/room').then(m => m.RoomComponent)
+      },
+      // ── Le producer et ses assistantes de production ──
+      {
+        path: 'equipe',
+        canActivate: [roleGuard('BOITE_PROD')],
+        loadComponent: () => import('./features/equipe/equipe').then(m => m.EquipeComponent),
+        title: 'Cercle · Mon équipe'
       },
       // ── Administration ──
       {

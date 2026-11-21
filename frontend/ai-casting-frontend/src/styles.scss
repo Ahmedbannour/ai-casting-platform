@@ -352,3 +352,7 @@ body:has([aria-modal="true"]) app-main-layout .tabbar { transform: translateY(ca
 /* ── Graphiques : palette catégorielle validée (contraste et daltonisme), une teinte par entité ── */
 :root { --series-1: var(--bleu-500); --series-2: #d95926; --series-3: #199e70; --chart-grid: color-mix(in srgb, var(--paper) 7%, transparent); }
 :root.light { --series-1: var(--bleu-600); --series-2: #eb6834; --series-3: #1baf7a; --chart-grid: color-mix(in srgb, var(--graphite-900) 8%, transparent); }
+
+/* Aucune popup ne défile à l'horizontale : ses champs se plient à sa largeur. */
+[role="dialog"] { overflow-x: hidden; }
+[role="dialog"] app-date-field, [role="dialog"] app-select { min-width: 0; max-width: 100%; }

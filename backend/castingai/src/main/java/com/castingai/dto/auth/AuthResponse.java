@@ -13,4 +13,6 @@ public class AuthResponse {
     private String firstName;
     private String lastName;
     private String role;
+    /** Assistante de production : ce que le producer lui autorise (tout pour le producer). */
+    private java.util.List<String> perms;
 }
