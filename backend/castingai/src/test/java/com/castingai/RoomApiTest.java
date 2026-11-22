@@ -182,5 +182,24 @@ class RoomApiTest {
         JsonNode moved = read(send("PUT", "/api/rooms/" + pid + "/taches/" + taskId + "/etat", director, "{\"status\":\"FAIT\"}").andExpect(status().isOk()));
         assertThat(moved.get(0).get("status").asString()).isEqualTo("FAIT");
         assertThat(read(send("GET", "/api/rooms/" + pid, prod, null)).get("tasksOpen").asInt()).isEqualTo(0);
+
+        // Personne extérieure, sans compte : le chef de room précise son rôle, puis un lien la fait entrer dans la room
+        send("POST", "/api/rooms/" + pid + "/invitations", brand, "{\"email\":\"ext@exemple.tn\"}").andExpect(status().isForbidden());
+        assertThat(read(send("POST", "/api/rooms/" + pid + "/invitations", prod, "{\"email\":\"Ext.Real@exemple.tn\"}").andExpect(status().isOk()))
+                .get("status").asString()).isEqualTo("ROLE");
+        String tok = read(send("POST", "/api/rooms/" + pid + "/invitations", prod, "{\"email\":\"ext.real@exemple.tn\",\"kind\":\"REALISATEUR\"}")
+                .andExpect(status().isOk())).get("token").asString();
+        JsonNode pv = read(mvc.perform(get("/api/public/invitations-pro/" + tok)).andExpect(status().isOk()));
+        assertThat(pv.get("roomId").asString()).isEqualTo(pid);
+        assertThat(pv.get("needsOrg").asBoolean()).isFalse();
+        mvc.perform(post("/api/public/invitations-pro/" + tok + "/accept").contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content("{\"firstName\":\"Ines\",\"lastName\":\"Ext\",\"password\":\"Motdepasse-123\",\"acceptTerms\":true}")).andExpect(status().isOk());
+        String ext = login("ext.real@exemple.tn", "Motdepasse-123");
+        JsonNode inRoom = read(send("GET", "/api/rooms/" + pid, ext, null).andExpect(status().isOk()));
+        assertThat(inRoom.get("me").get("swipe").asBoolean()).isTrue();
+        assertThat(read(send("GET", "/api/me/notifications", prod, null)).get("items").toString()).contains("a rejoint la room");
+        // Compte déjà inscrit : il entre directement
+        assertThat(read(send("POST", "/api/rooms/" + pid + "/invitations", prod, "{\"email\":\"room.autre@exemple.tn\"}").andExpect(status().isOk()))
+                .get("status").asString()).isEqualTo("RATTACHE");
     }
 }

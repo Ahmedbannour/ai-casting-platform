@@ -4,6 +4,8 @@ import com.castingai.dto.auth.AuthResponse;
 import com.castingai.entity.AdEvent;
 import com.castingai.entity.AdRequest;
 import com.castingai.entity.Agency;
+import com.castingai.entity.Project;
+import com.castingai.entity.ProjectMember;
 import com.castingai.entity.Role;
 import com.castingai.entity.User;
 import com.castingai.exception.ConflictException;
@@ -12,6 +14,8 @@ import com.castingai.exception.ResourceNotFoundException;
 import com.castingai.repository.AdEventRepository;
 import com.castingai.repository.AdRequestRepository;
 import com.castingai.repository.AgencyRepository;
+import com.castingai.repository.ProjectMemberRepository;
+import com.castingai.repository.ProjectRepository;
 import com.castingai.repository.UserRepository;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -52,6 +56,9 @@ public class ProTeamService {
     private final AuthServiceImpl auth;
     private final AuditService audit;
     private final NotificationService notifications;
+    private final RoomService rooms;
+    private final ProjectRepository projects;
+    private final ProjectMemberRepository members;
 
     public record Invite(@NotBlank(message = "Indiquez l'adresse e-mail") @Email(message = "Adresse e-mail invalide") @Size(max = 160) String email,
                          String kind) {}
@@ -64,7 +71,11 @@ public class ProTeamService {
     public record AssistantView(UUID id, String name, String email, boolean enabled, List<String> perms) {}
     public record Team(List<AssistantView> assistants, List<InvitationView> pending, List<String> allPerms) {}
     public record Preview(String kind, String email, String productionName, String inviterName, String requestTitle,
-                          String joinOrg, boolean needsOrg, List<String> perms, long expiresAt) {}
+                          String joinOrg, boolean needsOrg, List<String> perms, long expiresAt, UUID roomId) {}
+    /** Le chef de room invite par e-mail ; sans compte, il précise le rôle de la personne (réalisateur, marque, agence). */
+    public record RoomInvite(@NotBlank(message = "Indiquez l'adresse e-mail") @Email(message = "Adresse e-mail invalide") @Size(max = 160) String email,
+                             String kind) {}
+    private static final List<String> ROOM_KINDS = List.of("REALISATEUR", "MARQUE", "AGENCE_MARKETING");
     public record Accept(@NotBlank(message = "Le prénom est obligatoire") @Size(max = 80) String firstName,
                          @NotBlank(message = "Le nom est obligatoire") @Size(max = 80) String lastName,
                          @Size(max = 160) String organisation, @Size(max = 100) String city,
@@ -113,6 +124,35 @@ public class ProTeamService {
         AdRequest r = requests.findById(requestId).orElseThrow(() -> new ResourceNotFoundException("Demande introuvable"));
         if (!sameProduction(me, r.getProduction()) || !me.can("INVITATIONS")) return List.of();
         return pending("request_id = ?", r.getId());
+    }
+
+    // ───────── Room : une personne pas encore inscrite ─────────
+
+    /** Compte existant : il entre dans la room. Sinon : ROLE (le chef de room précise son rôle), puis LIEN. */
+    @Transactional
+    public Result inviteToRoom(String email, UUID projectId, RoomInvite req) {
+        User me = access.user(email);
+        Project p = access.visibleProject(me, projectId);
+        if (!rooms.perms(me, p).lead()) throw new ForbiddenException("Seul le chef de room invite de nouveaux membres");
+        String mail = norm(req.email());
+        Optional<User> existing = users.findByEmail(mail);
+        if (existing.isPresent()) {
+            rooms.invite(email, projectId, new RoomService.InviteRequest(mail));
+            return new Result("RATTACHE", null, null, name(existing.get()), name(existing.get()) + " rejoint la room : elle est prévenue.");
+        }
+        String kind = req.kind() == null ? "" : req.kind().trim().toUpperCase(Locale.ROOT);
+        if (!ROOM_KINDS.contains(kind))
+            return new Result("ROLE", null, null, null, mail + " n'a pas encore de compte sur Cercle. Choisissez son rôle : elle recevra un lien pour rejoindre la room.");
+        Agency owner = p.getOwner().getAgency();
+        UUID prod = owner != null && "BOITE_PROD".equals(owner.getKind()) ? owner.getId()
+                : me.getRole().production() && me.getAgency() != null ? me.getAgency().getId() : null;
+        jdbc.update("update pro_invitations set revoked_at = now() where project_id = ? and lower(email) = ? and used_at is null and revoked_at is null", p.getId(), mail);
+        String[] t = token();
+        LocalDateTime exp = LocalDateTime.now().plusDays(DAYS);
+        jdbc.update("insert into pro_invitations (id, token_hash, email, kind, project_id, production_id, created_by, expires_at) values (?, ?, ?, ?, ?, ?, ?, ?)",
+                UUID.randomUUID(), t[1], mail, kind, p.getId(), prod, me.getId(), Timestamp.valueOf(exp));
+        audit.log("INVITATION_ROOM", mail, label(Role.valueOf(kind)) + " · " + p.getTitle());
+        return new Result("LIEN", t[0], Timestamp.valueOf(exp).getTime(), null, "Lien prêt : envoyez-le à " + mail);
     }
 
     // ───────── Assistantes de production ─────────
@@ -176,13 +216,17 @@ public class ProTeamService {
     public Preview preview(String token) {
         Map<String, Object> inv = valid(token);
         String kind = (String) inv.get("kind");
-        Agency prod = agencies.findById((UUID) inv.get("production_id")).orElseThrow(this::invalid);
-        AdRequest r = inv.get("request_id") == null ? null : requests.findById((UUID) inv.get("request_id")).orElse(null);
+        Agency prod = inv.get("production_id") == null ? null : agencies.findById((UUID) inv.get("production_id")).orElse(null);
+        Project room = room(inv);
+        AdRequest r = request(inv, room);
         Agency join = join(kind, r, prod);
-        String inviter = inv.get("created_by") == null ? null : users.findById((UUID) inv.get("created_by")).map(ProTeamService::name).orElse(null);
+        User inviterUser = inv.get("created_by") == null ? null : users.findById((UUID) inv.get("created_by")).orElse(null);
+        String inviter = inviterUser == null ? null : name(inviterUser);
+        String host = prod != null ? prod.getName() : inviterUser != null && inviterUser.getAgency() != null ? inviterUser.getAgency().getName() : inviter == null ? "Cercle" : inviter;
         List<String> perms = inv.get("perms") == null ? List.of() : List.of(((String) inv.get("perms")).split(",")).stream().filter(s -> !s.isBlank()).toList();
-        return new Preview(kind, (String) inv.get("email"), prod.getName(), inviter, r == null ? null : r.getTitle(),
-                join == null ? null : join.getName(), join == null, perms, ((Timestamp) inv.get("expires_at")).getTime());
+        return new Preview(kind, (String) inv.get("email"), host, inviter, room != null ? room.getTitle() : r == null ? null : r.getTitle(),
+                join == null ? null : join.getName(), join == null && !"REALISATEUR".equals(kind), perms, ((Timestamp) inv.get("expires_at")).getTime(),
+                room == null ? null : room.getId());
     }
 
     @Transactional
@@ -192,12 +236,13 @@ public class ProTeamService {
         ConsentService.validate(consent);
         String kind = (String) inv.get("kind"), mail = (String) inv.get("email");
         if (users.existsByEmail(mail)) throw new ConflictException("Un compte existe déjà avec cette adresse : connectez-vous, le producer vous rattachera au projet");
-        Agency prod = agencies.findById((UUID) inv.get("production_id")).orElseThrow(this::invalid);
-        AdRequest r = inv.get("request_id") == null ? null : requests.findById((UUID) inv.get("request_id")).orElse(null);
-        if (!"ASSISTANT_PROD".equals(kind) && r == null) throw invalid();
+        Agency prod = inv.get("production_id") == null ? null : agencies.findById((UUID) inv.get("production_id")).orElse(null);
+        Project room = room(inv);
+        AdRequest r = request(inv, room);
+        if ("ASSISTANT_PROD".equals(kind) ? prod == null : r == null && room == null) throw invalid();
 
         Agency org = join(kind, r, prod);
-        if (org == null) {
+        if (org == null && !"REALISATEUR".equals(kind)) {
             String n = req.organisation() == null ? "" : req.organisation().trim();
             if (n.isEmpty()) throw new IllegalArgumentException("MARQUE".equals(kind) ? "Indiquez le nom de votre marque" : "Indiquez le nom de votre agence");
             org = new Agency();
@@ -215,16 +260,26 @@ public class ProTeamService {
         users.saveAndFlush(u);
         consents.record(u.getId(), consent, "INVITATION");
         jdbc.update("update pro_invitations set used_at = now() where id = ?", inv.get("id"));
-        audit.log("INVITATION_PRO_ACCEPTEE", mail, label(u.getRole()) + " · " + org.getName());
+        audit.log("INVITATION_PRO_ACCEPTEE", mail, label(u.getRole()) + " · " + (org == null ? "indépendant" : org.getName()));
 
         UUID inviter = (UUID) inv.get("created_by");
-        if (r != null) {
+        if (room != null) {   // invitée par le chef de room : elle entre dans la room
+            if (!room.getOwner().getId().equals(u.getId()) && !members.existsByProjectIdAndUserId(room.getId(), u.getId())) {
+                ProjectMember pm = new ProjectMember(room.getId(), u.getId(), LocalDateTime.now());
+                RoomService.defaults(pm, u);
+                members.save(pm);
+            }
+            if (inviter != null) notifications.push(inviter, "ROOM", name(u) + " a rejoint la room",
+                    name(u) + (org == null ? "" : " (" + org.getName() + ")") + " rejoint la room « " + room.getTitle() + " ».", "/rooms/" + room.getId());
+            return auth.buildAuthResponse(u);
+        }
+        if (r != null && inv.get("request_id") != null) {
             boolean attachNow = "MARQUE".equals(kind) ? r.getBrand() == null : r.getAgency() == null;
             if (attachNow) attach(r, kind, org, u);
             else log(r, u, "EQUIPE", name(u) + " rejoint le projet (" + org.getName() + ")");
         }
         if (inviter != null) notifications.push(inviter, "EQUIPE", name(u) + " a accepté votre invitation",
-                r == null ? name(u) + " rejoint " + prod.getName() + " comme assistante de production."
+                r == null ? name(u) + " rejoint " + (prod == null ? "votre équipe" : prod.getName()) + " comme assistante de production."
                         : org.getName() + " rejoint le projet « " + r.getTitle() + " ».",
                 r == null ? "/equipe" : "/demandes/" + r.getId());
         return auth.buildAuthResponse(u);
@@ -252,10 +307,22 @@ public class ProTeamService {
                         org.getName() + " recevra votre V0 dès que vous l'enverrez.", "/demandes/" + r.getId()));
     }
 
+    private Project room(Map<String, Object> inv) {
+        return inv.get("project_id") == null ? null : projects.findById((UUID) inv.get("project_id")).orElse(null);
+    }
+
+    /** La publicité de l'invitation, ou celle d'où vient la room (pour y retrouver la marque et l'agence). */
+    private AdRequest request(Map<String, Object> inv, Project room) {
+        if (inv.get("request_id") != null) return requests.findById((UUID) inv.get("request_id")).orElse(null);
+        if (room == null) return null;
+        List<UUID> ids = jdbc.queryForList("select id from ad_requests where project_id = ?", UUID.class, room.getId());
+        return ids.isEmpty() ? null : requests.findById(ids.get(0)).orElse(null);
+    }
+
     /** L'organisation que l'invité rejoint : la marque ou l'agence déjà rattachée au projet, ou la boîte pour une assistante. */
     private static Agency join(String kind, AdRequest r, Agency prod) {
         if ("ASSISTANT_PROD".equals(kind)) return prod;
-        if (r == null) return null;
+        if (r == null || "REALISATEUR".equals(kind)) return null;
         return "MARQUE".equals(kind) ? r.getBrand() : r.getAgency();
     }
 

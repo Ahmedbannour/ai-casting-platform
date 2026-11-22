@@ -33,6 +33,10 @@ export class RoomService {
   mine(): Observable<RoomItem[]> { return this.http.get<RoomItem[]>(this.url); }
   get(id: string): Observable<Room> { return this.http.get<Room>(`${this.url}/${id}`); }
 
+  /** Compte inscrit : il entre dans la room ; sinon ROLE (préciser son rôle) puis LIEN (lien d'invitation à envoyer). */
+  inviteByEmail(id: string, email: string, kind?: string): Observable<{ status: 'RATTACHE' | 'ROLE' | 'LIEN'; token: string | null; message: string }> {
+    return this.http.post<{ status: 'RATTACHE' | 'ROLE' | 'LIEN'; token: string | null; message: string }>(`${this.url}/${id}/invitations`, { email, kind });
+  }
   invite(id: string, email: string): Observable<Room> { return this.http.post<Room>(`${this.url}/${id}/membres`, { email }); }
   setPerms(id: string, userId: string, p: Partial<RoomPerms>): Observable<Room> { return this.http.put<Room>(`${this.url}/${id}/membres/${userId}`, p); }
   removeMember(id: string, userId: string): Observable<Room> { return this.http.delete<Room>(`${this.url}/${id}/membres/${userId}`); }

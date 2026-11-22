@@ -136,12 +136,14 @@ export class InvitationProComponent implements OnInit {
 
   readonly headline = computed(() => {
     const p = this.pv(); if (!p) return '';
+    if (p.roomId) return 'Vous êtes attendu dans la room de casting';
     return p.kind === 'ASSISTANT_PROD' ? 'Rejoignez l’équipe de production'
       : p.kind === 'MARQUE' ? 'Votre publicité commence ici' : 'Une marque compte sur votre concept';
   });
   readonly lead = computed(() => {
     const p = this.pv(); if (!p) return '';
     const t = p.requestTitle ? `« ${p.requestTitle} »` : 'ce projet';
+    if (p.roomId) return `${p.inviterName ?? p.productionName} vous invite dans la room ${t}${p.joinOrg ? ' avec ' + p.joinOrg : ''} : vous y découvrirez les candidats de chaque rôle et donnerez votre avis d’un geste.`;
     if (p.kind === 'ASSISTANT_PROD') return `${p.productionName} vous invite comme assistante de production. Voici ce que vous pourrez faire :`;
     if (p.kind === 'MARQUE') return `${p.productionName} vous invite sur ${t}${p.joinOrg ? ' avec ' + p.joinOrg : ''}. Créez votre compte, puis déposez votre V0 : le brief de votre idée.`;
     return `${p.productionName} vous invite sur ${t}${p.joinOrg ? ' avec ' + p.joinOrg : ''}. Vous recevrez la V0 de la marque pour préparer la V1, le concept.`;
@@ -176,7 +178,7 @@ export class InvitationProComponent implements OnInit {
       firstName: this.firstName.trim(), lastName: this.lastName.trim(), organisation: this.organisation.trim() || null,
       city: this.city.trim() || null, password: this.password, acceptTerms: true
     }).subscribe({
-      next: r => { this.tokens.setTokens(r.accessToken, r.refreshToken, r.role); this.router.navigateByUrl(this.auth.homeFor(r.role)); },
+      next: r => { this.tokens.setTokens(r.accessToken, r.refreshToken, r.role); const room = this.pv()?.roomId; this.router.navigateByUrl(room ? '/rooms/' + room : this.auth.homeFor(r.role)); },
       error: (e: HttpErrorResponse) => { this.busy.set(false); this.error.set(e.error?.message ?? 'Création du compte impossible. Réessayez.'); }
     });
   }

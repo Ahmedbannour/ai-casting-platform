@@ -29,6 +29,11 @@ public class ProTeamController {
         return service.requestInvitations(me.getUsername(), id);
     }
 
+    @PostMapping("/api/rooms/{id}/invitations")
+    public ProTeamService.Result inviteToRoom(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @Valid @RequestBody ProTeamService.RoomInvite req) {
+        return service.inviteToRoom(me.getUsername(), id, req);
+    }
+
     @GetMapping("/api/production/equipe")
     public ProTeamService.Team team(@AuthenticationPrincipal UserDetails me) {
         return service.team(me.getUsername());

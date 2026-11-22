@@ -6,6 +6,8 @@ import { RoomSwipeComponent } from './room-swipe';
 import { RoomResultsComponent } from './room-results';
 import { RoomDocsComponent } from './room-docs';
 import { RoomTasksComponent } from './room-tasks';
+import { ShareLinkComponent } from '../../shared/components/share-link/share-link';
+import { ProductionService } from '../../core/services/production.service';
 
 type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
 
@@ -16,7 +18,7 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
 @Component({
   selector: 'app-room',
   standalone: true,
-  imports: [RouterLink, FormsModule, RoomSwipeComponent, RoomResultsComponent, RoomDocsComponent, RoomTasksComponent],
+  imports: [RouterLink, FormsModule, RoomSwipeComponent, RoomResultsComponent, RoomDocsComponent, RoomTasksComponent, ShareLinkComponent],
   template: `
   <div class="page">
     <a class="back" routerLink="/rooms">← Mes rooms</a>
@@ -52,9 +54,24 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
           @case ('equipe') {
             @if (r.me.lead) {
               <form class="invite" (ngSubmit)="invite()">
-                <input name="email" type="email" [(ngModel)]="email" placeholder="E-mail du membre à inviter" aria-label="E-mail du membre à inviter" inputmode="email" />
+                <input name="email" type="email" [(ngModel)]="email" (ngModelChange)="askRole.set(false); link.set(null)" placeholder="E-mail du membre à inviter" aria-label="E-mail du membre à inviter" inputmode="email" />
                 <button type="submit" class="primary" [disabled]="busy() || !email.trim()">Inviter</button>
               </form>
+              @if (askRole()) {
+                <div class="ext" role="group" aria-label="Rôle de la personne invitée">
+                  <p>{{ email.trim() }} n'a pas encore de compte sur Cercle. Elle rejoindra la room comme :</p>
+                  <div class="kinds">
+                    @for (k of kinds; track k.key) {
+                      <button type="button" class="kind" [class.on]="kind() === k.key" [attr.aria-pressed]="kind() === k.key" (click)="kind.set(k.key)">{{ k.label }}</button>
+                    }
+                  </div>
+                  <button type="button" class="primary" (click)="invite()" [disabled]="busy() || !kind()">Créer le lien d'invitation</button>
+                </div>
+              }
+              @if (link(); as l) {
+                <app-share-link [link]="l.link" [email]="l.email" [subject]="'Rejoignez la room « ' + r.title + ' » sur Cercle'"
+                  [message]="'Bonjour, je vous invite dans la room de casting « ' + r.title + ' » sur Cercle. Créez votre compte en une minute :'" />
+              }
               <p class="hint">Touchez une autorisation pour l'ouvrir ou la fermer. Le chef de room a toutes les autorisations.</p>
             }
             <ul class="team">
@@ -111,6 +128,15 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
   .pane { animation: paneIn .28s cubic-bezier(.2,.8,.2,1) both; }
   @keyframes paneIn { from { opacity: 0; transform: translateY(8px); } }
   .invite { display: flex; gap: 8px; }
+  .ext { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+    background: color-mix(in srgb, var(--accent) 7%, var(--glass)); animation: extIn .3s cubic-bezier(.2,.8,.2,1) both; }
+  .ext p { margin: 0; font-size: 14px; color: var(--text-primary); }
+  .ext .primary { align-self: flex-start; }
+  .kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+  .kind { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+    font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+  .kind.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #111); }
+  @keyframes extIn { from { opacity: 0; transform: translateY(-4px); } }
   .invite input { flex: 1; min-width: 0; height: 42px; padding: 0 12px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--glass); color: var(--text-primary); font: inherit; }
   .invite input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
   .primary { height: 42px; padding: 0 18px; border-radius: 12px; border: 0; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 700; cursor: pointer; }
@@ -196,10 +222,23 @@ export class RoomComponent {
   go(t: Tab): void { this.tab.set(t); this.msg.set(''); this.error.set(''); if (t !== 'resultats') this.resultsRole.set(null); }
   openResults(roleId: string): void { this.resultsRole.set(roleId); this.tab.set('resultats'); this.load(); }
 
+  /** Personne invitée sans compte : son rôle, puis un lien à envoyer. */
+  readonly kinds = [{ key: 'REALISATEUR', label: 'Réalisateur' }, { key: 'MARQUE', label: 'Marque' }, { key: 'AGENCE_MARKETING', label: 'Agence marketing' }];
+  readonly askRole = signal(false);
+  readonly kind = signal<string | null>(null);
+  readonly link = signal<{ link: string; email: string } | null>(null);
+
   invite(): void {
+    const mail = this.email.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(mail)) { this.error.set('Indiquez une adresse e-mail valide.'); return; }
     this.busy.set(true); this.error.set(''); this.msg.set('');
-    this.api.invite(this.id, this.email.trim()).subscribe({
-      next: r => { this.room.set(r); this.busy.set(false); this.msg.set('Invitation envoyée : le membre est prévenu.'); this.email = ''; },
+    this.api.inviteByEmail(this.id, mail, this.askRole() ? this.kind() ?? undefined : undefined).subscribe({
+      next: r => {
+        this.busy.set(false);
+        if (r.status === 'ROLE') { this.askRole.set(true); this.kind.set(null); return; }
+        if (r.status === 'LIEN' && r.token) { this.link.set({ link: ProductionService.link(r.token), email: mail }); this.askRole.set(false); this.email = ''; return; }
+        this.msg.set(r.message); this.email = ''; this.askRole.set(false); this.load();
+      },
       error: e => { this.busy.set(false); this.error.set(e.error?.message ?? 'Invitation impossible.'); }
     });
   }
