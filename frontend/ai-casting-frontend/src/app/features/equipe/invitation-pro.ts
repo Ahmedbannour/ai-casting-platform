@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { BrandService } from '../../core/services/brand.service';
 import { ProInvitationPreview, ProductionService } from '../../core/services/production.service';
 import { TokenService } from '../../core/services/token.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -18,7 +19,11 @@ import { FormStepsComponent } from '../../shared/components/form-steps/form-step
   imports: [FormsModule, RouterLink, FormStepsComponent],
   template: `
   <main class="inv">
-    <p class="brand wordmark">Cercle</p>
+    @if (brandSvc.logoSrc(pv()?.brand); as src) {
+      <p class="brand org"><img class="brand-logo" [src]="src" alt="" /><span class="wordmark">{{ pv()!.brand!.name }}</span></p>
+    } @else {
+      <p class="brand wordmark">{{ pv()?.brand?.name || 'Cercle' }}</p>
+    }
     @if (loading()) { <p class="muted">Ouverture de votre invitation…</p> }
     @else if (!pv()) {
       <h1>Lien plus valable</h1>
@@ -80,6 +85,8 @@ import { FormStepsComponent } from '../../shared/components/form-steps/form-step
     :host { display: grid; place-items: start center; min-height: 100vh; background: var(--bg-primary); color: var(--text-primary); padding: 36px 16px; }
     .inv { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
     .brand { font-weight: 800; font-size: 22px; color: var(--accent-ink); margin: 0; }
+    .brand.org { display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
+    .brand.org img { width: 40px; height: 40px; border-radius: 10px; object-fit: contain; background: var(--bg-surface); }
     .hero { position: relative; padding: 22px 20px 20px; border-radius: 20px; border: 1px solid var(--border); background: var(--glass); overflow: hidden;
       animation: rise .45s cubic-bezier(.2,.8,.2,1) both; }
     .hero small { color: var(--text-subtle); font-size: 12.5px; font-weight: 600; }
@@ -114,6 +121,7 @@ import { FormStepsComponent } from '../../shared/components/form-steps/form-step
 })
 export class InvitationProComponent implements OnInit {
   private readonly api = inject(ProductionService);
+  readonly brandSvc = inject(BrandService);
   private readonly tokens = inject(TokenService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -152,7 +160,7 @@ export class InvitationProComponent implements OnInit {
 
   ngOnInit(): void {
     this.api.preview(this.token).subscribe({
-      next: p => { this.pv.set(p); this.loading.set(false); },
+      next: p => { this.pv.set(p); this.brandSvc.show(p.brand ?? null); this.loading.set(false); },
       error: (e: HttpErrorResponse) => {
         this.gone.set(e.status === 0 ? 'Serveur injoignable. Réessayez dans un instant.'
           : e.error?.message ?? 'Ce lien a déjà servi, a expiré ou a été remplacé. Demandez un nouveau lien au producer.');

@@ -1,4 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { BrandService } from '../../core/services/brand.service';
+import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Room, RoomMember, RoomPerms, RoomService, SIDE_LABEL } from '../../core/services/room.service';
@@ -25,7 +27,9 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
     @if (room(); as r) {
       <header class="head">
         <div class="ttl">
-          <span class="kicker"><i class="live" aria-hidden="true"></i>Room de casting</span>
+          <span class="kicker">
+            @if (brandSvc.logoSrc(r.brand); as src) { <img class="brand-logo org" [src]="src" alt="" /> } @else { <i class="live" aria-hidden="true"></i> }
+            Room de casting{{ r.brand ? ' · ' + r.brand.name : '' }}</span>
           <h1>{{ r.title }}</h1>
           <p>{{ r.roles.length }} rôle{{ r.roles.length > 1 ? 's' : '' }} · {{ r.members.length }} membre{{ r.members.length > 1 ? 's' : '' }}
             @if (r.me.lead) { · <b>vous dirigez cette room</b> }</p>
@@ -72,24 +76,64 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
                 <app-share-link [link]="l.link" [email]="l.email" [subject]="'Rejoignez la room « ' + r.title + ' » sur Cercle'"
                   [message]="'Bonjour, je vous invite dans la room de casting « ' + r.title + ' » sur Cercle. Créez votre compte en une minute :'" />
               }
-              <p class="hint">Touchez une autorisation pour l'ouvrir ou la fermer. Le chef de room a toutes les autorisations.</p>
             }
-            <ul class="team">
-              @for (m of r.members; track m.userId) {
-                <li>
-                  <span class="face big" [attr.data-r]="m.role">{{ initials(m.name) }}</span>
-                  <div class="mi"><b>{{ m.name }} @if (m.userId === r.myId) { <small>(vous)</small> }</b>
-                    <small>{{ side(m.role) }}{{ m.organisation ? ' · ' + m.organisation : '' }}{{ m.perms.lead ? ' · chef de room' : '' }}</small></div>
-                  <div class="perms">
-                    @for (p of permList; track p.key) {
-                      <button type="button" class="perm" [class.on]="m.perms[p.key]" [disabled]="!r.me.lead || m.owner || m.perms.lead && p.key !== 'lead' || busy()"
-                              [attr.aria-pressed]="m.perms[p.key]" (click)="toggle(m, p.key)" [title]="p.help">{{ p.label }}</button>
+            <div class="groups">
+              @for (g of groups(r.members); track g.key) {
+                <section class="grp" [attr.aria-label]="g.label">
+                  <h3><span class="gdot" [attr.data-r]="g.key"></span>{{ g.label }} <em>{{ g.members.length }}</em></h3>
+                  <ul class="mems">
+                    @for (m of g.members; track m.userId) {
+                      @let pr = preset(m);
+                      @let editable = r.me.lead && !m.owner && m.userId !== r.myId;
+                      <li class="mem" [class.open]="openMember() === m.userId">
+                        <div class="row">
+                          <span class="face big" [attr.data-r]="m.role">{{ initials(m.name) }}</span>
+                          <div class="mi"><b>{{ m.name }} @if (m.userId === r.myId) { <small class="you">vous</small> }</b>
+                            <small>{{ side(m.role) }}{{ m.organisation ? ' · ' + m.organisation : '' }}</small></div>
+                          @if (editable) {
+                            <button type="button" class="access" [attr.data-p]="pr.key" (click)="openMember.set(openMember() === m.userId ? null : m.userId)"
+                                    [attr.aria-expanded]="openMember() === m.userId" [attr.aria-label]="'Accès de ' + m.name + ' : ' + pr.label">
+                              <span class="aico" [innerHTML]="pr.icon"></span>{{ pr.label }}
+                              <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                            </button>
+                          } @else {
+                            <span class="access ro" [attr.data-p]="m.owner ? 'LEAD' : pr.key"><span class="aico" [innerHTML]="(m.owner ? presets[0] : pr).icon"></span>{{ m.owner ? 'Propriétaire' : pr.label }}</span>
+                          }
+                        </div>
+                        @if (openMember() === m.userId) {
+                          <div class="panel">
+                            <div class="presets" role="radiogroup" [attr.aria-label]="'Niveau d’accès de ' + m.name">
+                              @for (x of presets; track x.key) {
+                                <button type="button" role="radio" class="pcard" [class.on]="pr.key === x.key" [attr.aria-checked]="pr.key === x.key"
+                                        [disabled]="busy()" (click)="applyPreset(m, x.key)">
+                                  <span class="aico" [innerHTML]="x.icon"></span><b>{{ x.label }}</b><small>{{ x.help }}</small>
+                                </button>
+                              }
+                            </div>
+                            <p class="fine-t">Réglage fin</p>
+                            <div class="fine">
+                              @for (p of permList; track p.key) {
+                                @if (p.key !== 'lead') {
+                                  <label class="sw-row" [class.dim]="m.perms.lead">
+                                    <span><b>{{ p.label }}</b><small>{{ p.help }}</small></span>
+                                    <button type="button" role="switch" class="switch" [attr.aria-checked]="m.perms[p.key]" [class.on]="m.perms[p.key]"
+                                            [disabled]="busy() || m.perms.lead" (click)="toggle(m, p.key)" [attr.aria-label]="p.label"><i></i></button>
+                                  </label>
+                                }
+                              }
+                            </div>
+                            <div class="panel-foot">
+                              @if (m.perms.lead) { <span class="muted">Le chef de room a tous les accès.</span> }
+                              <button type="button" class="leave" (click)="remove(m)" [disabled]="busy()">Retirer de la room</button>
+                            </div>
+                          </div>
+                        }
+                      </li>
                     }
-                  </div>
-                  @if (r.me.lead && !m.owner && m.userId !== r.myId) { <button type="button" class="x" (click)="remove(m)" [attr.aria-label]="'Retirer ' + m.name">✕</button> }
-                </li>
+                  </ul>
+                </section>
               }
-            </ul>
+            </div>
           }
         }
       </section>
@@ -105,6 +149,7 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
   .page { padding: 22px 32px 40px; max-width: 1060px; display: flex; flex-direction: column; gap: 16px; }
   .back { color: var(--text-muted); text-decoration: none; font-size: 13.5px; } .back:hover { color: var(--accent-ink); }
   .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .kicker .org { width: 22px; height: 22px; border-radius: 6px; object-fit: contain; background: var(--bg-surface); }
   .kicker { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; color: var(--accent-ink); }
   .live { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 var(--accent); animation: live 2s ease-out infinite; }
   @keyframes live { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
@@ -114,7 +159,7 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
   .face { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 11.5px; font-weight: 800; margin-left: -8px;
     border: 2px solid var(--bg-primary); background: var(--graphite-600); color: var(--paper); }
   .face[data-r="MARQUE"] { background: var(--rouge-400); } .face[data-r="AGENCE_MARKETING"] { background: var(--bleu-500); }
-  .face[data-r="REALISATEUR"] { background: var(--vert-600); } .face[data-r="BOITE_PROD"] { background: var(--crayon-500); color: var(--graphite-900); }
+  .face[data-r="REALISATEUR"] { background: var(--vert-600); } .face[data-r="BOITE_PROD"], .face[data-r="ASSISTANT_PROD"] { background: var(--crayon-500); color: var(--graphite-900); }
   .face.more { background: var(--bg-secondary); color: var(--text-muted); }
   .face.big { width: 42px; height: 42px; margin: 0; font-size: 13px; flex: none; }
   .tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); }
@@ -142,10 +187,60 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
   .primary { height: 42px; padding: 0 18px; border-radius: 12px; border: 0; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 700; cursor: pointer; }
   .primary:disabled { opacity: .5; }
   .hint { margin: 8px 0 12px; font-size: 13px; color: var(--text-muted); }
-  .team { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-  .team li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--glass); flex-wrap: wrap; }
-  .mi { flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-  .mi b { font-size: 14.5px; } .mi small { font-size: 12.5px; color: var(--text-muted); }
+  /* Équipe : par côté, un niveau d'accès lisible, le détail dans une fiche dépliable */
+  .groups { display: flex; flex-direction: column; gap: 18px; margin-top: 14px; }
+  .grp h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--text-muted); letter-spacing: .01em; }
+  .grp h3 em { font-style: normal; font-size: 11.5px; padding: 1px 7px; border-radius: 999px; background: var(--bg-hover); color: var(--text-subtle); }
+  .gdot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-subtle); }
+  .gdot[data-r="PROD"] { background: var(--accent); } .gdot[data-r="REALISATEUR"] { background: var(--vert-600); }
+  .gdot[data-r="MARQUE"] { background: var(--rouge-400); } .gdot[data-r="AGENCE_MARKETING"] { background: var(--bleu-500); }
+  .mems { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 8px; }
+  .mem { border-radius: 16px; border: 1px solid var(--border); background: var(--glass); transition: border-color .2s, box-shadow .2s; }
+  .mem.open { grid-column: 1 / -1; border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+  .mem .row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; min-width: 0; }
+  .mi { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .mi b { font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mi small { font-size: 12.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .you { margin-left: 4px; padding: 1px 7px; border-radius: 999px; background: var(--bg-hover); color: var(--text-muted); font-size: 11px; font-weight: 600; }
+  .access { flex: none; display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 10px 0 9px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: border-color .15s, background .15s; }
+  button.access:hover { border-color: var(--accent); }
+  .access.ro { cursor: default; color: var(--text-muted); background: transparent; }
+  .access[data-p="LEAD"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .access[data-p="COLLAB"] { border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); }
+  .access .chev { transition: transform .25s cubic-bezier(.2,.8,.2,1); opacity: .7; }
+  .access[aria-expanded="true"] .chev { transform: rotate(180deg); }
+  .aico { display: inline-grid; place-items: center; width: 16px; height: 16px; }
+  .panel { padding: 4px 14px 14px; display: flex; flex-direction: column; gap: 10px; animation: panelIn .25s cubic-bezier(.2,.8,.2,1) both; }
+  .presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr)); gap: 8px; }
+  .pcard { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 2px; align-items: center; text-align: left; padding: 11px 12px;
+    border-radius: 12px; border: 1px solid var(--border); background: transparent; color: var(--text-primary); font: inherit; cursor: pointer;
+    transition: border-color .15s, background .15s, transform .15s; }
+  .pcard:hover { border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); }
+  .pcard:active { transform: scale(.98); }
+  .pcard b { font-size: 14px; } .pcard small { grid-column: 1 / -1; font-size: 12px; color: var(--text-muted); line-height: 1.35; }
+  .pcard.on { border-color: var(--accent); background: var(--accent-dim); }
+  .pcard.on .aico { color: var(--accent-ink); }
+  .fine-t { margin: 4px 0 0; font-size: 12.5px; font-weight: 700; color: var(--text-subtle); }
+  .fine { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 6px 16px; }
+  .sw-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .sw-row.dim { opacity: .55; }
+  .sw-row span { display: flex; flex-direction: column; min-width: 0; } .sw-row b { font-size: 13.5px; } .sw-row small { font-size: 12px; color: var(--text-muted); }
+  .switch { flex: none; position: relative; width: 40px; height: 24px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-hover); cursor: pointer; padding: 0;
+    transition: background .2s, border-color .2s; }
+  .switch i { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--text-muted); transition: transform .25s cubic-bezier(.2,1.3,.4,1), background .2s; }
+  .switch.on { background: var(--accent); border-color: var(--accent); }
+  .switch.on i { transform: translateX(16px); background: var(--on-accent); }
+  .switch:disabled { cursor: default; }
+  .panel-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .panel-foot .muted { font-size: 12.5px; color: var(--text-muted); }
+  .leave { margin-left: auto; height: 34px; padding: 0 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--border));
+    background: transparent; color: var(--danger); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .leave:hover { background: color-mix(in srgb, var(--danger) 10%, transparent); }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(-4px); } }
+  @media (max-width: 560px) { .access { padding: 0 8px; font-size: 12px; } .mem .row { gap: 10px; } }
+  @media (prefers-reduced-motion: reduce) { .panel, .switch i, .access .chev { animation: none; transition: none; } }
   .perms { display: flex; flex-wrap: wrap; gap: 5px; }
   .perm { height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-subtle);
     font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s; }
@@ -167,7 +262,8 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
   @media (prefers-reduced-motion: reduce) { .live, .pane, .tabs button.on::after { animation: none; } }
   `]
 })
-export class RoomComponent {
+export class RoomComponent implements OnDestroy {
+  readonly brandSvc = inject(BrandService);
   private readonly api = inject(RoomService);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
   readonly room = signal<Room | null>(null);
@@ -180,9 +276,9 @@ export class RoomComponent {
   email = '';
 
   readonly permList: { key: keyof RoomPerms; label: string; help: string }[] = [
-    { key: 'swipe', label: 'Swipe', help: 'Peut swiper les candidats' },
-    { key: 'results', label: 'Résultats', help: 'Voit le tableau des résultats' },
-    { key: 'docs', label: 'Documents', help: 'Partage et met à jour les documents' },
+    { key: 'swipe', label: 'Voter', help: 'Swipe les candidats : non, oui, coup de cœur' },
+    { key: 'results', label: 'Voir les résultats', help: 'Le classement et les matchs' },
+    { key: 'docs', label: 'Documents', help: 'Partage et met à jour les fichiers' },
     { key: 'tasks', label: 'Tâches', help: 'Crée et répartit les tâches' },
     { key: 'lead', label: 'Chef de room', help: 'Dirige la room : équipe, autorisations, choix finaux' }
   ];
@@ -208,11 +304,13 @@ export class RoomComponent {
   });
 
   constructor() { this.load(true); }
+  ngOnDestroy(): void { this.brandSvc.restore(); }
 
   private load(first = false): void {
     this.api.get(this.id).subscribe({
       next: r => {
         this.room.set(r);
+        if (first) this.brandSvc.show(r.brand ?? this.brandSvc.own());   // la room porte les couleurs de la boîte qui la dirige
         if (first && !r.me.swipe) this.tab.set(r.me.results ? 'resultats' : 'documents');
       },
       error: () => this.notFound.set(true)
@@ -242,6 +340,40 @@ export class RoomComponent {
       error: e => { this.busy.set(false); this.error.set(e.error?.message ?? 'Invitation impossible.'); }
     });
   }
+  // ── Équipe : niveaux d'accès ──
+  private readonly sanitizer = inject(DomSanitizer);
+  readonly openMember = signal<string | null>(null);
+  private ic(d: string) { return this.sanitizer.bypassSecurityTrustHtml(`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`); }
+  readonly presets = [
+    { key: 'LEAD', label: 'Chef de room', help: 'Dirige la room : équipe, accès, choix finaux', icon: this.ic('<path d="m3 8 4 4 5-7 5 7 4-4-2 11H5z"/>'),
+      perms: { lead: true, swipe: true, results: true, docs: true, tasks: true } },
+    { key: 'COLLAB', label: 'Collaborateur', help: 'Vote, voit les résultats, documents et tâches', icon: this.ic('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="m16 11 2 2 4-4"/>'),
+      perms: { lead: false, swipe: true, results: true, docs: true, tasks: true } },
+    { key: 'VOTE', label: 'Votant', help: 'Swipe les candidats et voit les résultats', icon: this.ic('<path d="M7 10v11"/><path d="M15 5.9 14 10h5.8a2 2 0 0 1 2 2.3l-1.4 7A2 2 0 0 1 18.4 21H7V10l4-8a3 3 0 0 1 4 3.9z"/>'),
+      perms: { lead: false, swipe: true, results: true, docs: false, tasks: false } },
+    { key: 'VIEW', label: 'Spectateur', help: 'Voit seulement le classement des candidats', icon: this.ic('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+      perms: { lead: false, swipe: false, results: true, docs: false, tasks: false } }
+  ];
+  private readonly custom = { key: 'CUSTOM', label: 'Sur mesure', help: '', icon: this.ic('<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>'), perms: null };
+  preset(m: RoomMember) {
+    const p = m.perms;
+    return this.presets.find(x => (x.key === 'LEAD' && p.lead) || (!p.lead && x.key !== 'LEAD'
+      && x.perms.swipe === p.swipe && x.perms.results === p.results && x.perms.docs === p.docs && x.perms.tasks === p.tasks)) ?? this.custom;
+  }
+  applyPreset(m: RoomMember, key: string): void {
+    const x = this.presets.find(p => p.key === key); if (!x) return;
+    this.busy.set(true); this.error.set(''); this.msg.set('');
+    this.api.setPerms(this.id, m.userId, x.perms).subscribe({
+      next: r => { this.room.set(r); this.busy.set(false); this.msg.set(m.name + ' : ' + x.label.toLowerCase() + '.'); },
+      error: e => { this.busy.set(false); this.error.set(e.error?.message ?? 'Modification impossible.'); }
+    });
+  }
+  groups(members: RoomMember[]) {
+    const order = [['PROD', 'Production'], ['REALISATEUR', 'Réalisation'], ['MARQUE', 'Marque'], ['AGENCE_MARKETING', 'Agence marketing']];
+    const key = (r: string) => r === 'BOITE_PROD' || r === 'ASSISTANT_PROD' || r === 'ADMIN' ? 'PROD' : r;
+    return order.map(([k, label]) => ({ key: k, label, members: members.filter(m => key(m.role) === k) })).filter(g => g.members.length);
+  }
+
   toggle(m: RoomMember, key: keyof RoomPerms): void {
     this.busy.set(true); this.error.set('');
     this.api.setPerms(this.id, m.userId, { [key]: !m.perms[key] }).subscribe({
@@ -250,6 +382,7 @@ export class RoomComponent {
     });
   }
   remove(m: RoomMember): void {
+    this.openMember.set(null);
     this.api.removeMember(this.id, m.userId).subscribe({ next: r => { this.room.set(r); this.msg.set(m.name + ' a quitté la room.'); } });
   }
   side(r: string): string { return SIDE_LABEL[r] ?? r; }

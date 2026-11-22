@@ -104,7 +104,8 @@ const DESK = { viewport: { width: 1280, height: 860 } };
   for (const [dev, label] of [[DESK, 'ordinateur'], [PHONE, 'téléphone']]) {
     const q = await open(dev, prod);
     await q.goto(BASE + '/projects'); await q.waitForTimeout(1500);
-    await q.getByRole('button', { name: 'Nouveau projet' }).first().click(); await q.waitForTimeout(600);
+    await q.getByRole('button', { name: 'Nouveau projet' }).first().click(); await q.waitForTimeout(300);
+    await q.locator('.new-choice button', { hasText: 'Film, série ou autre' }).click(); await q.waitForTimeout(600);
     await q.fill('#p-start', '17/11/2026'); await q.fill('#p-end', '30/11/2026'); await q.waitForTimeout(300);
     const w = await q.locator('app-project-form .panel').evaluate(e => [e.scrollWidth, e.clientWidth]);
     ok(w[0] <= w[1], `popup « Nouveau projet » sans défilement horizontal (${label} : ${w[0]} ≤ ${w[1]})`);

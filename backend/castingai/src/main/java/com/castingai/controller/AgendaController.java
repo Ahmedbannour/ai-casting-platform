@@ -17,6 +17,23 @@ import java.util.Map;
 public class AgendaController {
 
     private final AgendaService agenda;
+    private final com.castingai.service.CalendarFeedService feeds;
+
+    /** Flux d'agenda personnel, pour s'abonner depuis Google Agenda ou Outlook. */
+    @GetMapping("/api/me/agenda/flux")
+    public com.castingai.service.CalendarFeedService.Feed feed(@AuthenticationPrincipal UserDetails me) { return feeds.feed(me.getUsername()); }
+
+    @PostMapping("/api/me/agenda/flux")
+    public com.castingai.service.CalendarFeedService.Feed regenerate(@AuthenticationPrincipal UserDetails me) { return feeds.regenerate(me.getUsername()); }
+
+    /** Le flux lui-même : public, protégé par son jeton secret (Google et Outlook n'envoient pas d'identifiants). */
+    @GetMapping(value = "/api/public/agenda/{token}.ics", produces = "text/calendar;charset=UTF-8")
+    public org.springframework.http.ResponseEntity<String> ics(@PathVariable String token) {
+        return org.springframework.http.ResponseEntity.ok()
+                .header("Content-Disposition", "inline; filename=\"cercle-auditions.ics\"")
+                .cacheControl(org.springframework.http.CacheControl.noCache())
+                .body(feeds.ics(token));
+    }
 
     @GetMapping({"/api/me/agenda", "/api/agenda"})
     public List<AgendaService.Item> list(@AuthenticationPrincipal UserDetails me,

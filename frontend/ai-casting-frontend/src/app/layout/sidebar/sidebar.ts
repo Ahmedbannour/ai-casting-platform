@@ -11,6 +11,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { ProjectService } from '../../core/services/project.service';
 import { NavStateService } from '../nav-state.service';
+import { BrandService } from '../../core/services/brand.service';
 import { MeService } from '../../core/services/me.service';
 
 /** Une recherche de l'historique, dédoublonnée (même texte = une seule ligne). */
@@ -24,6 +25,7 @@ const ICONS = {
   profile: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
   home: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>',
   team: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18.5 14.5a6.5 6.5 0 0 1 3 5.5"/></svg>',
+  more: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>',
   rooms: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="3" width="12" height="16" rx="2.5" transform="rotate(8 11 11)"/><circle cx="12" cy="10" r="2.6"/><path d="M8.5 15.5c1-1.4 2-2 3.5-2s2.6.6 3.5 2"/></svg>',
   agenda: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
   offers: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>',
@@ -55,6 +57,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   @ViewChild('navEl') navEl?: ElementRef<HTMLElement>;
 
   readonly meService = inject(MeService);
+  readonly brand = inject(BrandService);
   /** Rôle connu tout de suite (mémorisé à la connexion), confirmé par /api/me. */
   readonly role = computed(() => this.meService.me()?.role ?? this.authService.role());
   readonly isActor = computed(() => this.role() === 'ACTEUR');
@@ -97,20 +100,35 @@ export class SidebarComponent implements OnInit, AfterViewInit {
         { path: '/agenda', label: 'Agenda', key: 'Alt+2', icon: this.icon('agenda') }
       ];
     }
+    // L'essentiel : Accueil, Projets (publicités comprises), Rooms, Acteurs, Équipe ; le reste dans « Plus ».
     const items: NavItem[] = [
       { path: '/accueil', label: 'Accueil', key: 'Alt+1', icon: this.icon('home') },
-      { path: '/chat', label: 'Propositions IA', key: 'Alt+2', icon: this.icon('search') },
-      { path: '/projects', label: 'Projets', key: 'Alt+3', icon: this.icon('projects') },
-      { path: '/dashboard', label: 'Acteurs', key: 'Alt+4', icon: this.icon('actors') },
-      { path: '/agenda', label: 'Agenda', key: 'Alt+5', icon: this.icon('agenda') }
+      { path: '/projects', label: 'Projets', key: 'Alt+2', icon: this.icon('projects') },
+      { path: '/rooms', label: 'Rooms', key: 'Alt+3', icon: this.icon('rooms') },
+      { path: '/dashboard', label: 'Acteurs', key: 'Alt+4', icon: this.icon('actors') }
     ];
-    // Cahier v2 · les publicités confiées par les agences (T-161) ; l'admin les voit toutes
-    if (this.role() === 'BOITE_PROD' || this.role() === 'REALISATEUR' || this.role() === 'ADMIN') items.splice(3, 0, { path: '/mes-demandes', label: 'Publicités', key: 'Alt+7', icon: this.icon('projects') });
-    items.splice(4, 0, { path: '/rooms', label: 'Rooms', key: 'Alt+8', icon: this.icon('rooms') });
-    if (this.role() === 'BOITE_PROD') items.push({ path: '/equipe', label: 'Mon équipe', key: 'Alt+9', icon: this.icon('team') });
-    if (this.role() === 'ADMIN') items.push({ path: '/admin', label: 'Administration', key: 'Alt+6', icon: this.icon('admin') });
+    if (this.role() === 'BOITE_PROD') items.push({ path: '/equipe', label: 'Mon équipe', key: 'Alt+5', icon: this.icon('team') });
     return items;
   });
+
+  /** Rubriques secondaires, rangées sous « Plus » (ouvert d'office quand on s'y trouve). */
+  readonly more = computed<NavItem[]>(() => {
+    if (this.isActor() || this.isClient() || this.role() === 'ASSISTANT_PROD') return [];
+    const m: NavItem[] = [
+      { path: '/chat', label: 'Propositions IA', key: 'Alt+6', icon: this.icon('search') },
+      { path: '/agenda', label: 'Agenda', key: 'Alt+7', icon: this.icon('agenda') }
+    ];
+    if (this.role() === 'ADMIN') m.push({ path: '/admin', label: 'Administration', key: 'Alt+8', icon: this.icon('admin') });
+    return m;
+  });
+  readonly moreOpen = signal(typeof localStorage !== 'undefined' && localStorage.getItem('menu-plus') === '1');
+  readonly moreActive = signal(false);
+  readonly moreIcon = this.icon('more');
+  toggleMore(): void {
+    this.moreOpen.update(v => !v);
+    try { localStorage.setItem('menu-plus', this.moreOpen() ? '1' : '0'); } catch { /* stockage indisponible */ }
+    this.queueGlider(260);
+  }
 
   readonly roleLabel = computed(() => labelOf(this.role()));
 
@@ -157,6 +175,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
     this.syncCurrent();
     this.router.events.pipe(filter(e => e instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.syncCurrent();
+      this.moreActive.set(this.more().some(i => this.router.url.startsWith(i.path)));
       if (!this.isActor()) this.loadCounts();
       this.queueGlider();
     });

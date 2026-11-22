@@ -217,3 +217,17 @@
 /* T-096 · cloche de notifications à côté du bouton de repli */
 .top-tools { display: inline-flex; align-items: center; gap: 6px; }
 .collapsed .top-tools { flex-direction: column; }
+
+/* Logo de la boîte de production (image de marque réglée par le producer) */
+.org-logo { width: 30px; height: 30px; border-radius: 8px; object-fit: contain; background: var(--bg-surface); flex: none; }
+.collapsed .org-logo { width: 34px; height: 34px; }
+
+/* « Plus » : les rubriques secondaires, repliées par défaut */
+.more-toggle { border: none; background: transparent; font: inherit; width: 100%; cursor: pointer; text-align: left; }
+.more-toggle .chev { margin-left: auto; transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+.more-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.more-list { display: flex; flex-direction: column; gap: 2px; animation: moreIn .25s cubic-bezier(.2,.8,.2,1) both; }
+.nav-link.sub { font-size: 14px; }
+.sidebar:not(.collapsed) .nav-link.sub { padding-left: 22px; }
+@keyframes moreIn { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .more-list { animation: none; } }

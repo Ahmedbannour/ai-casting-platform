@@ -9,6 +9,7 @@ export interface ProTeam { assistants: Assistant[]; pending: PendingInvitation[]
 export interface ProInvitationPreview {
   kind: 'MARQUE' | 'AGENCE_MARKETING' | 'ASSISTANT_PROD'; email: string; productionName: string; inviterName: string | null;
   requestTitle: string | null; joinOrg: string | null; needsOrg: boolean; perms: string[]; expiresAt: number; roomId: string | null;
+  brand: import('./brand.service').Brand | null;
 }
 
 /** Le producer et ses assistantes ; le lien d'invitation (public) que reçoivent la marque, l'agence et l'assistante. */

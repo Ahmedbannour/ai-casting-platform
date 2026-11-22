@@ -71,7 +71,8 @@ public class ProTeamService {
     public record AssistantView(UUID id, String name, String email, boolean enabled, List<String> perms) {}
     public record Team(List<AssistantView> assistants, List<InvitationView> pending, List<String> allPerms) {}
     public record Preview(String kind, String email, String productionName, String inviterName, String requestTitle,
-                          String joinOrg, boolean needsOrg, List<String> perms, long expiresAt, UUID roomId) {}
+                          String joinOrg, boolean needsOrg, List<String> perms, long expiresAt, UUID roomId,
+                          BrandService.Brand brand) {}
     /** Le chef de room invite par e-mail ; sans compte, il précise le rôle de la personne (réalisateur, marque, agence). */
     public record RoomInvite(@NotBlank(message = "Indiquez l'adresse e-mail") @Email(message = "Adresse e-mail invalide") @Size(max = 160) String email,
                              String kind) {}
@@ -222,11 +223,12 @@ public class ProTeamService {
         Agency join = join(kind, r, prod);
         User inviterUser = inv.get("created_by") == null ? null : users.findById((UUID) inv.get("created_by")).orElse(null);
         String inviter = inviterUser == null ? null : name(inviterUser);
-        String host = prod != null ? prod.getName() : inviterUser != null && inviterUser.getAgency() != null ? inviterUser.getAgency().getName() : inviter == null ? "Cercle" : inviter;
+        String host = prod != null ? (prod.getBrandName() != null ? prod.getBrandName() : prod.getName()) : inviterUser != null && inviterUser.getAgency() != null ? inviterUser.getAgency().getName() : inviter == null ? "Cercle" : inviter;
         List<String> perms = inv.get("perms") == null ? List.of() : List.of(((String) inv.get("perms")).split(",")).stream().filter(s -> !s.isBlank()).toList();
         return new Preview(kind, (String) inv.get("email"), host, inviter, room != null ? room.getTitle() : r == null ? null : r.getTitle(),
                 join == null ? null : join.getName(), join == null && !"REALISATEUR".equals(kind), perms, ((Timestamp) inv.get("expires_at")).getTime(),
-                room == null ? null : room.getId());
+                room == null ? null : room.getId(),
+                prod != null ? BrandService.of(prod) : room != null ? BrandService.of(room) : BrandService.of(inviterUser));
     }
 
     @Transactional

@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { ActorResponse } from './actor.service';
 import { PhotoResponse, PhotoUploadResponse } from './photo.service';
 import { TokenService } from './token.service';
+import { Brand, BrandService } from './brand.service';
 
 export interface Me {
   id: string; email: string; firstName: string; lastName: string;
@@ -12,6 +13,8 @@ export interface Me {
   agencyName: string | null; contractStatus: 'ACTIF' | 'A_VENIR' | 'EXPIRE' | 'SANS_AGENCE' | null; contractEnd: string | null;
   /** Ce que le compte peut faire côté production (tout pour le producer ; ce qu'il autorise pour l'assistante). */
   perms: string[];
+  /** Image de marque de sa boîte de production (null : couleurs Cercle). */
+  brand: Brand | null;
 }
 
 /** Compte connecté et espace personnel de l'acteur freelance. */
@@ -22,6 +25,7 @@ export class MeService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/me`;
   private readonly tokens = inject(TokenService);
+  private readonly brand = inject(BrandService);
 
   readonly me = signal<Me | null>(null);
 
@@ -29,7 +33,7 @@ export class MeService {
   can(perm: string): boolean { return !!this.me()?.perms?.includes(perm); }
 
   load(): Observable<Me> {
-    return this.http.get<Me>(this.url).pipe(tap(m => { this.me.set(m); this.tokens.setRole(m.role); }));
+    return this.http.get<Me>(this.url).pipe(tap(m => { this.me.set(m); this.tokens.setRole(m.role); this.brand.setOwn(m.brand ?? null); }));
   }
 
   actor(): Observable<ActorResponse> { return this.http.get<ActorResponse>(`${this.url}/actor`); }

@@ -51,8 +51,10 @@ async function login(b, email, pw) {
     await li.locator('input[type=email]').fill(email);
     await li.locator('form button[type=submit]').click(); await p.waitForTimeout(1500);
   }
-  res.invitationsOk = await p.locator('app-invite-card .slots li.ok').count();
-  if (res.invitationsOk !== 2) throw new Error('ÉCHEC : marque et agence non rattachées (' + res.invitationsOk + ')');
+  // Marque et agence rattachées : la carte d'invitation s'efface, l'équipe les affiche
+  const equipe = await p.locator('ul.team').innerText();
+  res.invitationsOk = (await p.locator('app-invite-card').count()) === 0 && equipe.includes(`Recette Marque ${stamp}`) && equipe.includes(`Recette Agence ${stamp}`);
+  if (!res.invitationsOk) throw new Error('ÉCHEC : marque et agence non rattachées (' + equipe.replace(/\s+/g, ' ') + ')');
   await p.screenshot({ path: path.join(OUT, 'producer-invitations.jpg'), type: 'jpeg', quality: 75, fullPage: true });
   // ── Marque ──
   const m = await login(b, acc.MARQUE.email, acc.MARQUE.pw);

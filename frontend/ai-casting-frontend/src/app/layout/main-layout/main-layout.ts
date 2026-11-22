@@ -5,6 +5,7 @@ import { filter } from 'rxjs';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { NavStateService } from '../nav-state.service';
+import { BrandService } from '../../core/services/brand.service';
 import { MeService } from '../../core/services/me.service';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -43,6 +44,7 @@ import { EmailBannerComponent } from './email-banner';
       .m-top { display: flex; position: sticky; top: 0; z-index: 25; align-items: center; justify-content: space-between; gap: 10px;
         min-height: 54px; padding: 8px 14px; border-bottom: 1px solid var(--border);
         background: var(--glass-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
+      .m-top .m-org { width: 28px; height: 28px; border-radius: 7px; object-fit: contain; }
       .m-top .m-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text-primary); font-weight: 700; font-size: 16px; }
       .m-bell { display: inline-flex !important; }
       /* Barre d'onglets animée : une pastille jaune glisse sous l'onglet actif, l'icône rebondit,
@@ -96,7 +98,7 @@ import { EmailBannerComponent } from './email-banner';
     <app-sidebar />
     <div #content class="content" cdkScrollable>
       <header class="m-top">
-        <a class="m-logo" [routerLink]="role() === 'ACTEUR' ? '/mon-profil' : role() === 'MARQUE' || role() === 'AGENCE_MARKETING' || role() === 'ASSISTANT_PROD' ? '/mes-demandes' : '/chat'" aria-label="Cercle, accueil"><span class="brand-mark" aria-hidden="true"></span><span class="wordmark">Cercle</span></a>
+        <a class="m-logo" [routerLink]="role() === 'ACTEUR' ? '/mon-profil' : role() === 'MARQUE' || role() === 'AGENCE_MARKETING' || role() === 'ASSISTANT_PROD' ? '/mes-demandes' : '/chat'" aria-label="Cercle, accueil">@if (brand.logoSrc(brand.own()); as src) { <img class="brand-logo m-org" [src]="src" alt="" /> } @else { <span class="brand-mark" aria-hidden="true"></span> }<span class="wordmark">{{ brand.own()?.name || 'Cercle' }}</span></a>
         <app-notification-bell class="m-bell" />
       </header>
       @if (contract(); as c) {
@@ -144,13 +146,13 @@ import { EmailBannerComponent } from './email-banner';
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
         <span>Accueil</span>
       </a>
-      <a class="tab" routerLink="/chat" routerLinkActive="active" aria-label="Propositions">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <span>Propositions</span>
-      </a>
       <a class="tab" routerLink="/projects" routerLinkActive="active" aria-label="Projets">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-8l-2-3H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1z"/></svg>
         <span>Projets</span>
+      </a>
+      <a class="tab" routerLink="/rooms" routerLinkActive="active" aria-label="Rooms">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="3" width="12" height="16" rx="2.5" transform="rotate(8 11 11)"/><circle cx="12" cy="10" r="2.6"/><path d="M8.5 15.5c1-1.4 2-2 3.5-2s2.6.6 3.5 2"/></svg>
+        <span>Rooms</span>
       </a>
       <a class="tab" routerLink="/dashboard" routerLinkActive="active" aria-label="Acteurs">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1.5"/><rect width="7" height="5" x="14" y="3" rx="1.5"/><rect width="7" height="9" x="14" y="12" rx="1.5"/><rect width="7" height="5" x="3" y="16" rx="1.5"/></svg>
@@ -167,6 +169,7 @@ import { EmailBannerComponent } from './email-banner';
 export class MainLayoutComponent {
   readonly nav = inject(NavStateService);
   readonly me = inject(MeService);
+  readonly brand = inject(BrandService);
   private readonly auth = inject(AuthService);
   readonly role = computed(() => this.me.me()?.role ?? this.auth.role());
 

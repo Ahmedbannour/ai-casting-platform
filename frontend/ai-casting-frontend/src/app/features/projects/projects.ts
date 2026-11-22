@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DemandeService, DemandeSummary, STATUS_LABEL } from '../../core/services/demande.service';
 import { AuthService } from '../../core/services/auth.service';
+import { MeService } from '../../core/services/me.service';
 import { Project, ProjectService, ProjectStatus, typeLabel } from '../../core/services/project.service';
 import { ProjectFormComponent } from './project-form';
 
@@ -18,6 +19,11 @@ export class ProjectsComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly demandes = inject(DemandeService);
   private readonly auth = inject(AuthService);
+  private readonly me = inject(MeService);
+  /** Le producer (et l'assistante autorisée) choisit entre une publicité (marque et agence) et un autre projet. */
+  readonly canAd = computed(() => { const r = this.me.me()?.role ?? this.auth.role();
+    return r === 'BOITE_PROD' || r === 'ADMIN' || (r === 'ASSISTANT_PROD' && this.me.can('PROJETS')); });
+  readonly choice = signal(false);
 
   /** Publicités en préparation (avant la V2 publiée) : pas encore de projet de casting, mais l'équipe les suit d'ici. */
   readonly pubs = signal<DemandeSummary[]>([]);
@@ -25,7 +31,7 @@ export class ProjectsComponent implements OnInit {
   private loadPubs(): void {
     const role = this.auth.role();
     if (role !== 'BOITE_PROD' && role !== 'REALISATEUR' && role !== 'ADMIN') return;
-    const before = ['V0_ENVOYEE', 'V1_EN_COURS', 'V1_LIVREE', 'V2_EN_COURS'];
+    const before = ['BROUILLON', 'V0_ENVOYEE', 'V1_EN_COURS', 'V1_LIVREE', 'V2_EN_COURS'];
     this.demandes.mine().subscribe({ next: l => this.pubs.set(l.filter(d => before.includes(d.status))), error: () => this.pubs.set([]) });
   }
 
@@ -60,7 +66,9 @@ export class ProjectsComponent implements OnInit {
     });
   }
 
-  openCreate(): void { this.editing.set(null); this.formOpen.set(true); }
+  openCreate(): void { this.choice.set(false); this.editing.set(null); this.formOpen.set(true); }
+  newProject(): void { if (this.canAd()) this.choice.update(v => !v); else this.openCreate(); }
+  newAd(): void { this.choice.set(false); this.router.navigate(['/demandes/nouvelle']); }
   openEdit(p: Project, e: Event): void { e.stopPropagation(); this.editing.set(p); this.formOpen.set(true); }
 
   onSaved(p: Project): void {

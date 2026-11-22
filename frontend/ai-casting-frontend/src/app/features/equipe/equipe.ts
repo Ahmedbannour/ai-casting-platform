@@ -1,4 +1,6 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { BRAND_SWATCHES, Brand, BrandService } from '../../core/services/brand.service';
+import { DropzoneComponent } from '../../shared/components/dropzone/dropzone';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Assistant, ProductionService } from '../../core/services/production.service';
@@ -13,13 +15,61 @@ import { ShareLinkComponent } from '../../shared/components/share-link/share-lin
 @Component({
   selector: 'app-equipe',
   standalone: true,
-  imports: [FormsModule, ShareLinkComponent],
+  imports: [FormsModule, ShareLinkComponent, DropzoneComponent],
   template: `
   <section class="page">
     <header class="head">
       <h1>Mon équipe</h1>
-      <p>Vos assistantes de production travaillent avec vous sur les projets. Elles font ce que vous leur autorisez, et vous changez leurs droits à tout moment.</p>
+      <p>Votre image de marque et vos assistantes de production. Ce que vous réglez ici s'applique à votre équipe, à vos rooms et aux invitations de vos projets.</p>
     </header>
+
+    <section class="card brand-card" aria-labelledby="brand-t">
+      <h2 id="brand-t">Votre image de marque</h2>
+      <p class="muted">Vos invités (marque, agence, réalisateur) la voient dans vos rooms et sur vos invitations.</p>
+      <div class="brand-grid">
+        <div class="brand-form">
+          <label for="b-name">Nom affiché</label>
+          <input id="b-name" name="bname" [(ngModel)]="bName" maxlength="160" [placeholder]="orgName()" (input)="bDirty.set(true)" />
+          <p class="lbl">Couleur principale</p>
+          <div class="swatches" role="radiogroup" aria-label="Couleur principale">
+            <button type="button" role="radio" class="sw cercle" [class.on]="!bColor()" [attr.aria-checked]="!bColor()" (click)="pick(null)" title="Couleurs Cercle"><span>Cercle</span></button>
+            @for (c of swatches; track c) {
+              <button type="button" role="radio" class="sw" [style.background]="c" [class.on]="bColor() === c" [attr.aria-checked]="bColor() === c" (click)="pick(c)" [attr.aria-label]="c"></button>
+            }
+          </div>
+          <div class="hexrow">
+            <span class="dot" [style.background]="bColor() || 'var(--crayon-400)'" aria-hidden="true"></span>
+            <input name="bhex" [ngModel]="bColor() || ''" (ngModelChange)="typed($event)" maxlength="7" placeholder="#RRGGBB" aria-label="Couleur au format #RRGGBB" spellcheck="false" />
+          </div>
+          <p class="lbl">Logo</p>
+          @if (brand.logoSrc(saved()); as src) {
+            <div class="logo-row"><img class="brand-logo" [src]="src" alt="Logo actuel" />
+              <button type="button" class="link danger" (click)="removeLogo()" [disabled]="bBusy()">Retirer le logo</button></div>
+          } @else {
+            <app-dropzone title="Déposer votre logo" accept="image/png,image/jpeg,image/webp" [formats]="['PNG', 'JPG', 'WebP']" [maxMb]="1"
+                          icon="photo" [busy]="bBusy()" (file)="uploadLogo($event)" />
+          }
+          <div class="row">
+            <button type="button" class="send" (click)="saveBrand()" [disabled]="bBusy() || !bDirty()">{{ bBusy() ? 'Enregistrement…' : 'Enregistrer' }}</button>
+            @if (bDirty()) { <button type="button" class="link" (click)="resetBrand()">Annuler</button> }
+          </div>
+          @if (bMsg()) { <p class="ok" role="status">{{ bMsg() }}</p> }
+        </div>
+        <div class="preview" aria-hidden="true">
+          <small>Aperçu</small>
+          <div class="pv-side">
+            <div class="pv-logo">
+              @if (brand.logoSrc(saved()); as src) { <img class="brand-logo" [src]="src" alt="" /> } @else { <span class="brand-mark"></span> }
+              <b>{{ bName.trim() || orgName() }}</b>
+            </div>
+            <span class="pv-btn">+ Nouveau projet</span>
+            <span class="pv-item on">Projets</span>
+            <span class="pv-item">Rooms</span>
+          </div>
+          <div class="pv-chips"><span class="pv-chip">Coup de cœur</span><span class="pv-tag">Room de casting</span></div>
+        </div>
+      </div>
+    </section>
 
     <form class="card add" (ngSubmit)="invite()" (input)="error.set('')">
       <h2>Inviter une assistante</h2>
@@ -122,13 +172,40 @@ import { ShareLinkComponent } from '../../shared/components/share-link/share-lin
     .pending li div { flex: 1; min-width: 0; } .pending b { display: block; font-size: 14px; } .pending small { color: var(--text-muted); font-size: 12.5px; }
     .muted { color: var(--text-muted); margin: 0; font-size: 14px; } .empty { padding: 4px 0; }
     .err { color: var(--danger); margin: 0; }
+    .ok { color: var(--success); margin: 0; font-size: 14px; }
+    .brand-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 260px); gap: 20px; align-items: start; }
+    .brand-form { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+    .sw { width: 34px; height: 34px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+      transition: transform .15s, box-shadow .15s; }
+    .sw:hover { transform: scale(1.08); }
+    .sw.on { box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--text-primary); }
+    .sw.cercle { width: auto; padding: 0 12px; border-radius: 999px; background: var(--crayon-400); color: var(--graphite-900); font: inherit; font-size: 12.5px; font-weight: 700; }
+    .hexrow { display: flex; align-items: center; gap: 8px; }
+    .hexrow .dot { width: 22px; height: 22px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
+    .hexrow input { width: 130px; font-variant-numeric: tabular-nums; text-transform: uppercase; }
+    .logo-row { display: flex; align-items: center; gap: 12px; }
+    .logo-row img { width: 56px; height: 56px; border-radius: 12px; background: var(--bg-surface); border: 1px solid var(--border); }
+    .preview { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 14px; border: 1px dashed var(--border); }
+    .preview small { color: var(--text-subtle); font-size: 12px; font-weight: 600; }
+    .pv-side { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 12px; background: var(--bg-surface); }
+    .pv-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; min-width: 0; }
+    .pv-logo img, .pv-logo .brand-mark { width: 26px; height: 26px; border-radius: 7px; object-fit: contain; flex: none; }
+    .pv-logo b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pv-btn { display: block; text-align: center; padding: 8px; border-radius: 10px; background: var(--accent); color: var(--on-accent); font-size: 13px; font-weight: 700; transition: background .25s, color .25s; }
+    .pv-item { padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--text-muted); }
+    .pv-item.on { background: var(--accent-dim); color: var(--text-primary); font-weight: 600; box-shadow: inset 3px 0 0 var(--accent); }
+    .pv-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pv-chip { padding: 5px 10px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 700; }
+    .pv-tag { padding: 5px 10px; border-radius: 999px; color: var(--accent-ink); border: 1px solid var(--accent); font-size: 12px; font-weight: 700; }
+    @media (max-width: 760px) { .brand-grid { grid-template-columns: 1fr; } }
     @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
     @keyframes tick { from { opacity: 0; transform: translateY(-1px) rotate(-45deg) scale(.4); } }
     @media (max-width: 860px) { .page { padding: 16px 16px 40px; } .head h1 { font-size: 30px; } }
     @media (prefers-reduced-motion: reduce) { .people li { animation: none; } }
   `]
 })
-export class EquipeComponent implements OnInit {
+export class EquipeComponent implements OnInit, OnDestroy {
   private readonly api = inject(ProductionService);
   readonly perms = PERMS;
 
@@ -142,7 +219,53 @@ export class EquipeComponent implements OnInit {
   readonly link = signal<{ link: string; email: string } | null>(null);
   mail = '';
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void {
+    this.load();
+    this.brand.mine().subscribe({ next: b => this.applySaved(b), error: () => {} });
+  }
+  ngOnDestroy(): void { this.brand.restore(); }   // un aperçu non enregistré s'efface en quittant la page
+
+  // ── Image de marque ──
+  readonly brand = inject(BrandService);
+  readonly swatches = BRAND_SWATCHES;
+  readonly saved = signal<Brand | null>(null);
+  readonly orgName = signal('Votre boîte');
+  readonly bColor = signal<string | null>(null);
+  readonly bBusy = signal(false);
+  readonly bDirty = signal(false);
+  readonly bMsg = signal('');
+  bName = '';
+
+  private applySaved(b: Brand): void {
+    this.saved.set(b); this.orgName.set(b.name); this.bName = b.name; this.bColor.set(b.color); this.bDirty.set(false);
+  }
+  pick(c: string | null): void { this.bColor.set(c); this.brand.preview(c); this.bDirty.set(true); this.bMsg.set(''); }
+  typed(v: string): void {
+    const h = (v || '').trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(h)) this.pick(h.toUpperCase());
+    else if (!h) this.pick(null);
+  }
+  resetBrand(): void { const b = this.saved(); if (b) this.applySaved(b); this.brand.restore(); }
+  saveBrand(): void {
+    this.bBusy.set(true); this.error.set('');
+    const name = this.bName.trim() || null;
+    this.brand.save(name, this.bColor()).subscribe({
+      next: b => { this.bBusy.set(false); this.applySaved(b); this.bMsg.set('Image de marque enregistrée : votre équipe et vos invités la voient déjà.'); },
+      error: e => { this.bBusy.set(false); this.error.set(e.error?.message ?? 'Enregistrement impossible.'); }
+    });
+  }
+  uploadLogo(f: File): void {
+    this.bBusy.set(true); this.error.set('');
+    this.brand.uploadLogo(f).subscribe({
+      next: b => { this.bBusy.set(false); this.saved.set(b); this.bMsg.set('Logo enregistré.'); if (this.bDirty()) this.brand.preview(this.bColor()); },
+      error: e => { this.bBusy.set(false); this.error.set(e.error?.message ?? 'Envoi du logo impossible.'); }
+    });
+  }
+  removeLogo(): void {
+    this.bBusy.set(true);
+    this.brand.removeLogo().subscribe({ next: b => { this.bBusy.set(false); this.saved.set(b); if (this.bDirty()) this.brand.preview(this.bColor()); },
+      error: () => this.bBusy.set(false) });
+  }
 
   load(): void {
     this.api.team().subscribe({

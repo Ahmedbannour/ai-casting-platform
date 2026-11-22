@@ -150,6 +150,25 @@ class ProducerApiTest {
         send("GET", "/api/projects", assistant, null).andExpect(status().isOk());
         assertThat(read(send("GET", "/api/demandes", producer, null)).toString()).contains("Spot Nu 2");
 
+        // Image de marque : le producer la règle, son équipe la reçoit, la marque ne la change pas
+        send("PUT", "/api/production/marque", producer, "{\"name\":\"Studio Nu\",\"color\":\"rouge\"}").andExpect(status().isBadRequest());
+        JsonNode brandSet = read(send("PUT", "/api/production/marque", producer, "{\"name\":\"Studio Nu\",\"color\":\"#e4572e\"}").andExpect(status().isOk()));
+        assertThat(brandSet.get("color").asString()).isEqualTo("#E4572E");
+        send("PUT", "/api/production/marque", assistant, "{\"color\":\"#000000\"}").andExpect(status().isForbidden());
+        send("PUT", "/api/production/marque", brand, "{\"color\":\"#000000\"}").andExpect(status().isForbidden());
+        assertThat(read(send("GET", "/api/me", assistant, null)).get("brand").get("name").asString()).isEqualTo("Studio Nu");
+        assertThat(read(send("GET", "/api/me", brand, null)).get("brand").isNull()).isTrue();
+
+        // Agenda relié à Google ou Outlook : flux iCalendar secret, régénérable
+        String feed = read(send("GET", "/api/me/agenda/flux", producer, null).andExpect(status().isOk())).get("token").asString();
+        assertThat(feed).matches("[0-9a-f]{48}");
+        assertThat(read(send("GET", "/api/me/agenda/flux", producer, null)).get("token").asString()).isEqualTo(feed);
+        String cal = mvc.perform(get("/api/public/agenda/" + feed + ".ics")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(cal).startsWith("BEGIN:VCALENDAR").contains("X-WR-CALNAME").endsWith("END:VCALENDAR\r\n");
+        String renewed = read(send("POST", "/api/me/agenda/flux", producer, null).andExpect(status().isOk())).get("token").asString();
+        assertThat(renewed).isNotEqualTo(feed);
+        mvc.perform(get("/api/public/agenda/" + feed + ".ics")).andExpect(status().isNotFound());
+
         // Désactivée : elle ne se connecte plus
         send("PUT", "/api/production/assistantes/" + assistantId, producer, "{\"enabled\":false}").andExpect(status().isOk());
         mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)

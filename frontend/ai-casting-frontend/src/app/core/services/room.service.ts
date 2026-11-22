@@ -8,7 +8,9 @@ export interface RoomPerms { lead: boolean; swipe: boolean; results: boolean; do
 export interface RoomMember { userId: string; name: string; role: string; organisation: string | null; owner: boolean; perms: RoomPerms; }
 export interface RoomRole { id: string; name: string; importance: string | null; intention: string | null; candidates: number; toSwipe: number; matches: number; }
 export interface Room { id: string; title: string; type: string; status: string; description: string | null; me: RoomPerms; myId: string;
-  members: RoomMember[]; roles: RoomRole[]; tasksOpen: number; documents: number; }
+  members: RoomMember[]; roles: RoomRole[]; tasksOpen: number; documents: number;
+  /** Image de marque de la boîte de production qui dirige la room (null : couleurs Cercle). */
+  brand: import('./brand.service').Brand | null; }
 export interface RoomItem { id: string; title: string; type: string; status: string; roles: number; toSwipe: number; lead: boolean; }
 export interface SwipeCard { entryId: string; actorId: string; name: string; age: number | null; city: string | null; gender: string | null;
   height: number | null; photoUrl: string | null; bio: string | null; languages: string[]; skills: string[]; note: string | null; }
@@ -23,7 +25,7 @@ export type TaskStatus = 'A_FAIRE' | 'EN_COURS' | 'FAIT';
 export interface RoomTask { id: string; title: string; assigneeId: string | null; assigneeName: string | null; dueDate: string | null;
   status: TaskStatus; position: number; canEdit: boolean; canMove: boolean; }
 
-export const SIDE_LABEL: Record<string, string> = { MARQUE: 'Marque', AGENCE_MARKETING: 'Agence', REALISATEUR: 'Réalisateur', BOITE_PROD: 'Production', ADMIN: 'Admin' };
+export const SIDE_LABEL: Record<string, string> = { MARQUE: 'Marque', AGENCE_MARKETING: 'Agence', REALISATEUR: 'Réalisateur', BOITE_PROD: 'Production', ASSISTANT_PROD: 'Assistante de production', ADMIN: 'Admin' };
 
 @Injectable({ providedIn: 'root' })
 export class RoomService {

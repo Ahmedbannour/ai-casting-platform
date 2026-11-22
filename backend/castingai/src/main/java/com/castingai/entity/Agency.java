@@ -50,6 +50,13 @@ public class Agency {
     @Builder.Default
     private String kind = "BOITE_PROD";
 
+    /** Image de marque de la boîte : nom affiché, couleur principale (#RRGGBB), logo dans le stockage. */
+    @Column(name = "brand_name", length = 160) private String brandName;
+    @Column(name = "brand_color", length = 7) private String brandColor;
+    @Column(name = "brand_logo_key", length = 400) private String brandLogoKey;
+    @Column(name = "brand_logo_type", length = 60) private String brandLogoType;
+    @Column(name = "brand_updated_at") private LocalDateTime brandUpdatedAt;
+
     @Column(name = "monthly_amount", precision = 12, scale = 2)
     private java.math.BigDecimal monthlyAmount;
 

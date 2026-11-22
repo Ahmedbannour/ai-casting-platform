@@ -5,10 +5,18 @@
       <h1>Projets</h1>
       <p class="sub">Un projet regroupe les rôles d'une production et les acteurs retenus pour chacun.</p>
     </div>
-    <button type="button" class="btn-primary" (click)="openCreate()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-      Nouveau projet
-    </button>
+    <div class="new-wrap">
+      <button type="button" class="btn-primary" (click)="newProject()" [attr.aria-expanded]="canAd() ? choice() : null">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Nouveau projet
+      </button>
+      @if (choice()) {
+        <div class="new-choice" role="menu">
+          <button type="button" role="menuitem" (click)="newAd()"><b>Publicité</b><small>Vous invitez la marque et l'agence ; la V0, la V1 puis la V2 mènent au casting.</small></button>
+          <button type="button" role="menuitem" (click)="openCreate()"><b>Film, série ou autre</b><small>Vous créez directement les rôles et lancez le casting.</small></button>
+        </div>
+      }
+    </div>
   </header>
 
   <div class="tabs" role="tablist" aria-label="État des projets">

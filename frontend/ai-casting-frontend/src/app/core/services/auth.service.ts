@@ -72,6 +72,7 @@ export class AuthService {
   }
 
   logout(): void {
+    if (typeof document !== 'undefined') document.documentElement.removeAttribute('data-brand');   // couleurs Cercle à la déconnexion
     this.http.post(`${this.apiUrl}/logout`, {}).subscribe();
     this.tokenService.clearTokens();
     this.router.navigate(['/auth/login']);

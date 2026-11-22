@@ -41,7 +41,8 @@ public class RoomService {
     public record MemberView(UUID userId, String name, String role, String organisation, boolean owner, Perms perms) {}
     public record RoleView(UUID id, String name, String importance, String intention, int candidates, int toSwipe, int matches) {}
     public record RoomSummary(UUID id, String title, String type, String status, String description, Perms me, UUID myId,
-                              List<MemberView> members, List<RoleView> roles, long tasksOpen, long documents) {}
+                              List<MemberView> members, List<RoleView> roles, long tasksOpen, long documents,
+                              BrandService.Brand brand) {}
     public record RoomItem(UUID id, String title, String type, String status, int roles, int toSwipe, boolean lead) {}
     public record Card(UUID entryId, UUID actorId, String name, Integer age, String city, String gender, Integer height,
                        @JsonSerialize(using = MediaUrls.Signed.class) String photoUrl, String bio,
@@ -130,7 +131,7 @@ public class RoomService {
         long open = tasks.findByProjectIdOrderByPositionAscCreatedAtAsc(p.getId()).stream().filter(t -> t.getStatus() != RoomTask.Status.FAIT).count();
         long docCount = docs.findByProjectIdOrderByUpdatedAtDesc(p.getId()).stream().filter(d -> seesDoc(me, p, d)).count();
         return new RoomSummary(p.getId(), p.getTitle(), p.getType().name(), p.getStatus().name(), p.getDescription(), pr, me.getId(),
-                memberViews(p), rv, open, docCount);
+                memberViews(p), rv, open, docCount, BrandService.of(p));
     }
 
     // ── Équipe et autorisations ──

@@ -356,3 +356,18 @@ body:has([aria-modal="true"]) app-main-layout .tabbar { transform: translateY(ca
 /* Aucune popup ne défile à l'horizontale : ses champs se plient à sa largeur. */
 [role="dialog"] { overflow-x: hidden; }
 [role="dialog"] app-date-field, [role="dialog"] app-select { min-width: 0; max-width: 100%; }
+
+/* Image de marque de la boîte de production : sa couleur remplace le jaune Cercle partout (voir BrandService). */
+:root[data-brand] {
+  --accent: var(--brand);
+  --accent-hover: var(--brand-hover);
+  --accent-dim: color-mix(in srgb, var(--brand) 16%, transparent);
+  --on-accent: var(--brand-on);
+  --accent-ink: var(--brand-ink-dark);
+  --keep: var(--brand);
+}
+:root.light[data-brand] {
+  --accent-dim: color-mix(in srgb, var(--brand) 20%, transparent);
+  --accent-ink: var(--brand-ink-light);
+}
+.brand-logo { display: block; max-width: 100%; object-fit: contain; }

@@ -4,8 +4,12 @@
 
   <div class="top">
     <a class="logo" [routerLink]="isActor() ? '/mon-profil' : isClient() ? '/mes-demandes' : '/chat'" (click)="nav.closeDrawer()" aria-label="Cercle, accueil">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <span class="logo-text wordmark">Cercle</span>
+      @if (brand.logoSrc(brand.own()); as src) {
+        <img class="brand-logo org-logo" [src]="src" [alt]="brand.own()!.name" />
+      } @else {
+        <span class="brand-mark" aria-hidden="true"></span>
+      }
+      <span class="logo-text wordmark">{{ brand.own()?.name || 'Cercle' }}</span>
     </a>
     <span class="top-tools">
     <app-notification-bell />
@@ -39,6 +43,25 @@
         @if (count(item.path); as n) { <span class="count">{{ collapsedView() && n > 99 ? '99+' : n }}</span> }
         <kbd class="kbd">{{ item.key }}</kbd>
       </a>
+    }
+    @if (more().length) {
+      <button type="button" class="nav-link more-toggle" (click)="toggleMore()" [attr.aria-expanded]="moreOpen() || moreActive()"
+              [attr.data-tip]="'Plus'" [title]="collapsedView() ? 'Plus' : ''">
+        <span class="ico" [innerHTML]="moreIcon"></span>
+        <span class="label">Plus</span>
+        <svg class="chev label" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      @if (moreOpen() || moreActive()) {
+        <div class="more-list">
+          @for (item of more(); track item.path) {
+            <a [routerLink]="item.path" routerLinkActive="active" (isActiveChange)="$event && queueGlider()" class="nav-link sub" (click)="nav.closeDrawer()"
+               [attr.data-tip]="item.label" [title]="collapsedView() ? item.label : ''">
+              <span class="ico" [innerHTML]="item.icon"></span>
+              <span class="label">{{ item.label }}</span>
+            </a>
+          }
+        </div>
+      }
     }
   </nav>
 
