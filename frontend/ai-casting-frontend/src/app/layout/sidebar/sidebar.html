@@ -36,7 +36,7 @@
          [attr.data-tip]="item.label" [title]="collapsedView() ? item.label + ' (' + item.key + ')' : ''">
         <span class="ico" [innerHTML]="item.icon"></span>
         <span class="label">{{ item.label }}</span>
-        @if (count(item.path) !== null) { <span class="count">{{ count(item.path) }}</span> }
+        @if (count(item.path); as n) { <span class="count">{{ collapsedView() && n > 99 ? '99+' : n }}</span> }
         <kbd class="kbd">{{ item.key }}</kbd>
       </a>
     }
