@@ -177,8 +177,9 @@
 .drawer-backdrop { display: none; }
 @media (max-width: 860px) {
   .sidebar { position: fixed; left: 0; top: 0; bottom: 0; --w: 290px; transform: translateX(-105%);
-    transition: transform .3s cubic-bezier(.2,.8,.2,1); box-shadow: 20px 0 60px rgba(0,0,0,.35); z-index: 41; }
-  .sidebar.open { transform: none; }
+    /* Fermé, le tiroir est caché aussi pour le clavier et les lecteurs d'écran (visibilité retirée après l'animation) */
+    transition: transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s linear .3s; visibility: hidden; box-shadow: 20px 0 60px rgba(0,0,0,.35); z-index: 41; }
+  .sidebar.open { transform: none; visibility: visible; transition: transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s; }
   /* Tiroir à la hauteur réellement visible (barres du navigateur exclues), qui défile au besoin ;
      le compte, le mode sombre et la déconnexion restent au-dessus de la barre de gestes. */
   .sidebar { height: 100vh; height: 100dvh; width: min(var(--w), 86vw); overflow-y: auto; overscroll-behavior: contain;

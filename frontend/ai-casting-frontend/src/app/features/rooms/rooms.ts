@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { LiveService } from '../../core/services/live.service';
 import { RouterLink } from '@angular/router';
 import { RoomItem, RoomService } from '../../core/services/room.service';
 
@@ -58,5 +59,9 @@ export class RoomsComponent {
   private readonly api = inject(RoomService);
   readonly rooms = signal<RoomItem[]>([]);
   readonly loading = signal(true);
-  constructor() { this.api.mine().subscribe({ next: r => { this.rooms.set(r); this.loading.set(false); }, error: () => this.loading.set(false) }); }
+  constructor() {
+    this.load();
+    inject(LiveService).watch(inject(DestroyRef), () => this.load());
+  }
+  private load(): void { this.api.mine().subscribe({ next: r => { this.rooms.set(r); this.loading.set(false); }, error: () => this.loading.set(false) }); }
 }

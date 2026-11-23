@@ -167,16 +167,12 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.meService.load().subscribe({ next: () => { this.queueGlider(); if (!this.noSearch()) { this.loadHistory(); this.loadCounts(); } }, error: () => {} });
-    if (!this.isActor()) {
-      this.loadHistory();
-      this.loadCounts();
-    }
-    this.aiService.historyChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.loadHistory());
+    this.aiService.historyChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => { if (this.statsOk()) this.loadHistory(); });
     this.syncCurrent();
     this.router.events.pipe(filter(e => e instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.syncCurrent();
       this.moreActive.set(this.more().some(i => this.router.url.startsWith(i.path)));
-      if (!this.isActor()) this.loadCounts();
+      if (this.statsOk()) this.loadCounts();
       this.queueGlider();
     });
   }
@@ -227,6 +223,9 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   }
 
   logout(): void { this.authService.logout(); }
+
+  /** Historique IA et compteurs : seulement pour les rôles qui y ont droit, une fois le profil connu. */
+  private statsOk(): boolean { return !!this.meService.me() && !this.noSearch(); }
 
   private loadHistory(): void {
     this.aiService.getHistory(40).subscribe({

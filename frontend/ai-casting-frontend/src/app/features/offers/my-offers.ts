@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { LiveService } from '../../core/services/live.service';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MyOffer, OFFER_KIND, OFFER_STATUS, OfferService } from '../../core/services/offer.service';
@@ -40,8 +41,9 @@ import { frDate } from '../../shared/forms/dates';
               <textarea [id]="'n-' + o.id" [(ngModel)]="notes[o.id]" rows="2" maxlength="500" placeholder="Ex. disponible le matin uniquement"></textarea>
               @if (errorFor() === o.id) { <p class="field-msg" role="alert">{{ answerError() }}</p> }
               <div class="actions">
-                <button type="button" class="btn-primary" [disabled]="busy() === o.id" (click)="answer(o, 'ACCEPTEE')">
-                  {{ o.kind === 'AUDITION' ? 'Accepter la convocation' : 'Accepter' }}
+                <button type="button" class="btn-primary" [disabled]="busy() === o.id" (click)="answer(o, 'ACCEPTEE')"
+                        [attr.aria-label]="o.kind === 'AUDITION' ? 'Accepter la convocation' : null">
+                  Accepter
                 </button>
                 <button type="button" class="btn-ghost" [disabled]="busy() === o.id" (click)="answer(o, 'DECLINEE')">Décliner</button>
               </div>
@@ -123,7 +125,9 @@ export class MyOffersComponent implements OnInit {
   readonly done = computed(() => this.offers().filter(o => o.status !== 'ENVOYEE'));
   notes: Record<string, string> = {};
 
-  ngOnInit(): void { this.load(); }
+  private readonly live = inject(LiveService);
+  private readonly destroyRef = inject(DestroyRef);
+  ngOnInit(): void { this.load(); this.live.watch(this.destroyRef, () => this.load()); }
 
   private load(): void {
     this.api.mine().subscribe({

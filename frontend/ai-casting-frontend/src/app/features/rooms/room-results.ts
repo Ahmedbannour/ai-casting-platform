@@ -1,4 +1,5 @@
-import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { LiveService } from '../../core/services/live.service';
 import { ResultRow, RoomRole, RoomService, SIDE_LABEL } from '../../core/services/room.service';
 
 /** Tableau des résultats d'un rôle : classement (choix, coups de cœur, matchs, oui), votes de chacun, choix du chef de room. */
@@ -20,7 +21,8 @@ import { ResultRow, RoomRole, RoomService, SIDE_LABEL } from '../../core/service
   }
 
   @if (loading()) {
-    @for (i of [1, 2, 3]; track i) { <div class="row skel"></div> }
+    <p class="calc" role="status">Calcul des résultats…</p>
+    @for (i of [1, 2, 3]; track i) { <div class="row skel" aria-hidden="true"></div> }
   } @else if (!rows().length) {
     <div class="empty"><h3>Aucun candidat pour ce rôle</h3><p>Les candidats de la shortlist apparaîtront ici avec les votes de l'équipe.</p></div>
   } @else {
@@ -73,6 +75,7 @@ import { ResultRow, RoomRole, RoomService, SIDE_LABEL } from '../../core/service
   @keyframes rowIn { from { opacity: 0; transform: translateY(8px); } }
   .row.match { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); box-shadow: 0 0 0 1px var(--accent-dim) inset; }
   .row.ranked { background: linear-gradient(90deg, var(--accent-dim), var(--glass) 60%); }
+  .calc { margin: 0; font-size: 13.5px; font-weight: 600; color: var(--text-muted); }
   .row.skel { height: 76px; animation: none; background: linear-gradient(90deg, var(--glass), var(--bg-secondary), var(--glass)); background-size: 200% 100%; }
   .pos { font-weight: 800; font-size: 15px; color: var(--text-subtle); text-align: center; font-variant-numeric: tabular-nums; }
   .av { width: 52px; height: 52px; border-radius: 14px; background: var(--graphite-600) center 25% / cover; display: grid; place-items: center;
@@ -131,6 +134,13 @@ export class RoomResultsComponent {
       const target = want && want !== cur ? want : cur ?? rs[0].id;
       if (target !== cur) untracked(() => this.pick(target));
     });
+    inject(LiveService).watch(inject(DestroyRef), () => this.refresh());
+  }
+
+  /** Rechargement discret : on garde le tableau affiché pendant la mise à jour. */
+  refresh(): void {
+    const id = this.roleId(); if (!id) return;
+    this.api.results(this.roomId(), id).subscribe({ next: r => { if (this.roleId() === id) this.rows.set(r); }, error: () => {} });
   }
 
   pick(id: string): void {

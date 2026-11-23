@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { LiveService } from '../../core/services/live.service';
 import { RouterLink } from '@angular/router';
 import { AgendaItem, AgendaService } from '../../core/services/agenda.service';
 import { MeService } from '../../core/services/me.service';
@@ -226,7 +227,9 @@ export class AgendaComponent implements OnInit {
   readonly waiting = computed(() => this.items().filter(i => i.pending).length);
   readonly confirmed = computed(() => this.total() - this.waiting());
 
-  ngOnInit(): void { this.load(); }
+  private readonly live = inject(LiveService);
+  private readonly destroyRef = inject(DestroyRef);
+  ngOnInit(): void { this.load(); this.live.watch(this.destroyRef, () => this.load(true)); }
 
   // ── Agenda relié à Google ou Outlook ──
   readonly syncOpen = signal(false);
@@ -274,8 +277,8 @@ export class AgendaComponent implements OnInit {
 
   setRange(d: number): void { if (d !== this.days()) { this.days.set(d); this.load(); } }
 
-  private load(): void {
-    this.loading.set(true);
+  private load(silent = false): void {
+    if (!silent) this.loading.set(true);
     this.api.list(this.today, addDays(this.today, this.days())).subscribe({
       next: l => { this.items.set(l); this.loading.set(false); this.error.set(''); },
       error: () => { this.loading.set(false); this.error.set('Impossible de charger l’agenda. Rechargez la page.'); }

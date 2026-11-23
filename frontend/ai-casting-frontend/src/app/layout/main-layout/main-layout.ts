@@ -43,7 +43,8 @@ import { EmailBannerComponent } from './email-banner';
       /* T-132 · Barre du haut sur mobile : logo + cloche ; plus rien ne flotte au-dessus des pages */
       .m-top { display: flex; position: sticky; top: 0; z-index: 25; align-items: center; justify-content: space-between; gap: 10px;
         min-height: 54px; padding: 8px 14px; border-bottom: 1px solid var(--border);
-        background: var(--glass-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
+        /* Fond opaque : rien ne transparaît dessous quand on fait défiler (onglets de room, cartes) */
+        background: color-mix(in srgb, var(--glass-strong) 25%, var(--bg-primary)); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
       .m-top .m-org { width: 28px; height: 28px; border-radius: 7px; object-fit: contain; }
       .m-top .m-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text-primary); font-weight: 700; font-size: 16px; }
       .m-bell { display: inline-flex !important; }

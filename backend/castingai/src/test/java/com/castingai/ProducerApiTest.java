@@ -63,6 +63,55 @@ class ProducerApiTest {
     }
 
     @Test
+    void laDiscussionPrevientLaPersonneMentionneeEtResteDansLEquipe() throws Exception {
+        String admin = login("ahmed@casting.com", "password123");
+        String prodOrg = org(admin, "Prod Discussion", "BOITE_PROD");
+        String producer = account(admin, "disc.prod@exemple.tn", "BOITE_PROD", prodOrg);
+        String colleague = account(admin, "disc.prod2@exemple.tn", "BOITE_PROD", prodOrg);
+        String outsider = account(admin, "disc.marque@exemple.tn", "MARQUE", org(admin, "Marque Ailleurs", "MARQUE"));
+        String id = read(send("POST", "/api/demandes", producer, "{\"title\":\"Spot discussion\"}").andExpect(status().isCreated())).get("id").asText();
+
+        JsonNode t = read(send("GET", "/api/demandes/" + id + "/discussion", producer, null).andExpect(status().isOk()));
+        String colleagueId = null;
+        for (JsonNode p : t.get("people")) if (p.get("name").asText().contains("BOITE_PROD") && !p.get("id").asText().isEmpty()) colleagueId = p.get("id").asText();
+        assertThat(t.get("people").size()).isGreaterThanOrEqualTo(2);
+        // on retrouve le collègue par son e-mail côté admin : plus simple, on mentionne tout le monde sauf soi
+        StringBuilder ids = new StringBuilder();
+        for (JsonNode p : t.get("people")) { if (ids.length() > 0) ids.append(','); ids.append('"').append(p.get("id").asText()).append('"'); }
+        JsonNode after = read(send("POST", "/api/demandes/" + id + "/discussion", producer,
+                "{\"body\":\"Qui valide le lieu ?\",\"mentions\":[" + ids + "]}").andExpect(status().isCreated()));
+        assertThat(after.get("comments").size()).isEqualTo(1);
+        assertThat(after.get("comments").get(0).get("mine").asBoolean()).isTrue();
+        assertThat(read(send("GET", "/api/me/notifications", colleague, null)).get("items").toString()).contains("vous mentionne");
+        // Message vide refusé ; une personne hors de l'équipe ne voit pas la discussion
+        send("POST", "/api/demandes/" + id + "/discussion", producer, "{\"body\":\"  \"}").andExpect(status().isBadRequest());
+        send("GET", "/api/demandes/" + id + "/discussion", outsider, null).andExpect(status().isNotFound());
+        assertThat(colleagueId).isNotNull();
+    }
+
+    @Test
+    void lePoulsSignaleLActiviteDesAutresSeulement() throws Exception {
+        String admin = login("ahmed@casting.com", "password123");
+        String prodOrg = org(admin, "Prod Pouls", "BOITE_PROD");
+        String producer = account(admin, "pouls.prod@exemple.tn", "BOITE_PROD", prodOrg);
+        String other = account(admin, "pouls.prod2@exemple.tn", "BOITE_PROD", prodOrg);
+        long seqP = read(send("GET", "/api/me/pulse", producer, null)).get("seq").asLong();
+        long seqO = read(send("GET", "/api/me/pulse", other, null)).get("seq").asLong();
+        // Une écriture du producer…
+        send("POST", "/api/demandes", producer, "{\"title\":\"Spot pouls\"}").andExpect(status().isCreated());
+        // …réveille les pages de l'autre, pas les siennes
+        JsonNode o = read(send("GET", "/api/me/pulse?since=" + seqO, other, null));
+        assertThat(o.get("others").asBoolean()).isTrue();
+        assertThat(o.get("seq").asLong()).isGreaterThan(seqO);
+        JsonNode m = read(send("GET", "/api/me/pulse?since=" + seqP, producer, null));
+        assertThat(m.get("others").asBoolean()).isFalse();
+        // Lire ses notifications ne réveille personne
+        long now = o.get("seq").asLong();
+        send("POST", "/api/me/notifications/read", producer, null);
+        assertThat(read(send("GET", "/api/me/pulse?since=" + now, other, null)).get("others").asBoolean()).isFalse();
+    }
+
+    @Test
     void leProducerMeneLeProjetEtSonAssistanteFaitCeQuIlAutorise() throws Exception {
         String admin = login("ahmed@casting.com", "password123");
         String prodOrg = org(admin, "Prod Nu", "BOITE_PROD");

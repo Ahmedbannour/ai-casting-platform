@@ -73,7 +73,7 @@ async function voitSansRecharger(t, quoi, test, maxMs = 75000) {
   report.synchro.push({ testeur: t.label, quoi, vuApresSecondes: null, note: `pas vu en ${maxMs / 1000} s sans recharger` });
   return null;
 }
-const bell = async t => +(await t.p.locator('app-notification-bell .badge, app-notification-bell .count, app-notification-bell [class*=badge]').first().innerText().catch(() => '0')) || 0;
+const bell = async t => +(await t.p.locator('app-notification-bell .badge:visible').first().innerText({ timeout: 1000 }).catch(() => '0')) || 0;
 
 (async () => {
   const adm = (await j('/auth/login', { method: 'POST', body: JSON.stringify({ email: QA.email, password: QA.password }) })).b.accessToken;
@@ -165,6 +165,21 @@ const bell = async t => +(await t.p.locator('app-notification-bell .badge, app-n
     await p.getByRole('button', { name: /^Valider la V1/ }).click(); await sleep(1500); await ecran(T.marque, null, 'v1-validee');
   });
 
+  // ── 4 bis. Discussion : la marque pose une question au producer au lieu de l'appeler ──
+  await T.prod.p.goto(BASE + '/demandes/' + id); await sleep(1500);
+  const avantMsg = await T.prod.p.locator('app-discussion .msgs li').count().catch(() => 0);
+  const avantCloche = await bell(T.prod);
+  await etape(T.marque, 'question à l’équipe avec @mention (téléphone)', async () => {
+    const p = T.marque.p; await p.goto(BASE + '/demandes/' + id); await sleep(1000);
+    await p.locator('#disc-in').scrollIntoViewIfNeeded();
+    await p.locator('#disc-in').fill('Bonjour, ');
+    await p.locator('app-discussion .chip', { hasText: '@Yasmine' }).first().click();
+    await p.locator('#disc-in').press('End'); await p.keyboard.type('qui valide le lieu du tournage ?');
+    await p.getByRole('button', { name: 'Envoyer', exact: true }).click(); await sleep(1200); await ecran(T.marque, null, 'discussion');
+  });
+  await voitSansRecharger(T.prod, 'le message de la marque apparaît dans la discussion (page ouverte)', async () => (await T.prod.p.locator('app-discussion .msgs li').count()) > avantMsg, 40000);
+  await voitSansRecharger(T.prod, 'la cloche signale la mention', async () => (await bell(T.prod)) > avantCloche, 40000);
+
   // ── 5. Production : attentes et transmission ; réalisatrice et 1er AD ──
   await etape(T.prod, 'attentes et équipe (interface puis API)', async () => {
     const p = T.prod.p; await p.goto(BASE + '/demandes/' + id); await ecran(T.prod, null, 'attentes');
@@ -197,8 +212,10 @@ const bell = async t => +(await t.p.locator('app-notification-bell .badge, app-n
     const p = t.p; await p.goto(BASE + '/rooms/' + pid); await sleep(1500); await ecran(t, null, 'room-swipe');
     for (let i = 0; i < 4; i++) {
       if (!(await p.locator('.card, .swipe-card, [class*=card]').first().isVisible().catch(() => false))) break;
+      // « C'est un match ! » couvre l'écran : on continue comme un vrai utilisateur
+      await p.getByRole('button', { name: 'Continuer à swiper' }).click({ timeout: 500 }).catch(() => {});
       if (mode === 'clavier') await p.keyboard.press(i % 2 ? 'ArrowLeft' : 'ArrowRight');
-      else await p.locator('button', { hasText: /^Oui$|Oui/ }).first().click().catch(async () => p.keyboard.press('ArrowRight'));
+      else await p.locator('button.act.yes').first().click({ timeout: 5000 }).catch(async () => p.keyboard.press('ArrowRight'));
       await sleep(700);
     }
   });

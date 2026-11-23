@@ -1,4 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { PageRailComponent } from '../../shared/components/page-rail/page-rail';
+import { DiscussionComponent } from './discussion';
+import { LiveService } from '../../core/services/live.service';
 import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { SelectFieldComponent, SelectOption } from '../../shared/components/select-field/select-field';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field';
@@ -32,9 +35,10 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
 @Component({
   selector: 'app-demande',
   standalone: true,
-  imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, SelectFieldComponent, DateFieldComponent, FormStepsComponent, DropzoneComponent, InviteCardComponent],
+  imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, SelectFieldComponent, DateFieldComponent, FormStepsComponent, DropzoneComponent, InviteCardComponent, DiscussionComponent, PageRailComponent],
   template: `
-  <section class="page">
+  <div class="sheet">
+  <section class="page" #sheetPage>
     <a class="back" routerLink="/mes-demandes">← Mes demandes</a>
 
     @if (loading()) { <p class="muted">Chargement…</p> }
@@ -60,13 +64,21 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
         @if (x.status === 'ANNULEE') { <p class="note">Cette demande a été annulée.</p> }
 
         <!-- Même information pour toute l'équipe : qui a la main maintenant, et qui fait partie de la publicité. -->
-        <section class="now-card" aria-live="polite">
+        <section class="now-card" [class.mine]="turn()" [class.flash]="justUpdated()" aria-live="polite">
           <span class="pulse" aria-hidden="true"></span>
-          <div>
-            <small>Où en est la publicité</small>
-            <p>@if (x.nowWho) { <b>{{ x.nowWho }}</b> }{{ x.nowWho ? ' ' : '' }}{{ x.nowWhat }}</p>
+          <div class="nc-txt">
+            <small>{{ turn() ? 'À vous de jouer' : 'Où en est la publicité' }}@if (justUpdated()) { <span class="nc-live">· mis à jour à l'instant</span> }</small>
+            @if (turn(); as t) { <p><b>{{ t.what }}</b></p> }
+            @else { <p>@if (x.nowWho) { <b>{{ x.nowWho }}</b> }{{ x.nowWho ? ' ' : '' }}{{ x.nowWhat }}</p> }
           </div>
+          @if (turn(); as t) { <button type="button" class="nc-go" (click)="goAction()">{{ t.cta }}</button> }
         </section>
+        @if (fresh()) {
+          <div class="fresh" role="status">
+            <span>Quelqu'un vient de faire avancer ce projet. Votre saisie est gardée.</span>
+            <button type="button" (click)="refresh(true)">Voir la mise à jour</button>
+          </div>
+        }
         @if (x.projectId) {
           <a class="room-cta" [routerLink]="['/rooms', x.projectId]">
             <span class="rc-ring" aria-hidden="true"></span>
@@ -74,6 +86,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             <span class="rc-go" aria-hidden="true">→</span>
           </a>
         }
+        <h2 class="team-h">L'équipe</h2>
         <ul class="team" aria-label="L'équipe de la publicité">
           @for (m of team(x); track m.role) {
             <li [class.now]="m.now" [class.empty]="!m.name">
@@ -120,7 +133,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
         </form>
 
         @if (d(); as x) { @if (x.canEdit) {
-          <div class="card">
+          <div class="card act">
             <h2>Votre V0</h2>
             <p class="muted">Le fichier artistique de votre idée : détails du projet, messages, notes, références. Pas de budget.</p>
             <label>Texte de la V0<textarea name="v0" [(ngModel)]="v0Text" rows="7" maxlength="20000" placeholder="Racontez votre idée de publicité…"></textarea></label>
@@ -139,7 +152,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             </div>
           </div>
 
-          <div class="card">
+          <div class="card act">
             <h2>Envoyer à l'agence marketing</h2>
             @if (x.agencyName) {
               <p class="to-agency"><span aria-hidden="true">→</span> <b>{{ x.agencyName }}</b>, invitée par {{ x.productionName || 'la production' }}</p>
@@ -356,7 +369,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
           </div>
         }
         @if (x.canEditV2 || x.scenes.length) {
-          <div class="card">
+          <div class="card" [class.act]="x.canEditV2">
             <h2>Scènes</h2>
             <ul class="chars">
               @for (sc of x.scenes; track sc.id; let i = $index) {
@@ -489,8 +502,8 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
       }
 
       @if (d()?.events?.length) {
-        <div class="card">
-          <h2>Journal</h2>
+        <div class="card log">
+          <h2>Fil d'activité</h2>
           <ul class="journal">
             @for (e of d()!.events; track $index) {
               <li><time>{{ e.createdAt | date:'d MMM, HH:mm' }}</time><span>{{ e.message }}@if (e.actorName && !e.message.includes(e.actorName)) { <em> · {{ e.actorName }}</em> }</span></li>
@@ -498,10 +511,23 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
           </ul>
         </div>
       }
+      @if (d(); as x) { <app-discussion [d]="x" /> }
     }
-  </section>`,
+  </section>
+  @if (d()) { <app-page-rail class="rail-col" [root]="sheetPage" /> }
+  </div>`,
   styles: [`
     :host { display: block; }
+    /* Fiche + sommaire : à droite sur grand écran, en barre collée en haut sur écran étroit */
+    .sheet { display: grid; grid-template-columns: minmax(0, 1fr); }
+    .rail-col { order: -1; position: sticky; top: 0; z-index: 20; padding: 12px 32px 0; }
+    @media (max-width: 860px) { .rail-col { top: 54px; } }   /* sous l'en-tête mobile */
+    @container page (min-width: 1180px) {
+      .sheet { grid-template-columns: minmax(0, 860px) 230px; column-gap: 8px; align-items: start; }
+      .rail-col { order: 0; position: static; padding: 24px 24px 0 0; align-self: stretch; }
+    }
+    @media (max-width: 760px) { .rail-col { padding: 10px 14px 0; } }
+    .card, app-discussion, app-invite-card, .team-h { scroll-margin-top: 76px; }
     .page { padding: 24px 32px 48px; max-width: 860px; display: flex; flex-direction: column; gap: 16px; }
     .back { color: var(--text-muted); text-decoration: none; font-size: 13.5px; }
     .back:hover { color: var(--text-primary); }
@@ -523,10 +549,29 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .pulse::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: nowPulse 1.8s ease-out infinite; }
     @keyframes nowPulse { 0% { transform: scale(.5); opacity: .8; } 100% { transform: scale(1.4); opacity: 0; } }
     @media (prefers-reduced-motion: reduce) { .pulse::after { animation: none; } }
+    /* L'action attendue vient juste après l'état ; l'équipe passe en bas de page */
+    .card.answer, .card.act { order: -1; }
+    .back, .head, .steps, .note, .now-card, .fresh, .room-cta, app-invite-card, .page > .ok, .page > .err { order: -2; }
+    .card.log { order: 1; }
+    .team-h, .team { order: 2; }
+    .team-h { margin: 8px 0 -6px; font-size: 15px; color: var(--text-muted); }
+    .now-card.mine { background: linear-gradient(120deg, var(--accent-dim), color-mix(in srgb, var(--accent) 22%, transparent)); border-color: var(--accent); }
+    .now-card.mine small { font-size: 12.5px; }
+    .now-card.flash { animation: ncFlash 1.2s ease-out; }
+    @keyframes ncFlash { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
+    .nc-txt { flex: 1; min-width: 0; }
+    .nc-live { font-weight: 600; color: var(--text-muted); letter-spacing: 0; }
+    .nc-go { flex: none; min-height: 44px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 700; cursor: pointer; }
+    .nc-go:hover { filter: brightness(1.06); }
+    .fresh { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 14px; border-radius: 12px; border: 1px dashed var(--accent); font-size: 14px; }
+    .fresh span { flex: 1; min-width: 200px; }
+    .fresh button { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--accent); background: transparent; color: var(--accent-ink); font: inherit; font-weight: 700; cursor: pointer; }
+    @media (max-width: 600px) { .now-card.mine { flex-wrap: wrap; } .nc-go { width: 100%; } }
+    @media (prefers-reduced-motion: reduce) { .now-card.flash { animation: none; } }
     .team { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
     .team li { display: flex; flex-direction: column; gap: 2px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--glass); min-width: 0; }
     .team small { font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
-    .team b { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .team b { font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; line-height: 1.3; }
     .team li.empty b { color: var(--text-subtle); font-weight: 500; }
     .team li.now { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
     @media (max-width: 600px) { .team { grid-template-columns: 1fr 1fr; } }
@@ -683,7 +728,55 @@ export class DemandeComponent {
   /** Annuler reste réservé à la marque ; le serveur le vérifie aussi. */
   readonly isBrandSide = computed(() => this.auth.role() === 'MARQUE' || this.auth.role() === 'ADMIN');
 
+  /** Ce que la personne connectée doit faire maintenant (null si ce n'est pas son tour). */
+  readonly turn = computed<{ what: string; cta: string } | null>(() => {
+    const x = this.d(); if (!x || x.status === 'ANNULEE' || x.status === 'CLOTUREE') return null;
+    if (x.canInvite && (!x.hasBrand || !x.agencyName)) return { what: !x.hasBrand ? 'Invitez la marque et l\u2019agence marketing' : 'Invitez l\u2019agence marketing', cta: 'Inviter' };
+    if (x.canEdit && x.status === 'BROUILLON') return { what: 'Écrivez votre V0, puis envoyez-la à l\u2019agence', cta: 'Écrire la V0' };
+    if (x.canRespond) return { what: 'Lisez la V0 : acceptez-la ou refusez-la', cta: 'Répondre' };
+    if (x.canEditV1) return { what: 'Écrivez la ' + this.draftLabel() + ' et livrez-la à la marque', cta: 'Écrire la ' + this.draftLabel() };
+    if (x.canReviewV1) return { what: 'Relisez la V1 : validez-la ou demandez une révision', cta: 'Relire la V1' };
+    if (x.canChooseProduction && !x.productionName) return { what: 'Confiez le projet à une boîte de production', cta: 'Choisir' };
+    if (x.canEditExpectations && !x.expectationsSentAt) return { what: 'Recueillez les attentes, personnage par personnage', cta: 'Compléter' };
+    if (x.canEditV2) return { what: 'Écrivez la V2 : scènes et fiches de rôle', cta: 'Écrire la V2' };
+    return null;
+  });
+  readonly fresh = signal(false);
+  readonly justUpdated = signal(false);
+  private snap = '';
+  private editState() {
+    return JSON.stringify([this.form, this.v0Text, this.v0Link, this.v1Text, this.v1Link, this.v2Text, this.v2Link, this.comment, this.reason, this.sceneForm, this.roleForm, this.charForm]);
+  }
+
+  /** Va à la carte d'action et place le curseur dans son premier champ. */
+  goAction(): void {
+    const el = document.querySelector<HTMLElement>('app-demande app-invite-card, app-demande .card.answer, app-demande .card.act');
+    if (!el) return;
+    el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    setTimeout(() => el.querySelector<HTMLElement>('textarea, input:not([type=hidden]), button')?.focus({ preventScroll: true }), 400);
+  }
+
+  /**
+   * Mise à jour en direct : si le projet a bougé, on l'applique — sauf si l'utilisateur a une saisie
+   * non enregistrée ; on le prévient alors, sans rien effacer.
+   */
+  refresh(force = false): void {
+    const cur = this.d(); if (!cur || this.busy()) return;
+    this.api.get(cur.id).subscribe({
+      next: x => {
+        const moved = force || x.status !== cur.status || x.updatedAt !== cur.updatedAt || x.versions.length !== cur.versions.length
+          || x.events.length !== cur.events.length || x.agencyName !== cur.agencyName || x.hasBrand !== cur.hasBrand || x.projectId !== cur.projectId;
+        if (!moved) return;
+        if (!force && this.editState() !== this.snap) { this.fresh.set(true); return; }
+        this.apply(x);
+        this.justUpdated.set(true); setTimeout(() => this.justUpdated.set(false), 4000);
+      },
+      error: () => {}
+    });
+  }
+
   constructor() {
+    inject(LiveService).watch(inject(DestroyRef), () => this.refresh());
     this.route.paramMap.subscribe(p => {
       const id = p.get('id');
       if (!id || id === 'nouvelle') { this.d.set(null); this.loading.set(false); this.loadAgencies(); return; }
@@ -720,6 +813,7 @@ export class DemandeComponent {
     this.v2Text = x.versions.find(v => v.kind === 'V2' && v.status === 'BROUILLON')?.body ?? this.v2Text;
     this.v2Link = x.versions.find(v => v.kind === 'V2' && v.status === 'BROUILLON')?.linkUrl ?? this.v2Link;
     if (x.canChooseProduction && !this.productions().length) this.loadProductions();
+    this.snap = this.editState(); this.fresh.set(false);
   }
 
   private run<T>(obs: import('rxjs').Observable<T>, ok: string, then?: (r: T) => void) {

@@ -1,4 +1,5 @@
-import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, computed, inject, signal } from '@angular/core';
+import { LiveService } from '../../core/services/live.service';
 import { BrandService } from '../../core/services/brand.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -257,7 +258,7 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
     /* Téléphone : en-tête compact pour que la carte à swiper tienne entière à l'écran. */
     .page { padding: 10px 14px 24px; gap: 10px; } .back { display: none; }
     h1 { font-size: 22px; margin: 2px 0 0; } .ttl p { font-size: 12.5px; } .faces { display: none; }
-    .tabs button { padding: 0 10px; font-size: 13.5px; height: 40px; }
+    .tabs button { padding: 0 10px; font-size: 13.5px; height: 44px; }
   }
   @media (prefers-reduced-motion: reduce) { .live, .pane, .tabs button.on::after { animation: none; } }
   `]
@@ -303,7 +304,11 @@ export class RoomComponent implements OnDestroy {
     return all.filter(t => t.show).map(t => ({ ...t, icon: this.icons[t.id] }));
   });
 
-  constructor() { this.load(true); }
+  constructor() {
+    this.load(true);
+    // Votes, matchs, tâches, équipe : la room suit l'activité des autres sans recharger
+    inject(LiveService).watch(inject(DestroyRef), () => this.load());
+  }
   ngOnDestroy(): void { this.brandSvc.restore(); }
 
   private load(first = false): void {

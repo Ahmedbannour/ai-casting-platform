@@ -1,4 +1,5 @@
-import { Component, ElementRef, HostListener, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { LiveService } from '../../core/services/live.service';
 import { RoomRole, RoomService, SwipeCard, Vote } from '../../core/services/room.service';
 
 /**
@@ -66,14 +67,14 @@ import { RoomRole, RoomService, SwipeCard, Vote } from '../../core/services/room
 
   @if (cards().length) {
     <div class="actions">
-      <button type="button" class="act undo" (click)="undo()" [disabled]="!last() || busy()" aria-label="Annuler mon dernier vote" title="Annuler (Retour arrière)">
-        <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
-      <button type="button" class="act no" (click)="vote('NON')" [disabled]="busy()" aria-label="Non" title="Non (flèche gauche)">
-        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-      <button type="button" class="act heart" (click)="vote('COEUR')" [disabled]="busy()" aria-label="Coup de cœur" title="Coup de cœur (flèche haut)">
-        <svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></button>
-      <button type="button" class="act yes" (click)="vote('OUI')" [disabled]="busy()" aria-label="Oui" title="Oui (flèche droite)">
-        <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></button>
+      <button type="button" class="act undo" (click)="undo()" [disabled]="!last() || busy()" title="Annuler (Retour arrière)">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></span><span class="lbl">Annuler</span></button>
+      <button type="button" class="act no" (click)="vote('NON')" [disabled]="busy()" title="Non (flèche gauche)">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span class="lbl">Non</span></button>
+      <button type="button" class="act heart" (click)="vote('COEUR')" [disabled]="busy()" title="Coup de cœur (flèche haut)">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span class="lbl">Coup de cœur</span></button>
+      <button type="button" class="act yes" (click)="vote('OUI')" [disabled]="busy()" title="Oui (flèche droite)">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span><span class="lbl">Oui</span></button>
     </div>
     <p class="keys">Glissez la carte, ou utilisez ← Non · ↑ Coup de cœur · → Oui</p>
   }
@@ -142,17 +143,22 @@ import { RoomRole, RoomService, SwipeCard, Vote } from '../../core/services/room
 
   .actions { display: flex; align-items: center; gap: 16px; }
   @media (max-width: 760px) { :host { gap: 10px; } .actions { gap: 12px; } }
-  .act { width: 58px; height: 58px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-secondary); display: grid; place-items: center; cursor: pointer;
+  /* Chaque bouton : un rond avec l'icône, et son nom écrit dessous */
+  .act { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; min-width: 56px; }
+  .act .ic { width: 58px; height: 58px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-secondary); display: grid; place-items: center;
     box-shadow: 0 8px 22px color-mix(in srgb, var(--graphite-950) 18%, transparent); transition: transform .15s cubic-bezier(.2,1.4,.4,1), background .15s; }
+  .act .lbl { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; }
   .act svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-  .act:hover:not(:disabled) { transform: translateY(-3px) scale(1.06); }
-  .act:active:not(:disabled) { transform: scale(.9); }
+  .act:hover:not(:disabled) .ic { transform: translateY(-3px) scale(1.06); }
+  .act:active:not(:disabled) .ic { transform: scale(.9); }
+  .act:focus-visible { outline: none; } .act:focus-visible .ic { outline: 2px solid var(--accent); outline-offset: 3px; }
   .act:disabled { opacity: .4; cursor: default; }
-  .act.undo { width: 44px; height: 44px; color: var(--text-muted); } .act.undo svg { width: 20px; height: 20px; }
-  .act.no { color: var(--danger); } .act.no:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 12%, var(--bg-secondary)); }
-  .act.yes { color: var(--success); } .act.yes:hover:not(:disabled) { background: color-mix(in srgb, var(--success) 12%, var(--bg-secondary)); }
-  .act.heart { width: 50px; height: 50px; color: var(--accent-ink); } .act.heart svg { fill: currentColor; stroke-width: 1.5; }
-  .act.heart:hover:not(:disabled) { background: var(--accent-dim); }
+  .act.undo .ic { width: 44px; height: 44px; color: var(--text-muted); } .act.undo svg { width: 20px; height: 20px; } .act.undo .lbl { font-weight: 600; color: var(--text-muted); }
+  .act.no .ic { color: var(--danger); } .act.no:hover:not(:disabled) .ic { background: color-mix(in srgb, var(--danger) 12%, var(--bg-secondary)); }
+  .act.yes .ic { color: var(--success); } .act.yes:hover:not(:disabled) .ic { background: color-mix(in srgb, var(--success) 12%, var(--bg-secondary)); }
+  .act.heart .ic { width: 50px; height: 50px; color: var(--accent-ink); } .act.heart svg { fill: currentColor; stroke-width: 1.5; }
+  .act.heart:hover:not(:disabled) .ic { background: var(--accent-dim); }
+  .actions { align-items: flex-end; }
   .act.yes svg { fill: currentColor; }
   .keys { margin: -4px 0 0; font-size: 12px; color: var(--text-subtle); }
   @media (hover: none) { .keys { display: none; } }
@@ -223,6 +229,9 @@ export class RoomSwipeComponent {
       const first = this.startRole() ?? rs.find(r => r.toSwipe)?.id ?? rs[0].id;
       untracked(() => this.pick(first));
     });
+    // Pile vide (shortlist en attente) : de nouvelles cartes arrivent sans recharger. On ne touche jamais une pile en cours.
+    inject(LiveService).watch(inject(DestroyRef), () => { const id = this.roleId(); if (id) this.pick(id); },
+      () => !!this.cards().length || this.busy() || this.loading() || !!this.match());
   }
 
   pick(id: string): void {

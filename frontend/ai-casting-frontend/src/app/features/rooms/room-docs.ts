@@ -1,4 +1,5 @@
-import { Component, inject, input, signal, effect } from '@angular/core';
+import { Component, DestroyRef, inject, input, signal, effect } from '@angular/core';
+import { LiveService } from '../../core/services/live.service';
 import { DatePipe } from '@angular/common';
 import { RoomDoc, RoomService, SIDE_LABEL } from '../../core/services/room.service';
 import { DropzoneComponent } from '../../shared/components/dropzone/dropzone';
@@ -98,7 +99,10 @@ export class RoomDocsComponent {
   readonly msg = signal('');
   readonly error = signal('');
 
-  constructor() { effect(() => { const id = this.roomId(); this.api.documents(id).subscribe({ next: d => { this.docs.set(d); this.loading.set(false); }, error: () => this.loading.set(false) }); }); }
+  constructor() {
+    effect(() => { const id = this.roomId(); this.api.documents(id).subscribe({ next: d => { this.docs.set(d); this.loading.set(false); }, error: () => this.loading.set(false) }); });
+    inject(LiveService).watch(inject(DestroyRef), () => this.api.documents(this.roomId()).subscribe({ next: d => this.docs.set(d) }));
+  }
 
   toggle(a: string): void { this.audience.update(l => l.includes(a) ? l.filter(x => x !== a) : [...l, a]); }
   add(f: File): void { this.run(this.api.upload(this.roomId(), f, this.audience()), `« ${f.name} » partagé.`); }

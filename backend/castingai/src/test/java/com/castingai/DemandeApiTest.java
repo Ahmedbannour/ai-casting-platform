@@ -231,7 +231,7 @@ class DemandeApiTest {
         send("POST", "/api/demandes/" + id + "/v1/revision", agency, "{\"comment\":\"x\"}").andExpect(status().isForbidden());
         JsonNode rev = read(send("POST", "/api/demandes/" + id + "/v1/revision", brand, "{\"comment\":\"Montrez la famille, pas seulement le désert\"}").andExpect(status().isOk()));
         assertThat(rev.get("status").asString()).isEqualTo("V1_EN_COURS");
-        assertThat(read(send("GET", "/api/me/notifications", agency, null)).get("items").toString()).contains("Révision demandée");
+        assertThat(read(send("GET", "/api/me/notifications", agency, null)).get("items").toString()).contains("révision demandée");
         JsonNode v11 = read(send("PUT", "/api/demandes/" + id + "/v1", agency, "{\"body\":\"Concept : une famille partage les dattes au coucher du soleil.\"}"));
         JsonNode last = v11.get("versions").get(v11.get("versions").size() - 1);
         assertThat(last.get("label").asString()).isEqualTo("V1.1");
@@ -368,7 +368,7 @@ class DemandeApiTest {
         assertThat(seen.get("canEditExpectations").asBoolean()).isFalse();
         send("POST", "/api/demandes/" + id + "/personnages", director, "{\"name\":\"X\"}").andExpect(status().isForbidden());
         send("GET", "/api/demandes/" + id, other, null).andExpect(status().isNotFound());
-        assertThat(read(send("GET", "/api/me/notifications", director, null)).get("items").toString()).contains("Nouvelle publicité");
+        assertThat(read(send("GET", "/api/me/notifications", director, null)).get("items").toString()).contains("nouvelle publicité");
     }
 
     /** Sans réalisateur ni 1er AD : la boîte de production écrit la V2 elle-même et la publie ; le casting est lancé. */

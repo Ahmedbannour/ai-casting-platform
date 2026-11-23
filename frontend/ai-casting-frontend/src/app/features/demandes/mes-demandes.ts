@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { LiveService } from '../../core/services/live.service';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MeService } from '../../core/services/me.service';
@@ -130,9 +131,14 @@ export class MesDemandesComponent {
   readonly error = signal('');
   readonly label = (s: keyof typeof STATUS_LABEL) => STATUS_LABEL[s];
   constructor() {
+    this.load();
+    // Un autre rôle crée, invite ou fait avancer un projet : la liste se met à jour seule
+    inject(LiveService).watch(inject(DestroyRef), () => this.load(true));
+  }
+  private load(silent = false): void {
     this.demandes.mine().subscribe({
-      next: l => { this.list.set(l); this.loading.set(false); },
-      error: () => { this.error.set('Impossible de charger vos demandes. Réessayez dans un instant.'); this.loading.set(false); }
+      next: l => { this.list.set(l); this.loading.set(false); this.error.set(''); },
+      error: () => { if (!silent) this.error.set('Impossible de charger vos demandes. Réessayez dans un instant.'); this.loading.set(false); }
     });
   }
   private readonly me = inject(MeService);

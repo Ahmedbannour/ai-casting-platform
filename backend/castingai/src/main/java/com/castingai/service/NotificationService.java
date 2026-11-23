@@ -29,6 +29,8 @@ public class NotificationService {
     /** Ajoute une notification ; sans destinataire, ne fait rien. */
     public void push(UUID userId, String kind, String title, String body, String link) {
         if (userId == null) return;
+        // « À vous : … » = c'est au tour du destinataire d'agir ; la cloche le met en avant
+        if (title != null && title.startsWith("À vous")) kind = "TOUR";
         jdbc.update("insert into notifications (id, user_id, kind, title, body, link) values (?, ?, ?, ?, ?, ?)",
                 UUID.randomUUID(), userId, kind, cut(title, 160), cut(body, 400), cut(link, 200));
     }

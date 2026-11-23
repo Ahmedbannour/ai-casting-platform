@@ -1,4 +1,5 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, signal } from '@angular/core';
+import { LiveService } from '../../core/services/live.service';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
@@ -103,7 +104,10 @@ export class RoomTasksComponent {
   readonly today = new Date().toISOString().slice(0, 10);
   title = ''; assignee: string = ''; due = '';
 
-  constructor() { effect(() => { const id = this.roomId(); this.api.tasks(id).subscribe({ next: t => this.list.set(t) }); }); }
+  constructor() {
+    effect(() => { const id = this.roomId(); this.api.tasks(id).subscribe({ next: t => this.list.set(t) }); });
+    inject(LiveService).watch(inject(DestroyRef), () => this.api.tasks(this.roomId()).subscribe({ next: t => this.list.set(t) }), () => this.busy());
+  }
 
   add(): void {
     if (!this.title.trim()) return;

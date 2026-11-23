@@ -237,7 +237,7 @@ public class DemandeService {
         if (r.getProduction() != null) notifyOrg(r.getProduction(), "V0 envoyée : " + r.getTitle(), "La marque a envoyé sa V0 à " + agency.getName() + ".", r);
         String brand = r.getBrand() != null ? r.getBrand().getName() : name(me);
         users.findAll().stream().filter(u -> u.getAgency() != null && u.getAgency().getId().equals(agency.getId()) && u.isEnabled())
-                .forEach(u -> notifications.push(u.getId(), "DEMANDE", "Nouvelle demande : " + r.getTitle(),
+                .forEach(u -> notifications.push(u.getId(), "DEMANDE", "À vous : nouvelle demande " + r.getTitle(),
                         brand + " vous envoie sa V0. Analysez-la et préparez votre V1.", "/demandes/" + r.getId()));
         return detail(me, r);
     }
@@ -395,7 +395,7 @@ public class DemandeService {
         v.setStatus(AdVersion.Status.LIVREE); v.setDeliveredAt(LocalDateTime.now()); versions.save(v);
         r.setStatus(AdRequest.Status.V1_LIVREE);
         log(r, me, "V1_LIVREE", v.getLabel() + " livrée par " + r.getAgency().getName());
-        notifyBrand(r, v.getLabel() + " livrée : " + r.getTitle(), r.getAgency().getName() + " vous livre sa " + v.getLabel() + ". Validez-la ou demandez une révision.");
+        notifyBrand(r, "À vous : " + v.getLabel() + " livrée, " + r.getTitle(), r.getAgency().getName() + " vous livre sa " + v.getLabel() + ". Validez-la ou demandez une révision.");
         return detail(me, r);
     }
 
@@ -408,7 +408,7 @@ public class DemandeService {
         v.setStatus(AdVersion.Status.A_REVISER); v.setReviewComment(req.comment().trim()); v.setReviewedAt(LocalDateTime.now()); versions.save(v);
         r.setStatus(AdRequest.Status.V1_EN_COURS);
         log(r, me, "V1_REVISION", v.getLabel() + " à revoir : " + req.comment().trim());
-        notifyOrg(r.getAgency(), "Révision demandée : " + r.getTitle(), "La marque demande de revoir la " + v.getLabel() + " : " + req.comment().trim(), r);
+        notifyOrg(r.getAgency(), "À vous : révision demandée, " + r.getTitle(), "La marque demande de revoir la " + v.getLabel() + " : " + req.comment().trim(), r);
         return detail(me, r);
     }
 
@@ -424,7 +424,7 @@ public class DemandeService {
             notifyOrg(r.getAgency(), v.getLabel() + " validée : " + r.getTitle(), "La marque a validé votre " + v.getLabel() + ". " + r.getProduction().getName() + " prend la suite.", r);
             startV2(r, me);
         } else {
-            notifyOrg(r.getAgency(), v.getLabel() + " validée : " + r.getTitle(), "La marque a validé votre " + v.getLabel() + ". Choisissez la boîte de production.", r);
+            notifyOrg(r.getAgency(), "À vous : " + v.getLabel() + " validée, " + r.getTitle(), "La marque a validé votre " + v.getLabel() + ". Choisissez la boîte de production.", r);
         }
         return detail(me, r);
     }
@@ -594,7 +594,7 @@ public class DemandeService {
         log(r, me, "ATTENTES", (again ? "Attentes mises à jour et transmises à " : "Attentes transmises à ") + name(director) + (firstAd == null ? "" : " et " + name(firstAd)));
         String body = r.getProduction().getName() + (again ? " a mis à jour" : " vous transmet") + " les attentes de la marque et de l'agence, personnage par personnage. À vous la V2.";
         for (User u : firstAd == null ? List.of(director) : List.of(director, firstAd)) {
-            notifications.push(u.getId(), "DEMANDE", (again ? "Attentes mises à jour : " : "Nouvelle publicité : ") + r.getTitle(), body, "/demandes/" + r.getId());
+            notifications.push(u.getId(), "DEMANDE", (again ? "À vous : attentes mises à jour, " : "À vous : nouvelle publicité ") + r.getTitle(), body, "/demandes/" + r.getId());
         }
         return detail(me, r);
     }
@@ -920,6 +920,10 @@ public class DemandeService {
         return me.getRole() == Role.AGENCE_MARKETING && me.getAgency() != null && r.getAgency() != null
                 && r.getAgency().getId().equals(me.getAgency().getId());
     }
+
+    /** Pour la discussion du projet : la demande, si l'utilisateur la voit (sinon « introuvable »). */
+    @Transactional(readOnly = true)
+    public AdRequest visibleTo(User me, UUID id) { return visible(me, id); }
 
     private AdRequest visible(User me, UUID id) {
         AdRequest r = requests.findById(id).orElseThrow(() -> new ResourceNotFoundException("Demande introuvable"));

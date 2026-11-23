@@ -3,6 +3,7 @@ import { CdkConnectedOverlay, CdkOverlayOrigin, ConnectedPosition } from '@angul
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { LiveService } from '../../core/services/live.service';
 
 interface Item { id: string; kind: string; title: string; body: string | null; link: string | null; createdAt: number; read: boolean; }
 interface Feed { unread: number; items: Item[]; }
@@ -12,6 +13,8 @@ interface Feed { unread: number; items: Item[]; }
 export class NotificationStore {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/me/notifications`;
+  private readonly live = inject(LiveService);
+  private liveSub: { unsubscribe(): void } | null = null;
   readonly items = signal<Item[]>([]);
   readonly unread = signal(0);
   private users = 0;
@@ -20,6 +23,9 @@ export class NotificationStore {
   attach(): void {
     if (this.users++ === 0) {
       this.load();
+      // La cloche se recharge dès que quelqu'un agit (pouls toutes les 8 s), et au pire toutes les 60 s
+      this.live.start();
+      if (!this.liveSub) this.liveSub = this.live.changed.subscribe(() => this.load());
       this.timer = setInterval(() => { if (!document.hidden) this.load(); }, 60_000);
     }
   }
@@ -76,6 +82,8 @@ export class NotificationStore {
                         @case ('REPONSE') { <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> }
                         @case ('PROPOSITION') { <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> }
                         @case ('COORDONNEES') { <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> }
+                        @case ('MENTION') { <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg> }
+                        @case ('TOUR') { <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg> }
                         @case ('CONTRAT') { <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> }
                         @default { <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/></svg> }
                       }
@@ -140,6 +148,9 @@ export class NotificationStore {
   .ic svg, .none-ic svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .item.unread .ic { background: var(--accent-dim); color: var(--accent-ink); }
   .item[data-k="CONTRAT"] .ic { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--danger); }
+  .item[data-k="MENTION"].unread .ic { background: var(--accent-dim); color: var(--accent-ink); }
+  .item[data-k="TOUR"].unread { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .item[data-k="TOUR"].unread .ic { background: var(--accent); color: var(--on-accent); }
   .item[data-k="REPONSE"].unread .ic { background: color-mix(in srgb, var(--keep) 20%, transparent); color: var(--keep); }
   .txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-size: 13.5px; line-height: 1.4; }
   .txt b { font-weight: 600; overflow-wrap: anywhere; }

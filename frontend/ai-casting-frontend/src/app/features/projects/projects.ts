@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { LiveService } from '../../core/services/live.service';
 import { Router, RouterLink } from '@angular/router';
 import { DemandeService, DemandeSummary, STATUS_LABEL } from '../../core/services/demande.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -56,10 +57,12 @@ export class ProjectsComponent implements OnInit {
 
   typeLabel = typeLabel;
 
-  ngOnInit(): void { this.load(); this.loadPubs(); }
+  private readonly live = inject(LiveService);
+  private readonly destroyRef = inject(DestroyRef);
+  ngOnInit(): void { this.load(); this.loadPubs(); this.live.watch(this.destroyRef, () => { this.load(true); this.loadPubs(); }); }
 
-  load(): void {
-    this.loading.set(true);
+  load(silent = false): void {
+    if (!silent) this.loading.set(true);
     this.service.list().subscribe({
       next: list => { this.all.set(list); this.loading.set(false); this.error.set(''); },
       error: () => { this.loading.set(false); this.error.set('Impossible de charger les projets. Vérifiez que le serveur est lancé.'); }
