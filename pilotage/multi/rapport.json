@@ -1,5 +1,5 @@
 {
- "debut": "2026-11-23T01:11:03.700Z",
+ "debut": "2026-11-23T02:11:06.634Z",
  "testeurs": {
   "prod": {
    "key": "prod",
@@ -60,95 +60,95 @@
  },
  "ecrans": [
   {
-   "testeur": "Agence marketing (Karim)",
-   "appareil": "ordinateur",
-   "ecran": "accueil",
-   "url": "/mes-demandes",
-   "affichageMs": 4,
-   "debordement": 0,
-   "petitesCibles": [],
-   "nbPetitesCibles": 0,
-   "champsSansEtiquette": 0,
-   "mots": 157,
-   "titre": "Mes demandes",
-   "capture": "01-agence-accueil.jpg"
-  },
-  {
    "testeur": "Réalisatrice (Nadia)",
    "appareil": "ordinateur",
    "ecran": "accueil",
    "url": "/accueil",
-   "affichageMs": 3,
+   "affichageMs": 1,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
    "mots": 141,
    "titre": "Nadia",
-   "capture": "03-real-accueil.jpg"
-  },
-  {
-   "testeur": "Acteur (Ines)",
-   "appareil": "téléphone",
-   "ecran": "accueil",
-   "url": "/mon-espace",
-   "affichageMs": 4,
-   "debordement": 0,
-   "petitesCibles": [],
-   "nbPetitesCibles": 0,
-   "champsSansEtiquette": 0,
-   "mots": 163,
-   "titre": "Ines",
-   "capture": "02-acteur-accueil.jpg"
-  },
-  {
-   "testeur": "Marque (Salma)",
-   "appareil": "téléphone",
-   "ecran": "accueil",
-   "url": "/mes-demandes",
-   "affichageMs": 3,
-   "debordement": 0,
-   "petitesCibles": [],
-   "nbPetitesCibles": 0,
-   "champsSansEtiquette": 0,
-   "mots": 163,
-   "titre": "Mes demandes",
-   "capture": "04-marque-accueil.jpg"
+   "capture": "02-real-accueil.jpg"
   },
   {
    "testeur": "1er AD (Omar)",
    "appareil": "téléphone",
    "ecran": "accueil",
    "url": "/accueil",
-   "affichageMs": 3,
+   "affichageMs": 1,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
    "mots": 122,
    "titre": "Omar",
-   "capture": "05-ad-accueil.jpg"
+   "capture": "04-ad-accueil.jpg"
+  },
+  {
+   "testeur": "Acteur (Ines)",
+   "appareil": "téléphone",
+   "ecran": "accueil",
+   "url": "/mon-espace",
+   "affichageMs": 1,
+   "debordement": 0,
+   "petitesCibles": [],
+   "nbPetitesCibles": 0,
+   "champsSansEtiquette": 0,
+   "mots": 163,
+   "titre": "Ines",
+   "capture": "03-acteur-accueil.jpg"
+  },
+  {
+   "testeur": "Marque (Salma)",
+   "appareil": "téléphone",
+   "ecran": "accueil",
+   "url": "/mes-demandes",
+   "affichageMs": 1,
+   "debordement": 0,
+   "petitesCibles": [],
+   "nbPetitesCibles": 0,
+   "champsSansEtiquette": 0,
+   "mots": 163,
+   "titre": "Mes demandes",
+   "capture": "01-marque-accueil.jpg"
   },
   {
    "testeur": "Producer (Yasmine)",
    "appareil": "ordinateur",
    "ecran": "accueil",
    "url": "/accueil",
-   "affichageMs": 938,
+   "affichageMs": 415,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
    "mots": 146,
    "titre": "Yasmine",
-   "capture": "06-prod-accueil.jpg"
+   "capture": "05-prod-accueil.jpg"
+  },
+  {
+   "testeur": "Agence marketing (Karim)",
+   "appareil": "ordinateur",
+   "ecran": "accueil",
+   "url": "/mes-demandes",
+   "affichageMs": 567,
+   "debordement": 0,
+   "petitesCibles": [],
+   "nbPetitesCibles": 0,
+   "champsSansEtiquette": 0,
+   "mots": 157,
+   "titre": "Mes demandes",
+   "capture": "06-agence-accueil.jpg"
   },
   {
    "testeur": "Marque (Salma)",
    "appareil": "téléphone",
    "ecran": "liste-vide",
    "url": "/mes-demandes",
-   "affichageMs": 1320,
+   "affichageMs": 732,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
@@ -161,13 +161,13 @@
    "testeur": "Producer (Yasmine)",
    "appareil": "ordinateur",
    "ecran": "projet-cree",
-   "url": "/demandes/f7bbf096-4cfd-4035-a81f-07115a83734c",
-   "affichageMs": 0,
+   "url": "/demandes/47145d37-0d1f-477a-8a79-6bec43c8db15",
+   "affichageMs": 2,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 55,
+   "mots": 60,
    "titre": "",
    "capture": "08-prod-projet-cree.jpg"
   },
@@ -175,8 +175,8 @@
    "testeur": "Assistante de production",
    "appareil": "téléphone",
    "ecran": "invitation",
-   "url": "/invitation-pro/bh59-1m8JLk1LND-LICEHz6aSupxX9vE-FP251v15yo",
-   "affichageMs": 504,
+   "url": "/invitation-pro/lPkC_8cvh5Gu9KXK_dpemecCEqJNIwObzj9mHwQDpU4",
+   "affichageMs": 510,
    "debordement": 0,
    "petitesCibles": [
     "Étape 1 : Vous",
@@ -193,8 +193,8 @@
    "testeur": "Marque (Salma)",
    "appareil": "téléphone",
    "ecran": "projet-v0",
-   "url": "/demandes/f7bbf096-4cfd-4035-a81f-07115a83734c",
-   "affichageMs": 1543,
+   "url": "/demandes/47145d37-0d1f-477a-8a79-6bec43c8db15",
+   "affichageMs": 894,
    "debordement": 0,
    "petitesCibles": [
     "Étape 1 : Le projet",
@@ -202,8 +202,8 @@
    ],
    "nbPetitesCibles": 2,
    "champsSansEtiquette": 0,
-   "mots": 308,
-   "titre": "Recette Huile Zitouna 1795396263851",
+   "mots": 331,
+   "titre": "Recette Huile Zitouna 1795399866775",
    "capture": "10-marque-projet-v0.jpg"
   },
   {
@@ -211,7 +211,7 @@
    "appareil": "téléphone",
    "ecran": "publicites",
    "url": "/mes-demandes",
-   "affichageMs": 2,
+   "affichageMs": 0,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
@@ -224,78 +224,92 @@
    "testeur": "Agence marketing (Karim)",
    "appareil": "ordinateur",
    "ecran": "v0-recue",
-   "url": "/demandes/f7bbf096-4cfd-4035-a81f-07115a83734c",
-   "affichageMs": 1030,
+   "url": "/demandes/47145d37-0d1f-477a-8a79-6bec43c8db15",
+   "affichageMs": 1278,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 310,
-   "titre": "Recette Huile Zitouna 1795396263851",
+   "mots": 336,
+   "titre": "Recette Huile Zitouna 1795399866775",
    "capture": "12-agence-v0-recue.jpg"
   },
   {
    "testeur": "Agence marketing (Karim)",
    "appareil": "ordinateur",
    "ecran": "v1-livree",
-   "url": "/demandes/f7bbf096-4cfd-4035-a81f-07115a83734c",
+   "url": "/demandes/47145d37-0d1f-477a-8a79-6bec43c8db15",
    "affichageMs": 1,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 381,
-   "titre": "Recette Huile Zitouna 1795396263851",
+   "mots": 405,
+   "titre": "Recette Huile Zitouna 1795399866775",
    "capture": "13-agence-v1-livree.jpg"
   },
   {
    "testeur": "Marque (Salma)",
    "appareil": "téléphone",
    "ecran": "v1-validee",
-   "url": "/demandes/f7bbf096-4cfd-4035-a81f-07115a83734c",
-   "affichageMs": 2,
+   "url": "/demandes/47145d37-0d1f-477a-8a79-6bec43c8db15",
+   "affichageMs": 1,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 342,
-   "titre": "Recette Huile Zitouna 1795396263851",
+   "mots": 365,
+   "titre": "Recette Huile Zitouna 1795399866775",
    "capture": "14-marque-v1-validee.jpg"
   },
   {
    "testeur": "Marque (Salma)",
    "appareil": "téléphone",
    "ecran": "discussion",
-   "url": "/demandes/f7bbf096-4cfd-4035-a81f-07115a83734c",
-   "affichageMs": 2,
+   "url": "/demandes/47145d37-0d1f-477a-8a79-6bec43c8db15",
+   "affichageMs": 1,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 311,
-   "titre": "Recette Huile Zitouna 1795396263851",
+   "mots": 333,
+   "titre": "Recette Huile Zitouna 1795399866775",
    "capture": "15-marque-discussion.jpg"
   },
   {
    "testeur": "Producer (Yasmine)",
    "appareil": "ordinateur",
    "ecran": "attentes",
-   "url": "/demandes/f7bbf096-4cfd-4035-a81f-07115a83734c",
-   "affichageMs": 1117,
+   "url": "/demandes/47145d37-0d1f-477a-8a79-6bec43c8db15",
+   "affichageMs": 808,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 561,
-   "titre": "Recette Huile Zitouna 1795396263851",
+   "mots": 586,
+   "titre": "Recette Huile Zitouna 1795399866775",
    "capture": "16-prod-attentes.jpg"
+  },
+  {
+   "testeur": "Réalisatrice (Nadia)",
+   "appareil": "ordinateur",
+   "ecran": "publicites",
+   "url": "/mes-demandes",
+   "affichageMs": 900,
+   "debordement": 0,
+   "petitesCibles": [],
+   "nbPetitesCibles": 0,
+   "champsSansEtiquette": 0,
+   "mots": 178,
+   "titre": "Mes demandes",
+   "capture": "17-real-publicites.jpg"
   },
   {
    "testeur": "1er AD (Omar)",
    "appareil": "téléphone",
    "ecran": "publicites",
    "url": "/mes-demandes",
-   "affichageMs": 1597,
+   "affichageMs": 898,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
@@ -307,99 +321,85 @@
   {
    "testeur": "Réalisatrice (Nadia)",
    "appareil": "ordinateur",
-   "ecran": "publicites",
-   "url": "/mes-demandes",
-   "affichageMs": 1592,
-   "debordement": 0,
-   "petitesCibles": [],
-   "nbPetitesCibles": 0,
-   "champsSansEtiquette": 0,
-   "mots": 178,
-   "titre": "Mes demandes",
-   "capture": "17-real-publicites.jpg"
-  },
-  {
-   "testeur": "Réalisatrice (Nadia)",
-   "appareil": "ordinateur",
    "ecran": "v2",
-   "url": "/demandes/f7bbf096-4cfd-4035-a81f-07115a83734c",
-   "affichageMs": 1195,
+   "url": "/demandes/47145d37-0d1f-477a-8a79-6bec43c8db15",
+   "affichageMs": 753,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 529,
-   "titre": "Recette Huile Zitouna 1795396263851",
+   "mots": 552,
+   "titre": "Recette Huile Zitouna 1795399866775",
    "capture": "19-real-v2.jpg"
   },
   {
    "testeur": "Producer (Yasmine)",
    "appareil": "ordinateur",
    "ecran": "room",
-   "url": "/rooms/3b5129a0-52a4-42d4-bb08-627ad44f1a8e",
-   "affichageMs": 1840,
+   "url": "/rooms/0b0ce187-5091-4fdb-980c-8419fdbd130d",
+   "affichageMs": 900,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 126,
-   "titre": "Recette Huile Zitouna 1795396263851",
+   "mots": 520,
+   "titre": "Recette Huile Zitouna 1795399866775",
    "capture": "20-prod-room.jpg"
   },
   {
    "testeur": "Réalisatrice (Nadia)",
    "appareil": "ordinateur",
    "ecran": "room-swipe",
-   "url": "/rooms/3b5129a0-52a4-42d4-bb08-627ad44f1a8e",
-   "affichageMs": 726,
+   "url": "/rooms/0b0ce187-5091-4fdb-980c-8419fdbd130d?tab=swipe",
+   "affichageMs": 1,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 116,
-   "titre": "Recette Huile Zitouna 1795396263851",
-   "capture": "21-real-room-swipe.jpg"
-  },
-  {
-   "testeur": "Marque (Salma)",
-   "appareil": "téléphone",
-   "ecran": "room-swipe",
-   "url": "/rooms/3b5129a0-52a4-42d4-bb08-627ad44f1a8e",
-   "affichageMs": 813,
-   "debordement": 0,
-   "petitesCibles": [],
-   "nbPetitesCibles": 0,
-   "champsSansEtiquette": 0,
-   "mots": 72,
-   "titre": "Recette Huile Zitouna 1795396263851",
-   "capture": "22-marque-room-swipe.jpg"
+   "mots": 117,
+   "titre": "Recette Huile Zitouna 1795399866775",
+   "capture": "22-real-room-swipe.jpg"
   },
   {
    "testeur": "Agence marketing (Karim)",
    "appareil": "ordinateur",
    "ecran": "room-swipe",
-   "url": "/rooms/3b5129a0-52a4-42d4-bb08-627ad44f1a8e",
-   "affichageMs": 851,
+   "url": "/rooms/0b0ce187-5091-4fdb-980c-8419fdbd130d?tab=swipe",
+   "affichageMs": 1,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 123,
-   "titre": "Recette Huile Zitouna 1795396263851",
+   "mots": 124,
+   "titre": "Recette Huile Zitouna 1795399866775",
    "capture": "23-agence-room-swipe.jpg"
+  },
+  {
+   "testeur": "Marque (Salma)",
+   "appareil": "téléphone",
+   "ecran": "room-swipe",
+   "url": "/rooms/0b0ce187-5091-4fdb-980c-8419fdbd130d?tab=swipe",
+   "affichageMs": 2,
+   "debordement": 0,
+   "petitesCibles": [],
+   "nbPetitesCibles": 0,
+   "champsSansEtiquette": 0,
+   "mots": 73,
+   "titre": "Recette Huile Zitouna 1795399866775",
+   "capture": "21-marque-room-swipe.jpg"
   },
   {
    "testeur": "Producer (Yasmine)",
    "appareil": "ordinateur",
    "ecran": "resultats",
-   "url": "/rooms/3b5129a0-52a4-42d4-bb08-627ad44f1a8e",
-   "affichageMs": 6,
+   "url": "/rooms/0b0ce187-5091-4fdb-980c-8419fdbd130d",
+   "affichageMs": 1,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 77,
-   "titre": "Recette Huile Zitouna 1795396263851",
+   "mots": 78,
+   "titre": "Recette Huile Zitouna 1795399866775",
    "capture": "24-prod-resultats.jpg"
   },
   {
@@ -407,7 +407,7 @@
    "appareil": "téléphone",
    "ecran": "rooms",
    "url": "/rooms",
-   "affichageMs": 1805,
+   "affichageMs": 960,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
@@ -420,14 +420,14 @@
    "testeur": "1er AD (Omar)",
    "appareil": "téléphone",
    "ecran": "room",
-   "url": "/rooms/3b5129a0-52a4-42d4-bb08-627ad44f1a8e",
-   "affichageMs": 2265,
+   "url": "/rooms/0b0ce187-5091-4fdb-980c-8419fdbd130d",
+   "affichageMs": 1145,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
    "champsSansEtiquette": 0,
-   "mots": 74,
-   "titre": "Recette Huile Zitouna 1795396263851",
+   "mots": 475,
+   "titre": "Recette Huile Zitouna 1795399866775",
    "capture": "26-ad-room.jpg"
   },
   {
@@ -435,7 +435,7 @@
    "appareil": "téléphone",
    "ecran": "propositions",
    "url": "/mes-propositions",
-   "affichageMs": 1067,
+   "affichageMs": 672,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
@@ -445,11 +445,25 @@
    "capture": "27-acteur-propositions.jpg"
   },
   {
+   "testeur": "Producer (Yasmine)",
+   "appareil": "ordinateur",
+   "ecran": "agenda",
+   "url": "/agenda",
+   "affichageMs": 1002,
+   "debordement": 0,
+   "petitesCibles": [],
+   "nbPetitesCibles": 0,
+   "champsSansEtiquette": 0,
+   "mots": 91,
+   "titre": "Agenda",
+   "capture": "29-prod-agenda.jpg"
+  },
+  {
    "testeur": "Acteur (Ines)",
    "appareil": "téléphone",
    "ecran": "agenda",
    "url": "/agenda",
-   "affichageMs": 1414,
+   "affichageMs": 941,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
@@ -461,37 +475,9 @@
   {
    "testeur": "Producer (Yasmine)",
    "appareil": "ordinateur",
-   "ecran": "agenda",
-   "url": "/agenda",
-   "affichageMs": 1553,
-   "debordement": 0,
-   "petitesCibles": [],
-   "nbPetitesCibles": 0,
-   "champsSansEtiquette": 0,
-   "mots": 91,
-   "titre": "Agenda",
-   "capture": "29-prod-agenda.jpg"
-  },
-  {
-   "testeur": "Agence marketing (Karim)",
-   "appareil": "ordinateur",
-   "ecran": "rooms",
-   "url": "/rooms",
-   "affichageMs": 1528,
-   "debordement": 0,
-   "petitesCibles": [],
-   "nbPetitesCibles": 0,
-   "champsSansEtiquette": 0,
-   "mots": 72,
-   "titre": "Mes rooms",
-   "capture": "30-agence-rooms.jpg"
-  },
-  {
-   "testeur": "Producer (Yasmine)",
-   "appareil": "ordinateur",
    "ecran": "equipe",
    "url": "/equipe",
-   "affichageMs": 1540,
+   "affichageMs": 1042,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
@@ -501,11 +487,25 @@
    "capture": "31-prod-equipe.jpg"
   },
   {
+   "testeur": "Agence marketing (Karim)",
+   "appareil": "ordinateur",
+   "ecran": "rooms",
+   "url": "/rooms",
+   "affichageMs": 1005,
+   "debordement": 0,
+   "petitesCibles": [],
+   "nbPetitesCibles": 0,
+   "champsSansEtiquette": 0,
+   "mots": 72,
+   "titre": "Mes rooms",
+   "capture": "30-agence-rooms.jpg"
+  },
+  {
    "testeur": "Acteur (Ines)",
    "appareil": "téléphone",
    "ecran": "profil",
    "url": "/mon-profil",
-   "affichageMs": 1730,
+   "affichageMs": 1147,
    "debordement": 0,
    "petitesCibles": [],
    "nbPetitesCibles": 0,
@@ -517,70 +517,70 @@
  ],
  "etapes": [
   {
-   "testeur": "Acteur (Ines)",
-   "etape": "connexion",
-   "ok": true,
-   "ms": 6990
-  },
-  {
-   "testeur": "1er AD (Omar)",
-   "etape": "connexion",
-   "ok": true,
-   "ms": 8631
-  },
-  {
    "testeur": "Marque (Salma)",
    "etape": "connexion",
    "ok": true,
-   "ms": 8761
-  },
-  {
-   "testeur": "Agence marketing (Karim)",
-   "etape": "connexion",
-   "ok": true,
-   "ms": 8855
+   "ms": 6654
   },
   {
    "testeur": "Réalisatrice (Nadia)",
    "etape": "connexion",
    "ok": true,
-   "ms": 8890
+   "ms": 7737
+  },
+  {
+   "testeur": "Acteur (Ines)",
+   "etape": "connexion",
+   "ok": true,
+   "ms": 8685
+  },
+  {
+   "testeur": "1er AD (Omar)",
+   "etape": "connexion",
+   "ok": true,
+   "ms": 10365
   },
   {
    "testeur": "Producer (Yasmine)",
    "etape": "connexion",
    "ok": true,
-   "ms": 10657
+   "ms": 11137
+  },
+  {
+   "testeur": "Agence marketing (Karim)",
+   "etape": "connexion",
+   "ok": true,
+   "ms": 11383
   },
   {
    "testeur": "Producer (Yasmine)",
    "etape": "créer le projet (interface)",
    "ok": true,
-   "ms": 3036
+   "ms": 3290
   },
   {
    "testeur": "Producer (Yasmine)",
    "etape": "inviter marque et agence (carte d’invitation)",
    "ok": true,
-   "ms": 4362
+   "ms": 4344
   },
   {
    "testeur": "Assistante de production",
    "etape": "accepter l’invitation (téléphone)",
    "ok": true,
-   "ms": 4158
+   "ms": 4858
   },
   {
    "testeur": "Marque (Salma)",
    "etape": "écrire et envoyer la V0 (téléphone)",
    "ok": true,
-   "ms": 5245
+   "ms": 5685
   },
   {
    "testeur": "Agence marketing (Karim)",
    "etape": "accepter, écrire et livrer la V1",
    "ok": true,
-   "ms": 5454
+   "ms": 6899
   },
   {
    "testeur": "Marque (Salma)",
@@ -593,61 +593,61 @@
    "testeur": "Marque (Salma)",
    "etape": "valider la V1 (téléphone)",
    "ok": true,
-   "ms": 3490
+   "ms": 4396
   },
   {
    "testeur": "Marque (Salma)",
    "etape": "question à l’équipe avec @mention (téléphone)",
    "ok": true,
-   "ms": 4224
+   "ms": 4917
   },
   {
    "testeur": "Producer (Yasmine)",
    "etape": "attentes et équipe (interface puis API)",
    "ok": true,
-   "ms": 2350
+   "ms": 2318
   },
   {
    "testeur": "Réalisatrice (Nadia)",
    "etape": "écrire la V2, un rôle, publier",
    "ok": true,
-   "ms": 2968
+   "ms": 2001
   },
   {
    "testeur": "Producer (Yasmine)",
    "etape": "shortlist (3 candidats + l’acteur inscrit)",
    "ok": true,
-   "ms": 1043
+   "ms": 619
   },
   {
    "testeur": "Réalisatrice (Nadia)",
    "etape": "swiper la shortlist (clavier)",
    "ok": true,
-   "ms": 8183
+   "ms": 7665
   },
   {
    "testeur": "Agence marketing (Karim)",
    "etape": "swiper la shortlist (clavier)",
    "ok": true,
-   "ms": 8390
+   "ms": 7822
   },
   {
    "testeur": "Marque (Salma)",
    "etape": "swiper la shortlist (boutons, téléphone)",
    "ok": true,
-   "ms": 13546
+   "ms": 13857
   },
   {
    "testeur": "Producer (Yasmine)",
    "etape": "convoquer l’acteur en audition",
    "ok": true,
-   "ms": 268
+   "ms": 65
   },
   {
    "testeur": "Acteur (Ines)",
    "etape": "accepter la convocation (téléphone)",
    "ok": true,
-   "ms": 3592
+   "ms": 3939
   }
  ],
  "synchro": [
@@ -684,11 +684,11 @@
   {
    "testeur": "Acteur (Ines)",
    "quoi": "la cloche signale la convocation",
-   "vuApresSecondes": 5
+   "vuApresSecondes": 3
   }
  ],
  "incidents": [],
- "projectId": "3b5129a0-52a4-42d4-bb08-627ad44f1a8e",
- "entreeActeur": "f90ee400-efe7-404f-88f1-33934c35454a",
- "fin": "2026-11-23T01:12:36.197Z"
+ "projectId": "0b0ce187-5091-4fdb-980c-8419fdbd130d",
+ "entreeActeur": "f65022b7-868f-4f02-9d67-3945f88bdcb6",
+ "fin": "2026-11-23T02:12:40.447Z"
 }

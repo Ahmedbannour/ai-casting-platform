@@ -23,4 +23,7 @@ public interface AdRequestRepository extends JpaRepository<AdRequest, UUID> {
     List<AdRequest> forDirector(UUID userId);
 
     List<AdRequest> findAllByOrderByUpdatedAtDesc();
+
+    /** P-083 · La demande dont est issue une room (la room porte l'identifiant du projet). */
+    java.util.Optional<AdRequest> findFirstByProjectId(UUID projectId);
 }

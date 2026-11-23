@@ -72,7 +72,7 @@ const ok = (c, m) => { if (!c) throw new Error('ÉCHEC : ' + m); console.log('OK
 
     // ── Agence : au clavier ──
     p = await open('a');
-    await p.goto(BASE + '/rooms/' + pid); await p.waitForTimeout(1500);
+    await p.goto(BASE + '/rooms/' + pid + '?tab=swipe'); await p.waitForTimeout(1500);
     await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
     await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(900);
     await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(900);
@@ -81,7 +81,7 @@ const ok = (c, m) => { if (!c) throw new Error('ÉCHEC : ' + m); console.log('OK
 
     // ── Réalisateur : coup de cœur → match ──
     p = await open('r', 'dark');
-    await p.goto(BASE + '/rooms/' + pid); await p.waitForTimeout(1500);
+    await p.goto(BASE + '/rooms/' + pid + '?tab=swipe'); await p.waitForTimeout(1500);
     await p.getByRole('button', { name: 'Coup de cœur', exact: true }).click(); await p.waitForTimeout(1400);
     ok(await p.getByRole('dialog', { name: "C'est un match" }).isVisible(), 'Réalisateur : coup de cœur → « C\'est un match ! »');
     ok((await p.locator('.match').innerText()).includes(first), 'Le match nomme le bon acteur : ' + first);
@@ -92,7 +92,7 @@ const ok = (c, m) => { if (!c) throw new Error('ÉCHEC : ' + m); console.log('OK
 
     // ── Production (chef de room) ──
     p = await open('p');
-    await p.goto(BASE + '/rooms/' + pid); await p.waitForTimeout(1500);
+    await p.goto(BASE + '/rooms/' + pid + '?tab=swipe'); await p.waitForTimeout(1500);
     await p.getByRole('tab', { name: /Résultats/ }).click(); await p.waitForTimeout(1200);
     await p.locator('.row').first().getByRole('button', { name: '1er choix' }).click(); await p.waitForTimeout(900);
     ok(await p.locator('.row').first().locator('.b.rank').innerText() === '1er choix', 'Production : 1er choix fixé');
@@ -119,7 +119,7 @@ const ok = (c, m) => { if (!c) throw new Error('ÉCHEC : ' + m); console.log('OK
 
     // ── Marque : ne voit pas le document du réalisateur ──
     p = await open('m');
-    await p.goto(BASE + '/rooms/' + pid); await p.waitForTimeout(1200);
+    await p.goto(BASE + '/rooms/' + pid + '?tab=swipe'); await p.waitForTimeout(1200);
     await p.getByRole('tab', { name: /Documents/ }).click(); await p.waitForTimeout(900);
     ok(await p.locator('.doc').count() === 0 && await p.locator('app-dropzone').count() === 0, 'Marque : pas de document réservé, pas de dépôt (autorisation fermée)');
     errs.push(...p.errs); await p.context().close();

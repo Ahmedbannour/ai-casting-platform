@@ -1,8 +1,9 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, computed, inject, input, signal } from '@angular/core';
 
-export interface RailItem { id: string; label: string; state: 'tour' | 'livree' | 'brouillon' | 'revision' | null; el: HTMLElement; }
+export type RailState = 'tour' | 'livree' | 'brouillon' | 'revision' | 'complete' | 'encours' | 'vide';
+export interface RailItem { id: string; label: string; state: RailState | null; el: HTMLElement; }
 
-const STATE_LABEL: Record<NonNullable<RailItem['state']>, string> = { tour: 'À vous', livree: 'Livrée', brouillon: 'Brouillon', revision: 'En révision' };
+const STATE_LABEL: Record<RailState, string> = { tour: 'À vous', livree: 'Livrée', brouillon: 'Brouillon', revision: 'En révision', complete: 'Complet', encours: 'En cours', vide: 'À remplir' };
 
 /**
  * Sommaire « Sur cette fiche » : lit les sections réellement affichées pour le rôle connecté
@@ -15,7 +16,7 @@ const STATE_LABEL: Record<NonNullable<RailItem['state']>, string> = { tour: 'À 
   standalone: true,
   template: `
   @if (items().length > 1) {
-    <nav class="rail" [class.open]="open()" aria-label="Sur cette fiche">
+    <nav class="rail" [class.open]="open()" [class.compact]="compact()" aria-label="Sur cette fiche">
       <button type="button" class="bar" (click)="open.set(!open())" [attr.aria-expanded]="open()">
         <span class="bar-n">{{ pad(active() + 1) }}<i>/{{ pad(items().length) }}</i></span>
         <span class="bar-l">{{ items()[active()]?.label }}</span>
@@ -63,28 +64,30 @@ const STATE_LABEL: Record<NonNullable<RailItem['state']>, string> = { tour: 'À 
     li[data-s="tour"] .st { background: var(--accent); color: var(--on-accent); }
     li[data-s="tour"] .dot { border-color: var(--accent); }
     li[data-s="livree"] .st { background: color-mix(in srgb, var(--success) 16%, transparent); color: var(--success); }
+    li[data-s="complete"] .st { background: color-mix(in srgb, var(--success) 16%, transparent); color: var(--success); }
+    li[data-s="complete"] .dot { background: var(--success); border-color: var(--success); }
+    li[data-s="encours"] .st { background: var(--accent-dim); color: var(--accent-ink); }
+    li[data-s="vide"] .st { background: none; color: var(--text-subtle); padding: 2px 0; }
     li[data-s="revision"] .st { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
     .ft { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; font-size: 12px; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
     .pb, .bar-p { display: block; height: 4px; border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--text-subtle) 22%, transparent); }
     .pb b, .bar-p b { display: block; height: 100%; border-radius: 4px; background: var(--accent); transition: width .2s linear; }
 
-    /* Écran étroit : barre compacte collée sous l'en-tête, la liste se déplie */
-    @container page (max-width: 1179px) {
-      .rail { position: static; margin: 0 -2px; }
-      .bar { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--border);
-        border-radius: 14px; background: color-mix(in srgb, var(--glass-strong) 30%, var(--bg-primary)); color: var(--text-primary); font: inherit; cursor: pointer;
-        box-shadow: 0 8px 20px color-mix(in srgb, var(--graphite-950) 12%, transparent); overflow: hidden; }
-      .bar-n { flex: none; font-weight: 800; color: var(--accent-ink); font-variant-numeric: tabular-nums; } .bar-n i { font-style: normal; font-weight: 600; color: var(--text-muted); }
-      .bar-l { flex: 1; min-width: 0; text-align: left; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .bar svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
-      .open .bar svg { transform: rotate(180deg); }
-      .bar-p { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 0; }
-      .panel { display: none; margin-top: 6px; padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-secondary);
-        box-shadow: 0 16px 34px color-mix(in srgb, var(--graphite-950) 22%, transparent); max-height: 60vh; overflow-y: auto; }
-      .open .panel { display: block; animation: pIn .2s ease-out; }
-      li a { min-height: 44px; align-items: center; }
-      .dot { margin-top: 0; }
-    }
+    /* Barre compacte quand le sommaire occupe toute la largeur (écran étroit ou colonne unique) */
+    .rail.compact { position: static; margin: 0 -2px; }
+    .compact .bar { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--border);
+    border-radius: 14px; background: color-mix(in srgb, var(--glass-strong) 30%, var(--bg-primary)); color: var(--text-primary); font: inherit; cursor: pointer;
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--graphite-950) 12%, transparent); overflow: hidden; }
+    .compact .bar-n { flex: none; font-weight: 800; color: var(--accent-ink); font-variant-numeric: tabular-nums; } .bar-n i { font-style: normal; font-weight: 600; color: var(--text-muted); }
+    .compact .bar-l { flex: 1; min-width: 0; text-align: left; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .compact .bar svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
+    .rail.compact.open .bar svg { transform: rotate(180deg); }
+    .compact .bar-p { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 0; }
+    .compact .panel { display: none; margin-top: 6px; padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-secondary);
+    box-shadow: 0 16px 34px color-mix(in srgb, var(--graphite-950) 22%, transparent); max-height: 60vh; overflow-y: auto; }
+    .rail.compact.open .panel { display: block; animation: pIn .2s ease-out; }
+    .compact li a { min-height: 44px; align-items: center; }
+    .compact .dot { margin-top: 0; }
     @keyframes pIn { from { opacity: 0; transform: translateY(-4px); } }
     @media (prefers-reduced-motion: reduce) { .dot, .open .panel, .pb b, .bar-p b { transition: none; animation: none; } }
   `]
@@ -96,7 +99,9 @@ export class PageRailComponent implements AfterViewInit {
   readonly active = signal(0);
   readonly pct = signal(0);
   readonly open = signal(false);
-  readonly stateLabel = (s: NonNullable<RailItem['state']>) => STATE_LABEL[s];
+  /** Barre compacte quand le sommaire a toute la largeur (plus de 300 px) au lieu d'une colonne. */
+  readonly compact = signal(false);
+  readonly stateLabel = (s: RailState) => STATE_LABEL[s];
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly destroyRef = inject(DestroyRef);
   private scroller: HTMLElement | null = null;
@@ -110,10 +115,13 @@ export class PageRailComponent implements AfterViewInit {
     // La fiche change (mise à jour en direct, nouvelle version, action faite) : on relit les sections
     let t: ReturnType<typeof setTimeout> | null = null;
     const mo = new MutationObserver(() => { if (t) clearTimeout(t); t = setTimeout(() => this.scan(), 250); });
-    mo.observe(this.root(), { childList: true, subtree: true });
+    mo.observe(this.root(), { childList: true, subtree: true, attributes: true, attributeFilter: ['data-rail-state', 'data-rail-label'] });
     const close = (e: Event) => { if (this.open() && !this.host.nativeElement.contains(e.target as Node)) this.open.set(false); };
     document.addEventListener('pointerdown', close);
     this.destroyRef.onDestroy(() => { target.removeEventListener('scroll', onScroll); mo.disconnect(); document.removeEventListener('pointerdown', close); if (t) clearTimeout(t); });
+    const ro = new ResizeObserver(([e]) => this.compact.set(e.contentRect.width > 300));
+    ro.observe(this.host.nativeElement);
+    this.destroyRef.onDestroy(() => ro.disconnect());
     setTimeout(() => this.scan(), 0);
   }
 
@@ -124,13 +132,15 @@ export class PageRailComponent implements AfterViewInit {
     const myTurn = !!root.querySelector('.now-card.mine');
     const heads = [...root.querySelectorAll<HTMLElement>('h2')].filter(h => h.offsetParent !== null && !h.closest('app-page-rail'));
     const list: RailItem[] = heads.map((h, i) => {
-      const el = (h.closest('.card, app-discussion, app-invite-card') as HTMLElement | null) ?? h;
+      const el = (h.closest('[data-rail], .card, app-discussion, app-invite-card') as HTMLElement | null) ?? h;
       if (!el.id) el.id = 'fiche-' + i;
       const small = h.querySelector('small')?.textContent?.toLowerCase() ?? '';
       const label = [...h.childNodes].filter(n => n.nodeType === Node.TEXT_NODE || (n as HTMLElement).tagName !== 'SMALL').map(n => n.textContent).join('').trim();
-      const state: RailItem['state'] = myTurn && el.matches('.answer, .act, app-invite-card') ? 'tour'
+      // Un bloc peut donner lui-même son état et son nom court (data-rail-state, data-rail-label)
+      const given = el.dataset['railState'] as RailState | undefined;
+      const state: RailItem['state'] = given ? given : myTurn && el.matches('.answer, .act, app-invite-card') ? 'tour'
         : small.includes('révision') ? 'revision' : small.includes('brouillon') ? 'brouillon' : small.includes('livrée') ? 'livree' : null;
-      return { id: el.id, label: label || 'Section', state, el };
+      return { id: el.id, label: el.dataset['railLabel'] || label || 'Section', state, el };
     }).filter((it, i, all) => all.findIndex(x => x.el === it.el) === i)
       .sort((a, b) => a.el.getBoundingClientRect().top - b.el.getBoundingClientRect().top);
     const same = list.length === this.items().length && list.every((x, i) => x.id === this.items()[i].id && x.state === this.items()[i].state && x.label === this.items()[i].label);

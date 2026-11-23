@@ -25,7 +25,7 @@ const ok = (c, m) => { if (!c) throw new Error('ÉCHEC : ' + m); console.log('OK
     await p.goto(BASE + '/auth/login'); await p.fill('#email', acc.p.email); await p.fill('#password', acc.p.pw); await p.click('button.submit-btn');
     await p.waitForURL(u => !u.pathname.startsWith('/auth'));
     if (p.url().includes('/consentement')) { await p.getByRole('radio', { name: /18 ans ou plus/i }).click(); await p.locator('.check input').check(); await p.getByRole('button', { name: /^Continuer/ }).click(); await p.waitForURL(u => !u.pathname.startsWith('/consentement')); }
-    await p.goto(BASE + '/rooms/' + pid); await p.waitForTimeout(1500);
+    await p.goto(BASE + '/rooms/' + pid + '?tab=swipe'); await p.waitForTimeout(1500);
     await p.locator('button', { hasText: 'Équipe' }).first().click(); await p.waitForTimeout(400);
     const sana = p.locator('.mem', { hasText: 'Sana Recette' });
     await sana.locator('button.access').click(); await p.waitForTimeout(200);

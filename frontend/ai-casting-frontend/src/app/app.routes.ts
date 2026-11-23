@@ -143,6 +143,13 @@ export const routes: Routes = [
             .then(m => m.MesDemandesComponent)
       },
       {
+        path: 'demandes/:id/fiche',
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
+        loadComponent: () =>
+          import('./features/fiche/fiche-page')
+            .then(m => m.FichePageComponent)
+      },
+      {
         path: 'demandes/:id',
         canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
         loadComponent: () =>

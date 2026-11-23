@@ -24,6 +24,11 @@ public class AccessService {
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
     }
 
+    /** Pour les tâches de fond, qui n'ont pas d'utilisateur connecté. */
+    public User userById(java.util.UUID id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
     public boolean isAdmin(User u) {
         return u.getRole() == Role.ADMIN;
     }

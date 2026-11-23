@@ -25,7 +25,7 @@ const ok = (c, m) => { if (!c) throw new Error('ÉCHEC : ' + m); console.log('OK
   if (p.url().includes('/consentement')) { await p.getByRole('radio', { name: /18 ans ou plus/i }).click(); await p.locator('.check input').check(); await p.getByRole('button', { name: /^Continuer/ }).click(); await p.waitForURL(u => !u.pathname.startsWith('/consentement')); }
 
   // Room : équipe
-  await p.goto(BASE + '/rooms/' + pid); await p.waitForTimeout(1500);
+  await p.goto(BASE + '/rooms/' + pid + '?tab=swipe'); await p.waitForTimeout(1500);
   await p.locator('button', { hasText: 'Équipe' }).first().click(); await p.waitForTimeout(500);
   const groups = (await p.locator('.grp h3').allInnerTexts()).map(t => t.replace(/\s*\d+$/, '').trim());
   ok(groups.join('|') === 'Production|Réalisation|Marque', 'équipe rangée par côté : ' + groups.join(', '));

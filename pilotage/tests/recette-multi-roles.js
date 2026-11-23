@@ -209,7 +209,7 @@ const bell = async t => +(await t.p.locator('app-notification-bell .badge:visibl
   });
   await ecran(T.prod, `/rooms/${pid}`, 'room');
   const swipe = async (t, mode) => etape(t, 'swiper la shortlist (' + mode + ')', async () => {
-    const p = t.p; await p.goto(BASE + '/rooms/' + pid); await sleep(1500); await ecran(t, null, 'room-swipe');
+    const p = t.p; await p.goto(BASE + '/rooms/' + pid + '?tab=swipe'); await sleep(1500); await ecran(t, null, 'room-swipe');
     for (let i = 0; i < 4; i++) {
       if (!(await p.locator('.card, .swipe-card, [class*=card]').first().isVisible().catch(() => false))) break;
       // « C'est un match ! » couvre l'écran : on continue comme un vrai utilisateur
@@ -221,7 +221,7 @@ const bell = async t => +(await t.p.locator('app-notification-bell .badge:visibl
   });
   await Promise.all([swipe(T.marque, 'boutons, téléphone'), swipe(T.agence, 'clavier'), swipe(T.real, 'clavier')]);
   await voitSansRecharger(T.prod, 'les votes apparaissent dans les résultats (onglet ouvert)', async () => {
-    const p = T.prod.p; if (!p.url().includes('/rooms/')) await p.goto(BASE + '/rooms/' + pid);
+    const p = T.prod.p; if (!p.url().includes('/rooms/')) await p.goto(BASE + '/rooms/' + pid + '?tab=swipe');
     await p.locator('button', { hasText: 'Résultats' }).first().click().catch(() => {}); return (await p.locator('.face, .vote, [class*=vote]').count()) > 0;
   }, 15000);
   await ecran(T.prod, null, 'resultats');

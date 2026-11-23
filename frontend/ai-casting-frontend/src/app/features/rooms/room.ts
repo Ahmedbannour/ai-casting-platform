@@ -1,4 +1,5 @@
 import { Component, DestroyRef, OnDestroy, computed, inject, signal } from '@angular/core';
+import { FicheComponent } from '../fiche/fiche';
 import { LiveService } from '../../core/services/live.service';
 import { BrandService } from '../../core/services/brand.service';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -12,7 +13,7 @@ import { RoomTasksComponent } from './room-tasks';
 import { ShareLinkComponent } from '../../shared/components/share-link/share-link';
 import { ProductionService } from '../../core/services/production.service';
 
-type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
+type Tab = 'fiche' | 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
 
 /**
  * Room de casting d'un projet. La production la dirige ; chacun ne voit que les onglets que le chef de room lui ouvre :
@@ -21,7 +22,7 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
 @Component({
   selector: 'app-room',
   standalone: true,
-  imports: [RouterLink, FormsModule, RoomSwipeComponent, RoomResultsComponent, RoomDocsComponent, RoomTasksComponent, ShareLinkComponent],
+  imports: [RouterLink, FormsModule, FicheComponent, RoomSwipeComponent, RoomResultsComponent, RoomDocsComponent, RoomTasksComponent, ShareLinkComponent],
   template: `
   <div class="page">
     <a class="back" routerLink="/rooms">← Mes rooms</a>
@@ -52,6 +53,7 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
 
       <section class="pane" [attr.data-tab]="tab()">
         @switch (tab()) {
+          @case ('fiche') { <app-fiche [roomId]="r.id" /> }
           @case ('swipe') { <app-room-swipe [roomId]="r.id" [roles]="r.roles" (voted)="reload()" (showResults)="openResults($event)" /> }
           @case ('resultats') { <app-room-results [roomId]="r.id" [roles]="r.roles" [lead]="r.me.lead" [startRole]="resultsRole()" /> }
           @case ('documents') { <app-room-docs [roomId]="r.id" [canEdit]="r.me.docs" /> }
@@ -266,10 +268,11 @@ type Tab = 'swipe' | 'resultats' | 'documents' | 'taches' | 'equipe';
 export class RoomComponent implements OnDestroy {
   readonly brandSvc = inject(BrandService);
   private readonly api = inject(RoomService);
-  private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
+  private readonly route = inject(ActivatedRoute);
+  private readonly id = this.route.snapshot.paramMap.get('id')!;
   readonly room = signal<Room | null>(null);
   readonly notFound = signal(false);
-  readonly tab = signal<Tab>('swipe');
+  readonly tab = signal<Tab>('fiche');
   readonly resultsRole = signal<string | null>(null);
   readonly busy = signal(false);
   readonly msg = signal('');
@@ -285,6 +288,7 @@ export class RoomComponent implements OnDestroy {
   ];
 
   private readonly icons: Record<Tab, string> = {
+    fiche: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg>',
     swipe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="3" width="12" height="16" rx="2.5" transform="rotate(8 12 11)"/><path d="M3 20h4"/></svg>',
     resultats: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
     documents: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>',
@@ -295,6 +299,7 @@ export class RoomComponent implements OnDestroy {
     const r = this.room(); if (!r) return [];
     const toSwipe = r.roles.reduce((a, x) => a + x.toSwipe, 0), matches = r.roles.reduce((a, x) => a + x.matches, 0);
     const all: { id: Tab; label: string; badge: number; show: boolean }[] = [
+      { id: 'fiche', label: 'Fiche', badge: 0, show: true },
       { id: 'swipe', label: 'Swipe', badge: toSwipe, show: r.me.swipe },
       { id: 'resultats', label: 'Résultats', badge: matches, show: r.me.results },
       { id: 'documents', label: 'Documents', badge: 0, show: true },
@@ -316,7 +321,8 @@ export class RoomComponent implements OnDestroy {
       next: r => {
         this.room.set(r);
         if (first) this.brandSvc.show(r.brand ?? this.brandSvc.own());   // la room porte les couleurs de la boîte qui la dirige
-        if (first && !r.me.swipe) this.tab.set(r.me.results ? 'resultats' : 'documents');
+        // La room s'ouvre sur la fiche du projet ; ?tab=swipe (etc.) ouvre un autre espace
+        if (first) { const want = this.route.snapshot.queryParamMap.get('tab') as Tab | null; if (want && this.tabs().some(t => t.id === want)) this.tab.set(want); }
       },
       error: () => this.notFound.set(true)
     });

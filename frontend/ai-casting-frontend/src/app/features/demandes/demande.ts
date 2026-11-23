@@ -79,6 +79,11 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
             <button type="button" (click)="refresh(true)">Voir la mise à jour</button>
           </div>
         }
+        <a class="fiche-cta" [routerLink]="['/demandes', x.id, 'fiche']">
+          <span class="fc-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg></span>
+          <span class="fc-txt"><b>Fiche du projet</b><small>Toute l'équipe sur un seul document, étape par étape. Déposez un brief : l'IA le remplit.</small></span>
+          <span class="fc-go" aria-hidden="true">→</span>
+        </a>
         @if (x.projectId) {
           <a class="room-cta" [routerLink]="['/rooms', x.projectId]">
             <span class="rc-ring" aria-hidden="true"></span>
@@ -533,6 +538,13 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.odt,.odp,.key,.pages,.txt,.rtf,.jpg,
     .back:hover { color: var(--text-primary); }
     .head h1 { font-size: 34px; line-height: 1.08; margin: 0; }
     .head p { margin: 6px 0 0; color: var(--text-muted); font-size: 14.5px; }
+    .fiche-cta { order: -2; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 16px; text-decoration: none; color: var(--text-primary);
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--glass); transition: border-color .2s, transform .2s cubic-bezier(.2,1.2,.4,1); }
+    .fiche-cta:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .fc-ic { flex: none; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: var(--accent-dim); color: var(--accent-ink); }
+    .fc-ic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .fc-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; } .fc-txt b { font-size: 15px; } .fc-txt small { font-size: 13px; color: var(--text-muted); }
+    .fc-go { font-size: 20px; font-weight: 800; color: var(--accent-ink); }
     .room-cta { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; text-decoration: none; color: var(--on-accent);
       background: linear-gradient(120deg, var(--accent), color-mix(in srgb, var(--accent) 70%, var(--crayon-600))); box-shadow: 0 12px 28px color-mix(in srgb, var(--accent) 30%, transparent);
       transition: transform .2s cubic-bezier(.2,1.2,.4,1); animation: rcIn .45s cubic-bezier(.2,1.2,.4,1) both; }

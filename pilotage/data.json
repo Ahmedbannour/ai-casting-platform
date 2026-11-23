@@ -1360,6 +1360,22 @@
         "T-173"
       ],
       "statut": "Livré"
+    },
+    {
+      "id": "P-083",
+      "date": "2026-11-23",
+      "titre": "Fiche unique du projet par étapes, auto-remplie par l’IA (urgent)",
+      "original": "au niveau de room, je veux qu'on prend le principe d'un seule fichier de projet qui va etre builder sur des etapes, chaque role a des autorisations spécifique a modifier dans ce fichier ; une chose pareille a creuto.com/ai-route-optimization-cost-per-shipment (smooth animation avec un scroll down pour donner l'état des lieux) ; au niveau de l'upload des fichiers ou lien canva, analyser le lien avec l'ia et faire un auto-fill sur la fiche de projet et minimiser les charges a faire pour le recepteur ; passer mes infos vers nos ingénieurs IA et à toute l'équipe (cas urgent)",
+      "ameliore": "Reformulé par la Cellule IA (Yasmine Trabelsi). Objectif : une fiche unique par projet, construite en 7 étapes (01 Identité · 02 Brief · 03 Concept · 04 Production · 05 Intention de réalisation · 06 Rôles · 07 Casting), visible dans la room et depuis la page projet. Droits : chaque étape a un propriétaire (producer et assistante PROJETS : 01 et 04 ; marque : 02 ; agence : 03 ; réalisateur et 1er AD : 05 ; 06 et 07 se lisent depuis la V2 et la room) ; les autres lisent. Présentation : article à défilement, état des lieux en tête (avancement, étapes complètes, qui a la main), étapes numérotées révélées au défilement, sommaire collé « 01 / 07 · % lu ». IA : dépôt d'un fichier (PDF, Word, PowerPoint, texte) ou d'un lien (Canva, page web) → extraction du texte → modèle local llama3.2 via Ollama (gratuit, rien ne sort de la machine) → JSON champ par champ, sans rien inventer ; repli par règles (« Cible : … ») si l'IA ne répond pas. Champs des étapes de l'auteur : remplis directement, marqués « à vérifier » ; champs des autres étapes : propositions que le propriétaire accepte en un clic. Critères d'acceptation : un fichier de brief remplit au moins objectif, cible et message clé ; la proposition arrive chez l'agence sans recharger ; aucun rôle ne modifie une étape qui n'est pas la sienne (403) ; lien Canva : titre, description et texte public lus, sinon message clair demandant le PDF. Urgence : P0, toute l'équipe.",
+      "departements": [
+        "front",
+        "back",
+        "qa"
+      ],
+      "livrables": [
+        "T-173"
+      ],
+      "statut": "Livré"
     }
   ],
   "bibliotheques": [
@@ -3698,6 +3714,90 @@
       "prompt": "P-082",
       "jour": "J10",
       "detail": "Fiche projet : sommaire des sections que le rôle connecté voit vraiment (rail à droite sur grand écran, barre dépliable sur téléphone), section en cours suivie au défilement, part lue, état de chaque étape (À vous, Livrée, Brouillon, En révision), comme les étapes d'un build. Test : test-sommaire."
+    },
+    {
+      "id": "T-179",
+      "titre": "Prompt et modèle d’auto-remplissage de la fiche",
+      "dept": "ia",
+      "resp": "Yasmine Trabelsi",
+      "prio": "P0",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-083",
+      "jour": "J10",
+      "detail": "URGENT · livré le 23/11 · Prompt champ par champ (JSON strict, rien d'inventé), repli par règles, évaluation sur 5 briefs types."
+    },
+    {
+      "id": "T-180",
+      "titre": "Lecture des liens Canva et des fichiers pour l’IA",
+      "dept": "ia",
+      "resp": "Lucas Moreau",
+      "prio": "P0",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-083",
+      "jour": "J10",
+      "detail": "URGENT · livré le 23/11 · Extraction texte : PDF, Word, PowerPoint ; lien Canva public (titre, description, texte rendu) ; message clair sinon."
+    },
+    {
+      "id": "T-181",
+      "titre": "Parcours de la fiche et droits par rôle",
+      "dept": "prod",
+      "resp": "Élodie Martin",
+      "prio": "P0",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-083",
+      "jour": "J10",
+      "detail": "URGENT · livré le 23/11 · Sept étapes, propriétaire de chaque étape, ce que le récepteur doit encore faire."
+    },
+    {
+      "id": "T-182",
+      "titre": "Fiche en article animé : état des lieux, sommaire 01/07",
+      "dept": "front",
+      "resp": "Sarra Mansouri",
+      "prio": "P0",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-083",
+      "jour": "J10",
+      "detail": "URGENT · livré le 23/11 · Étapes numérotées révélées au défilement, édition en place selon les droits, propositions IA en un clic."
+    },
+    {
+      "id": "T-183",
+      "titre": "Modèle de données et API de la fiche",
+      "dept": "back",
+      "resp": "Marc Lefèvre",
+      "prio": "P0",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-083",
+      "jour": "J10",
+      "detail": "URGENT · livré le 23/11 · Migration, service des étapes, droits, propositions, sources analysées en tâche de fond."
+    },
+    {
+      "id": "T-184",
+      "titre": "Recette de la fiche avec plusieurs rôles",
+      "dept": "qa",
+      "resp": "Amel Kacem",
+      "prio": "P0",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-083",
+      "jour": "J10",
+      "detail": "URGENT · livré le 23/11 · Marque dépose un brief, l'agence reçoit les propositions sans recharger, refus 403 hors de son étape."
+    },
+    {
+      "id": "T-185",
+      "titre": "Suivi de l’urgence",
+      "dept": "dir",
+      "resp": "Sonia Mercier",
+      "prio": "P0",
+      "phase": "PH4",
+      "statut": "en_cours",
+      "prompt": "P-083",
+      "jour": "J10",
+      "detail": "URGENT · Point quotidien jusqu'à la livraison ; arbitrage du périmètre Canva."
     }
   ],
   "journal": [
@@ -3779,26 +3879,35 @@
         "Relire les définitions des 3 types de figuration",
         "Valider le budget des 3 recrutements (T-034)"
       ]
+    },
+    {
+      "date": "2026-11-23",
+      "jour": "J10",
+      "resume": "Demande urgente du client : une fiche unique par projet, construite en 7 étapes avec des droits par rôle, présentée comme un article animé, et remplie par l'IA à partir d'un fichier ou d'un lien Canva. Reformulée par la Cellule IA (P-083) et transmise à toute l'équipe en P0 (T-179 à T-185).",
+      "decisions": [
+        "D-030 : une seule fiche par projet, chaque étape a un propriétaire",
+        "D-031 : l'IA remplit directement les étapes de l'auteur et propose aux autres"
+      ]
     }
   ],
   "maintenant": {
-    "titre": "P-060 · T-164 livré, T-166 en cours",
+    "titre": "P-083 · Fiche unique livrée",
     "etape": 60,
     "agents": [
       {
-        "nom": "Mariem Gharbi",
-        "action": "Shortlist et auditions partagées",
-        "court": "T-166"
+        "nom": "Yasmine Trabelsi",
+        "action": "Prompt d’auto-remplissage",
+        "court": "T-179"
       },
       {
-        "nom": "Amel Kacem",
-        "action": "Recette du sprint 5",
-        "court": "QA"
+        "nom": "Marc Lefèvre",
+        "action": "API de la fiche",
+        "court": "T-183"
       },
       {
-        "nom": "Sami Kefi",
-        "action": "Déploiement de production",
-        "court": "T-124"
+        "nom": "Sarra Mansouri",
+        "action": "Fiche en article animé",
+        "court": "T-182"
       }
     ],
     "progres": {
@@ -3812,8 +3921,8 @@
       ]
     },
     "derniere": {
-      "t": "2026-11-21T03:00:00Z",
-      "texte": "Producer au centre du projet, assistante de production, invitations par lien."
+      "t": "2026-11-23T02:15:00Z",
+      "texte": "Fiche unique du projet livrée dans la room et la page projet ; l’IA lit fichiers et liens Canva."
     }
   },
   "activite": [
@@ -4284,6 +4393,18 @@
       "nom": "Mehdi Trabelsi",
       "t": "2026-11-21T03:00:00Z",
       "texte": "Le producer crée les projets et invite marque et agence par lien ; assistante de production avec autorisations. Recette 11/11, test-producer 19/19."
+    },
+    {
+      "h": "J10",
+      "nom": "Yasmine Trabelsi",
+      "t": "2026-11-23T01:30:00Z",
+      "texte": "P-083 reformulé et transmis en urgence à toute l’équipe : fiche unique par étapes, droits par rôle, auto-remplissage IA (fichier ou lien Canva)."
+    },
+    {
+      "h": "J10",
+      "nom": "Amel Kacem",
+      "t": "2026-11-23T02:15:00Z",
+      "texte": "Fiche unique livrée : 7 étapes, droits par rôle, IA locale qui remplit et propose (53 s pour un brief). test-fiche 16/16, SheetApiTest vert, recette multi-rôles 22/22."
     }
   ],
   "plan": {
