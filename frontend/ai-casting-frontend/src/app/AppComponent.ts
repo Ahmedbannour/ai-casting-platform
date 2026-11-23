@@ -1,6 +1,7 @@
 import { Component, NgZone, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { ToastHostComponent } from './shared/components/toast-host/toast-host';
 
 /**
  * Composant racine. La session est restaurée avant le démarrage
@@ -9,8 +10,8 @@ import { filter } from 'rxjs';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  template: `<router-outlet />`
+  imports: [RouterOutlet, ToastHostComponent],
+  template: `<router-outlet /><app-toast-host />`
 })
 export class AppComponent {
   /** La lampe du fond suit doucement la souris (désactivée si l'utilisateur limite les animations). */

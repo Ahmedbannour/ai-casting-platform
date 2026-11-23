@@ -364,7 +364,7 @@ export class RoomComponent implements OnDestroy {
     const x = this.presets.find(p => p.key === key); if (!x) return;
     this.busy.set(true); this.error.set(''); this.msg.set('');
     this.api.setPerms(this.id, m.userId, x.perms).subscribe({
-      next: r => { this.room.set(r); this.busy.set(false); this.msg.set(m.name + ' : ' + x.label.toLowerCase() + '.'); },
+      next: r => { this.room.set(r); this.busy.set(false); this.msg.set('Accès de ' + m.name + ' : ' + x.label + '.'); },
       error: e => { this.busy.set(false); this.error.set(e.error?.message ?? 'Modification impossible.'); }
     });
   }
