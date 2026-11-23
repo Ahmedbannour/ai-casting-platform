@@ -52,7 +52,7 @@ const ok = (c, m) => { if (!c) throw new Error('ÉCHEC : ' + m); console.log('OK
   try {
     // ── Marque : de la publicité à la room, swipe au doigt ──
     let p = await open('m');
-    await p.goto(BASE + '/demandes/' + id); await p.waitForTimeout(1200);
+    await p.goto(BASE + '/demandes/' + id + '/historique'); await p.waitForTimeout(1200);
     ok(await p.locator('a.room-cta').isVisible(), 'Marque : la publicité propose « La room de casting est ouverte »');
     await p.locator('a.room-cta').click(); await p.waitForURL(/\/rooms\//); await p.waitForTimeout(1500);
     ok(await p.locator('app-room-swipe article.card.top').isVisible(), 'Marque : la room s\'ouvre sur le swipe, première carte affichée');

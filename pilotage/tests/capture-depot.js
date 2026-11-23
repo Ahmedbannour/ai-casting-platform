@@ -25,7 +25,7 @@ const mails = [...txt.matchAll(/e-mail\s*:\s*(\S+)/g)].map(m => m[1]), pws = [..
     await p.waitForURL(u => !u.pathname.startsWith('/auth'), { timeout: 15000 });
     if (p.url().includes('/consentement')) { await p.getByRole('radio', { name: /18 ans ou plus/i }).click(); await p.locator('.check input').check(); await p.getByRole('button', { name: /^Continuer/ }).click(); await p.waitForTimeout(1200); }
     await p.route('**/v0/fichier', r => setTimeout(() => r.continue(), 1600));   // envoi ralenti pour voir l'état « envoi »
-    await p.goto(BASE + '/demandes/' + id); await p.waitForTimeout(1500);
+    await p.goto(BASE + '/demandes/' + id + '/historique'); await p.waitForTimeout(1500);
     const dz = p.locator('app-dropzone').first(); await dz.scrollIntoViewIfNeeded();
     const shot = async n => { const bb = await dz.boundingBox(); await p.screenshot({ path: path.join(OUT, `depot-${T}-${n}.png`), clip: { x: bb.x - 12, y: bb.y - 12, width: bb.width + 24, height: bb.height + 24 } }); };
     await shot('1-normal');

@@ -143,18 +143,22 @@ export const routes: Routes = [
             .then(m => m.MesDemandesComponent)
       },
       {
-        path: 'demandes/:id/fiche',
+        path: 'demandes/nouvelle',
         canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
-        loadComponent: () =>
-          import('./features/fiche/fiche-page')
-            .then(m => m.FichePageComponent)
+        loadComponent: () => import('./features/demandes/demande').then(m => m.DemandeComponent)
       },
+      // P-084 · Les anciennes versions (V0, V1, V2) restent consultables
+      {
+        path: 'demandes/:id/historique',
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
+        loadComponent: () => import('./features/demandes/demande').then(m => m.DemandeComponent)
+      },
+      { path: 'demandes/:id/fiche', redirectTo: 'demandes/:id' },
+      // P-084 · La page d'un projet, c'est son dossier unique
       {
         path: 'demandes/:id',
         canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
-        loadComponent: () =>
-          import('./features/demandes/demande')
-            .then(m => m.DemandeComponent)
+        loadComponent: () => import('./features/fiche/fiche-page').then(m => m.FichePageComponent)
       },
       // ── Rooms de casting : toute l'équipe d'un projet ──
       {

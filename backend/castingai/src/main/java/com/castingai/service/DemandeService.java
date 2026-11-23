@@ -516,16 +516,14 @@ public class DemandeService {
         String real = r.getDirector() == null ? "Le réalisateur" : name(r.getDirector());
         return switch (r.getStatus()) {
             case BROUILLON -> r.getBrand() == null ? new String[]{ prod, "invite la marque et l'agence marketing" }
-                    : r.getAgency() == null && r.getProduction() != null ? new String[]{ prod, "invite l'agence marketing ; la marque prépare sa V0" }
-                    : new String[]{ r.getBrand().getName(), "écrit la V0 avant de l'envoyer à l'agence" };
-            case V0_ENVOYEE -> new String[]{ agence, "lit la V0 pour l'accepter ou la refuser" };
-            case V1_EN_COURS -> new String[]{ agence, "écrit la V1 (le concept)" };
-            case V1_LIVREE -> r.getV1ValidatedAt() == null ? new String[]{ "La marque", "relit la V1 pour la valider ou demander une révision" }
+                    : r.getAgency() == null ? new String[]{ prod, "invite l'agence marketing ; la marque rédige le brief" }
+                    : new String[]{ r.getBrand().getName(), "rédige le brief avec le producer" };
+            case V0_ENVOYEE, V1_EN_COURS -> new String[]{ agence, "rédige la recommandation créative" };
+            case V1_LIVREE -> r.getV1ValidatedAt() == null ? new String[]{ "La marque", "valide la recommandation ou demande des modifications" }
                     : new String[]{ agence, "choisit la boîte de production" };
-            case V2_EN_COURS -> r.getDirector() == null ? new String[]{ prod, "recueille les attentes et écrit la V2 (pas de réalisateur rattaché)" }
-                    : r.getExpectationsSentAt() == null ? new String[]{ prod, "recueille les attentes sur les profils, personnage par personnage" }
-                    : new String[]{ real, "écrit la V2 : scènes et fiches de rôle" };
-            case V2_LIVREE, CASTING -> new String[]{ "Cercle", "propose des acteurs pour chaque rôle" };
+            case V2_EN_COURS -> r.getDirector() == null ? new String[]{ prod, "prépare le tournage et écrit les rôles à caster" }
+                    : new String[]{ real, "écrit la note d'intention et les rôles ; " + prod + " prépare le tournage" };
+            case V2_LIVREE, CASTING -> new String[]{ "Toute l'équipe", "choisit les acteurs dans la room" };
             case PPM -> new String[]{ "Toute l'équipe", "valide le casting, les décors et les costumes" };
             case ACTEURS_VALIDES -> new String[]{ "Toute l'équipe", "a validé les acteurs" };
             case CLOTUREE -> new String[]{ "", "Publicité clôturée" };
@@ -714,9 +712,15 @@ public class DemandeService {
         }
         v2.setStatus(AdVersion.Status.LIVREE); v2.setDeliveredAt(LocalDateTime.now()); versions.save(v2);
 
+        openRoom(r, me, sheets, "V2 publiée par " + name(me), projectDescription(r, v2));
+        return detail(me, r);
+    }
+
+    /** Ouvre la room : projet de casting « publicité », un rôle par fiche, toute l'équipe membre. */
+    private void openRoom(AdRequest r, User me, List<AdRole> sheets, String what, String description) {
         User owner = r.getDirector() != null ? r.getDirector() : me;
         Project p = Project.builder().owner(owner).title(cut(r.getTitle(), 160)).type(Project.Type.PUBLICITE)
-                .description(projectDescription(r, v2)).build();
+                .description(description).build();
         p = projects.save(p);
         Set<UUID> team = new LinkedHashSet<>();
         if (r.getFirstAd() != null) team.add(r.getFirstAd().getId());
@@ -742,15 +746,77 @@ public class DemandeService {
         r.setProject(p);
         r.setV2PublishedAt(LocalDateTime.now());
         r.setStatus(AdRequest.Status.CASTING);
-        log(r, me, "V2_PUBLIEE", "V2 publiée par " + name(me) + " : " + sheets.size() + " rôle" + (sheets.size() > 1 ? "s" : "") + " au casting");
-        String body = "La V2 est publiée : " + sheets.size() + " rôle" + (sheets.size() > 1 ? "s" : "") + ". Les propositions d'acteurs commencent.";
-        notifyBrand(r, "V2 publiée : " + r.getTitle(), body);
-        notifyOrg(r.getAgency(), "V2 publiée : " + r.getTitle(), body, r);
-        notifyOrg(r.getProduction(), "V2 publiée : " + r.getTitle(), body, r);
-        if (r.getFirstAd() != null && !r.getFirstAd().getId().equals(me.getId())) notifications.push(r.getFirstAd().getId(), "DEMANDE", "V2 publiée : " + r.getTitle(), body, "/demandes/" + r.getId());
-        if (r.getDirector() != null && !r.getDirector().getId().equals(me.getId())) notifications.push(r.getDirector().getId(), "DEMANDE", "V2 publiée : " + r.getTitle(), body, "/demandes/" + r.getId());
-        return detail(me, r);
+        log(r, me, "V2_PUBLIEE", what + " : " + sheets.size() + " rôle" + (sheets.size() > 1 ? "s" : "") + " au casting");
+        String body = "Le casting est lancé : " + sheets.size() + " rôle" + (sheets.size() > 1 ? "s" : "") + ". Les propositions d'acteurs commencent.";
+        notifyBrand(r, "Casting lancé : " + r.getTitle(), body);
+        notifyOrg(r.getAgency(), "Casting lancé : " + r.getTitle(), body, r);
+        notifyOrg(r.getProduction(), "Casting lancé : " + r.getTitle(), body, r);
+        if (r.getFirstAd() != null && !r.getFirstAd().getId().equals(me.getId())) notifications.push(r.getFirstAd().getId(), "DEMANDE", "Casting lancé : " + r.getTitle(), body, "/demandes/" + r.getId());
+        if (r.getDirector() != null && !r.getDirector().getId().equals(me.getId())) notifications.push(r.getDirector().getId(), "DEMANDE", "Casting lancé : " + r.getTitle(), body, "/demandes/" + r.getId());
     }
+
+    // ── Dossier unique (P-084) : les passages d'étape, appelés par la fiche après vérification des droits ──
+
+    @Transactional
+    public void dossierSendBrief(User me, AdRequest r) {
+        if (r.getStatus() != AdRequest.Status.BROUILLON) throw new IllegalArgumentException("Le brief a déjà été transmis");
+        if (r.getAgency() == null) throw new IllegalArgumentException("Invitez d'abord l'agence marketing : elle recevra le brief dès qu'elle aura rejoint le projet");
+        r.setStatus(AdRequest.Status.V1_EN_COURS);
+        log(r, me, "BRIEF_TRANSMIS", "Brief transmis à " + r.getAgency().getName() + " par " + name(me));
+        notifyOrg(r.getAgency(), "À vous : le brief est prêt, " + r.getTitle(), "Lisez le brief dans le dossier et rédigez votre recommandation créative.", r);
+        if (r.getProduction() != null && !inOrg(me, r.getProduction())) notifyOrg(r.getProduction(), "Brief transmis : " + r.getTitle(), "Le brief est parti chez " + r.getAgency().getName() + ".", r);
+    }
+
+    @Transactional
+    public void dossierPresentReco(User me, AdRequest r) {
+        if (r.getStatus() != AdRequest.Status.V1_EN_COURS) throw new IllegalArgumentException("Aucune recommandation en préparation");
+        r.setStatus(AdRequest.Status.V1_LIVREE);
+        r.setV1ValidatedAt(null);
+        log(r, me, "RECO_PRESENTEE", "Recommandation créative présentée à la marque par " + name(me));
+        notifyBrand(r, "À vous : recommandation à valider, " + r.getTitle(), (r.getAgency() == null ? "L'agence" : r.getAgency().getName()) + " vous présente sa recommandation. Validez-la ou demandez des modifications.");
+    }
+
+    @Transactional
+    public void dossierValidateReco(User me, AdRequest r) {
+        if (r.getStatus() != AdRequest.Status.V1_LIVREE || r.getV1ValidatedAt() != null) throw new IllegalArgumentException("Aucune recommandation à valider");
+        r.setV1ValidatedAt(LocalDateTime.now());
+        log(r, me, "RECO_VALIDEE", "Recommandation validée par la marque (" + name(me) + ")");
+        notifyOrg(r.getAgency(), "Recommandation validée : " + r.getTitle(), "La marque a validé votre recommandation. La préparation commence.", r);
+        if (r.getProduction() != null) {
+            r.setStatus(AdRequest.Status.V2_EN_COURS);
+            notifyOrg(r.getProduction(), "À vous : préparation, " + r.getTitle(), "La recommandation est validée. Complétez la préparation (équipe, lieux, planning, rôles) puis lancez le casting.", r);
+            for (User u : team(r)) notifications.push(u.getId(), "TOUR", "À vous : note d'intention, " + r.getTitle(), "La recommandation est validée : écrivez votre note d'intention et les rôles dans le dossier.", "/demandes/" + r.getId());
+        }
+    }
+
+    @Transactional
+    public void dossierAskChanges(User me, AdRequest r, String comment) {
+        if (r.getStatus() != AdRequest.Status.V1_LIVREE || r.getV1ValidatedAt() != null) throw new IllegalArgumentException("Aucune recommandation à revoir");
+        String c = comment == null ? "" : comment.trim();
+        if (c.isEmpty()) throw new IllegalArgumentException("Dites à l'agence ce qu'il faut modifier");
+        r.setStatus(AdRequest.Status.V1_EN_COURS);
+        log(r, me, "RECO_A_REVOIR", "Modifications demandées par la marque : " + c);
+        notifyOrg(r.getAgency(), "À vous : modifications demandées, " + r.getTitle(), "La marque demande : " + c, r);
+    }
+
+    @Transactional
+    public void dossierLaunchCasting(User me, AdRequest r) {
+        if (r.getStatus() != AdRequest.Status.V2_EN_COURS) throw new IllegalArgumentException("Le casting se lance une fois la recommandation validée");
+        List<AdRole> sheets = roleSheets.findByRequestIdOrderByPositionAscCreatedAtAsc(r.getId());
+        if (sheets.isEmpty()) throw new IllegalArgumentException("Ajoutez au moins un rôle à caster");
+        List<String> noIntent = sheets.stream().filter(x -> x.getIntention() == null || x.getIntention().isBlank()).map(AdRole::getName).toList();
+        if (!noIntent.isEmpty()) throw new IllegalArgumentException("Écrivez l'intention de chaque rôle : " + String.join(", ", noIntent));
+        openRoom(r, me, sheets, "Casting lancé par " + name(me), projectDescription(r, null));
+    }
+
+    /** Pour le dossier : l'historique des étapes, du plus récent au plus ancien. */
+    @Transactional(readOnly = true)
+    public List<EventView> events(AdRequest r) {
+        return events.findByRequestIdOrderByCreatedAtDesc(r.getId()).stream()
+                .map(e -> new EventView(e.getType(), e.getMessage(), e.getActor() == null ? null : name(e.getActor()), e.getCreatedAt())).toList();
+    }
+
+    private static boolean inOrg(User u, Agency org) { return u.getAgency() != null && org != null && u.getAgency().getId().equals(org.getId()); }
 
     private AdRequest v2Editable(User me, UUID id) {
         AdRequest r = visible(me, id);
@@ -801,7 +867,7 @@ public class DemandeService {
         if (r.getBrand() != null) sb.append(" pour ").append(r.getBrand().getName());
         if (r.getProduct() != null) sb.append(" (").append(r.getProduct()).append(")");
         sb.append(".");
-        if (v2.getBody() != null) sb.append("\n\n").append(v2.getBody());
+        if (v2 != null && v2.getBody() != null) sb.append("\n\n").append(v2.getBody());
         return cut(sb.toString(), 4000);
     }
 

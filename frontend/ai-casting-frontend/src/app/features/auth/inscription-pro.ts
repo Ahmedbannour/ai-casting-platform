@@ -112,7 +112,7 @@ export class InscriptionProComponent {
   readonly roles: { value: ProRole; label: string; hint: string }[] = [
     { value: 'MARQUE', label: 'Marque', hint: 'Vous déposez l’idée de votre publicité (V0).' },
     { value: 'AGENCE_MARKETING', label: 'Agence marketing', hint: 'Vous transformez l’idée en concept (V1).' },
-    { value: 'REALISATEUR', label: 'Réalisateur ou 1er AD', hint: 'Vous écrivez la V2 et l’intention de chaque rôle.' },
+    { value: 'REALISATEUR', label: 'Réalisateur ou 1er AD', hint: 'Vous écrivez la note d’intention et les rôles à caster.' },
     { value: 'BOITE_PROD', label: 'Boîte de production', hint: 'Vous organisez le casting et la PPM.' }
   ];
   role: ProRole | '' = '';

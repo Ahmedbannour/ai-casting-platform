@@ -141,7 +141,7 @@ const bell = async t => +(await t.p.locator('app-notification-bell .badge:visibl
       await p.waitForURL(/mes-demandes/); await ecran(T.assist, null, 'publicites');
     }),
     etape(T.marque, 'écrire et envoyer la V0 (téléphone)', async () => {
-      const p = T.marque.p; await p.goto(BASE + '/demandes/' + id); await ecran(T.marque, null, 'projet-v0');
+      const p = T.marque.p; await p.goto(BASE + '/demandes/' + id + '/historique'); await ecran(T.marque, null, 'projet-v0');
       await p.fill('textarea[name=v0]', 'Une famille sous un olivier centenaire, la lumière de fin de journée, la bouteille passe de main en main.');
       await p.getByRole('button', { name: 'Enregistrer le texte et le lien' }).click(); await sleep(800);
       await p.locator('button.send', { hasText: 'Envoyer à' }).click(); await sleep(1500);
@@ -152,12 +152,12 @@ const bell = async t => +(await t.p.locator('app-notification-bell .badge:visibl
   await T.agence.p.goto(BASE + '/mes-demandes'); await sleep(800);
   await voitSansRecharger(T.agence, 'la V0 envoyée apparaît (page déjà ouverte)', async () => (await T.agence.p.locator('.list li', { hasText: 'Zitouna' }).locator('.st').innerText()).includes('V0'), 20000);
   await etape(T.agence, 'accepter, écrire et livrer la V1', async () => {
-    const p = T.agence.p; await p.goto(BASE + '/demandes/' + id); await ecran(T.agence, null, 'v0-recue');
+    const p = T.agence.p; await p.goto(BASE + '/demandes/' + id + '/historique'); await ecran(T.agence, null, 'v0-recue');
     await p.getByRole('button', { name: 'Accepter la demande' }).click(); await sleep(1200);
     await p.fill('textarea[name=v1]', 'Concept : « L’arbre qui nourrit » — 30 s, trois générations, voix off de la grand-mère.');
     await p.getByRole('button', { name: /^Livrer la V1/ }).click(); await sleep(1500); await ecran(T.agence, null, 'v1-livree');
   });
-  await T.marque.p.goto(BASE + '/demandes/' + id); await sleep(800);
+  await T.marque.p.goto(BASE + '/demandes/' + id + '/historique'); await sleep(800);
   const avant = await T.marque.p.locator('.now-card p').innerText().catch(() => '');
   report.etapes.push({ testeur: T.marque.label, etape: 'état affiché avant rechargement', ok: true, ms: 0, note: avant });
   await etape(T.marque, 'valider la V1 (téléphone)', async () => {
@@ -166,11 +166,11 @@ const bell = async t => +(await t.p.locator('app-notification-bell .badge:visibl
   });
 
   // ── 4 bis. Discussion : la marque pose une question au producer au lieu de l'appeler ──
-  await T.prod.p.goto(BASE + '/demandes/' + id); await sleep(1500);
+  await T.prod.p.goto(BASE + '/demandes/' + id + '/historique'); await sleep(1500);
   const avantMsg = await T.prod.p.locator('app-discussion .msgs li').count().catch(() => 0);
   const avantCloche = await bell(T.prod);
   await etape(T.marque, 'question à l’équipe avec @mention (téléphone)', async () => {
-    const p = T.marque.p; await p.goto(BASE + '/demandes/' + id); await sleep(1000);
+    const p = T.marque.p; await p.goto(BASE + '/demandes/' + id + '/historique'); await sleep(1000);
     await p.locator('#disc-in').scrollIntoViewIfNeeded();
     await p.locator('#disc-in').fill('Bonjour, ');
     await p.locator('app-discussion .chip', { hasText: '@Yasmine' }).first().click();
@@ -182,14 +182,14 @@ const bell = async t => +(await t.p.locator('app-notification-bell .badge:visibl
 
   // ── 5. Production : attentes et transmission ; réalisatrice et 1er AD ──
   await etape(T.prod, 'attentes et équipe (interface puis API)', async () => {
-    const p = T.prod.p; await p.goto(BASE + '/demandes/' + id); await ecran(T.prod, null, 'attentes');
+    const p = T.prod.p; await p.goto(BASE + '/demandes/' + id + '/historique'); await ecran(T.prod, null, 'attentes');
     await j(`/demandes/${id}/personnages`, { method: 'POST', body: JSON.stringify({ name: 'La grand-mère', story: 'Elle cueille les olives', brandWish: 'Femme de 65 à 75 ans, sourire franc' }) }, acc.prod.tk);
     const tr = await j(`/demandes/${id}/transmettre`, { method: 'POST', body: JSON.stringify({ directorId: uid(acc.real.email), firstAdId: uid(acc.ad.email) }) }, acc.prod.tk);
     if (tr.s !== 200) throw new Error('transmission ' + tr.s + ' ' + JSON.stringify(tr.b).slice(0, 120));
   });
   await Promise.all([ecran(T.real, '/mes-demandes', 'publicites'), ecran(T.ad, '/mes-demandes', 'publicites')]);
   await etape(T.real, 'écrire la V2, un rôle, publier', async () => {
-    const p = T.real.p; await p.goto(BASE + '/demandes/' + id); await ecran(T.real, null, 'v2');
+    const p = T.real.p; await p.goto(BASE + '/demandes/' + id + '/historique'); await ecran(T.real, null, 'v2');
     await j(`/demandes/${id}/v2`, { method: 'PUT', body: JSON.stringify({ body: 'V2 : plan large sur l’oliveraie, puis la table familiale.' }) }, acc.real.tk);
     await j(`/demandes/${id}/roles`, { method: 'POST', body: JSON.stringify({ name: 'La grand-mère', intention: 'Une femme solaire, des mains qui racontent une vie de récoltes.', importance: 'PRINCIPAL', gender: 'Femme', minAge: 65, maxAge: 78 }) }, acc.real.tk);
     const pub = await j(`/demandes/${id}/v2/publier`, { method: 'POST' }, acc.real.tk);

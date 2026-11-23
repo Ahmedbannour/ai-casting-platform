@@ -57,13 +57,20 @@ public class SheetService {
     public record FieldView(String key, String label, String hint, String kind, boolean required, String value, String source,
                             String updatedBy, LocalDateTime updatedAt, String suggestion, String suggestionFrom, boolean canEdit) {}
     public record StageView(String key, int num, String title, String owner, String intro, boolean mine, boolean canEdit, String state,
-                            int filled, int total, List<FieldView> fields, List<Line> lines, String updatedBy, LocalDateTime updatedAt, int suggestions) {}
+                            int filled, int total, List<FieldView> fields, List<Line> lines, List<RoleView> roles,
+                            String updatedBy, LocalDateTime updatedAt, int suggestions) {}
+    public record RoleView(UUID id, String name, String intention, String gender, Integer minAge, Integer maxAge) {}
+    public record RoleInput(String name, String intention, String gender, Integer minAge, Integer maxAge) {}
+    /** Où en est le dossier, qui a la main, ce qu'il manque, et le bouton de validation pour qui peut le donner. */
+    public record Gate(String phase, int phaseIndex, String title, String who, String text, String action, String actionLabel,
+                       boolean canAct, List<String> missing, boolean canAskChanges, String feedback, UUID roomId) {}
+    public record Step(String comment) {}
     public record Line(String title, String detail) {}
     public record SourceView(UUID id, String kind, String name, String url, String addedBy, LocalDateTime createdAt, String status,
                              String engine, int filled, int proposed, String message) {}
     public record Sheet(UUID requestId, UUID projectId, String title, String brandName, String status, int progress,
                         int stagesDone, int stagesTotal, String handStage, String handOwner, boolean canUpload,
-                        List<StageView> stages, List<SourceView> sources) {}
+                        List<StageView> stages, List<SourceView> sources, Gate gate, List<String> mySides) {}
     public record Value(String value) {}
     public record Link(String url) {}
 
@@ -218,7 +225,7 @@ public class SheetService {
                 SheetSchema.Stage st = SheetSchema.STAGE_BY_KEY.get(e.getKey());
                 for (UUID u : owners(r, st))
                     if (!u.equals(uploaderId)) notifications.push(u, "TOUR", "À vous : l'IA a pré-rempli « " + st.title() + " », " + r.getTitle(),
-                            who + " a déposé un document. " + e.getValue() + " champ(s) vous attendent : acceptez-les en un clic ou corrigez-les.", "/demandes/" + requestId + "/fiche#etape-" + st.key());
+                            who + " a déposé un document. " + e.getValue() + " champ(s) vous attendent : acceptez-les en un clic ou corrigez-les.", "/demandes/" + requestId + "#etape-" + st.key());
             }
             String msg = reading.message() != null ? reading.message()
                     : filled + proposed == 0 ? "L'IA n'a trouvé aucun champ de la fiche dans ce document."
@@ -238,6 +245,161 @@ public class SheetService {
                 id, requestId, kind, name.length() > 300 ? name.substring(0, 300) : name, url, by);
         return id;
     }
+
+    // ── Phases du dossier ──
+
+    /** La phase en cours et sa validation. Le producer peut tout faire, sauf valider à la place de la marque. */
+    private Gate gate(AdRequest r, Set<String> sides, Map<String, String> vals, List<StageView> stages) {
+        boolean prod = sides.contains("PROD"), brand = sides.contains("MARQUE"), agency = sides.contains("AGENCE"), real = sides.contains("REAL");
+        String agencyName = r.getAgency() == null ? "l'agence" : r.getAgency().getName();
+        UUID room = r.getProject() == null ? null : r.getProject().getId();
+        String feedback = lastFeedback(r);
+        return switch (r.getStatus()) {
+            case BROUILLON -> {
+                List<String> miss = missing(vals, "brief");
+                if (r.getAgency() == null) miss.add(0, "Inviter l'agence marketing");
+                yield new Gate("brief", 0, "Le brief", "La marque, avec le producer",
+                        "La marque rédige le brief ; le producer peut le compléter. Une fois prêt, il part chez " + agencyName + ".",
+                        "transmettre", "Transmettre le brief à l'agence", brand || prod, miss, false, null, room);
+            }
+            case V0_ENVOYEE, V1_EN_COURS -> new Gate("recommandation", 1, "La recommandation créative", "L'agence marketing",
+                    agencyName + " rédige sa recommandation créative dans le dossier, puis la présente à la marque.",
+                    "presenter", "Présenter la recommandation à la marque", agency || prod, missing(vals, "concept"), false, feedback, room);
+            case V1_LIVREE -> r.getV1ValidatedAt() == null
+                    ? new Gate("validation", 1, "La validation de la marque", "La marque",
+                        "La recommandation est présentée. La marque la valide, ou demande des modifications à l'agence.",
+                        "valider", "Valider la recommandation", brand, List.of(), brand, null, room)
+                    : new Gate("preparation", 2, "La préparation", "Le producer",
+                        "La recommandation est validée. Le producer prépare le tournage.", null, null, false, List.of(), false, null, room);
+            case V2_EN_COURS -> {
+                List<String> miss = new ArrayList<>();
+                StageView roles = stages.stream().filter(x -> x.key().equals("roles")).findFirst().orElse(null);
+                if (roles == null || roles.roles().isEmpty()) miss.add("Au moins un rôle à caster");
+                else roles.roles().stream().filter(x -> x.intention() == null || x.intention().isBlank()).forEach(x -> miss.add("L'intention du rôle « " + x.name() + " »"));
+                yield new Gate("preparation", 2, "La préparation", "Le producer et la réalisation",
+                        "Le réalisateur écrit sa note d'intention et les rôles ; le producer organise le tournage. Quand les rôles sont prêts, le casting s'ouvre dans la room.",
+                        "lancer", "Lancer le casting", prod || real, miss, false, null, room);
+            }
+            case V2_LIVREE, CASTING, PPM, ACTEURS_VALIDES -> new Gate("casting", 3, "Le casting", "Toute l'équipe",
+                    "Le casting se déroule dans la room : swipe, résultats, auditions, jusqu'à la PPM.", null, null, false, List.of(), false, null, room);
+            case CLOTUREE -> new Gate("fin", 4, "Projet clôturé", "", "Le film est terminé.", null, null, false, List.of(), false, null, room);
+            case ANNULEE -> new Gate("annule", 0, "Projet annulé", "", "Ce projet a été annulé.", null, null, false, List.of(), false, null, room);
+        };
+    }
+
+    private static List<String> missing(Map<String, String> vals, String stage) {
+        List<String> m = new ArrayList<>();
+        for (SheetSchema.Field f : SheetSchema.fieldsOf(stage)) if (f.required() && (vals.get(f.key()) == null || vals.get(f.key()).isBlank())) m.add(f.label());
+        return m;
+    }
+
+    /** Le dernier retour de la marque, tant que la recommandation n'a pas été représentée. */
+    private String lastFeedback(AdRequest r) {
+        return jdbc.query("select type, message from ad_events where request_id = ? and type in ('RECO_A_REVOIR', 'V1_REVISION', 'RECO_PRESENTEE', 'V1_LIVREE') order by created_at desc limit 1",
+            rs -> {
+                if (!rs.next()) return null;
+                String t = rs.getString(1);
+                return t.equals("RECO_A_REVOIR") || t.equals("V1_REVISION") ? rs.getString(2) : null;
+            }, r.getId());
+    }
+
+    /** Passer à la phase suivante : transmettre, présenter, valider, demander des modifications, lancer le casting. */
+    @Transactional
+    public Sheet step(String email, UUID id, String action, String comment) {
+        User me = access.user(email);
+        AdRequest r = readable(me, id);
+        Set<String> s = sides(me, r);
+        switch (action) {
+            case "transmettre" -> {
+                if (!s.contains("MARQUE") && !s.contains("PROD")) throw new ForbiddenException("La marque ou le producer transmet le brief");
+                List<String> miss = missing(values(r), "brief");
+                if (!miss.isEmpty()) throw new IllegalArgumentException("Complétez d'abord le brief : " + String.join(", ", miss));
+                demandes.dossierSendBrief(me, r);
+            }
+            case "presenter" -> {
+                if (!s.contains("AGENCE") && !s.contains("PROD")) throw new ForbiddenException("L'agence ou le producer présente la recommandation");
+                List<String> miss = missing(values(r), "concept");
+                if (!miss.isEmpty()) throw new IllegalArgumentException("Complétez d'abord la recommandation : " + String.join(", ", miss));
+                if (r.getStatus() == AdRequest.Status.V0_ENVOYEE) r.setStatus(AdRequest.Status.V1_EN_COURS);
+                demandes.dossierPresentReco(me, r);
+            }
+            case "valider" -> {
+                if (!s.contains("MARQUE")) throw new ForbiddenException("Seule la marque valide la recommandation");
+                demandes.dossierValidateReco(me, r);
+            }
+            case "modifier" -> {
+                if (!s.contains("MARQUE")) throw new ForbiddenException("Seule la marque demande des modifications");
+                demandes.dossierAskChanges(me, r, comment);
+                jdbc.update("insert into demande_comments (id, request_id, author_id, body) values (?, ?, ?, ?)",
+                        UUID.randomUUID(), r.getId(), me.getId(), "Modifications demandées sur la recommandation : " + comment.trim());
+            }
+            case "lancer" -> {
+                if (!s.contains("PROD") && !s.contains("REAL")) throw new ForbiddenException("Le producer ou la réalisation lance le casting");
+                demandes.dossierLaunchCasting(me, r);
+            }
+            default -> throw new ResourceNotFoundException("Étape inconnue");
+        }
+        requests.save(r);
+        return view(me, requests.findById(r.getId()).orElseThrow());
+    }
+
+    // ── Rôles à caster, écrits dans le dossier ──
+
+    private List<RoleView> roles(UUID requestId) {
+        return jdbc.query("select id, name, intention, gender, min_age, max_age from ad_roles where request_id = ? order by position, created_at",
+                (rs, i) -> new RoleView((UUID) rs.getObject(1), rs.getString(2), rs.getString(3), rs.getString(4),
+                        (Integer) rs.getObject(5), (Integer) rs.getObject(6)), requestId);
+    }
+
+    private AdRequest rolesEditable(User me, UUID id) {
+        AdRequest r = readable(me, id);
+        if (!editable(me, r, "roles")) throw new ForbiddenException("Les rôles sont écrits par la réalisation ou le producer");
+        if (r.getV2PublishedAt() != null) throw new IllegalArgumentException("Le casting est lancé : les rôles se gèrent dans la room");
+        return r;
+    }
+
+    private static void check(RoleInput in) {
+        if (in == null || in.name() == null || in.name().isBlank()) throw new IllegalArgumentException("Donnez un nom au rôle");
+        if (in.name().length() > 120) throw new IllegalArgumentException("120 caractères au plus pour le nom");
+        if (in.gender() != null && !in.gender().isBlank() && !Set.of("Femme", "Homme").contains(in.gender())) throw new IllegalArgumentException("Sexe : Femme, Homme ou indifférent");
+        for (Integer a : new Integer[]{ in.minAge(), in.maxAge() }) if (a != null && (a < 0 || a > 100)) throw new IllegalArgumentException("Âge entre 0 et 100");
+        if (in.minAge() != null && in.maxAge() != null && in.minAge() > in.maxAge()) throw new IllegalArgumentException("L'âge minimum dépasse l'âge maximum");
+    }
+
+    @Transactional
+    public Sheet addRole(String email, UUID id, RoleInput in) {
+        User me = access.user(email);
+        AdRequest r = rolesEditable(me, id);
+        check(in);
+        Integer pos = jdbc.queryForObject("select coalesce(max(position), -1) + 1 from ad_roles where request_id = ?", Integer.class, r.getId());
+        jdbc.update("insert into ad_roles (id, request_id, position, name, intention, gender, min_age, max_age) values (?, ?, ?, ?, ?, ?, ?, ?)",
+                UUID.randomUUID(), r.getId(), pos, in.name().trim(), blank(in.intention()), blank(in.gender()), in.minAge(), in.maxAge());
+        jdbc.update("update ad_requests set updated_at = now() where id = ?", r.getId());
+        return view(me, r);
+    }
+
+    @Transactional
+    public Sheet updateRole(String email, UUID id, UUID roleId, RoleInput in) {
+        User me = access.user(email);
+        AdRequest r = rolesEditable(me, id);
+        check(in);
+        int n = jdbc.update("update ad_roles set name = ?, intention = ?, gender = ?, min_age = ?, max_age = ? where id = ? and request_id = ?",
+                in.name().trim(), blank(in.intention()), blank(in.gender()), in.minAge(), in.maxAge(), roleId, r.getId());
+        if (n == 0) throw new ResourceNotFoundException("Rôle introuvable");
+        jdbc.update("update ad_requests set updated_at = now() where id = ?", r.getId());
+        return view(me, r);
+    }
+
+    @Transactional
+    public Sheet deleteRole(String email, UUID id, UUID roleId) {
+        User me = access.user(email);
+        AdRequest r = rolesEditable(me, id);
+        jdbc.update("delete from ad_roles where id = ? and request_id = ?", roleId, r.getId());
+        jdbc.update("update ad_requests set updated_at = now() where id = ?", r.getId());
+        return view(me, r);
+    }
+
+    private static String blank(String s) { return s == null || s.isBlank() ? null : s.trim(); }
 
     // ── Droits ──
 
@@ -335,7 +497,12 @@ public class SheetService {
             List<Line> lines = new ArrayList<>();
             int filled = 0, total = 0, sugg = 0;
             String lastBy = null; LocalDateTime lastAt = null;
-            if (!st.auto()) {
+            List<RoleView> roles = new ArrayList<>();
+            if (st.key().equals("roles")) {
+                roles.addAll(roles(r.getId()));
+                can = can && r.getV2PublishedAt() == null;   // une fois le casting lancé, les rôles vivent dans la room
+                total = 1; filled = !roles.isEmpty() && roles.stream().allMatch(x -> x.intention() != null && !x.intention().isBlank()) ? 1 : 0;
+            } else if (!st.auto()) {
                 for (SheetSchema.Field f : SheetSchema.fieldsOf(st.key())) {
                     String v = vals.get(f.key());
                     Meta m = meta.get(f.key());
@@ -347,14 +514,6 @@ public class SheetService {
                             m == null ? (has ? "MANUEL" : null) : m.source(), m == null ? null : m.by(), m == null ? null : m.at(),
                             m == null ? null : m.suggestion(), m == null ? null : m.suggestionFrom(), can));
                 }
-            } else if (st.key().equals("roles")) {
-                jdbc.query("select name, coalesce(intention, ''), gender, min_age, max_age from ad_roles where request_id = ? order by position", rs -> {
-                    String age = rs.getObject(4) == null ? "" : (rs.getInt(4) + (rs.getObject(5) == null ? "+ ans" : "–" + rs.getInt(5) + " ans"));
-                    String g = rs.getString(3) == null ? "" : rs.getString(3);
-                    String detail = String.join(" · ", List.of(g, age).stream().filter(x -> !x.isBlank()).toList());
-                    lines.add(new Line(rs.getString(1), (detail.isEmpty() ? "" : detail + " — ") + rs.getString(2)));
-                }, r.getId());
-                total = 1; filled = lines.isEmpty() ? 0 : 1;
             } else {
                 if (r.getProject() != null) jdbc.query("""
                     select cr.name, count(e.id), count(e.id) filter (where e.status in ('AUDITION','RAPPEL')), count(e.id) filter (where e.status = 'CHOISI')
@@ -368,7 +527,7 @@ public class SheetService {
             String state = total > 0 && filled >= total ? "complete" : filled > 0 ? "encours" : "vide";
             if (state.equals("complete")) done++;
             else if (hand == null) { hand = st.key(); handOwner = st.owner(); }
-            stages.add(new StageView(st.key(), st.num(), st.title(), st.owner(), st.intro(), mine, can, state, filled, total, fields, lines, lastBy, lastAt, sugg));
+            stages.add(new StageView(st.key(), st.num(), st.title(), st.owner(), st.intro(), mine, can, state, filled, total, fields, lines, roles, lastBy, lastAt, sugg));
         }
         int req = 0, got = 0;
         for (StageView s : stages) { req += s.total(); got += Math.min(s.filled(), s.total()); }
@@ -379,6 +538,7 @@ public class SheetService {
                     rs.getTimestamp(6).toLocalDateTime(), rs.getString(7), rs.getString(8), rs.getInt(9), rs.getInt(10), rs.getString(11)), r.getId());
         return new Sheet(r.getId(), r.getProject() == null ? null : r.getProject().getId(), r.getTitle(),
                 r.getBrand() == null ? null : r.getBrand().getName(), r.getStatus().name(),
-                req == 0 ? 0 : Math.round(got * 100f / req), done, stages.size(), hand, handOwner, !mySides.isEmpty(), stages, sources);
+                req == 0 ? 0 : Math.round(got * 100f / req), done, stages.size(), hand, handOwner, !mySides.isEmpty(), stages, sources,
+                gate(r, mySides, vals, stages), List.copyOf(mySides));
     }
 }

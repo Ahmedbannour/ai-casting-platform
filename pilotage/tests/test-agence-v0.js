@@ -34,14 +34,14 @@ async function login(b, a) {
   const m = await login(b, acc.M);
   const ptk = (await j('/auth/login', { method: 'POST', body: JSON.stringify({ email: acc.P.email, password: acc.P.pw }) })).b.accessToken;
   const id = await projet(j, { prodTk: ptk, title: 'Recette Huile du Sahel ' + st, brand: acc.M.email, agency: acc.A.email });
-  await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1200);
+  await m.goto(BASE + '/demandes/' + id + '/historique'); await m.waitForTimeout(1200);
   await m.fill('textarea[name=v0]', 'Un grand-père récolte les olives avec sa petite-fille au lever du soleil, dans les collines du Sahel.');
   await m.setInputFiles('.drop input[type=file]', path.join(__dirname, 'v0-recette.pdf')); await m.waitForTimeout(1500);
   await m.locator('button.send', { hasText: 'Envoyer à' }).click(); await m.waitForTimeout(1500);
   res.envoiAlpha = await m.locator('.steps .now').innerText();
   // Alpha : analyse puis refus
   const a = await login(b, acc.A);
-  await a.goto(BASE + '/demandes/' + id); await a.waitForTimeout(1500);
+  await a.goto(BASE + '/demandes/' + id + '/historique'); await a.waitForTimeout(1500);
   res.alphaBoutons = await a.locator('.answer button').allInnerTexts();
   const t0 = Date.now();
   await a.getByRole('button', { name: 'Analyser la V0' }).click();
@@ -60,7 +60,7 @@ async function login(b, a) {
   await a.getByRole('button', { name: 'Refuser la demande' }).click(); await a.waitForURL(/mes-demandes/, { timeout: 10000 }); await a.waitForTimeout(1200);
   res.alphaListeApresRefus = await a.locator('.list li').count();
   // Marque : bannière de refus, renvoi à Beta
-  await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1500);
+  await m.goto(BASE + '/demandes/' + id + '/historique'); await m.waitForTimeout(1500);
   res.banniereRefus = await m.locator('.warn').innerText().catch(() => '');
   res.marqueModifiable = await m.locator('input[name=title]').count() === 1;
   // Le producer invite une autre agence ; la marque renvoie sa V0
@@ -70,7 +70,7 @@ async function login(b, a) {
   await m.locator('button.send', { hasText: 'Envoyer à' }).click(); await m.waitForTimeout(1500);
   // Beta : accepte
   const bb = await login(b, acc.B);
-  await bb.goto(BASE + '/demandes/' + id); await bb.waitForTimeout(1500);
+  await bb.goto(BASE + '/demandes/' + id + '/historique'); await bb.waitForTimeout(1500);
   await bb.getByRole('button', { name: 'Accepter la demande' }).click(); await bb.waitForTimeout(1500);
   res.betaMessage = await bb.locator('.ok').innerText().catch(() => '');
   res.betaEtape = await bb.locator('.steps .now').innerText();
@@ -80,7 +80,7 @@ async function login(b, a) {
   const mtk = (await j('/auth/login', { method: 'POST', body: JSON.stringify({ email: acc.M.email, password: acc.M.pw }) })).b.accessToken;
   const items = (await j('/me/notifications', {}, mtk)).b.items || [];
   res.notifsMarque = items.map(n => n.title);
-  await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1500);
+  await m.goto(BASE + '/demandes/' + id + '/historique'); await m.waitForTimeout(1500);
   res.marqueEtape = await m.locator('.steps .now').innerText();
   res.marquePeutAnnuler = await m.getByRole('button', { name: 'Annuler la demande' }).count();
   res.journal = await m.locator('.journal li span').allInnerTexts();

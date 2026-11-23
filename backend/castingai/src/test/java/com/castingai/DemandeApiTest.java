@@ -277,7 +277,7 @@ class DemandeApiTest {
         assertThat(early.get("status").asString()).isEqualTo("V1_EN_COURS");
         JsonNode pv = read(send("GET", "/api/demandes/" + id, prod, null).andExpect(status().isOk()));
         assertThat(pv.get("nowWho").asString()).isEqualTo("Agence Lambda");
-        assertThat(pv.get("nowWhat").asString()).contains("V1");
+        assertThat(pv.get("nowWhat").asString()).contains("recommandation");
         assertThat(pv.get("canEditExpectations").asBoolean()).isFalse();
         assertThat(pv.get("canAttachTeam").asBoolean()).isTrue();
         assertThat(read(send("GET", "/api/me/notifications", prod, null)).get("items").toString()).contains("Publicité à venir");
@@ -299,7 +299,7 @@ class DemandeApiTest {
         assertThat(read(send("GET", "/api/demandes/" + id, director, null)).get("versions").toString()).contains("le verger");
         JsonNode val = read(send("POST", "/api/demandes/" + id + "/v1/valider", brand, null).andExpect(status().isOk()));
         assertThat(val.get("status").asString()).isEqualTo("V2_EN_COURS");
-        assertThat(val.get("nowWho").asString()).isEqualTo("Prod Mu");
+        assertThat(val.get("nowWho").asString()).isEqualTo("Rim Real");
         assertThat(read(send("GET", "/api/me/notifications", prod, null)).get("items").toString()).contains("À vous");
         // Le réalisateur n'écrit la V2 qu'une fois les attentes transmises
         send("PUT", "/api/demandes/" + id + "/v2", director, "{\"body\":\"x\"}").andExpect(status().isBadRequest());
@@ -390,7 +390,7 @@ class DemandeApiTest {
         // Aucun réalisateur : la production a la main sur la V2, sans transmission d'attentes
         JsonNode d = read(send("GET", "/api/demandes/" + id, prod, null));
         assertThat(d.get("canEditV2").asBoolean()).isTrue();
-        assertThat(d.get("nowWhat").asString()).contains("écrit la V2");
+        assertThat(d.get("nowWhat").asString()).contains("rôles à caster");
         send("PUT", "/api/demandes/" + id + "/v2", agency, "{\"body\":\"x\"}").andExpect(status().isForbidden());
         send("PUT", "/api/demandes/" + id + "/v2", prod, "{\"body\":\"V2 : deux plans au souk, 20 secondes.\"}").andExpect(status().isOk());
         send("POST", "/api/demandes/" + id + "/roles", prod, "{\"name\":\"Le vendeur de thé\",\"intention\":\"Un homme chaleureux qui offre le thé comme on offre son temps.\",\"importance\":\"PRINCIPAL\"}").andExpect(status().isOk());
@@ -461,7 +461,7 @@ class DemandeApiTest {
         assertThat(after.get("roles").size()).isEqualTo(2);
         assertThat(after.get("versions").toString()).contains("lumière rasante");
         assertThat(after.get("projectId").asString()).isEqualTo(projectId); // la marque rejoint la room du projet
-        assertThat(read(send("GET", "/api/me/notifications", brand, null)).get("items").toString()).contains("V2 publiée");
+        assertThat(read(send("GET", "/api/me/notifications", brand, null)).get("items").toString()).contains("Casting lancé");
     }
 
     /** Une V0 ou une V1 peut être une présentation Canva : lien https seul suffit ; l'analyse signale qu'il faut aussi le PDF. */

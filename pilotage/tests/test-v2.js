@@ -51,7 +51,7 @@ async function login(b, a) {
   if (tr.s !== 200) throw new Error('transmission ' + tr.s);
   const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   const r = await login(b, acc.r);
-  await r.goto(BASE + '/demandes/' + id); await r.waitForTimeout(1500);
+  await r.goto(BASE + '/demandes/' + id + '/historique'); await r.waitForTimeout(1500);
   res.publierBloque = await r.getByRole('button', { name: 'Publier la V2 et lancer le casting' }).isDisabled();
   await r.fill('textarea[name=v2]', 'V2 : la médina au petit matin, trois plans, 30 secondes, lumière douce.');
   await r.getByRole('button', { name: 'Ajouter une scène' }).click();
@@ -87,7 +87,7 @@ async function login(b, a) {
   res.projetMontreRoles = ['Leila', 'Passants de la médina'].map(n => n + ' : ' + txt.includes(n));
   await r.screenshot({ path: path.join(OUT, 'v2-casting-ouvert.jpg'), type: 'jpeg', quality: 75, fullPage: true });
   const m = await login(b, acc.m);
-  await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1500);
+  await m.goto(BASE + '/demandes/' + id + '/historique'); await m.waitForTimeout(1500);
   res.marqueVoitRoles = await m.locator('.chars .char-head b').allInnerTexts();
   res.marqueLienCasting = await m.getByRole('link', { name: 'Ouvrir le casting' }).count();
   res.erreurs = [...r.errs, ...m.errs];

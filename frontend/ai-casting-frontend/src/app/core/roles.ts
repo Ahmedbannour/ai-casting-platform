@@ -20,7 +20,7 @@ export const CASTING_ROLES: Role[] = ['ADMIN', 'BOITE_PROD', 'REALISATEUR'];
 export const PERMS: { key: string; label: string; hint: string }[] = [
   { key: 'PROJETS', label: 'Créer les projets', hint: 'Créer, modifier et annuler les projets de publicité' },
   { key: 'INVITATIONS', label: 'Inviter marque et agence', hint: 'Envoyer les invitations à la marque et à l’agence marketing' },
-  { key: 'EQUIPE', label: 'Réalisateur et attentes', hint: 'Rattacher le réalisateur, recueillir les attentes, écrire la V2 sans réalisateur' },
+  { key: 'EQUIPE', label: 'Réalisateur et attentes', hint: 'Rattacher le réalisateur, écrire la note d’intention et les rôles sans réalisateur' },
   { key: 'ROOM', label: 'Diriger la room', hint: 'Tâches, documents et autorisations de la room de casting' },
   { key: 'CASTING', label: 'Casting', hint: 'Vivier d’acteurs, projets, propositions IA et shortlists' }
 ];

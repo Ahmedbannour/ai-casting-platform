@@ -46,7 +46,7 @@ async function login(b, a) {
   const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   // Production : deux personnages, une modification, transmission
   const p = await login(b, acc.p);
-  await p.goto(BASE + '/demandes/' + id); await p.waitForTimeout(1500);
+  await p.goto(BASE + '/demandes/' + id + '/historique'); await p.waitForTimeout(1500);
   res.transmettreBloqueSansPersonnage = await p.getByRole('button', { name: 'Transmettre les attentes' }).isDisabled();
   await p.getByRole('button', { name: 'Ajouter un personnage' }).click();
   await p.fill('input[name=cname]', 'Leila');
@@ -79,7 +79,7 @@ async function login(b, a) {
   await r.screenshot({ path: path.join(OUT, 'v2-attentes-realisateur.jpg'), type: 'jpeg', quality: 75, fullPage: true });
   // Marque : voit aussi les attentes
   const m = await login(b, acc.m);
-  await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1500);
+  await m.goto(BASE + '/demandes/' + id + '/historique'); await m.waitForTimeout(1500);
   res.marqueVoitPersonnages = await m.locator('.chars .char-head b').allInnerTexts();
   const n = (await j('/me/notifications', {}, acc.ad.tk)).b.items || [];
   res.notifAssistant = n.map(x => x.title);

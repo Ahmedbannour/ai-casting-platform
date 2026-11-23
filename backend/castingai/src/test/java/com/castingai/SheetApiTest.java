@@ -64,57 +64,85 @@ class SheetApiTest {
     }
 
     @Test
-    void chaqueRoleRemplitSonEtapeEtUnBriefDeposePreRemplitLaFiche() throws Exception {
+    void leDossierSeConstruitAuFilDesRolesJusquALaRoom() throws Exception {
         String admin = login("ahmed@casting.com", "password123");
         String prod = account(admin, "fiche.prod@exemple.tn", "BOITE_PROD", org(admin, "Prod Fiche", "BOITE_PROD"));
         String brand = account(admin, "fiche.marque@exemple.tn", "MARQUE", org(admin, "Marque Fiche", "MARQUE"));
         String agency = account(admin, "fiche.agence@exemple.tn", "AGENCE_MARKETING", org(admin, "Agence Fiche", "AGENCE_MARKETING"));
         String outsider = account(admin, "fiche.autre@exemple.tn", "MARQUE", org(admin, "Marque Autre", "MARQUE"));
         String id = read(send("POST", "/api/demandes", prod, "{\"title\":\"Spot Zitouna\"}").andExpect(status().isCreated())).get("id").asString();
+        String base = "/api/demandes/" + id + "/fiche";
+
+        // Phase brief : la transmission attend l'agence et un brief complet
+        JsonNode f = read(send("GET", base, prod, null).andExpect(status().isOk()));
+        assertThat(f.get("stages").size()).isEqualTo(7);
+        assertThat(f.get("gate").get("phase").asString()).isEqualTo("brief");
+        assertThat(f.get("gate").get("missing").toString()).contains("Inviter l'agence marketing");
+        assertThat(field(stage(f, "brief"), "titre").get("value").asString()).isEqualTo("Spot Zitouna");   // une seule source : la demande
         send("POST", "/api/demandes/" + id + "/invitations", prod, "{\"email\":\"fiche.marque@exemple.tn\",\"kind\":\"MARQUE\"}").andExpect(status().isOk());
         send("POST", "/api/demandes/" + id + "/invitations", prod, "{\"email\":\"fiche.agence@exemple.tn\",\"kind\":\"AGENCE_MARKETING\"}").andExpect(status().isOk());
-
-        // Même fiche pour tous, droits différents : la marque modifie le brief, pas le concept
-        JsonNode f = read(send("GET", "/api/demandes/" + id + "/fiche", brand, null).andExpect(status().isOk()));
-        assertThat(f.get("stages").size()).isEqualTo(7);
+        f = read(send("GET", base, brand, null));
         assertThat(stage(f, "brief").get("canEdit").asBoolean()).isTrue();
         assertThat(stage(f, "concept").get("canEdit").asBoolean()).isFalse();
-        assertThat(stage(f, "identite").get("fields").get(0).get("value").asString()).isEqualTo("Spot Zitouna");   // une seule source : la demande
-        send("PUT", "/api/demandes/" + id + "/fiche/champs/objectif", brand, "{\"value\":\"Faire aimer la bouteille\"}").andExpect(status().isOk());
-        send("PUT", "/api/demandes/" + id + "/fiche/champs/idee", brand, "{\"value\":\"Une idee\"}").andExpect(status().isForbidden());
-        send("PUT", "/api/demandes/" + id + "/fiche/champs/idee", agency, "{\"value\":\"La famille sous l'olivier\"}").andExpect(status().isOk());
-        send("GET", "/api/demandes/" + id + "/fiche", outsider, null).andExpect(status().isNotFound());
-        assertThat(read(send("GET", "/api/demandes/" + id, brand, null)).get("objective").asString()).isEqualTo("Faire aimer la bouteille");
+        assertThat(stage(read(send("GET", base, prod, null)), "concept").get("canEdit").asBoolean()).isTrue();   // le producer complète tout
+        send("PUT", base + "/champs/objectif", brand, "{\"value\":\"Faire aimer la bouteille\"}").andExpect(status().isOk());
+        send("PUT", base + "/champs/idee", brand, "{\"value\":\"Une idee\"}").andExpect(status().isForbidden());
+        send("GET", base, outsider, null).andExpect(status().isNotFound());
+        send("POST", base + "/etapes/transmettre", brand, null).andExpect(status().isBadRequest());   // brief incomplet
+        send("POST", base + "/etapes/transmettre", agency, null).andExpect(status().isForbidden());
 
-        // La marque dépose son brief : son étape se remplit, le reste devient des propositions
-        var file = new org.springframework.mock.web.MockMultipartFile("file", "brief.txt", "text/plain", com.castingai.sheet.SheetReadingTest.BRIEF.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        mvc.perform(multipart("/api/demandes/" + id + "/fiche/sources").file(file).header("Authorization", brand)).andExpect(status().isOk());
+        // La marque dépose son brief : ses chapitres se remplissent, le reste part en propositions
+        String doc = com.castingai.sheet.SheetReadingTest.BRIEF + "\nConcept : trois générations autour d'un olivier centenaire\nLieux de tournage : oliveraie de Sfax\n";
+        var file = new org.springframework.mock.web.MockMultipartFile("file", "brief.txt", "text/plain", doc.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        mvc.perform(multipart(base + "/sources").file(file).header("Authorization", brand)).andExpect(status().isOk());
         JsonNode done = null;
-        for (int i = 0; i < 60; i++) {
-            done = read(send("GET", "/api/demandes/" + id + "/fiche", brand, null));
+        for (int i = 0; i < 80; i++) {
+            done = read(send("GET", base, brand, null));
             if (!done.get("sources").get(0).get("status").asString().equals("LECTURE")) break;
             Thread.sleep(250);
         }
-        JsonNode src = done.get("sources").get(0);
-        assertThat(src.get("status").asString()).isEqualTo("FAIT");
-        assertThat(src.get("filled").asInt()).isGreaterThanOrEqualTo(3);   // cible, message, ton, contraintes
+        assertThat(done.get("sources").get(0).get("status").asString()).isEqualTo("FAIT");
         assertThat(field(stage(done, "brief"), "cible").get("value").asString()).startsWith("Familles tunisiennes");
         assertThat(field(stage(done, "brief"), "cible").get("source").asString()).isEqualTo("IA");
-        // L'objectif déjà écrit n'est pas écrasé : proposition
-        assertThat(field(stage(done, "brief"), "objectif").get("value").asString()).isEqualTo("Faire aimer la bouteille");
+        assertThat(field(stage(done, "diffusion"), "supports").get("value").asString()).contains("Instagram");
+        assertThat(field(stage(done, "brief"), "objectif").get("value").asString()).isEqualTo("Faire aimer la bouteille");   // jamais écrasé
         assertThat(field(stage(done, "brief"), "objectif").get("suggestion").asString()).startsWith("faire connaître");
-        // Le producer reçoit les champs de son étape en propositions, et une notification
-        JsonNode p = read(send("GET", "/api/demandes/" + id + "/fiche", prod, null));
-        assertThat(field(stage(p, "identite"), "supports").get("suggestion").asString()).contains("Instagram");
-        assertThat(read(send("GET", "/api/me/notifications", prod, null)).get("items").toString()).contains("pré-rempli");
-        send("POST", "/api/demandes/" + id + "/fiche/champs/supports/accepter", brand, null).andExpect(status().isForbidden());
-        JsonNode acc = read(send("POST", "/api/demandes/" + id + "/fiche/champs/supports/accepter", prod, null).andExpect(status().isOk()));
-        assertThat(field(stage(acc, "identite"), "supports").get("value").asString()).contains("Instagram");
-        JsonNode dec = read(send("POST", "/api/demandes/" + id + "/fiche/champs/diffusion/ecarter", prod, null).andExpect(status().isOk()));
-        assertThat(field(stage(dec, "identite"), "diffusion").get("suggestion").isNull()).isTrue();
+        assertThat(field(stage(done, "concept"), "idee").get("suggestion").asString()).contains("olivier");
+        assertThat(read(send("GET", "/api/me/notifications", agency, null)).get("items").toString()).contains("pré-rempli");
+        send("POST", base + "/champs/objectif/accepter", agency, null).andExpect(status().isForbidden());
+        assertThat(field(stage(read(send("POST", base + "/champs/objectif/ecarter", brand, null).andExpect(status().isOk())), "brief"), "objectif").get("suggestion").isNull()).isTrue();
 
-        // Un lien interne est refusé tout de suite
-        send("POST", "/api/demandes/" + id + "/fiche/liens", brand, "{\"url\":\"https://127.0.0.1/brief\"}").andExpect(status().isBadRequest());
+        // Transmission du brief, recommandation, retour de la marque, validation
+        assertThat(read(send("POST", base + "/etapes/transmettre", brand, null).andExpect(status().isOk())).get("gate").get("phase").asString()).isEqualTo("recommandation");
+        send("POST", base + "/champs/idee/accepter", agency, null).andExpect(status().isOk());
+        send("POST", base + "/etapes/presenter", agency, null).andExpect(status().isBadRequest());   // déroulé manquant
+        send("PUT", base + "/champs/deroule", agency, "{\"value\":\"La bouteille passe de main en main\"}").andExpect(status().isOk());
+        assertThat(read(send("POST", base + "/etapes/presenter", agency, null).andExpect(status().isOk())).get("gate").get("phase").asString()).isEqualTo("validation");
+        send("POST", base + "/etapes/valider", agency, null).andExpect(status().isForbidden());
+        send("POST", base + "/etapes/valider", prod, null).andExpect(status().isForbidden());   // seule la marque valide
+        send("POST", base + "/etapes/modifier", brand, "{\"comment\":\"\"}").andExpect(status().isBadRequest());
+        JsonNode back = read(send("POST", base + "/etapes/modifier", brand, "{\"comment\":\"Montrez la famille au réveil\"}").andExpect(status().isOk()));
+        assertThat(back.get("gate").get("phase").asString()).isEqualTo("recommandation");
+        assertThat(read(send("GET", base, agency, null)).get("gate").get("feedback").asString()).contains("Montrez la famille");
+        assertThat(read(send("GET", "/api/demandes/" + id + "/discussion", agency, null)).get("comments").toString()).contains("Montrez la famille");
+        send("POST", base + "/etapes/presenter", agency, null).andExpect(status().isOk());
+        assertThat(read(send("POST", base + "/etapes/valider", brand, null).andExpect(status().isOk())).get("gate").get("phase").asString()).isEqualTo("preparation");
+
+        // Préparation : rôles écrits dans le dossier, puis le casting ouvre la room
+        send("POST", base + "/roles", brand, "{\"name\":\"La grand-mère\"}").andExpect(status().isForbidden());
+        JsonNode withRole = read(send("POST", base + "/roles", prod, "{\"name\":\"La grand-mère\",\"gender\":\"Femme\",\"minAge\":60,\"maxAge\":75}").andExpect(status().isOk()));
+        String roleId = stage(withRole, "roles").get("roles").get(0).get("id").asString();
+        send("POST", base + "/etapes/lancer", prod, null).andExpect(status().isBadRequest());   // intention manquante
+        send("PUT", base + "/roles/" + roleId, prod, "{\"name\":\"La grand-mère\",\"intention\":\"Une femme solaire\",\"gender\":\"Femme\",\"minAge\":60,\"maxAge\":75}").andExpect(status().isOk());
+        JsonNode launched = read(send("POST", base + "/etapes/lancer", prod, null).andExpect(status().isOk()));
+        assertThat(launched.get("gate").get("phase").asString()).isEqualTo("casting");
+        String room = launched.get("gate").get("roomId").asString();
+        assertThat(room).isNotBlank();
+        JsonNode inRoom = read(send("GET", "/api/rooms/" + room + "/fiche", brand, null).andExpect(status().isOk()));
+        assertThat(inRoom.get("requestId").asString()).isEqualTo(id);
+        assertThat(read(send("GET", "/api/rooms/" + room, brand, null)).get("roles").get(0).get("name").asString()).isEqualTo("La grand-mère");
+        send("POST", base + "/roles", prod, "{\"name\":\"Le petit-fils\"}").andExpect(status().isBadRequest());   // les rôles vivent désormais dans la room
+        send("POST", base + "/liens", brand, "{\"url\":\"https://127.0.0.1/brief\"}").andExpect(status().isBadRequest());
     }
 
     private static JsonNode stage(JsonNode sheet, String key) {

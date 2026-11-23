@@ -53,7 +53,7 @@ Lieux de tournage : oliveraie de Sfax, cuisine traditionnelle à Tunis`;
   await m.goto(BASE + '/demandes/' + id + '/fiche'); await m.waitForSelector('app-fiche .hero', { timeout: 15000 });
   await m.waitForTimeout(1200); await m.screenshot({ path: path.join(OUT, 'fiche-marque-haut.png') });
   ok(await m.locator('app-fiche .stage').count() === 7, 'sept étapes affichées');
-  ok((await m.locator('#etape-brief .owner').innerText()).includes('Votre étape'), 'la marque voit le brief comme son étape');
+  ok((await m.locator('#etape-brief .owner').innerText()).includes('Votre chapitre'), 'la marque voit le brief comme son chapitre');
   ok((await m.locator('#etape-concept .edit-btn').count()) === 0, 'la marque ne peut pas modifier le concept');
   const t0 = Date.now();
   await m.locator('app-fiche app-dropzone input[type=file]').setInputFiles(file);
@@ -88,10 +88,10 @@ Lieux de tournage : oliveraie de Sfax, cuisine traditionnelle à Tunis`;
   // ── Le producer : l'identité du projet l'attend ──
   const p = await login(b, acc.P); await p.setViewportSize({ width: 1500, height: 950 });
   await p.goto(BASE + '/demandes/' + id + '/fiche'); await p.waitForSelector('app-fiche .hero'); await p.waitForTimeout(1200);
-  ok(await p.locator('#etape-identite .sugg').count() >= 2, 'le producer reçoit les propositions de l’identité (produit, durée, supports…)');
+  ok(await p.locator('#etape-concept .sugg').count() >= 1, 'le producer voit aussi les propositions du concept (il peut tout compléter)');
   ok(await p.locator('#etape-production .sugg').count() >= 1, 'et celle des lieux de tournage');
-  await p.locator('#etape-identite').scrollIntoViewIfNeeded(); await p.waitForTimeout(900);
-  await p.screenshot({ path: path.join(OUT, 'fiche-producer-identite.png') });
+  await p.locator('#etape-production').scrollIntoViewIfNeeded(); await p.waitForTimeout(900);
+  await p.screenshot({ path: path.join(OUT, 'fiche-producer-production.png') });
   ok((await j('/me/notifications', {}, acc.P.tk)).b.items.some(n => /pré-rempli/.test(n.title)), 'le producer est prévenu dans sa cloche');
   // Modifier en place
   await p.locator('#etape-production .f', { hasText: 'Dates de tournage' }).getByRole('button', { name: /Remplir/ }).click();

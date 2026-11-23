@@ -37,14 +37,14 @@ async function login(b, a) {
   const b = await chromium.launch({ channel: 'msedge', headless: !process.env.HEADED, slowMo: process.env.HEADED ? 120 : 0 });
   // Agence : écrit et livre la V1
   const a = await login(b, acc.A);
-  await a.goto(BASE + '/demandes/' + id); await a.waitForTimeout(1500);
+  await a.goto(BASE + '/demandes/' + id + '/historique'); await a.waitForTimeout(1500);
   res.titreEditeur = await a.locator('.answer h2').first().innerText();
   await a.fill('textarea[name=v1]', 'Concept : le désert raconte la datte. 30 secondes, voix off, lumière dorée.');
   await a.getByRole('button', { name: /^Livrer la V1/ }).click(); await a.waitForTimeout(1500);
   res.livraison = await a.locator('.ok').innerText().catch(() => '');
   // Marque : demande une révision
   const m = await login(b, acc.M);
-  await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1500);
+  await m.goto(BASE + '/demandes/' + id + '/historique'); await m.waitForTimeout(1500);
   res.marqueVoitV1 = (await m.locator('.card .body').first().innerText()).slice(0, 40);
   await m.getByRole('button', { name: 'Demander une révision…' }).click();
   res.revisionVideBloquee = !(await m.getByRole('button', { name: 'Envoyer la demande de révision' }).isEnabled());
@@ -52,7 +52,7 @@ async function login(b, a) {
   await m.getByRole('button', { name: 'Envoyer la demande de révision' }).click(); await m.waitForTimeout(1500);
   res.revision = await m.locator('.ok').innerText().catch(() => '');
   // Agence : V1.1 avec le commentaire affiché, texte repris
-  await a.goto(BASE + '/demandes/' + id); await a.waitForTimeout(1500);
+  await a.goto(BASE + '/demandes/' + id + '/historique'); await a.waitForTimeout(1500);
   res.titreV11 = await a.locator('.answer h2').first().innerText();
   res.commentaireVu = await a.locator('.answer .warn').innerText().catch(() => '');
   res.texteRepris = (await a.inputValue('textarea[name=v1]')).slice(0, 30);
@@ -60,11 +60,11 @@ async function login(b, a) {
   await a.screenshot({ path: path.join(OUT, 'v2-v1-revision.jpg'), type: 'jpeg', quality: 75, fullPage: true });
   await a.getByRole('button', { name: /^Livrer la V1\.1/ }).click(); await a.waitForTimeout(1500);
   // Marque : valide
-  await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1500);
+  await m.goto(BASE + '/demandes/' + id + '/historique'); await m.waitForTimeout(1500);
   await m.getByRole('button', { name: 'Valider la V1.1' }).click(); await m.waitForTimeout(1500);
   res.validation = await m.locator('.ok').innerText().catch(() => '');
   // La production du projet (le producer qui l'a créé) prend la main dès la V1 validée : l'agence n'a plus rien à choisir
-  await a.goto(BASE + '/demandes/' + id); await a.waitForTimeout(1500);
+  await a.goto(BASE + '/demandes/' + id + '/historique'); await a.waitForTimeout(1500);
   res.agenceChoixProduction = await a.locator('app-select[name=prod]').count();
   if (res.agenceChoixProduction) throw new Error('ÉCHEC : l’agence choisit encore la production');
   res.etape = await a.locator('.steps .now').innerText();

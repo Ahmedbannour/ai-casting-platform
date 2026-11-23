@@ -12,7 +12,7 @@
       </button>
       @if (choice()) {
         <div class="new-choice" role="menu">
-          <button type="button" role="menuitem" (click)="newAd()"><b>Publicité</b><small>Vous invitez la marque et l'agence ; la V0, la V1 puis la V2 mènent au casting.</small></button>
+          <button type="button" role="menuitem" (click)="newAd()"><b>Publicité</b><small>Vous invitez la marque et l'agence ; le dossier du film se construit à plusieurs jusqu’au casting.</small></button>
           <button type="button" role="menuitem" (click)="openCreate()"><b>Film, série ou autre</b><small>Vous créez directement les rôles et lancez le casting.</small></button>
         </div>
       }
@@ -30,7 +30,7 @@
   @if (tab() === 'EN_COURS' && pubs().length) {
     <section class="pubs" aria-label="Publicités en préparation">
       <h2>Publicités en préparation</h2>
-      <p class="sub">Leur projet de casting sera créé automatiquement à la publication de la V2. Suivez-les ici en attendant.</p>
+      <p class="sub">Leur room de casting s’ouvre quand le dossier est prêt. Suivez-les ici en attendant.</p>
       <ul>
         @for (d of pubs(); track d.id) {
           <li>

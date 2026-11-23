@@ -1,11 +1,12 @@
 import { AfterViewChecked, Component, DestroyRef, ElementRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LiveService } from '../../core/services/live.service';
 import { PageRailComponent } from '../../shared/components/page-rail/page-rail';
 import { DropzoneComponent } from '../../shared/components/dropzone/dropzone';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field';
-import { FicheService, Sheet, SheetField, SheetSource, SheetStage } from './fiche.service';
+import { FicheService, RoleInput, Sheet, SheetField, SheetRole, SheetSource, SheetStage } from './fiche.service';
 
 const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 
@@ -17,7 +18,7 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
 @Component({
   selector: 'app-fiche',
   standalone: true,
-  imports: [FormsModule, PageRailComponent, DropzoneComponent, DateFieldComponent],
+  imports: [FormsModule, RouterLink, PageRailComponent, DropzoneComponent, DateFieldComponent],
   template: `
   <div class="sheet">
   <article class="doc" #doc aria-label="Fiche du projet">
@@ -26,14 +27,13 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
     @if (sheet(); as s) {
       <!-- État des lieux -->
       <header class="hero reveal" data-rail data-rail-label="État des lieux" id="etat-des-lieux">
-        <p class="kicker">Fiche du projet{{ s.brandName ? ' · ' + s.brandName : '' }}</p>
+        <p class="kicker">Dossier du film{{ s.brandName ? ' · ' + s.brandName : '' }}</p>
         <h2 class="h-title">{{ s.title }}</h2>
         <div class="state">
           <div class="pct" aria-label="Fiche remplie à {{ s.progress }} %"><b>{{ shown() }}</b><span>%</span></div>
           <div class="state-txt">
-            <p class="lead">{{ s.stagesDone }} étape{{ s.stagesDone > 1 ? 's' : '' }} complète{{ s.stagesDone > 1 ? 's' : '' }} sur {{ s.stagesTotal }}.
-              @if (handStage(); as h) { La suite : <a [href]="'#etape-' + h.key" (click)="jump($event, h.key)">{{ pad(h.num) }} · {{ h.title }}</a>, {{ h.canEdit ? 'à vous de la remplir' : 'à remplir par ' + by(h.owner) }}. }
-              @else { La fiche est complète. }</p>
+            <p class="lead">{{ s.stagesDone }} chapitre{{ s.stagesDone > 1 ? 's' : '' }} complet{{ s.stagesDone > 1 ? 's' : '' }} sur {{ s.stagesTotal }}.
+              Phase en cours : <a href="#phase" (click)="jump($event, 'phase')">{{ s.gate.title }}</a>{{ s.gate.canAct ? ', c’est à vous.' : (s.gate.who ? ', ' + s.gate.who.toLowerCase() + ' a la main.' : '.') }}</p>
             @if (myStages().length) {
               <p class="mine-line">Vos étapes :
                 @for (m of myStages(); track m.key) { <a class="chip" [class.todo]="m.state !== 'complete'" [href]="'#etape-' + m.key" (click)="jump($event, m.key)">{{ pad(m.num) }} {{ m.title }}@if (m.suggestions) { <i>{{ m.suggestions }} proposition{{ m.suggestions > 1 ? 's' : '' }}</i> }</a> }
@@ -53,6 +53,41 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
           }
         </ol>
       </header>
+
+      <!-- La phase en cours : qui a la main, ce qu'il manque, et la validation -->
+      <section class="gate reveal" data-rail data-rail-label="La phase en cours" id="phase" [attr.data-phase]="s.gate.phase" [class.act]="s.gate.canAct">
+        <ol class="phases" aria-label="Les phases du film">
+          @for (ph of phases; track ph.key; let i = $index) {
+            <li [class.done]="i < s.gate.phaseIndex" [class.now]="i === s.gate.phaseIndex" [attr.aria-current]="i === s.gate.phaseIndex ? 'step' : null"><span class="ph-dot" aria-hidden="true"></span>{{ ph.label }}</li>
+          }
+        </ol>
+        <h2>{{ s.gate.title }}</h2>
+        @if (s.gate.who) { <p class="who">{{ s.gate.canAct ? 'C’est à vous' : 'Qui a la main' }} : <b>{{ s.gate.who }}</b></p> }
+        <p class="gtext">{{ s.gate.text }}</p>
+        @if (s.gate.feedback) { <blockquote class="fb"><b>Retour de la marque</b>{{ cleanFeedback(s.gate.feedback) }}</blockquote> }
+        @if (s.gate.action && s.gate.missing.length) {
+          <div class="miss"><b>Avant de continuer</b>
+            <ul>@for (m of s.gate.missing; track m) { <li>{{ m }}</li> }</ul>
+          </div>
+        }
+        <div class="g-actions">
+          @if (s.gate.action && s.gate.canAct) {
+            <button type="button" class="go big" [disabled]="busy() || s.gate.missing.length > 0" (click)="step(s.gate.action!)">{{ s.gate.actionLabel }}</button>
+          } @else if (s.gate.action) {
+            <p class="wait"><span class="pulse" aria-hidden="true"></span>En attente : {{ s.gate.who.toLowerCase() }}.</p>
+          }
+          @if (s.gate.canAskChanges) { <button type="button" class="ghost" [attr.aria-expanded]="asking()" (click)="asking.set(!asking())">Demander des modifications</button> }
+          @if (s.gate.roomId && !roomId()) { <a class="go" [routerLink]="['/rooms', s.gate.roomId]">Ouvrir la room de casting</a> }
+        </div>
+        @if (asking()) {
+          <form class="ask" (ngSubmit)="askChanges()">
+            <label for="ask-c">Ce qu'il faut modifier, envoyé à l'agence</label>
+            <textarea id="ask-c" name="c" rows="3" maxlength="2000" [(ngModel)]="changes" placeholder="Ex. Montrez la famille au réveil, moins de paysage"></textarea>
+            <div class="edit-actions"><button type="submit" class="go" [disabled]="busy() || !changes.trim()">Envoyer à l'agence</button>
+              <button type="button" class="ghost" (click)="asking.set(false)">Annuler</button></div>
+          </form>
+        }
+      </section>
 
       <!-- Déposer un document : l'IA remplit -->
       @if (s.canUpload) {
@@ -97,14 +132,14 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
       <!-- Les étapes -->
       <div class="stages">
         @for (st of s.stages; track st.key) {
-          <section class="stage reveal" [id]="'etape-' + st.key" data-rail [attr.data-rail-state]="st.mine && st.state !== 'complete' ? 'tour' : st.state"
-                   [attr.data-rail-label]="st.title" [class.mine]="st.mine" [attr.data-s]="st.state" [attr.aria-labelledby]="'h-' + st.key">
+          <section class="stage reveal" [id]="'etape-' + st.key" data-rail [attr.data-rail-state]="isPrimary(st) && st.state !== 'complete' && current(st) ? 'tour' : st.state"
+                   [attr.data-rail-label]="st.title" [class.mine]="isPrimary(st) && current(st)" [attr.data-s]="st.state" [attr.aria-labelledby]="'h-' + st.key">
             <div class="st-head">
               <span class="num" aria-hidden="true">{{ pad(st.num) }}</span>
               <div class="st-ttl">
                 <h2 [id]="'h-' + st.key">{{ st.title }}</h2>
                 <p class="by">
-                  <span class="owner">{{ st.canEdit ? 'Votre étape' : 'Remplie par ' + by(st.owner) }}</span>
+                  <span class="owner">{{ isPrimary(st) ? 'Votre chapitre' : st.canEdit ? 'Rédigé par ' + by(st.owner) + ' · vous pouvez compléter' : 'Rédigé par ' + by(st.owner) }}</span>
                   <span class="badge" [attr.data-s]="st.state">{{ stateLabel(st.state) }}{{ st.total && st.state !== 'complete' ? ' · ' + st.filled + '/' + st.total : '' }}</span>
                   @if (st.updatedBy) { <span class="when">{{ st.updatedBy }}, {{ ago(st.updatedAt!) }}</span> }
                 </p>
@@ -155,13 +190,49 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
                   </div>
                 }
               </dl>
+            } @else if (st.key === 'roles') {
+              <ul class="roles">
+                @for (ro of st.roles; track ro.id) {
+                  <li class="role">
+                    <div class="r-head"><b>{{ ro.name }}</b>@if (roleMeta(ro)) { <span class="r-meta">{{ roleMeta(ro) }}</span> }</div>
+                    <p class="val" [class.none]="!ro.intention">{{ ro.intention || 'Intention à écrire : ce que l’acteur doit faire passer' }}</p>
+                    @if (st.canEdit) {
+                      <div class="r-actions">
+                        <button type="button" class="edit-btn" (click)="editRole(ro)" [attr.aria-label]="'Modifier le rôle ' + ro.name">Modifier</button>
+                        <button type="button" class="edit-btn" (click)="removeRole(ro)" [attr.aria-label]="'Retirer le rôle ' + ro.name">Retirer</button>
+                      </div>
+                    }
+                  </li>
+                } @empty {
+                  <li class="val none">{{ st.canEdit ? 'Ajoutez les personnages à caster : un rôle par personnage, avec son intention.' : 'Les rôles apparaîtront ici quand la réalisation les aura écrits.' }}</li>
+                }
+              </ul>
+              @if (st.canEdit) {
+                @if (roleEdit()) {
+                  <form class="role-form" (ngSubmit)="saveRole()">
+                    <label>Nom du rôle<input name="rn" maxlength="120" [(ngModel)]="roleDraft.name" placeholder="Ex. La grand-mère" /></label>
+                    <label>Intention<textarea name="ri" rows="3" maxlength="4000" [(ngModel)]="roleDraft.intention" placeholder="Ce que l'acteur doit faire passer : émotion, présence, rapport aux autres…"></textarea></label>
+                    <div class="r-row">
+                      <label>Sexe<select name="rg" [(ngModel)]="roleDraft.gender"><option [ngValue]="null">Indifférent</option><option value="Femme">Femme</option><option value="Homme">Homme</option></select></label>
+                      <label>Âge minimum<input name="ra" type="number" min="0" max="100" [(ngModel)]="roleDraft.minAge" /></label>
+                      <label>Âge maximum<input name="rb" type="number" min="0" max="100" [(ngModel)]="roleDraft.maxAge" /></label>
+                    </div>
+                    <div class="edit-actions">
+                      <button type="submit" class="go" [disabled]="busy() || !roleDraft.name.trim()">Enregistrer le rôle</button>
+                      <button type="button" class="ghost" (click)="roleEdit.set(null)">Annuler</button>
+                    </div>
+                  </form>
+                } @else {
+                  <button type="button" class="ghost add-role" (click)="newRole()">+ Ajouter un rôle</button>
+                }
+              }
             } @else {
               @if (st.lines.length) {
                 <ul class="lines">
                   @for (l of st.lines; track $index) { <li><b>{{ l.title }}</b><span>{{ l.detail }}</span></li> }
                 </ul>
               } @else {
-                <p class="val none">{{ st.key === 'roles' ? 'Les rôles apparaîtront ici quand la réalisation aura écrit la V2.' : 'Le casting commence quand la room est ouverte.' }}</p>
+                <p class="val none">{{ st.key === 'roles' ? 'Les rôles apparaîtront ici quand la réalisation les aura écrits.' : 'Le casting commence quand la room est ouverte.' }}</p>
               }
             }
           </section>
@@ -191,16 +262,23 @@ export class FicheComponent implements AfterViewChecked {
   readonly shown = signal(0);
   readonly formats = '.pdf,.docx,.pptx,.txt,.rtf';
   draft = '';
+  changes = '';
+  readonly asking = signal(false);
+  readonly roleEdit = signal<string | null>(null);
+  roleDraft: RoleInput = { name: '', intention: '', gender: null, minAge: null, maxAge: null };
+  readonly phases = [{ key: 'brief', label: 'Brief' }, { key: 'reco', label: 'Recommandation' }, { key: 'prepa', label: 'Préparation' }, { key: 'casting', label: 'Casting' }];
+  /** Le rédacteur principal de chaque chapitre (le producer peut compléter les autres). */
+  private static readonly PRIMARY: Record<string, string> = { brief: 'MARQUE', diffusion: 'MARQUE', concept: 'AGENCE', realisation: 'REAL', production: 'PROD', roles: 'REAL' };
   linkUrl = '';
   private io: IntersectionObserver | null = null;
   private poll: ReturnType<typeof setTimeout> | null = null;
 
   readonly handStage = computed(() => { const s = this.sheet(); return s?.stages.find(x => x.key === s.handStage) ?? null; });
-  readonly myStages = computed(() => this.sheet()?.stages.filter(x => x.canEdit) ?? []);
+  readonly myStages = computed(() => this.sheet()?.stages.filter(x => this.isPrimary(x)) ?? []);
 
   constructor() {
     effect(() => { this.requestId(); this.roomId(); untracked(() => this.load()); });
-    inject(LiveService).watch(inject(DestroyRef), () => this.load(true), () => this.editing() !== null || this.busy());
+    inject(LiveService).watch(inject(DestroyRef), () => this.load(true), () => this.editing() !== null || this.busy() || this.roleEdit() !== null || this.asking());
     inject(DestroyRef).onDestroy(() => { this.io?.disconnect(); if (this.poll) clearTimeout(this.poll); });
   }
 
@@ -285,9 +363,52 @@ export class FicheComponent implements AfterViewChecked {
     });
   }
 
+  /** Le chapitre appartient-il à la phase en cours (ou à une phase passée) ? */
+  current(st: SheetStage): boolean {
+    const phase: Record<string, number> = { brief: 0, diffusion: 0, concept: 1, realisation: 2, production: 2, roles: 2, casting: 3 };
+    return (phase[st.key] ?? 0) <= (this.sheet()?.gate.phaseIndex ?? 0);
+  }
+  isPrimary(st: SheetStage): boolean {
+    const s = this.sheet(); const p = FicheComponent.PRIMARY[st.key];
+    if (!s || !p) return false;
+    // Sans réalisateur rattaché, le producer porte aussi la réalisation et les rôles
+    return s.mySides.includes(p) || (p === 'REAL' && s.mySides.includes('PROD') && !s.mySides.includes('REAL') && st.canEdit && !this.hasDirector());
+  }
+  /** Indice : un réalisateur a-t-il déjà écrit dans le dossier ? (sinon le producer porte la réalisation) */
+  private hasDirector(): boolean { return !!this.directorAttached(); }
+  readonly directorAttached = input(false);
+
+  step(action: string): void {
+    const s = this.sheet(); if (!s) return;
+    const label = s.gate.actionLabel ?? 'Étape validée';
+    this.run(this.api.step(s.requestId, action), this.done(action) ?? label, () => this.asking.set(false));
+  }
+  private done(action: string): string | null {
+    return ({ transmettre: 'Brief transmis à l’agence.', presenter: 'Recommandation présentée à la marque.', valider: 'Recommandation validée : la préparation commence.', lancer: 'Casting lancé : la room est ouverte.' } as Record<string, string>)[action] ?? null;
+  }
+  askChanges(): void {
+    const s = this.sheet(); const c = this.changes.trim(); if (!s || !c) return;
+    this.run(this.api.step(s.requestId, 'modifier', c), 'Demande de modifications envoyée à l’agence.', () => { this.asking.set(false); this.changes = ''; });
+  }
+  cleanFeedback(f: string): string { return f.replace(/^Modifications demandées par la marque : /, '').replace(/^V1[^:]* à revoir : /, ''); }
+
+  newRole(): void { this.roleDraft = { name: '', intention: '', gender: null, minAge: null, maxAge: null }; this.roleEdit.set('new'); }
+  editRole(r: SheetRole): void { this.roleDraft = { name: r.name, intention: r.intention ?? '', gender: r.gender, minAge: r.minAge, maxAge: r.maxAge }; this.roleEdit.set(r.id); }
+  saveRole(): void {
+    const s = this.sheet(); const id = this.roleEdit(); if (!s || !id) return;
+    const body: RoleInput = { ...this.roleDraft, name: this.roleDraft.name.trim(), minAge: this.num(this.roleDraft.minAge), maxAge: this.num(this.roleDraft.maxAge) };
+    this.run(id === 'new' ? this.api.addRole(s.requestId, body) : this.api.updateRole(s.requestId, id, body), `Rôle « ${body.name} » enregistré.`, () => this.roleEdit.set(null));
+  }
+  removeRole(r: SheetRole): void { const s = this.sheet(); if (s) this.run(this.api.deleteRole(s.requestId, r.id), `Rôle « ${r.name} » retiré.`); }
+  roleMeta(r: SheetRole): string {
+    const age = r.minAge != null && r.maxAge != null ? `${r.minAge} à ${r.maxAge} ans` : r.minAge != null ? `${r.minAge} ans et plus` : r.maxAge != null ? `jusqu’à ${r.maxAge} ans` : '';
+    return [r.gender ?? '', age].filter(x => x).join(' · ');
+  }
+  private num(v: unknown): number | null { const n = v === '' || v == null ? NaN : Number(v); return Number.isFinite(n) ? n : null; }
+
   jump(e: Event, key: string): void {
     e.preventDefault();
-    const el = this.host.nativeElement.querySelector('#etape-' + key) as HTMLElement | null;
+    const el = this.host.nativeElement.querySelector(key === 'phase' ? '#phase' : '#etape-' + key) as HTMLElement | null;
     el?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     (el?.querySelector('h2') as HTMLElement | null)?.setAttribute('tabindex', '-1');
     (el?.querySelector('h2') as HTMLElement | null)?.focus({ preventScroll: true });

@@ -61,16 +61,16 @@ interface Step { key: string; who: string; what: string; }
       <div class="empty">
         <h2>Aucune demande pour l'instant</h2>
         @if (canCreate()) {
-          <p>Créez votre premier projet de publicité, puis invitez la marque et l'agence marketing. La marque déposera sa V0, l'agence livrera la V1, et vous suivrez chaque étape jusqu'au casting.</p>
+          <p>Créez votre premier projet de publicité, puis invitez la marque et l'agence marketing. Le dossier du film se construit ensuite à plusieurs : brief, recommandation, préparation, casting.</p>
           <a class="send" routerLink="/demandes/nouvelle">Nouveau projet</a>
         } @else if (isMarque()) {
-          <p>Les projets sur lesquels une boîte de production vous invite arriveront ici. Vous y déposerez votre V0 : le fichier artistique de votre idée (détails, messages, notes ; PDF, Word ou PowerPoint). Pas de budget dans la V0.</p>
+          <p>Les projets sur lesquels une boîte de production vous invite arriveront ici. Vous y rédigerez votre brief, ou déposerez un document que l'IA lira pour remplir le dossier.</p>
         } @else if (isDirector()) {
-          <p>Les publicités auxquelles une boîte de production vous rattache arriveront ici. Vous suivrez leur avancement, puis écrirez la V2 dès que les attentes vous seront transmises.</p>
+          <p>Les publicités auxquelles une boîte de production vous rattache arriveront ici. Vous y écrirez votre note d'intention et les rôles à caster.</p>
         } @else if (isProd()) {
           <p>Les projets de votre boîte de production arriveront ici. Le producer vous ouvre la création des projets quand il le souhaite.</p>
         } @else {
-          <p>Les demandes que les marques vous envoient arriveront ici, avec leur V0. Vous recevrez une notification à chaque nouvelle demande.</p>
+          <p>Les projets où l'on vous invite arriveront ici. Vous serez prévenu dès que le brief vous sera transmis.</p>
         }
       </div>
     }
@@ -149,21 +149,20 @@ export class MesDemandesComponent {
   /** Le producer crée les projets ; son assistante aussi, s'il le lui autorise. */
   readonly canCreate = computed(() => this.role() === 'BOITE_PROD' || this.role() === 'ADMIN' || (this.role() === 'ASSISTANT_PROD' && this.me.can('PROJETS')));
   readonly isDirector = computed(() => this.role() === 'REALISATEUR');
-  readonly mine = computed(() => this.role() === 'AGENCE_MARKETING' ? 'v1' : this.isProd() ? 'projet' : this.isDirector() ? 'v2' : 'v0');
+  readonly mine = computed(() => this.role() === 'AGENCE_MARKETING' ? 'reco' : this.isProd() ? 'projet' : this.isDirector() ? 'prepa' : 'brief');
   readonly lead = computed(() => this.isDirector()
-    ? 'Une boîte de production vous rattache à ses publicités : vous suivez leur avancement, puis vous écrivez la V2 et l’intention de chaque rôle dès que les attentes vous sont transmises.'
+    ? 'Une boîte de production vous rattache à ses publicités : dans le dossier du film, vous écrivez votre note d’intention et les rôles à caster.'
     : this.isProd()
-    ? 'Vous créez les projets et invitez la marque et l’agence marketing. Vous suivez chaque étape, rattachez votre réalisateur, puis recueillez les attentes sur les profils une fois la V1 validée.'
+    ? 'Vous créez les projets, invitez la marque et l’agence, et menez le dossier du film jusqu’au casting : vous pouvez compléter chaque chapitre.'
     : this.isMarque()
-    ? 'La boîte de production vous invite sur ses projets : vous déposez l’idée de votre publicité (V0) ; l’agence, la production et le réalisateur la font avancer jusqu’aux acteurs validés en PPM.'
-    : 'Vous recevez la V0 des marques et livrez la V1 : le concept que le réalisateur détaillera.');
+    ? 'Un seul dossier par film : vous y rédigez le brief, puis validez la recommandation de l’agence. Déposez un document : l’IA remplit le dossier.'
+    : 'Un seul dossier par film : vous y lisez le brief et rédigez votre recommandation créative, que la marque valide.');
   readonly steps: Step[] = [
     { key: 'projet', who: 'Producer', what: 'crée le projet, invite la marque et l’agence' },
-    { key: 'v0', who: 'Marque', what: 'dépose la V0 : le fichier artistique' },
-    { key: 'v1', who: 'Agence marketing', what: 'analyse la V0, livre la V1 : le concept' },
-    { key: 'attentes', who: 'Boîte de production', what: 'recueille vos attentes sur les profils' },
-    { key: 'v2', who: 'Réalisateur et 1er AD', what: 'écrivent la V2 et l’intention de chaque rôle' },
-    { key: 'ia', who: 'Cercle', what: 'propose des acteurs pour chaque intention' },
+    { key: 'brief', who: 'Marque', what: 'rédige le brief dans le dossier (ou dépose un document : l’IA le remplit)' },
+    { key: 'reco', who: 'Agence marketing', what: 'rédige la recommandation créative, que la marque valide' },
+    { key: 'prepa', who: 'Producer et réalisation', what: 'note d’intention, production, rôles à caster' },
+    { key: 'casting', who: 'Toute l’équipe', what: 'choisit les acteurs dans la room' },
     { key: 'ppm', who: 'PPM', what: 'tous valident ensemble le casting, les décors, les costumes' }
   ];
 }

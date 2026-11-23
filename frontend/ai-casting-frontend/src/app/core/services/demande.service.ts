@@ -8,8 +8,8 @@ export type DemandeStatus = 'BROUILLON' | 'V0_ENVOYEE' | 'V1_EN_COURS' | 'V1_LIV
   | 'CASTING' | 'PPM' | 'ACTEURS_VALIDES' | 'CLOTUREE' | 'ANNULEE';
 
 export const STATUS_LABEL: Record<DemandeStatus, string> = {
-  BROUILLON: 'Brouillon', V0_ENVOYEE: 'V0 envoyée à l’agence', V1_EN_COURS: 'V1 en cours', V1_LIVREE: 'V1 livrée',
-  V2_EN_COURS: 'V2 en cours', V2_LIVREE: 'V2 livrée', CASTING: 'Casting', PPM: 'PPM', ACTEURS_VALIDES: 'Acteurs validés',
+  BROUILLON: 'Brief', V0_ENVOYEE: 'Brief transmis', V1_EN_COURS: 'Recommandation créative', V1_LIVREE: 'Recommandation présentée',
+  V2_EN_COURS: 'Préparation', V2_LIVREE: 'Casting', CASTING: 'Casting', PPM: 'PPM', ACTEURS_VALIDES: 'Acteurs validés',
   CLOTUREE: 'Clôturée', ANNULEE: 'Annulée'
 };
 

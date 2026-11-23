@@ -50,6 +50,47 @@
 .pipe li[data-s="complete"] .n { color: var(--success); }
 .pipe a:hover .n, .pipe a:focus-visible .n { color: var(--text-primary); }
 
+/* ── La phase en cours ── */
+.gate { padding: 22px 24px; border-radius: 20px; border: 1px solid var(--border); background: var(--glass); display: flex; flex-direction: column; gap: 10px; }
+.gate.act { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset, 0 18px 40px color-mix(in srgb, var(--accent) 14%, transparent); }
+.gate h2 { margin: 4px 0 0; font-size: 24px; font-stretch: 85%; }
+.phases { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; counter-reset: ph; }
+.phases li { position: relative; display: flex; align-items: center; gap: 8px; padding-top: 12px; font-size: 13px; font-weight: 600; color: var(--text-subtle); }
+.phases li::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; border-radius: 4px; background: color-mix(in srgb, var(--text-subtle) 22%, transparent); }
+.phases li.done { color: var(--text-secondary); } .phases li.done::before { background: var(--success); }
+.phases li.now { color: var(--text-primary); font-weight: 800; } .phases li.now::before { background: var(--accent); animation: phGrow .9s cubic-bezier(.2,.8,.2,1) both; transform-origin: left; }
+@keyframes phGrow { from { transform: scaleX(0); } }
+.ph-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+.phases li.done .ph-dot { background: var(--success); }
+.who { margin: 0; font-size: 14px; color: var(--text-secondary); } .who b { color: var(--text-primary); }
+.gtext { margin: 0; font-size: 15px; line-height: 1.5; color: var(--text-secondary); max-width: 70ch; }
+.fb { margin: 0; padding: 12px 14px; border-radius: 12px; border-left: 4px solid var(--accent); background: var(--accent-dim); display: flex; flex-direction: column; gap: 4px; font-size: 14.5px; line-height: 1.45; }
+.fb b { font-size: 12.5px; color: var(--accent-ink); }
+.miss { padding: 10px 14px; border-radius: 12px; border: 1px dashed var(--border); font-size: 14px; }
+.miss b { font-size: 12.5px; color: var(--text-muted); }
+.miss ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.g-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 4px; }
+.go.big { min-height: 50px; padding: 0 24px; font-size: 16px; }
+a.go { display: inline-flex; align-items: center; text-decoration: none; }
+.wait { margin: 0; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-muted); }
+.pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: pl 1.6s ease-in-out infinite; }
+@keyframes pl { 50% { opacity: .3; } }
+.ask { display: flex; flex-direction: column; gap: 8px; } .ask label { font-size: 13.5px; font-weight: 600; } .ask textarea { width: 100%; box-sizing: border-box; }
+
+/* ── Les rôles ── */
+.roles { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@container fiche (max-width: 640px) { .roles { grid-template-columns: 1fr; } }
+.role { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 12px; background: var(--bg-secondary); }
+.r-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; } .r-head b { font-size: 16px; }
+.r-meta { font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
+.r-actions { display: flex; gap: 6px; }
+.role-form { margin-top: 12px; padding: 14px; border-radius: 12px; border: 1px solid var(--accent); display: flex; flex-direction: column; gap: 10px; }
+.role-form label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; }
+.role-form input, .role-form textarea, .role-form select { width: 100%; box-sizing: border-box; min-height: 40px; }
+.r-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+@container fiche (max-width: 640px) { .r-row { grid-template-columns: 1fr; } .phases li { font-size: 11.5px; } }
+.add-role { margin-top: 12px; }
+
 /* ── Remplir avec l'IA ── */
 .feed { padding: 20px 22px; border-radius: 18px; border: 1px dashed color-mix(in srgb, var(--accent) 55%, var(--border)); display: flex; flex-direction: column; gap: 12px; }
 .feed h2 { margin: 0; font-size: 19px; }
@@ -127,6 +168,7 @@ dd { margin: 0; display: flex; flex-direction: column; gap: 8px; align-items: fl
 
 @media (pointer: coarse) { .edit-btn { min-height: 44px; } .chip { min-height: 44px; } }
 @media (prefers-reduced-motion: reduce) {
+  .phases li.now::before, .pulse { animation: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .stage.in .f, .sugg { animation: none; }
   .seg b, .num { transition: none; }

@@ -38,8 +38,8 @@ const DESK = { viewport: { width: 1280, height: 860 } };
 
   // 1. Le producer invite une marque pas encore inscrite : un lien à envoyer
   const p = await open(DESK, prod);
-  await p.goto(BASE + '/demandes/' + id); await p.waitForTimeout(1500);
-  ok(/invite la marque/.test(await p.locator('.now-card p').innerText()), 'le projet dit que le producer doit inviter la marque');
+  await p.goto(BASE + '/demandes/' + id + '/historique'); await p.waitForTimeout(1500);
+  ok(/invitez? la marque/i.test(await p.locator('.now-card p').innerText()), 'le projet dit que le producer doit inviter la marque');
   const brandMail = `recette.marque.${st}@exemple.tn`;
   const slot = p.locator('app-invite-card .slots li').first();
   await slot.getByRole('button', { name: 'Inviter' }).click();

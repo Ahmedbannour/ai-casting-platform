@@ -36,6 +36,20 @@ public class SheetController {
     @PostMapping(value = "/api/demandes/{id}/fiche/sources", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public SheetService.Sheet file(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @RequestParam("file") MultipartFile file) { return sheets.addFile(me.getUsername(), id, file); }
 
+    @PostMapping("/api/demandes/{id}/fiche/etapes/{action}")
+    public SheetService.Sheet step(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable String action, @RequestBody(required = false) SheetService.Step s) {
+        return sheets.step(me.getUsername(), id, action, s == null ? null : s.comment());
+    }
+
+    @PostMapping("/api/demandes/{id}/fiche/roles")
+    public SheetService.Sheet addRole(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @RequestBody SheetService.RoleInput in) { return sheets.addRole(me.getUsername(), id, in); }
+
+    @PutMapping("/api/demandes/{id}/fiche/roles/{roleId}")
+    public SheetService.Sheet updateRole(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID roleId, @RequestBody SheetService.RoleInput in) { return sheets.updateRole(me.getUsername(), id, roleId, in); }
+
+    @DeleteMapping("/api/demandes/{id}/fiche/roles/{roleId}")
+    public SheetService.Sheet deleteRole(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID roleId) { return sheets.deleteRole(me.getUsername(), id, roleId); }
+
     @PostMapping("/api/demandes/{id}/fiche/liens")
     public SheetService.Sheet link(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @RequestBody SheetService.Link l) { return sheets.addLink(me.getUsername(), id, l == null ? null : l.url()); }
 }

@@ -10,7 +10,15 @@ export interface SheetField {
 }
 export interface SheetStage {
   key: string; num: number; title: string; owner: string; intro: string; mine: boolean; canEdit: boolean; state: StageState;
-  filled: number; total: number; fields: SheetField[]; lines: { title: string; detail: string }[]; updatedBy: string | null; updatedAt: string | null; suggestions: number;
+  filled: number; total: number; fields: SheetField[]; lines: { title: string; detail: string }[]; roles: SheetRole[];
+  updatedBy: string | null; updatedAt: string | null; suggestions: number;
+}
+export interface SheetRole { id: string; name: string; intention: string | null; gender: 'Femme' | 'Homme' | null; minAge: number | null; maxAge: number | null; }
+export type RoleInput = Omit<SheetRole, 'id'>;
+export interface SheetGate {
+  phase: 'brief' | 'recommandation' | 'validation' | 'preparation' | 'casting' | 'fin' | 'annule'; phaseIndex: number;
+  title: string; who: string; text: string; action: string | null; actionLabel: string | null; canAct: boolean;
+  missing: string[]; canAskChanges: boolean; feedback: string | null; roomId: string | null;
 }
 export interface SheetSource {
   id: string; kind: 'FICHIER' | 'LIEN'; name: string; url: string | null; addedBy: string | null; createdAt: string;
@@ -19,7 +27,7 @@ export interface SheetSource {
 export interface Sheet {
   requestId: string; projectId: string | null; title: string; brandName: string | null; status: string; progress: number;
   stagesDone: number; stagesTotal: number; handStage: string | null; handOwner: string | null; canUpload: boolean;
-  stages: SheetStage[]; sources: SheetSource[];
+  stages: SheetStage[]; sources: SheetSource[]; gate: SheetGate; mySides: string[];
 }
 
 /** P-083 · Fiche unique du projet. */
@@ -37,5 +45,9 @@ export class FicheService {
     const fd = new FormData(); fd.append('file', file);
     return this.http.post<Sheet>(`${this.api}/demandes/${id}/fiche/sources`, fd);
   }
+  step(id: string, action: string, comment?: string): Observable<Sheet> { return this.http.post<Sheet>(`${this.api}/demandes/${id}/fiche/etapes/${action}`, { comment: comment ?? null }); }
+  addRole(id: string, r: RoleInput): Observable<Sheet> { return this.http.post<Sheet>(`${this.api}/demandes/${id}/fiche/roles`, r); }
+  updateRole(id: string, roleId: string, r: RoleInput): Observable<Sheet> { return this.http.put<Sheet>(`${this.api}/demandes/${id}/fiche/roles/${roleId}`, r); }
+  deleteRole(id: string, roleId: string): Observable<Sheet> { return this.http.delete<Sheet>(`${this.api}/demandes/${id}/fiche/roles/${roleId}`); }
   link(id: string, url: string): Observable<Sheet> { return this.http.post<Sheet>(`${this.api}/demandes/${id}/fiche/liens`, { url }); }
 }

@@ -42,7 +42,7 @@ async function login(b, a) {
   fs.mkdirSync(OUT, { recursive: true });
   for (const [k, label, vp] of [['M', 'marque', { width: 390, height: 844 }], ['P', 'producer', { width: 1600, height: 950 }], ['A', 'agence', { width: 1600, height: 950 }]]) {
     const p = await login(b, acc[k]); await p.setViewportSize(vp);
-    await p.goto(BASE + '/demandes/' + id); await p.waitForSelector('app-page-rail nav', { timeout: 10000 }).catch(() => res.erreurs.push(label + ' : pas de sommaire'));
+    await p.goto(BASE + '/demandes/' + id + '/historique'); await p.waitForSelector('app-page-rail nav', { timeout: 10000 }).catch(() => res.erreurs.push(label + ' : pas de sommaire'));
     await p.waitForTimeout(800);
     const items = await p.locator('app-page-rail li .lb').allTextContents();
     const tours = await p.locator('app-page-rail li[data-s="tour"] .lb').allTextContents();

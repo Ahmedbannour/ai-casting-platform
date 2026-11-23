@@ -94,7 +94,7 @@ public class ProTeamService {
         String mail = norm(req.email());
         Agency current = "MARQUE".equals(kind) ? r.getBrand() : r.getAgency();
         if ("AGENCE_MARKETING".equals(kind) && current != null && r.getStatus() != AdRequest.Status.BROUILLON)
-            throw new IllegalArgumentException("L'agence a déjà reçu la V0 : elle ne se remplace plus");
+            throw new IllegalArgumentException("L'agence a déjà reçu le brief : elle ne se remplace plus");
 
         Optional<User> existing = users.findByEmail(mail);
         if (existing.isPresent()) {
@@ -306,7 +306,7 @@ public class ProTeamService {
         if ("AGENCE_MARKETING".equals(kind) && r.getBrand() != null) users.findAll().stream()
                 .filter(u -> u.getAgency() != null && u.getAgency().getId().equals(r.getBrand().getId()) && u.isEnabled())
                 .forEach(u -> notifications.push(u.getId(), "DEMANDE", "Agence rattachée : " + r.getTitle(),
-                        org.getName() + " recevra votre V0 dès que vous l'enverrez.", "/demandes/" + r.getId()));
+                        org.getName() + " recevra le brief dès que vous le transmettrez.", "/demandes/" + r.getId()));
     }
 
     private Project room(Map<String, Object> inv) {
@@ -330,8 +330,8 @@ public class ProTeamService {
 
     private static String inviteText(AdRequest r, String kind) {
         String p = r.getProduction() == null ? "La production" : r.getProduction().getName();
-        return "MARQUE".equals(kind) ? p + " vous invite sur ce projet : écrivez votre V0 (le brief) et envoyez-la à l'agence."
-                : p + " vous invite sur ce projet : vous recevrez la V0 de la marque pour préparer la V1.";
+        return "MARQUE".equals(kind) ? p + " vous invite sur ce projet : rédigez votre brief dans le dossier du film, puis transmettez-le à l'agence."
+                : p + " vous invite sur ce projet : vous recevrez le brief de la marque pour rédiger votre recommandation créative.";
     }
 
     private User producer(User me) {

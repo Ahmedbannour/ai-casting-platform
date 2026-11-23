@@ -1376,6 +1376,22 @@
         "T-173"
       ],
       "statut": "Livré"
+    },
+    {
+      "id": "P-084",
+      "date": "2026-11-23",
+      "titre": "Un seul dossier du film, construit au fil des rôles",
+      "original": "remarque trés importante, on va pas travailler sur different version, elle sera une seule mais elle se build a travers des différents roles, ainsi que des différents roles ont d'access sur ce fichier tels que le producteur, donc il faut faire cette partie comme quel qu'un qui a travailler dans ce domaine, et faciliter le process et le rendre plus claire",
+      "ameliore": "Reformulé par la Cellule IA avec Hédi Ben Amor (consultant production publicitaire). Fin des versions V0/V1/V2 : un seul dossier du film par projet, construit en 4 phases comme une vraie production : 1) Brief (marque, le producer peut compléter) → « Transmettre le brief à l'agence » ; 2) Recommandation créative (agence, producer) → « Présenter à la marque » → la marque « Valide » ou « Demande des modifications » (commentaire publié dans la discussion) ; 3) Préparation (producer, réalisateur, 1er AD) : note d'intention, production, rôles à caster écrits dans le dossier → « Lancer le casting » qui ouvre la room ; 4) Casting dans la room jusqu'à la PPM. Le producer, chef d'orchestre, complète tous les chapitres ; seule la marque valide la recommandation. La page projet devient le dossier (phase, qui a la main, ce qu'il manque, un seul bouton d'action) ; les anciennes versions restent consultables. Critères : parcours complet marque → agence → marque (retour puis validation) → producer → room sans rechargement, 0 erreur ; 403 hors de ses droits.",
+      "departements": [
+        "front",
+        "back",
+        "qa"
+      ],
+      "livrables": [
+        "T-173"
+      ],
+      "statut": "Livré"
     }
   ],
   "bibliotheques": [
@@ -3798,6 +3814,54 @@
       "prompt": "P-083",
       "jour": "J10",
       "detail": "URGENT · Point quotidien jusqu'à la livraison ; arbitrage du périmètre Canva."
+    },
+    {
+      "id": "T-186",
+      "titre": "Parcours métier du dossier unique (4 phases, validations)",
+      "dept": "prod",
+      "resp": "Hédi Ben Amor",
+      "prio": "P0",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-084",
+      "jour": "J10",
+      "detail": "Brief → recommandation (validation de la marque) → préparation → casting ; vocabulaire de la production publicitaire, plus de V0/V1/V2."
+    },
+    {
+      "id": "T-187",
+      "titre": "Moteur des phases et droits élargis du producer",
+      "dept": "back",
+      "resp": "Marc Lefèvre",
+      "prio": "P0",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-084",
+      "jour": "J10",
+      "detail": "Transmettre, présenter, valider, demander des modifications, lancer le casting (ouvre la room) ; rôles écrits dans le dossier ; test API de bout en bout."
+    },
+    {
+      "id": "T-188",
+      "titre": "La page projet devient le dossier",
+      "dept": "front",
+      "resp": "Sarra Mansouri",
+      "prio": "P0",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-084",
+      "jour": "J10",
+      "detail": "Bandeau de phase avec un seul bouton d'action, ce qu'il manque, retour de la marque ; invitations, équipe de réalisation, discussion, fil d'activité ; anciennes versions en consultation."
+    },
+    {
+      "id": "T-189",
+      "titre": "Recette de bout en bout du dossier",
+      "dept": "qa",
+      "resp": "Amel Kacem",
+      "prio": "P0",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-084",
+      "jour": "J10",
+      "detail": "test-dossier : producer, marque (téléphone), agence ; retour puis validation, rôle, lancement du casting, room ; 21/21."
     }
   ],
   "journal": [
@@ -3888,10 +3952,19 @@
         "D-030 : une seule fiche par projet, chaque étape a un propriétaire",
         "D-031 : l'IA remplit directement les étapes de l'auteur et propose aux autres"
       ]
+    },
+    {
+      "date": "2026-11-23",
+      "jour": "J10",
+      "resume": "Décision client : plus de versions V0/V1/V2. Un seul dossier du film par projet, construit au fil des rôles en 4 phases (brief, recommandation, préparation, casting) ; le producer complète tout, la marque valide la recommandation. La page projet devient ce dossier.",
+      "decisions": [
+        "D-032 : un seul dossier du film, plus de versions",
+        "D-033 : le producer peut compléter chaque chapitre ; seule la marque valide la recommandation"
+      ]
     }
   ],
   "maintenant": {
-    "titre": "P-083 · Fiche unique livrée",
+    "titre": "P-084 · Dossier unique du film",
     "etape": 60,
     "agents": [
       {
@@ -3921,8 +3994,8 @@
       ]
     },
     "derniere": {
-      "t": "2026-11-23T02:15:00Z",
-      "texte": "Fiche unique du projet livrée dans la room et la page projet ; l’IA lit fichiers et liens Canva."
+      "t": "2026-11-23T12:40:00Z",
+      "texte": "La page projet devient le dossier du film : 4 phases, un seul bouton d’action par phase."
     }
   },
   "activite": [

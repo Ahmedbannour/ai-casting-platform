@@ -110,8 +110,8 @@ export class InviteCardComponent implements OnInit {
   slots(): Slot[] {
     const x = this.d();
     return [
-      { kind: 'MARQUE', label: 'Marque', joined: x.hasBrand ? x.brandName : null, hint: 'Elle écrit la V0 (le brief) et l’envoie à l’agence.' },
-      { kind: 'AGENCE_MARKETING', label: 'Agence marketing', joined: x.agencyName, hint: 'Elle reçoit la V0 et livre la V1 (le concept).' }
+      { kind: 'MARQUE', label: 'Marque', joined: x.hasBrand ? x.brandName : null, hint: 'Elle rédige le brief dans le dossier du film, puis valide la recommandation.' },
+      { kind: 'AGENCE_MARKETING', label: 'Agence marketing', joined: x.agencyName, hint: 'Elle reçoit le brief et rédige la recommandation créative.' }
     ];
   }
 
@@ -144,8 +144,8 @@ export class InviteCardComponent implements OnInit {
   message(kind: Kind): string {
     const x = this.d(), prod = x.productionName ?? 'La production';
     return kind === 'MARQUE'
-      ? `Bonjour, ${prod} vous invite sur Cercle pour le projet « ${x.title} ». Créez votre compte et déposez votre V0 (le brief) :`
-      : `Bonjour, ${prod} vous invite sur Cercle pour le projet « ${x.title} ». Vous y recevrez la V0 de la marque pour préparer la V1 :`;
+      ? `Bonjour, ${prod} vous invite sur Cercle pour le projet « ${x.title} ». Créez votre compte et rédigez votre brief dans le dossier du film :`
+      : `Bonjour, ${prod} vous invite sur Cercle pour le projet « ${x.title} ». Vous y recevrez le brief de la marque pour rédiger votre recommandation créative :`;
   }
 
   day(ms: number): string { return new Date(ms).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }); }

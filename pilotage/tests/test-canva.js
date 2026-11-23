@@ -35,7 +35,7 @@ async function login(b, email, pw) {
   const m = await login(b, acc.MARQUE.email, acc.MARQUE.pw);
   const ptk = (await j('/auth/login', { method: 'POST', body: JSON.stringify({ email: acc.BOITE_PROD.email, password: acc.BOITE_PROD.pw }) })).b.accessToken;
   const id = await projet(j, { prodTk: ptk, title: 'Recette Pub Canva ' + stamp, brand: acc.MARQUE.email, agency: acc.AGENCE_MARKETING.email });
-  await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1200);
+  await m.goto(BASE + '/demandes/' + id + '/historique'); await m.waitForTimeout(1200);
   res.champLien = await m.locator('input[name=v0link]').count();
   await m.fill('input[name=v0link]', 'http://pas-https.example');
   await m.getByRole('button', { name: 'Enregistrer le texte et le lien' }).click(); await m.waitForTimeout(1000);
@@ -48,7 +48,7 @@ async function login(b, email, pw) {
   await envoyer.click(); await m.waitForTimeout(1500);
   res.envoi = await m.locator('.ok').innerText().catch(() => '');
   const a = await login(b, acc.AGENCE_MARKETING.email, acc.AGENCE_MARKETING.pw);
-  await a.goto(BASE + '/demandes/' + id); await a.waitForTimeout(1500);
+  await a.goto(BASE + '/demandes/' + id + '/historique'); await a.waitForTimeout(1500);
   const lien = a.locator('a.canva');
   res.boutonCanva = await lien.innerText().catch(() => '');
   res.lienCible = await lien.getAttribute('href').catch(() => '');

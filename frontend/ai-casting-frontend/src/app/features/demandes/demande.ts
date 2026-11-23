@@ -844,7 +844,7 @@ export class DemandeComponent {
 
   save() {
     const x = this.d();
-    if (!x) this.run(this.api.create(this.body()), 'Demande créée. Déposez maintenant votre V0.', r => { this.apply(r); this.router.navigate(['/demandes', r.id], { replaceUrl: true }); });
+    if (!x) this.run(this.api.create(this.body()), 'Projet créé : invitez la marque et l’agence, le dossier du film commence.', r => { this.apply(r); this.router.navigate(['/demandes', r.id], { replaceUrl: true }); });
     else this.run(this.api.update(x.id, this.body()), 'Projet enregistré.', r => this.apply(r));
   }
   saveV0() { const x = this.d(); if (x) this.run(this.api.saveV0(x.id, this.v0Text, this.v0Link.trim() || null), 'V0 enregistrée.', r => this.apply(r)); }

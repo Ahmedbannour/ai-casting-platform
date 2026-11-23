@@ -153,8 +153,8 @@ export class InvitationProComponent implements OnInit {
     const t = p.requestTitle ? `« ${p.requestTitle} »` : 'ce projet';
     if (p.roomId) return `${p.inviterName ?? p.productionName} vous invite dans la room ${t}${p.joinOrg ? ' avec ' + p.joinOrg : ''} : vous y découvrirez les candidats de chaque rôle et donnerez votre avis d’un geste.`;
     if (p.kind === 'ASSISTANT_PROD') return `${p.productionName} vous invite comme assistante de production. Voici ce que vous pourrez faire :`;
-    if (p.kind === 'MARQUE') return `${p.productionName} vous invite sur ${t}${p.joinOrg ? ' avec ' + p.joinOrg : ''}. Créez votre compte, puis déposez votre V0 : le brief de votre idée.`;
-    return `${p.productionName} vous invite sur ${t}${p.joinOrg ? ' avec ' + p.joinOrg : ''}. Vous recevrez la V0 de la marque pour préparer la V1, le concept.`;
+    if (p.kind === 'MARQUE') return `${p.productionName} vous invite sur ${t}${p.joinOrg ? ' avec ' + p.joinOrg : ''}. Créez votre compte, puis rédigez votre brief dans le dossier du film.`;
+    return `${p.productionName} vous invite sur ${t}${p.joinOrg ? ' avec ' + p.joinOrg : ''}. Vous recevrez le brief de la marque dans le dossier du film pour rédiger votre recommandation créative.`;
   });
   readonly permLabels = computed(() => PERMS.filter(x => this.pv()?.perms.includes(x.key)).map(x => x.label));
 

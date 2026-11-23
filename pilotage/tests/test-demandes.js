@@ -42,6 +42,9 @@ async function login(b, email, pw) {
   await p.click('button.next'); await p.fill('textarea[name=objective]', 'Faire connaître la nouvelle bouteille');
   await p.click('button[type=submit]'); await p.waitForURL(u => /\/demandes\/[0-9a-f-]{36}$/.test(u.pathname), { timeout: 10000 });
   const id = p.url().split('/').pop();
+  res.dossierApresCreation = await p.locator('app-fiche .gate h2').innerText({ timeout: 15000 }).catch(() => '');
+  if (!res.dossierApresCreation.includes('Le brief')) throw new Error('après création, la page projet doit être le dossier du film (phase brief)');
+  await p.goto(BASE + '/demandes/' + id + '/historique');
   await p.waitForTimeout(1200);
   res.carteInvitation = await p.locator('app-invite-card h2').innerText();
   res.maintenant = await p.locator('.now-card p').innerText();
@@ -60,7 +63,7 @@ async function login(b, email, pw) {
   const m = await login(b, acc.MARQUE.email, acc.MARQUE.pw);
   await m.goto(BASE + '/mes-demandes'); await m.waitForTimeout(1500);
   res.marqueNouveauProjet = await m.locator('a.send', { hasText: 'Nouveau projet' }).count();
-  await m.goto(BASE + '/demandes/' + id); await m.waitForTimeout(1200);
+  await m.goto(BASE + '/demandes/' + id + '/historique'); await m.waitForTimeout(1200);
   await m.fill('textarea[name=v0]', 'Une famille au petit-déjeuner, lumière du matin, ton chaleureux. Message : le goût du verger.');
   await m.getByRole('button', { name: 'Enregistrer le texte' }).click(); await m.waitForTimeout(800);
   await m.setInputFiles('.drop input[type=file]', path.join(__dirname, 'v0-recette.pdf')); await m.waitForTimeout(1500);
@@ -86,7 +89,9 @@ async function login(b, email, pw) {
   res.notificationAgence = n ? [n.title, n.link] : null;
   await a.goto(BASE + '/mes-demandes'); await a.waitForTimeout(1500);
   res.listeAgence = await a.locator('.list li').count();
-  await a.locator('.list a').first().click(); await a.waitForURL(/\/demandes\//); await a.waitForTimeout(1200);
+  await a.locator('.list a').first().click(); await a.waitForURL(/\/demandes\//); await a.waitForSelector('app-fiche .gate', { timeout: 15000 });
+  res.agenceArriveSurLeDossier = (await a.locator('app-fiche .gate h2').innerText()).trim();
+  await a.goto(a.url() + '/historique'); await a.waitForTimeout(1200);   // l'ancienne V0 reste consultable
   res.agenceLectureSeule = await a.locator('input[name=title]').count() === 0;
   res.agenceVoitV0 = (await a.locator('.body').first().innerText().catch(() => '')).slice(0, 30);
   const [dl2] = await Promise.all([a.waitForEvent('download', { timeout: 8000 }).catch(() => null), a.getByRole('button', { name: 'Télécharger' }).first().click()]);
