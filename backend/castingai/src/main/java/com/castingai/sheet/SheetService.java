@@ -101,6 +101,12 @@ public class SheetService {
         if (f.kind() == SheetSchema.Kind.DATE && !v.isEmpty()) {
             try { LocalDate.parse(v); } catch (Exception e) { throw new IllegalArgumentException("Date au format AAAA-MM-JJ"); }
         }
+        if (f.kind() == SheetSchema.Kind.RANGE && !v.isEmpty()) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(\\d{4}-\\d{2}-\\d{2})/(\\d{4}-\\d{2}-\\d{2})$").matcher(v);
+            try {
+                if (!m.matches() || LocalDate.parse(m.group(2)).isBefore(LocalDate.parse(m.group(1)))) throw new IllegalArgumentException();
+            } catch (Exception e) { throw new IllegalArgumentException("Choisissez le premier puis le dernier jour dans le calendrier"); }
+        }
         if (v.length() > 4000) throw new IllegalArgumentException("4 000 caractères au plus");
         if (f.key().equals("titre") && v.isEmpty()) throw new IllegalArgumentException("Le projet garde un titre");
         write(r.getId(), f, v, "MANUEL", me.getId());
@@ -116,7 +122,7 @@ public class SheetService {
         AdRequest r = readable(me, id);
         SheetSchema.Field f = field(key);
         if (!editable(me, r, f.stage())) throw new ForbiddenException("Cette étape est remplie par : " + SheetSchema.STAGE_BY_KEY.get(f.stage()).owner());
-        if (f.kind() == SheetSchema.Kind.DATE) throw new IllegalArgumentException("Choisissez la date dans le calendrier");
+        if (f.kind() == SheetSchema.Kind.DATE || f.kind() == SheetSchema.Kind.RANGE) throw new IllegalArgumentException("Choisissez la date dans le calendrier");
         return ai.draft(f, values(r), current == null ? null : current.trim()).map(t -> new Draft(t, "IA")).orElse(new Draft(null, "AUCUN"));
     }
 

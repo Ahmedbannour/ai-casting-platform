@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 
 export type StageState = 'complete' | 'encours' | 'vide';
 export interface SheetField {
-  key: string; label: string; hint: string; kind: 'TEXT' | 'LONG' | 'DATE'; required: boolean; value: string | null;
+  key: string; label: string; hint: string; kind: 'TEXT' | 'LONG' | 'DATE' | 'RANGE'; required: boolean; value: string | null;
   source: 'MANUEL' | 'IA' | null; updatedBy: string | null; updatedAt: string | null; suggestion: string | null; suggestionFrom: string | null; canEdit: boolean;
 }
 export interface SheetStage {

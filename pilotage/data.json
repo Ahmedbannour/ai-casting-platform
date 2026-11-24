@@ -1414,6 +1414,27 @@
       "date": "2026-11-24",
       "titre": "Des aides dans chaque partie de la fiche",
       "original": "au niveau de fiche de projet , peux tu amiliorer l'experience de cout il faut que dans chaque parite , il y a des options qui facilite l'utilisation de notre platforme , merci de me donner la meilleur resultat possible"
+    },
+    {
+      "ameliore": "Reformulé par la Cellule IA avec Hédi Ben Amor (consultant production publicitaire). Les dates se choisissent dans un calendrier affiché dans la fiche : la diffusion en un clic (raccourcis « dans 1 mois »…), le tournage comme une période (premier puis dernier jour, durée en un clic, jour de réserve météo). Les autres dates du dossier apparaissent en repères, la fiche alerte quand les délais sont trop courts, et le planning se construit d'après les dates.",
+      "departements": [
+        "prod",
+        "front",
+        "back",
+        "qa"
+      ],
+      "livrables": [
+        "Calendrier dans la page",
+        "Période de tournage",
+        "Alertes de délais",
+        "Rétroplanning automatique",
+        "test-dates 18/18"
+      ],
+      "statut": "fait",
+      "id": "P-086",
+      "date": "2026-11-24",
+      "titre": "Les dates de la fiche au calendrier",
+      "original": "dans la fiche de projet , il faut qu'on mis les inputs des dates d'une autre facon (calendrier) , ainsi que le rendre plus facile a utiliser"
     }
   ],
   "bibliotheques": [
@@ -3944,6 +3965,54 @@
       "prompt": "P-085",
       "jour": "J11",
       "detail": "test-aides 19/19 en navigateur (Edge), SheetApiTest vert."
+    },
+    {
+      "id": "T-195",
+      "titre": "Calendrier affiché dans la fiche",
+      "dept": "front",
+      "resp": "Sarra Mansouri",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-086",
+      "jour": "J11",
+      "detail": "Composant app-calendar : jour ou période, deux mois côte à côte (un sur téléphone), week-ends marqués, repères de couleur, aperçu de la période au survol, clavier complet."
+    },
+    {
+      "id": "T-196",
+      "titre": "Dates de tournage en période",
+      "dept": "back",
+      "resp": "Marc Lefèvre",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-086",
+      "jour": "J11",
+      "detail": "Nouveau type de champ RANGE (« AAAA-MM-JJ/AAAA-MM-JJ ») ; la lecture IA convertit « du 12 au 14 mars 2027 » ; un texte non convertible reste visible et se fixe au calendrier."
+    },
+    {
+      "id": "T-197",
+      "titre": "Alertes de délais et rétroplanning",
+      "dept": "prod",
+      "resp": "Hédi Ben Amor",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-086",
+      "jour": "J11",
+      "detail": "Moins de 3 semaines entre tournage et diffusion, tournage dans moins de 2 semaines : alerte. Rétroplanning type (casting, PPM, montage, étalonnage, validations, livraison) sur jours ouvrés."
+    },
+    {
+      "id": "T-198",
+      "titre": "Recette du calendrier",
+      "dept": "qa",
+      "resp": "Amel Kacem",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-086",
+      "jour": "J11",
+      "detail": "test-dates 18/18 (Edge, ordinateur et téléphone), test-aides 19/19, SheetApiTest et SheetReadingTest verts."
     }
   ],
   "journal": [
@@ -4050,6 +4119,14 @@
       "resume": "Fiche de projet : chaque partie a maintenant ses aides (choix rapides, modèles, exemples, IA qui rédige ou améliore, enregistrer et suivant, tout accepter, copier, imprimer, rôles types). test-aides 19/19.",
       "decisions": [
         "D-034 : l'IA propose, la personne relit et enregistre ; aucune écriture automatique depuis l'aide à la rédaction"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "jour": "J11",
+      "resume": "Les dates de la fiche se choisissent au calendrier : diffusion (un jour) et tournage (une période), repères croisés, alertes de délais, rétroplanning en un clic. test-dates 18/18.",
+      "decisions": [
+        "D-035 : les dates de tournage sont une période structurée, plus du texte libre"
       ]
     }
   ],
@@ -4574,6 +4651,12 @@
       "nom": "Amel Kacem",
       "t": "2026-11-24T13:40:00Z",
       "texte": "Aides de la fiche livrées : test-aides 19/19, l'IA rédige un champ en 12 s."
+    },
+    {
+      "h": "J11",
+      "nom": "Amel Kacem",
+      "t": "2026-11-24T14:00:00Z",
+      "texte": "Calendrier de la fiche livré : test-dates 18/18, ordinateur et téléphone."
     }
   ],
   "plan": {

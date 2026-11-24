@@ -62,4 +62,14 @@ public class SheetReadingTest {
         assertThat(LinkReader.meta(html, "og:description")).isEqualTo("Spot Zitouna");
         assertThat(LinkReader.visibleText(html)).contains("Cible").contains("Familles").doesNotContain("var x");
     }
+
+    @org.junit.jupiter.api.Test
+    void lesDatesDeTournageDeviennentUnePeriode() {
+        org.assertj.core.api.Assertions.assertThat(SheetAi.range("Du 12 au 14 mars 2027")).isEqualTo("2027-03-12/2027-03-14");
+        org.assertj.core.api.Assertions.assertThat(SheetAi.range("12/03/2027 au 14/03/2027")).isEqualTo("2027-03-12/2027-03-14");
+        org.assertj.core.api.Assertions.assertThat(SheetAi.range("du 30 mars au 2 avril 2027")).isEqualTo("2027-03-30/2027-04-02");
+        org.assertj.core.api.Assertions.assertThat(SheetAi.range("le 5 mai 2027")).isEqualTo("2027-05-05/2027-05-05");
+        org.assertj.core.api.Assertions.assertThat(SheetAi.range("fin mars, à confirmer")).isNull();
+        org.assertj.core.api.Assertions.assertThat(SheetAi.normalize("dates_tournage", "fin mars, à confirmer")).isEqualTo("fin mars, à confirmer");
+    }
 }

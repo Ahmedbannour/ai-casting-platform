@@ -6,9 +6,11 @@ import { LiveService } from '../../core/services/live.service';
 import { PageRailComponent } from '../../shared/components/page-rail/page-rail';
 import { DropzoneComponent } from '../../shared/components/dropzone/dropzone';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field';
+import { CalMark, CalendarComponent } from '../../shared/components/calendar/calendar';
+import { addDays, todayIso } from '../../shared/forms/dates';
 import { concat, last } from 'rxjs';
 import { FicheService, RoleInput, Sheet, SheetField, SheetRole, SheetSource, SheetStage } from './fiche.service';
-import { AGE_RANGES, AIDES, Aide, ROLE_INTENTIONS, ROLE_TYPES, addLine, derived, hasIn, toggleIn } from './fiche-aides';
+import { AGE_RANGES, AIDES, Aide, ROLE_INTENTIONS, ROLE_TYPES, addLine, dayFr, daysBetween, derived, hasIn, isoRange, parseRange, toggleIn } from './fiche-aides';
 
 const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 
@@ -20,7 +22,7 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
 @Component({
   selector: 'app-fiche',
   standalone: true,
-  imports: [FormsModule, RouterLink, PageRailComponent, DropzoneComponent, DateFieldComponent],
+  imports: [FormsModule, RouterLink, PageRailComponent, DropzoneComponent, DateFieldComponent, CalendarComponent],
   template: `
   <div class="sheet">
   <article class="doc" #doc aria-label="Fiche du projet">
@@ -169,10 +171,32 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
                     <dd>
                       @if (editing() === f.key) {
                         <form class="edit" (ngSubmit)="save(f)" (keydown)="keys($event, f)">
-                          @if (f.kind === 'DATE') { <app-date-field name="v" [(ngModel)]="draft" /> }
+                          @if (f.kind === 'DATE') {
+                            <div class="when">
+                              <p class="when-big">@if (draft) { {{ dayFr(draft, true) }} <span>{{ countdown(draft) }}</span> } @else { Choisissez le jour de la première diffusion }</p>
+                              <div class="quick" role="group" aria-label="Raccourcis de date"><span class="q-l">Dans</span>
+                                @for (q of dateShortcuts(); track q.label) { <button type="button" class="qchip" [attr.aria-pressed]="draft === q.iso" (click)="draft = q.iso">{{ q.label }}</button> }
+                              </div>
+                              <app-calendar [value]="draft" (valueChange)="draft = $event" [min]="today" [marks]="marksFor(f)" />
+                              @if (dateWarn(f); as w) { <p class="warn" role="status">{{ w }}</p> }
+                              <div class="type-row"><span>Ou tapez la date</span><app-date-field name="v" [(ngModel)]="draft" [compact]="true" ariaLabel="Date au format jj/mm/aaaa" /></div>
+                            </div>
+                          }
+                          @else if (f.kind === 'RANGE') {
+                            <div class="when">
+                              <p class="when-big">@if (rangeOf(draft); as r) { {{ rangeLabel(r) }} <span>{{ rangeDays(r) }}</span> } @else { Cliquez le premier jour, puis le dernier }</p>
+                              @if (rawRange()) { <p class="raw">Texte d'origine : « {{ rawRange() }} ». Choisissez les jours dans le calendrier.</p> }
+                              <div class="quick" role="group" aria-label="Durée du tournage"><span class="q-l">Durée</span>
+                                @for (n of [1, 2, 3, 4, 5]; track n) { <button type="button" class="qchip" [attr.aria-pressed]="lengthOf(draft) === n" (click)="setLength(n)">{{ n }} jour{{ n > 1 ? 's' : '' }}</button> }
+                                <button type="button" class="qchip" [disabled]="!rangeOf(draft)" (click)="addReserve()">+ 1 jour de réserve météo</button>
+                              </div>
+                              <app-calendar mode="range" [value]="draft" (valueChange)="draft = $event" [min]="today" [marks]="marksFor(f)" />
+                              @if (rangeWarn(); as w) { <p class="warn" role="status">{{ w }}</p> }
+                            </div>
+                          }
                           @else if (f.kind === 'LONG') { <textarea name="v" rows="5" maxlength="4000" [(ngModel)]="draft" [placeholder]="f.hint" [attr.aria-label]="f.label" [attr.aria-describedby]="'m-' + f.key"></textarea> }
                           @else { <input name="v" maxlength="300" [(ngModel)]="draft" [placeholder]="f.hint" [attr.aria-label]="f.label" [attr.aria-describedby]="'m-' + f.key" /> }
-                          @if (f.kind !== 'DATE') {
+                          @if (f.kind === 'TEXT' || f.kind === 'LONG') {
                             <p class="meter" [id]="'m-' + f.key"><span [class.over]="over(f)">{{ draft.length }} caractères{{ aide(f).max ? ' · ' + aide(f).max + ' conseillés' : '' }}</span><span class="kbd">Ctrl + Entrée : enregistrer · Échap : annuler</span></p>
                             @if (aide(f).chips; as chips) {
                               <div class="quick" role="group" [attr.aria-label]="'Choix rapides pour ' + f.label">
@@ -180,7 +204,7 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
                                 @for (c of chips; track c) { <button type="button" class="qchip" [attr.aria-pressed]="on(f, c)" (click)="pick(f, c)">{{ c }}</button> }
                               </div>
                             }
-                            @if (derivedFor(f); as d) { <button type="button" class="tool hint" (click)="setDraft(d.value)">{{ d.label }} : <b>{{ d.value }}</b></button> }
+                            @if (derivedFor(f); as d) { <button type="button" class="tool hint" (click)="setDraft(d.value)">@if (d.value.includes('\n')) { ✦ {{ d.label }} } @else { {{ d.label }} : <b>{{ d.value }}</b> }</button> }
                             <div class="helpers">
                               <button type="button" class="tool ai" [disabled]="drafting()" (click)="aiDraft(f)">@if (drafting()) { L’IA écrit<i class="dots" aria-hidden="true"><i></i><i></i><i></i></i> } @else { {{ draft.trim() ? '✦ Améliorer avec l’IA' : '✦ Proposer avec l’IA' }} }</button>
                               @if (undoDraft() !== null) { <button type="button" class="tool" (click)="undo()">Revenir à mon texte</button> }
@@ -198,7 +222,8 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
                         </form>
                       } @else {
                         @if (f.value) {
-                          <p class="val">{{ f.kind === 'DATE' ? dateFr(f.value) : f.value }}</p>
+                          <p class="val">{{ show(f, f.value) }}</p>
+                          @if (dateNote(f); as n) { <span class="date-note" [class.raw-note]="n.raw">{{ n.text }}</span> }
                           @if (f.source === 'IA') { <span class="ai-tag" title="Rempli par l'IA à partir d'un document">✦ Rempli par l'IA{{ f.canEdit ? ' · à vérifier' : '' }}</span> }
                         } @else {
                           <p class="val none">{{ f.canEdit ? f.hint : 'À remplir par ' + by(st.owner) }}</p>
@@ -213,7 +238,7 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
                       @if (f.suggestion && editing() !== f.key) {
                         @if (f.canEdit) {
                           <div class="sugg" role="group" [attr.aria-label]="'Proposition de l\\'IA pour ' + f.label">
-                            <p><span class="ai-tag">✦ L'IA propose{{ f.suggestionFrom ? ', d\\'après le document de ' + f.suggestionFrom : '' }}</span>{{ f.kind === 'DATE' ? dateFr(f.suggestion) : f.suggestion }}</p>
+                            <p><span class="ai-tag">✦ L'IA propose{{ f.suggestionFrom ? ', d\\'après le document de ' + f.suggestionFrom : '' }}</span>{{ show(f, f.suggestion) }}</p>
                             <div class="sugg-actions">
                               <button type="button" class="go" [disabled]="busy()" (click)="accept(f)">Accepter</button>
                               <button type="button" class="ghost" [disabled]="busy()" (click)="edit(f, f.suggestion)">Corriger</button>
@@ -386,7 +411,8 @@ export class FicheComponent implements AfterViewChecked {
   }
 
   edit(f: SheetField, preset?: string | null): void { this.editing.set(f.key); this.draft = preset ?? f.value ?? ''; this.msg.set(''); this.error.set('');
-    this.undoDraft.set(null); this.aiNote.set(''); this.showEx.set(false);
+    this.undoDraft.set(null); this.aiNote.set(''); this.showEx.set(false); this.rawRange.set('');
+    if (f.kind === 'RANGE' && this.draft && !isoRange(this.draft)) { this.rawRange.set(this.draft); this.draft = parseRange(this.draft); }
     setTimeout(() => (this.host.nativeElement.querySelector('.edit textarea, .edit input') as HTMLElement | null)?.focus()); }
   cancel(): void { this.editing.set(null); this.undoDraft.set(null); this.aiNote.set(''); this.showEx.set(false); }
 
@@ -398,6 +424,79 @@ export class FicheComponent implements AfterViewChecked {
       this.editing.set(null);
       if (following) { const fresh = this.sheet()?.stages.flatMap(x => x.fields).find(x => x.key === following.key); if (fresh) this.edit(fresh); }
     });
+  }
+
+  // ── P-086 · Les dates au calendrier ──
+
+  readonly today = todayIso();
+  readonly dayFr = dayFr;
+  /** Texte libre d'origine (lu par l'IA) quand il ne se convertit pas en période. */
+  readonly rawRange = signal('');
+  private vals(): Record<string, string> { return this.valueMap(); }
+  show(f: SheetField, v: string | null): string {
+    if (!v) return '';
+    if (f.kind === 'DATE') return this.dateFr(v);
+    if (f.kind === 'RANGE') { const r = isoRange(v); return r ? this.rangeLabel(r) : v; }
+    return v;
+  }
+  rangeOf(v: string): [string, string] | null { return isoRange(v); }
+  rangeLabel([a, b]: [string, string]): string {
+    if (a === b) return `Le ${dayFr(a, true)}`;
+    return a.slice(0, 7) === b.slice(0, 7) ? `Du ${dayFr(a)} au ${dayFr(b, true)}` : `Du ${dayFr(a, a.slice(0, 4) !== b.slice(0, 4))} au ${dayFr(b, true)}`;
+  }
+  rangeDays([a, b]: [string, string]): string { const n = daysBetween(a, b) + 1; return `${n} jour${n > 1 ? 's' : ''} de tournage`; }
+  lengthOf(v: string): number { const r = isoRange(v); return r ? daysBetween(r[0], r[1]) + 1 : 0; }
+  countdown(iso: string): string {
+    const n = daysBetween(this.today, iso);
+    return n === 0 ? 'aujourd’hui' : n === 1 ? 'demain' : n > 0 ? `dans ${n} jours${n >= 14 ? ' (' + Math.round(n / 7) + ' semaines)' : ''}` : `il y a ${-n} jours`;
+  }
+  /** Sous la valeur affichée : le compte à rebours, la durée, ou « à convertir » pour un texte libre. */
+  dateNote(f: SheetField): { text: string; raw: boolean } | null {
+    if (!f.value) return null;
+    if (f.kind === 'DATE') return { text: this.countdown(f.value), raw: false };
+    if (f.kind === 'RANGE') { const r = isoRange(f.value); return r ? { text: this.rangeDays(r), raw: false } : { text: f.canEdit ? 'Texte libre : ouvrez le calendrier pour fixer les jours' : 'Jours à préciser', raw: true }; }
+    return null;
+  }
+  dateShortcuts(): { label: string; iso: string }[] {
+    return [['2 semaines', 14], ['1 mois', 30], ['6 semaines', 42], ['2 mois', 61], ['3 mois', 91]].map(([l, n]) => ({ label: l as string, iso: addDays(this.today, n as number) }));
+  }
+  /** Les autres dates du dossier, en repères dans le calendrier. */
+  marksFor(f: SheetField): CalMark[] {
+    const v = this.vals(), out: CalMark[] = [];
+    if (f.key !== 'diffusion' && v['diffusion']) out.push({ iso: v['diffusion'], label: 'Diffusion', tone: 'danger' });
+    const r = isoRange(v['dates_tournage'] ?? '');
+    if (f.key !== 'dates_tournage' && r) for (let d = r[0]; d <= r[1]; d = addDays(d, 1)) out.push({ iso: d, label: 'Tournage', tone: 'success' });
+    return out;
+  }
+  setLength(n: number): void {
+    const r = isoRange(this.draft);
+    const start = r ? r[0] : this.nextMonday(addDays(this.today, 21));
+    this.draft = `${start}/${addDays(start, n - 1)}`;
+  }
+  addReserve(): void { const r = isoRange(this.draft); if (r) this.draft = `${r[0]}/${addDays(r[1], 1)}`; }
+  private nextMonday(iso: string): string { let d = iso; while (new Date(d + 'T12:00').getDay() !== 1) d = addDays(d, 1); return d; }
+  /** Ce qu'un producteur vérifierait : assez de temps avant et après le tournage. */
+  rangeWarn(): string | null {
+    const r = isoRange(this.draft); if (!r) return null;
+    const diff = this.vals()['diffusion'];
+    if (diff) {
+      const gap = daysBetween(r[1], diff);
+      if (gap < 0) return `Le tournage finit après la première diffusion (${dayFr(diff, true)}).`;
+      if (gap < 21) return `Seulement ${gap} jour${gap > 1 ? 's' : ''} entre la fin du tournage et la diffusion : il faut en général 3 semaines pour le montage, l’étalonnage, le son et les validations.`;
+    }
+    const before = daysBetween(this.today, r[0]);
+    if (before < 14) return `Tournage dans ${before} jour${before > 1 ? 's' : ''} : le casting, les repérages et la PPM seront très serrés (3 semaines conseillées).`;
+    return null;
+  }
+  dateWarn(f: SheetField): string | null {
+    if (f.key !== 'diffusion' || !this.draft) return null;
+    const r = isoRange(this.vals()['dates_tournage'] ?? '');
+    if (r) {
+      const gap = daysBetween(r[1], this.draft);
+      if (gap < 0) return `Cette date tombe avant la fin du tournage (${dayFr(r[1], true)}).`;
+      if (gap < 21) return `Seulement ${gap} jour${gap > 1 ? 's' : ''} après la fin du tournage : 3 semaines sont conseillées pour la post-production.`;
+    } else if (daysBetween(this.today, this.draft) < 35) return 'Moins de 5 semaines pour préparer, tourner et livrer : c’est très court pour un film publicitaire.';
+    return null;
   }
 
   // ── P-085 · Aides à la saisie ──
@@ -467,7 +566,7 @@ export class FicheComponent implements AfterViewChecked {
     this.run(concat(...list.map(f => this.api.accept(s.requestId, f.key))).pipe(last()), `${list.length} propositions acceptées dans « ${st.title} ».`);
   }
   private stageText(st: SheetStage): string {
-    const rows = st.fields.filter(f => f.value).map(f => `${f.label} : ${f.kind === 'DATE' ? this.dateFr(f.value!) : f.value}`);
+    const rows = st.fields.filter(f => f.value).map(f => `${f.label} : ${this.show(f, f.value)}`);
     const roles = st.roles.map(r => `• ${r.name}${this.roleMeta(r) ? ' (' + this.roleMeta(r) + ')' : ''}${r.intention ? ' : ' + r.intention : ''}`);
     return [`${this.pad(st.num)} ${st.title}`, ...rows, ...roles].join('\n');
   }

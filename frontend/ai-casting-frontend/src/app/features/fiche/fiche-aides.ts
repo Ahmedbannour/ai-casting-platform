@@ -6,6 +6,7 @@
  * - set    : remplace le texte (point de départ)
  */
 import { RoleInput } from './fiche.service';
+import { MONTHS_FR, addDays, fromIso, toIso } from '../../shared/forms/dates';
 
 export type ChipMode = 'toggle' | 'line' | 'set';
 export interface Aide { chips?: string[]; mode?: ChipMode; template?: string; example?: string; max?: number; }
@@ -80,6 +81,12 @@ export function derived(key: string, vals: Record<string, string>): { label: str
     if (/tiktok|instagram|facebook|youtube|stor/.test(sup)) d.push('15 s', '6 s');
     return d.length ? { label: 'D’après les supports', value: [...new Set(d)].join(', ') } : null;
   }
+  if (key === 'planning') {
+    const r = isoRange(vals['dates_tournage'] ?? ''), diff = fromIso(vals['diffusion']) ? vals['diffusion'] : null;
+    if (r) return { label: 'Construire le rétroplanning d’après les dates de tournage', value: retro(r[0], r[1], diff) };
+    if (diff) return { label: 'Construire le rétroplanning d’après la date de diffusion', value: retro(addDays(diff, -25), addDays(diff, -23), diff) };
+    return null;
+  }
   if (key === 'accroche' && vals['message']) return { label: 'Reprendre le message clé', value: vals['message'] };
   return null;
 }
@@ -103,4 +110,60 @@ export function addLine(text: string, item: string): string {
   if (i >= 0) { lines.splice(i, 1); return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim(); }
   const t = (text ?? '').trimEnd();
   return t ? `${t}\n${item}` : item;
+}
+
+// ── P-086 · Dates ──
+
+const SHORT_DAY = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
+/** « 2027-03-12 » → « ven. 12 mars ». */
+export function dayFr(iso: string, year = false): string {
+  const d = fromIso(iso); if (!d) return iso;
+  return `${SHORT_DAY[(d.getDay() + 6) % 7]} ${d.getDate() === 1 ? '1er' : d.getDate()} ${MONTHS_FR[d.getMonth()]}${year ? ' ' + d.getFullYear() : ''}`;
+}
+/** Nombre de jours entre deux dates (b - a). */
+export function daysBetween(a: string, b: string): number { return Math.round((fromIso(b)!.getTime() - fromIso(a)!.getTime()) / 86400000); }
+/** « 2027-03-12/2027-03-14 » → ['2027-03-12', '2027-03-14'], sinon null. */
+export function isoRange(v: string): [string, string] | null {
+  const m = /^(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})$/.exec((v ?? '').trim());
+  return m && fromIso(m[1]) && fromIso(m[2]) && m[1] <= m[2] ? [m[1], m[2]] : null;
+}
+/** Un texte libre (« du 12 au 14 mars 2027 », « 12/03/2027 au 14/03/2027 ») → période ISO, sinon ''. */
+export function parseRange(text: string): string {
+  if (isoRange(text)) return text.trim();
+  const p = (text ?? '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+  const mois = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre'];
+  const mk = (y: number, m: number, d: number) => { const x = new Date(y, m - 1, d, 12); return x.getMonth() === m - 1 ? toIso(x) : null; };
+  const ord = (a: string | null, b: string | null) => a && b ? (a <= b ? `${a}/${b}` : `${b}/${a}`) : '';
+  let m = /(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})\s*(?:au|a|-|–)\s*(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})/.exec(p);
+  if (m) return ord(mk(+m[3], +m[2], +m[1]), mk(+m[6], +m[5], +m[4]));
+  const mo = `(${mois.join('|')})`;
+  m = new RegExp(`(\\d{1,2})(?:er)?\\s+${mo}(?:\\s+(\\d{4}))?\\s*(?:au|a|-|–)\\s*(\\d{1,2})(?:er)?\\s+${mo}\\s+(\\d{4})`).exec(p);
+  if (m) return ord(mk(m[3] ? +m[3] : +m[6], mois.indexOf(m[2]) + 1, +m[1]), mk(+m[6], mois.indexOf(m[5]) + 1, +m[4]));
+  m = new RegExp(`(\\d{1,2})(?:er)?\\s*(?:au|a|-|–|et)\\s*(\\d{1,2})(?:er)?\\s+${mo}\\s+(\\d{4})`).exec(p);
+  if (m) return ord(mk(+m[4], mois.indexOf(m[3]) + 1, +m[1]), mk(+m[4], mois.indexOf(m[3]) + 1, +m[2]));
+  m = new RegExp(`(\\d{1,2})(?:er)?\\s+${mo}\\s+(\\d{4})`).exec(p);
+  if (m) { const d = mk(+m[3], mois.indexOf(m[2]) + 1, +m[1]); return d ? `${d}/${d}` : ''; }
+  return '';
+}
+/**
+ * Le rétroplanning type d'un film publicitaire, comme le pose un producteur :
+ * casting et repérages trois semaines avant, PPM quelques jours avant, puis montage, étalonnage, son, validations et livraison.
+ */
+function retro(s: string, e: string, diff: string | null): string {
+  const r = (a: string, b: string) => a === b ? dayFr(a) : `du ${dayFr(a)} au ${dayFr(b)}`;
+  // Les jours de bureau : un début glisse au lundi suivant, une échéance au vendredi précédent (le tournage, lui, ne bouge pas)
+  const from = (iso: string) => { let d = iso; while ([0, 6].includes(fromIso(d)!.getDay())) d = addDays(d, 1); return d; };
+  const until = (iso: string) => { let d = iso; while ([0, 6].includes(fromIso(d)!.getDay())) d = addDays(d, -1); return d; };
+  const deliver = until(diff && daysBetween(addDays(e, 17), diff) >= 0 ? addDays(diff, -5) : addDays(e, 17));
+  const lines = [
+    `Casting et repérages : ${r(from(addDays(s, -21)), until(addDays(s, -8)))}`,
+    `PPM (réunion de préparation avec la marque) : ${dayFr(until(addDays(s, -5)))}`,
+    `Tournage : ${r(s, e)}`,
+    `Montage : ${r(from(addDays(e, 1)), until(addDays(e, 7)))}`,
+    `Étalonnage, son et musique : ${r(from(addDays(e, 8)), until(addDays(e, 12)))}`,
+    `Validation de la marque : ${r(from(addDays(e, 13)), until(addDays(e, 16)))}`,
+    `Livraison des fichiers : ${dayFr(deliver)}`,
+  ];
+  if (diff) lines.push(`Première diffusion : ${dayFr(diff, true)}`);
+  return lines.join('\n');
 }

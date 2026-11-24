@@ -14,7 +14,7 @@ public final class SheetSchema {
 
     private SheetSchema() {}
 
-    public enum Kind { TEXT, LONG, DATE }
+    public enum Kind { TEXT, LONG, DATE, RANGE }
 
     public record Field(String key, String stage, String label, String hint, Kind kind, boolean required, String column) {}
 
@@ -58,7 +58,7 @@ public final class SheetSchema {
         new Field("format", "realisation", "Format", "16:9, vertical 9:16, versions courtes…", Kind.TEXT, false, null),
 
         new Field("lieux", "production", "Lieux de tournage", "Villes, décors, intérieur ou extérieur", Kind.LONG, true, null),
-        new Field("dates_tournage", "production", "Dates de tournage", "Ex. du 12 au 14 mars 2027", Kind.TEXT, true, null),
+        new Field("dates_tournage", "production", "Dates de tournage", "Premier et dernier jour de tournage", Kind.RANGE, true, null),
         new Field("planning", "production", "Planning", "Repérages, PPM, tournage, montage, livraison", Kind.LONG, false, null),
         new Field("equipe_tech", "production", "Équipe technique", "Chef opérateur, décorateur, costumière…", Kind.LONG, false, null)
     );

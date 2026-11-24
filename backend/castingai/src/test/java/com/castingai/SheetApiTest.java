@@ -91,6 +91,10 @@ class SheetApiTest {
         assertThat(read(send("POST", base + "/champs/cible/proposer", brand, "{\"value\":\"\"}").andExpect(status().isOk())).get("engine").asString()).isEqualTo("AUCUN");
         send("POST", base + "/champs/cible/proposer", agency, null).andExpect(status().isForbidden());
         send("POST", base + "/champs/diffusion/proposer", brand, null).andExpect(status().isBadRequest());
+        // Dates de tournage : une période choisie dans le calendrier, premier jour avant le dernier
+        send("PUT", base + "/champs/dates_tournage", prod, "{\"value\":\"2027-03-12/2027-03-14\"}").andExpect(status().isOk());
+        send("PUT", base + "/champs/dates_tournage", prod, "{\"value\":\"2027-03-14/2027-03-12\"}").andExpect(status().isBadRequest());
+        send("PUT", base + "/champs/dates_tournage", prod, "{\"value\":\"mi-mars\"}").andExpect(status().isBadRequest());
         send("GET", base, outsider, null).andExpect(status().isNotFound());
         send("POST", base + "/etapes/transmettre", brand, null).andExpect(status().isBadRequest());   // brief incomplet
         send("POST", base + "/etapes/transmettre", agency, null).andExpect(status().isForbidden());

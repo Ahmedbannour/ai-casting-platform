@@ -1,0 +1,44 @@
+:host { display: block; width: 100%; }
+.cal { display: flex; flex-direction: column; gap: 10px; padding: clamp(8px, 3cqi, 14px); container-type: inline-size; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-primary); }
+.head { display: flex; align-items: center; gap: 8px; }
+.titles { flex: 1; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; text-align: center; gap: 24px; }
+.titles b { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+.nav { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--border); background: none; color: var(--text-primary); cursor: pointer; }
+.nav:disabled { opacity: .35; cursor: default; }
+.nav:hover:not(:disabled), .nav:focus-visible { border-color: var(--accent); }
+.nav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.months { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.cal.two .months { grid-template-columns: 1fr 1fr; }
+.dow, .days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.dow span { text-align: center; font-size: 11.5px; font-weight: 700; color: var(--text-muted); padding-bottom: 6px; }
+.dow span.we { color: var(--text-subtle); }
+.days { row-gap: 4px; }
+.d { position: relative; height: 42px; border: 0; padding: 0; background: none; color: var(--text-primary); font: inherit; font-size: 14px; font-weight: 600;
+  font-variant-numeric: tabular-nums; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.d .n { width: min(36px, 100%); aspect-ratio: 1; height: auto; display: grid; place-items: center; border-radius: 50%; position: relative; z-index: 1; transition: background .12s; }
+.d.we { color: var(--text-secondary); }
+.d.we::before { content: ''; position: absolute; inset: 2px 0; background: color-mix(in srgb, var(--text-subtle) 7%, transparent); }
+.d:hover:not(.off):not(.s):not(.e) .n { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.d.s:hover .n, .d.e:hover:not(.pv) .n { filter: brightness(1.08); }
+.d:focus-visible { outline: none; } .d:focus-visible .n { box-shadow: 0 0 0 2px var(--accent); }
+.d.today .n { box-shadow: inset 0 0 0 1.5px var(--text-muted); }
+.d.off { color: var(--text-subtle); opacity: .45; cursor: default; }
+/* La période : un ruban entre le premier et le dernier jour */
+.d.in::after, .d.e::after, .d.s::after { content: ''; position: absolute; top: 3px; bottom: 3px; background: var(--accent-dim); }
+.d.in::after { left: 0; right: 0; }
+.d.s::after { left: 50%; right: 0; } .d.e::after { left: 0; right: 50%; }
+.d.solo::after { display: none; }
+.d.s .n, .d.e .n { background: var(--accent); color: var(--on-accent); font-weight: 800; }
+.d.pv.in::after { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.d.pv.e .n { background: color-mix(in srgb, var(--accent) 55%, transparent); }
+.mk { position: absolute; bottom: 1px; left: 0; right: 0; display: flex; justify-content: center; gap: 2px; z-index: 2; }
+.mk i, .legend i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+[data-tone="success"] { background: var(--success) !important; } [data-tone="danger"] { background: var(--danger) !important; }
+.foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; font-size: 12.5px; color: var(--text-secondary); }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.today-btn { min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: none; color: var(--text-secondary); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; margin-left: auto; }
+.today-btn:hover, .today-btn:focus-visible { border-color: var(--accent); color: var(--text-primary); }
+.status { margin: 0; font-size: 13px; color: var(--text-muted); }
+@media (pointer: coarse) { .d { height: 46px; } .d .n { width: min(40px, 100%); } .today-btn { min-height: 44px; } .nav { width: 44px; height: 44px; } }
+@media (prefers-reduced-motion: reduce) { .d .n { transition: none; } }

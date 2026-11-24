@@ -200,9 +200,41 @@ public class SheetAi {
         if (t.length() < 2 || t.equalsIgnoreCase("null") || t.equalsIgnoreCase("non précisé") || t.equals("-")) return null;
         if (t.length() > 1200) t = t.substring(0, 1197) + "…";
         if (key.equals("diffusion")) return date(t);
+        if (key.equals("dates_tournage")) { String r = range(t); return r != null ? r : t; }
         if (key.equals("titre") && t.length() > 160) t = t.substring(0, 160);
         return t;
     }
+
+    /**
+     * Une période de tournage écrite (« du 12 au 14 mars 2027 », « 12/03/2027 au 14/03/2027 », « 12 mars 2027 »)
+     * → « 2027-03-12/2027-03-14 », sinon rien (le texte d'origine est alors gardé tel quel).
+     */
+    static String range(String t) {
+        String[] mois = {"janvier","fevrier","mars","avril","mai","juin","juillet","aout","septembre","octobre","novembre","decembre"};
+        String p = plain(t);
+        Matcher iso = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})\\s*(?:/|au|a|-|→)\\s*(\\d{4}-\\d{2}-\\d{2})").matcher(p);
+        try {
+            if (iso.find()) return order(LocalDate.parse(iso.group(1)), LocalDate.parse(iso.group(2)));
+            Matcher num = Pattern.compile("(\\d{1,2})[/.-](\\d{1,2})[/.-](\\d{4})\\s*(?:au|a|-|–|→)\\s*(\\d{1,2})[/.-](\\d{1,2})[/.-](\\d{4})").matcher(p);
+            if (num.find()) return order(LocalDate.of(i(num, 3), i(num, 2), i(num, 1)), LocalDate.of(i(num, 6), i(num, 5), i(num, 4)));
+            String mo = "(" + String.join("|", mois) + ")";
+            Matcher two = Pattern.compile("(\\d{1,2})(?:er)?\\s+" + mo + "(?:\\s+(\\d{4}))?\\s*(?:au|a|-|–)\\s*(\\d{1,2})(?:er)?\\s+" + mo + "\\s+(\\d{4})").matcher(p);
+            if (two.find()) {
+                int y2 = i(two, 6), y1 = two.group(3) != null ? i(two, 3) : y2;
+                return order(LocalDate.of(y1, Arrays.asList(mois).indexOf(two.group(2)) + 1, i(two, 1)), LocalDate.of(y2, Arrays.asList(mois).indexOf(two.group(5)) + 1, i(two, 4)));
+            }
+            Matcher one = Pattern.compile("(\\d{1,2})(?:er)?\\s*(?:au|a|-|–|et)\\s*(\\d{1,2})(?:er)?\\s+" + mo + "\\s+(\\d{4})").matcher(p);
+            if (one.find()) {
+                int m = Arrays.asList(mois).indexOf(one.group(3)) + 1, y = i(one, 4);
+                return order(LocalDate.of(y, m, i(one, 1)), LocalDate.of(y, m, i(one, 2)));
+            }
+            String d = date(t);
+            if (d != null) return d + "/" + d;
+        } catch (Exception ignored) { }
+        return null;
+    }
+    private static int i(Matcher m, int g) { return Integer.parseInt(m.group(g)); }
+    private static String order(LocalDate a, LocalDate b) { return a.isAfter(b) ? b + "/" + a : a + "/" + b; }
 
     /** Une date écrite (2027-03-15, 15/03/2027, 15 mars 2027), sinon rien. */
     static String date(String t) {
@@ -226,7 +258,7 @@ public class SheetAi {
             meaningful++;
             if (doc.contains(w)) found++;
         }
-        return meaningful == 0 ? doc.contains(plain(value).trim()) || value.matches("\\d{4}-\\d{2}-\\d{2}") : found * 2 >= meaningful || found >= 3;
+        return meaningful == 0 ? doc.contains(plain(value).trim()) || value.matches("\\d{4}-\\d{2}-\\d{2}(/\\d{4}-\\d{2}-\\d{2})?") : found * 2 >= meaningful || found >= 3;
     }
 
     private static String plain(String s) { return Normalizer.normalize(s.toLowerCase(), Normalizer.Form.NFD).replaceAll("\\p{M}", ""); }
