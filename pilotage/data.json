@@ -1392,6 +1392,28 @@
         "T-173"
       ],
       "statut": "Livré"
+    },
+    {
+      "ameliore": "Reformulé par la Cellule IA avec Hédi Ben Amor (consultant production publicitaire). Dans chaque partie de la fiche, des aides qui évitent de partir d'une page blanche : choix rapides, modèles et exemples écrits par un producteur, IA qui rédige ou améliore un champ à partir du reste de la fiche, enchaînement des champs, actions de chapitre (tout accepter, copier), rôles types. Rien n'est enregistré sans relecture.",
+      "departements": [
+        "prod",
+        "ia",
+        "front",
+        "back",
+        "qa"
+      ],
+      "livrables": [
+        "Aides par champ",
+        "IA qui rédige un champ",
+        "Outils de chapitre et de dossier",
+        "Rôles types",
+        "test-aides 19/19"
+      ],
+      "statut": "fait",
+      "id": "P-085",
+      "date": "2026-11-24",
+      "titre": "Des aides dans chaque partie de la fiche",
+      "original": "au niveau de fiche de projet , peux tu amiliorer l'experience de cout il faut que dans chaque parite , il y a des options qui facilite l'utilisation de notre platforme , merci de me donner la meilleur resultat possible"
     }
   ],
   "bibliotheques": [
@@ -3862,6 +3884,66 @@
       "prompt": "P-084",
       "jour": "J10",
       "detail": "test-dossier : producer, marque (téléphone), agence ; retour puis validation, rôle, lancement du casting, room ; 21/21."
+    },
+    {
+      "id": "T-190",
+      "titre": "Aides à la saisie dans chaque champ de la fiche",
+      "dept": "front",
+      "resp": "Sarra Mansouri",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-085",
+      "jour": "J11",
+      "detail": "Choix rapides (cocher, ajouter, point de départ), modèle, exemple, longueur conseillée, Ctrl+Entrée / Échap, enregistrer et passer au suivant, suggestions déduites (durée et format d'après les supports, accroche d'après le message)."
+    },
+    {
+      "id": "T-191",
+      "titre": "L'IA rédige ou améliore un champ",
+      "dept": "ia",
+      "resp": "Yasmine Trabelsi",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-085",
+      "jour": "J11",
+      "detail": "POST /fiche/champs/{clé}/proposer : Ollama local rédige à partir du reste de la fiche, rien n'est enregistré avant relecture ; réservé à qui peut écrire le champ. 12 s en recette."
+    },
+    {
+      "id": "T-192",
+      "titre": "Outils de chapitre et de dossier",
+      "dept": "front",
+      "resp": "Sarra Mansouri",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-085",
+      "jour": "J11",
+      "detail": "Remplir le prochain champ vide, accepter toutes les propositions de l'IA, copier le chapitre, continuer là où j'en suis, copier le résumé, imprimer ou PDF."
+    },
+    {
+      "id": "T-193",
+      "titre": "Rôles types, tranches d'âge, intentions, dupliquer",
+      "dept": "front",
+      "resp": "Sarra Mansouri",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-085",
+      "jour": "J11",
+      "detail": "Un clic remplit nom, sexe et âge ; tranches d'âge et intentions en choix rapides ; dupliquer un rôle."
+    },
+    {
+      "id": "T-194",
+      "titre": "Recette des aides",
+      "dept": "qa",
+      "resp": "Amel Kacem",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-085",
+      "jour": "J11",
+      "detail": "test-aides 19/19 en navigateur (Edge), SheetApiTest vert."
     }
   ],
   "journal": [
@@ -3960,6 +4042,14 @@
       "decisions": [
         "D-032 : un seul dossier du film, plus de versions",
         "D-033 : le producer peut compléter chaque chapitre ; seule la marque valide la recommandation"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "jour": "J11",
+      "resume": "Fiche de projet : chaque partie a maintenant ses aides (choix rapides, modèles, exemples, IA qui rédige ou améliore, enregistrer et suivant, tout accepter, copier, imprimer, rôles types). test-aides 19/19.",
+      "decisions": [
+        "D-034 : l'IA propose, la personne relit et enregistre ; aucune écriture automatique depuis l'aide à la rédaction"
       ]
     }
   ],
@@ -4478,6 +4568,12 @@
       "nom": "Amel Kacem",
       "t": "2026-11-23T02:15:00Z",
       "texte": "Fiche unique livrée : 7 étapes, droits par rôle, IA locale qui remplit et propose (53 s pour un brief). test-fiche 16/16, SheetApiTest vert, recette multi-rôles 22/22."
+    },
+    {
+      "h": "J11",
+      "nom": "Amel Kacem",
+      "t": "2026-11-24T13:40:00Z",
+      "texte": "Aides de la fiche livrées : test-aides 19/19, l'IA rédige un champ en 12 s."
     }
   ],
   "plan": {

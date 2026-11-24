@@ -6,7 +6,9 @@ import { LiveService } from '../../core/services/live.service';
 import { PageRailComponent } from '../../shared/components/page-rail/page-rail';
 import { DropzoneComponent } from '../../shared/components/dropzone/dropzone';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field';
+import { concat, last } from 'rxjs';
 import { FicheService, RoleInput, Sheet, SheetField, SheetRole, SheetSource, SheetStage } from './fiche.service';
+import { AGE_RANGES, AIDES, Aide, ROLE_INTENTIONS, ROLE_TYPES, addLine, derived, hasIn, toggleIn } from './fiche-aides';
 
 const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 
@@ -39,6 +41,11 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
                 @for (m of myStages(); track m.key) { <a class="chip" [class.todo]="m.state !== 'complete'" [href]="'#etape-' + m.key" (click)="jump($event, m.key)">{{ pad(m.num) }} {{ m.title }}@if (m.suggestions) { <i>{{ m.suggestions }} proposition{{ m.suggestions > 1 ? 's' : '' }}</i> }</a> }
               </p>
             } @else { <p class="mine-line">Vous lisez cette fiche ; chaque étape est remplie par son équipe.</p> }
+            <div class="hero-tools">
+              @if (nextTodo(); as n) { <button type="button" class="go" (click)="openField(n.st, n.f)">Continuer : {{ n.f.label }}</button> }
+              <button type="button" class="ghost" (click)="copyAll()">Copier le résumé</button>
+              <button type="button" class="ghost" (click)="print()">Imprimer ou PDF</button>
+            </div>
           </div>
         </div>
         <!-- Le déroulé, comme les étapes d'un build -->
@@ -146,6 +153,13 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
               </div>
             </div>
             <p class="intro">{{ st.intro }}</p>
+            @if (st.fields.length) {
+              <div class="st-tools" role="group" [attr.aria-label]="'Outils du chapitre ' + st.title">
+                @if (st.canEdit && firstEmpty(st); as fe) { <button type="button" class="tool" (click)="openField(st, fe)">Remplir le prochain champ vide</button> }
+                @if (pendingSugg(st).length > 1) { <button type="button" class="tool strong" [disabled]="busy()" (click)="acceptAll(st)">Accepter les {{ pendingSugg(st).length }} propositions de l’IA</button> }
+                @if (st.filled) { <button type="button" class="tool" (click)="copyStage(st)">Copier le chapitre</button> }
+              </div>
+            }
 
             @if (st.fields.length) {
               <dl class="fields">
@@ -154,12 +168,31 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
                     <dt>{{ f.label }}@if (!f.required) { <small> · facultatif</small> }</dt>
                     <dd>
                       @if (editing() === f.key) {
-                        <form class="edit" (ngSubmit)="save(f)">
+                        <form class="edit" (ngSubmit)="save(f)" (keydown)="keys($event, f)">
                           @if (f.kind === 'DATE') { <app-date-field name="v" [(ngModel)]="draft" /> }
-                          @else if (f.kind === 'LONG') { <textarea name="v" rows="4" maxlength="4000" [(ngModel)]="draft" [placeholder]="f.hint" [attr.aria-label]="f.label"></textarea> }
-                          @else { <input name="v" maxlength="300" [(ngModel)]="draft" [placeholder]="f.hint" [attr.aria-label]="f.label" /> }
+                          @else if (f.kind === 'LONG') { <textarea name="v" rows="5" maxlength="4000" [(ngModel)]="draft" [placeholder]="f.hint" [attr.aria-label]="f.label" [attr.aria-describedby]="'m-' + f.key"></textarea> }
+                          @else { <input name="v" maxlength="300" [(ngModel)]="draft" [placeholder]="f.hint" [attr.aria-label]="f.label" [attr.aria-describedby]="'m-' + f.key" /> }
+                          @if (f.kind !== 'DATE') {
+                            <p class="meter" [id]="'m-' + f.key"><span [class.over]="over(f)">{{ draft.length }} caractères{{ aide(f).max ? ' · ' + aide(f).max + ' conseillés' : '' }}</span><span class="kbd">Ctrl + Entrée : enregistrer · Échap : annuler</span></p>
+                            @if (aide(f).chips; as chips) {
+                              <div class="quick" role="group" [attr.aria-label]="'Choix rapides pour ' + f.label">
+                                <span class="q-l">{{ aide(f).mode === 'toggle' ? 'Cochez' : aide(f).mode === 'set' ? 'Partir de' : 'Ajouter' }}</span>
+                                @for (c of chips; track c) { <button type="button" class="qchip" [attr.aria-pressed]="on(f, c)" (click)="pick(f, c)">{{ c }}</button> }
+                              </div>
+                            }
+                            @if (derivedFor(f); as d) { <button type="button" class="tool hint" (click)="setDraft(d.value)">{{ d.label }} : <b>{{ d.value }}</b></button> }
+                            <div class="helpers">
+                              <button type="button" class="tool ai" [disabled]="drafting()" (click)="aiDraft(f)">@if (drafting()) { L’IA écrit<i class="dots" aria-hidden="true"><i></i><i></i><i></i></i> } @else { {{ draft.trim() ? '✦ Améliorer avec l’IA' : '✦ Proposer avec l’IA' }} }</button>
+                              @if (undoDraft() !== null) { <button type="button" class="tool" (click)="undo()">Revenir à mon texte</button> }
+                              @if (aide(f).template && !draft.trim()) { <button type="button" class="tool" (click)="setDraft(aide(f).template!)">Insérer le modèle</button> }
+                              @if (aide(f).example) { <button type="button" class="tool" [attr.aria-expanded]="showEx()" (click)="showEx.set(!showEx())">{{ showEx() ? 'Masquer l’exemple' : 'Voir un exemple' }}</button> }
+                            </div>
+                            @if (showEx() && aide(f).example) { <div class="ex"><p>{{ aide(f).example }}</p><button type="button" class="tool" (click)="setDraft(aide(f).example!); showEx.set(false)">Partir de cet exemple</button></div> }
+                            @if (aiNote()) { <p class="ai-note" role="status">{{ aiNote() }}</p> }
+                          }
                           <div class="edit-actions">
-                            <button type="submit" class="go" [disabled]="busy()">Enregistrer</button>
+                            <button type="submit" class="go" [disabled]="busy() || drafting()">Enregistrer</button>
+                            @if (nextAfter(st, f)) { <button type="button" class="ghost" [disabled]="busy() || drafting()" (click)="save(f, true)">Enregistrer et passer au suivant</button> }
                             <button type="button" class="ghost" (click)="cancel()">Annuler</button>
                           </div>
                         </form>
@@ -169,6 +202,11 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
                           @if (f.source === 'IA') { <span class="ai-tag" title="Rempli par l'IA à partir d'un document">✦ Rempli par l'IA{{ f.canEdit ? ' · à vérifier' : '' }}</span> }
                         } @else {
                           <p class="val none">{{ f.canEdit ? f.hint : 'À remplir par ' + by(st.owner) }}</p>
+                          @if (f.canEdit && !f.suggestion && aide(f).chips; as chips) {
+                            <div class="quick mini" role="group" [attr.aria-label]="'Remplir vite ' + f.label">
+                              @for (c of chips.slice(0, 4); track c) { <button type="button" class="qchip" (click)="quickStart(f, c)">{{ c }}</button> }
+                            </div>
+                          }
                         }
                         @if (f.canEdit && !(f.suggestion && !f.value)) { <button type="button" class="edit-btn" (click)="edit(f)" [attr.aria-label]="(f.value ? 'Modifier ' : 'Remplir ') + f.label">{{ f.value ? 'Modifier' : 'Remplir' }}</button> }
                       }
@@ -199,6 +237,7 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
                     @if (st.canEdit) {
                       <div class="r-actions">
                         <button type="button" class="edit-btn" (click)="editRole(ro)" [attr.aria-label]="'Modifier le rôle ' + ro.name">Modifier</button>
+                        <button type="button" class="edit-btn" [disabled]="busy()" (click)="duplicateRole(ro)" [attr.aria-label]="'Dupliquer le rôle ' + ro.name">Dupliquer</button>
                         <button type="button" class="edit-btn" (click)="removeRole(ro)" [attr.aria-label]="'Retirer le rôle ' + ro.name">Retirer</button>
                       </div>
                     }
@@ -210,12 +249,23 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
               @if (st.canEdit) {
                 @if (roleEdit()) {
                   <form class="role-form" (ngSubmit)="saveRole()">
+                    @if (roleEdit() === 'new') {
+                      <div class="quick" role="group" aria-label="Rôles types"><span class="q-l">Rôles types</span>
+                        @for (t of roleTypes; track t.label) { <button type="button" class="qchip" [attr.aria-pressed]="roleDraft.name === t.name" (click)="useRoleType(t)">{{ t.label }}</button> }
+                      </div>
+                    }
                     <label>Nom du rôle<input name="rn" maxlength="120" [(ngModel)]="roleDraft.name" placeholder="Ex. La grand-mère" /></label>
                     <label>Intention<textarea name="ri" rows="3" maxlength="4000" [(ngModel)]="roleDraft.intention" placeholder="Ce que l'acteur doit faire passer : émotion, présence, rapport aux autres…"></textarea></label>
+                    <div class="quick" role="group" aria-label="Ajouter à l'intention"><span class="q-l">Ajouter</span>
+                      @for (c of roleIntentions; track c) { <button type="button" class="qchip" [attr.aria-pressed]="roleHas(c)" (click)="roleDraft.intention = addLine(roleDraft.intention ?? '', c)">{{ c }}</button> }
+                    </div>
                     <div class="r-row">
                       <label>Sexe<select name="rg" [(ngModel)]="roleDraft.gender"><option [ngValue]="null">Indifférent</option><option value="Femme">Femme</option><option value="Homme">Homme</option></select></label>
                       <label>Âge minimum<input name="ra" type="number" min="0" max="100" [(ngModel)]="roleDraft.minAge" /></label>
                       <label>Âge maximum<input name="rb" type="number" min="0" max="100" [(ngModel)]="roleDraft.maxAge" /></label>
+                    </div>
+                    <div class="quick" role="group" aria-label="Tranches d'âge"><span class="q-l">Âge</span>
+                      @for (a of ageRanges; track a.label) { <button type="button" class="qchip" [attr.aria-pressed]="roleDraft.minAge === a.min && roleDraft.maxAge === a.max" (click)="roleDraft.minAge = a.min; roleDraft.maxAge = a.max">{{ a.label }} ans</button> }
                     </div>
                     <div class="edit-actions">
                       <button type="submit" class="go" [disabled]="busy() || !roleDraft.name.trim()">Enregistrer le rôle</button>
@@ -264,6 +314,15 @@ export class FicheComponent implements AfterViewChecked {
   draft = '';
   changes = '';
   readonly asking = signal(false);
+  /** P-085 · Les aides à la saisie */
+  readonly drafting = signal(false);
+  readonly undoDraft = signal<string | null>(null);
+  readonly aiNote = signal('');
+  readonly showEx = signal(false);
+  readonly roleTypes = ROLE_TYPES;
+  readonly ageRanges = AGE_RANGES;
+  readonly roleIntentions = ROLE_INTENTIONS;
+  readonly addLine = addLine;
   readonly roleEdit = signal<string | null>(null);
   roleDraft: RoleInput = { name: '', intention: '', gender: null, minAge: null, maxAge: null };
   readonly phases = [{ key: 'brief', label: 'Brief' }, { key: 'reco', label: 'Recommandation' }, { key: 'prepa', label: 'Préparation' }, { key: 'casting', label: 'Casting' }];
@@ -278,7 +337,7 @@ export class FicheComponent implements AfterViewChecked {
 
   constructor() {
     effect(() => { this.requestId(); this.roomId(); untracked(() => this.load()); });
-    inject(LiveService).watch(inject(DestroyRef), () => this.load(true), () => this.editing() !== null || this.busy() || this.roleEdit() !== null || this.asking());
+    inject(LiveService).watch(inject(DestroyRef), () => this.load(true), () => this.editing() !== null || this.busy() || this.drafting() || this.roleEdit() !== null || this.asking());
     inject(DestroyRef).onDestroy(() => { this.io?.disconnect(); if (this.poll) clearTimeout(this.poll); });
   }
 
@@ -327,13 +386,103 @@ export class FicheComponent implements AfterViewChecked {
   }
 
   edit(f: SheetField, preset?: string | null): void { this.editing.set(f.key); this.draft = preset ?? f.value ?? ''; this.msg.set(''); this.error.set('');
+    this.undoDraft.set(null); this.aiNote.set(''); this.showEx.set(false);
     setTimeout(() => (this.host.nativeElement.querySelector('.edit textarea, .edit input') as HTMLElement | null)?.focus()); }
-  cancel(): void { this.editing.set(null); }
+  cancel(): void { this.editing.set(null); this.undoDraft.set(null); this.aiNote.set(''); this.showEx.set(false); }
 
-  save(f: SheetField): void {
+  save(f: SheetField, next = false): void {
     const s = this.sheet(); if (!s) return;
-    this.run(this.api.save(s.requestId, f.key, this.draft), `${f.label} : enregistré.`, () => this.editing.set(null));
+    const st = s.stages.find(x => x.fields.some(y => y.key === f.key));
+    const following = next && st ? this.nextAfter(st, f) : null;
+    this.run(this.api.save(s.requestId, f.key, this.draft), `${f.label} : enregistré.`, () => {
+      this.editing.set(null);
+      if (following) { const fresh = this.sheet()?.stages.flatMap(x => x.fields).find(x => x.key === following.key); if (fresh) this.edit(fresh); }
+    });
   }
+
+  // ── P-085 · Aides à la saisie ──
+
+  aide(f: SheetField): Aide { return AIDES[f.key] ?? {}; }
+  over(f: SheetField): boolean { const m = this.aide(f).max; return !!m && this.draft.length > m; }
+  on(f: SheetField, c: string): boolean { return hasIn(this.draft, c, this.aide(f).mode ?? 'line'); }
+  /** Un choix rapide : coché dans une liste, ajouté en ligne, ou point de départ. */
+  pick(f: SheetField, c: string): void { this.draft = this.applyChip(f, this.draft, c); }
+  private applyChip(f: SheetField, text: string, c: string): string {
+    const mode = this.aide(f).mode ?? 'line';
+    return mode === 'toggle' ? toggleIn(text, c) : mode === 'set' ? c : addLine(text, c);
+  }
+  quickStart(f: SheetField, c: string): void { this.edit(f, this.applyChip(f, '', c)); }
+  setDraft(v: string): void { this.undoDraft.set(this.draft); this.draft = v; }
+  undo(): void { const u = this.undoDraft(); if (u !== null) { this.draft = u; this.undoDraft.set(null); this.aiNote.set(''); } }
+  derivedFor(f: SheetField): { label: string; value: string } | null {
+    const d = derived(f.key, this.valueMap());
+    return d && d.value !== this.draft.trim() ? d : null;
+  }
+  private valueMap(): Record<string, string> {
+    const m: Record<string, string> = {};
+    this.sheet()?.stages.forEach(st => st.fields.forEach(x => { if (x.value) m[x.key] = x.value; }));
+    return m;
+  }
+  /** L'IA rédige (ou améliore) le champ à partir du reste de la fiche ; rien n'est enregistré avant relecture. */
+  aiDraft(f: SheetField): void {
+    const s = this.sheet(); if (!s) return;
+    const before = this.draft;
+    this.drafting.set(true); this.aiNote.set('');
+    this.api.propose(s.requestId, f.key, before).subscribe({
+      next: r => {
+        this.drafting.set(false);
+        if (this.editing() !== f.key) return;
+        if (r.text) { this.undoDraft.set(before); this.draft = r.text; this.aiNote.set('✦ Texte proposé par l’IA d’après la fiche : relisez, ajustez, puis enregistrez.'); }
+        else this.aiNote.set('L’IA n’est pas disponible pour le moment. Utilisez les choix rapides, le modèle ou l’exemple.');
+      },
+      error: (e: HttpErrorResponse) => { this.drafting.set(false); this.aiNote.set(e.error?.message || 'L’IA n’a pas pu répondre. Réessayez dans un instant.'); }
+    });
+  }
+  keys(e: KeyboardEvent, f: SheetField): void {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); if (!this.busy() && !this.drafting()) this.save(f); }
+    else if (e.key === 'Escape') { e.preventDefault(); this.cancel(); }
+  }
+  /** Le champ suivant du chapitre que je peux écrire et qui est encore vide. */
+  nextAfter(st: SheetStage, f: SheetField): SheetField | null {
+    const i = st.fields.findIndex(x => x.key === f.key);
+    return st.fields.slice(i + 1).find(x => x.canEdit && !x.value) ?? null;
+  }
+  firstEmpty(st: SheetStage): SheetField | null { return st.fields.find(x => x.canEdit && !x.value && !x.suggestion) ?? st.fields.find(x => x.canEdit && !x.value) ?? null; }
+  pendingSugg(st: SheetStage): SheetField[] { return st.fields.filter(x => x.canEdit && x.suggestion); }
+  /** Ce qui reste à faire pour moi, dans la phase en cours : d'abord les champs obligatoires de mes chapitres. */
+  readonly nextTodo = computed(() => {
+    const s = this.sheet(); if (!s) return null;
+    const stages = s.stages.filter(st => st.canEdit && this.current(st) && st.fields.length);
+    for (const pass of [(st: SheetStage) => this.isPrimary(st), () => true]) {
+      for (const st of stages.filter(pass)) { const f = st.fields.find(x => x.canEdit && !x.value && x.required); if (f) return { st, f }; }
+    }
+    return null;
+  });
+  openField(st: SheetStage, f: SheetField): void {
+    this.jump(new Event('x'), st.key);
+    setTimeout(() => this.edit(f, f.suggestion && !f.value ? f.suggestion : null), 350);
+  }
+  acceptAll(st: SheetStage): void {
+    const s = this.sheet(); const list = this.pendingSugg(st); if (!s || !list.length) return;
+    this.run(concat(...list.map(f => this.api.accept(s.requestId, f.key))).pipe(last()), `${list.length} propositions acceptées dans « ${st.title} ».`);
+  }
+  private stageText(st: SheetStage): string {
+    const rows = st.fields.filter(f => f.value).map(f => `${f.label} : ${f.kind === 'DATE' ? this.dateFr(f.value!) : f.value}`);
+    const roles = st.roles.map(r => `• ${r.name}${this.roleMeta(r) ? ' (' + this.roleMeta(r) + ')' : ''}${r.intention ? ' : ' + r.intention : ''}`);
+    return [`${this.pad(st.num)} ${st.title}`, ...rows, ...roles].join('\n');
+  }
+  copyStage(st: SheetStage): void { this.copy(this.stageText(st), `Chapitre « ${st.title} » copié.`); }
+  copyAll(): void {
+    const s = this.sheet(); if (!s) return;
+    const body = s.stages.filter(st => st.filled || st.roles.length).map(st => this.stageText(st)).join('\n\n');
+    this.copy(`${s.title}${s.brandName ? ' · ' + s.brandName : ''}\nPhase : ${s.gate.title} · fiche remplie à ${s.progress} %\n\n${body}`, 'Résumé du dossier copié : collez-le dans un mail ou un message.');
+  }
+  private copy(text: string, ok: string): void {
+    const done = () => { this.error.set(''); this.msg.set(ok); };
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, () => this.error.set('La copie a été refusée par le navigateur.'));
+    else this.error.set('La copie n’est pas disponible dans ce navigateur.');
+  }
+  print(): void { this.host.nativeElement.querySelectorAll('.reveal').forEach((e: Element) => e.classList.add('in')); setTimeout(() => window.print(), 50); }
   accept(f: SheetField): void { const s = this.sheet(); if (s) this.run(this.api.accept(s.requestId, f.key), `${f.label} : proposition acceptée.`); }
   reject(f: SheetField): void { const s = this.sheet(); if (s) this.run(this.api.reject(s.requestId, f.key), `${f.label} : proposition écartée.`); }
 
@@ -398,6 +547,13 @@ export class FicheComponent implements AfterViewChecked {
     const s = this.sheet(); const id = this.roleEdit(); if (!s || !id) return;
     const body: RoleInput = { ...this.roleDraft, name: this.roleDraft.name.trim(), minAge: this.num(this.roleDraft.minAge), maxAge: this.num(this.roleDraft.maxAge) };
     this.run(id === 'new' ? this.api.addRole(s.requestId, body) : this.api.updateRole(s.requestId, id, body), `Rôle « ${body.name} » enregistré.`, () => this.roleEdit.set(null));
+  }
+  useRoleType(t: RoleInput & { label: string }): void { this.roleDraft = { ...this.roleDraft, name: t.name, gender: t.gender, minAge: t.minAge, maxAge: t.maxAge }; }
+  roleHas(c: string): boolean { return hasIn(this.roleDraft.intention ?? '', c, 'line'); }
+  duplicateRole(r: SheetRole): void {
+    const s = this.sheet(); if (!s) return;
+    const body: RoleInput = { name: `${r.name} (2)`, intention: r.intention ?? '', gender: r.gender, minAge: r.minAge, maxAge: r.maxAge };
+    this.run(this.api.addRole(s.requestId, body), `Rôle « ${body.name} » ajouté : renommez-le si besoin.`);
   }
   removeRole(r: SheetRole): void { const s = this.sheet(); if (s) this.run(this.api.deleteRole(s.requestId, r.id), `Rôle « ${r.name} » retiré.`); }
   roleMeta(r: SheetRole): string {

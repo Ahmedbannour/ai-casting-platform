@@ -3,7 +3,7 @@
 param([switch]$Visible)
 $env:NODE_PATH = "$env:TEMP\pw\node_modules"
 if ($Visible) { $env:HEADED = '1' } else { Remove-Item Env:HEADED -ErrorAction SilentlyContinue }
-$parcours = 'test-six-roles','test-figuration','test-inscription-pro','test-demandes','test-producer','test-agence-v0','test-v1','test-attentes','test-v2','test-role-figuration','test-intention-chat','test-sommaire','test-fiche','test-dossier'
+$parcours = 'test-six-roles','test-figuration','test-inscription-pro','test-demandes','test-producer','test-agence-v0','test-v1','test-attentes','test-v2','test-role-figuration','test-intention-chat','test-sommaire','test-fiche','test-dossier','test-aides'
 $bilan = @()
 foreach ($p in $parcours) {
   $t = Get-Date

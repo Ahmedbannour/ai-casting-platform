@@ -92,6 +92,52 @@ public class SheetAi {
         }
     }
 
+    /**
+     * Aide à la rédaction d'un champ : l'IA locale propose un texte à partir de ce qui est déjà écrit dans la fiche.
+     * Le texte va dans le champ en cours d'édition ; la personne le relit avant d'enregistrer. Vide si l'IA est absente.
+     */
+    public Optional<String> draft(SheetSchema.Field f, Map<String, String> sheet, String current) {
+        StringBuilder ctx = new StringBuilder();
+        for (SheetSchema.Field o : SheetSchema.FIELDS) {
+            String v = sheet.get(o.key());
+            if (v != null && !v.isBlank() && !o.key().equals(f.key())) ctx.append("- ").append(o.label()).append(" : ").append(v.length() > 500 ? v.substring(0, 500) : v).append('\n');
+        }
+        boolean improve = current != null && !current.isBlank();
+        String ask = improve
+                ? "Améliore ce texte pour le champ « " + f.label() + " » (" + f.hint() + ") : plus clair, plus précis, même sens. Texte actuel : " + current
+                : "Rédige le champ « " + f.label() + " » (" + f.hint() + ").";
+        String prompt = "Tu es un producteur de films publicitaires expérimenté. Tu aides une équipe à remplir la fiche de son projet.\n"
+                + "Ce que la fiche contient déjà :\n" + (ctx.isEmpty() ? "(rien encore)\n" : ctx)
+                + ask + "\nRègles : en français, phrases courtes et concrètes, au plus "
+                + (f.kind() == SheetSchema.Kind.LONG ? "450" : "120") + " caractères ; reste cohérent avec la fiche ; "
+                + "n'invente ni nom de personne, ni prix, ni budget, ni date précise.\n"
+                + "Réponds UNIQUEMENT par un objet JSON : {\"texte\": \"...\"}";
+        try {
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("model", model);
+            body.put("prompt", prompt);
+            body.put("stream", false);
+            body.put("format", "json");
+            body.put("options", Map.of("temperature", 0.5, "num_predict", 400, "num_ctx", 4096));
+            HttpRequest req = HttpRequest.newBuilder(URI.create(ollamaUrl.replaceAll("/+$", "") + "/api/generate"))
+                    .timeout(Duration.ofSeconds(Math.min(timeoutSeconds, 90))).header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(body), StandardCharsets.UTF_8)).build();
+            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (resp.statusCode() != 200) return Optional.empty();
+            Map<?, ?> res = json.readValue(resp.body(), Map.class);
+            String raw = res == null ? null : (String) res.get("response");
+            if (raw == null || raw.indexOf('{') < 0) return Optional.empty();
+            Map<?, ?> n = json.readValue(raw.substring(raw.indexOf('{')), Map.class);
+            Object t = n.get("texte");
+            if (!(t instanceof String txt) || txt.isBlank()) return Optional.empty();
+            txt = txt.strip();
+            return Optional.of(txt.length() > 1200 ? txt.substring(0, 1200) : txt);
+        } catch (Exception e) {
+            log.warn("Aide à la rédaction indisponible : {} {}", e.getClass().getSimpleName(), e.getMessage());
+            return Optional.empty();
+        }
+    }
+
     /** Étiquettes courantes des briefs : « Cible : … », « Message clé – … ». */
     private static final Map<String, String> LABELS = new LinkedHashMap<>();
     static {

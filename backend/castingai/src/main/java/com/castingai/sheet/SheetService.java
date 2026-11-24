@@ -108,6 +108,18 @@ public class SheetService {
         return view(me, requests.findById(r.getId()).orElseThrow());
     }
 
+    public record Draft(String text, String engine) {}
+
+    /** Aide à la rédaction : un texte proposé par l'IA pour un champ que la personne peut écrire. Rien n'est enregistré. */
+    public Draft propose(String email, UUID id, String key, String current) {
+        User me = access.user(email);
+        AdRequest r = readable(me, id);
+        SheetSchema.Field f = field(key);
+        if (!editable(me, r, f.stage())) throw new ForbiddenException("Cette étape est remplie par : " + SheetSchema.STAGE_BY_KEY.get(f.stage()).owner());
+        if (f.kind() == SheetSchema.Kind.DATE) throw new IllegalArgumentException("Choisissez la date dans le calendrier");
+        return ai.draft(f, values(r), current == null ? null : current.trim()).map(t -> new Draft(t, "IA")).orElse(new Draft(null, "AUCUN"));
+    }
+
     @Transactional
     public Sheet accept(String email, UUID id, String key) {
         User me = access.user(email);

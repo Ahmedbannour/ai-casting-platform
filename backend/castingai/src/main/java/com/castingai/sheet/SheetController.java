@@ -27,6 +27,11 @@ public class SheetController {
         return sheets.update(me.getUsername(), id, key, v == null ? null : v.value());
     }
 
+    @PostMapping("/api/demandes/{id}/fiche/champs/{key}/proposer")
+    public SheetService.Draft propose(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable String key, @RequestBody(required = false) SheetService.Value v) {
+        return sheets.propose(me.getUsername(), id, key, v == null ? null : v.value());
+    }
+
     @PostMapping("/api/demandes/{id}/fiche/champs/{key}/accepter")
     public SheetService.Sheet accept(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable String key) { return sheets.accept(me.getUsername(), id, key); }
 

@@ -40,6 +40,9 @@ export class FicheService {
   forRoom(projectId: string): Observable<Sheet> { return this.http.get<Sheet>(`${this.api}/rooms/${projectId}/fiche`); }
   save(id: string, key: string, value: string): Observable<Sheet> { return this.http.put<Sheet>(`${this.api}/demandes/${id}/fiche/champs/${key}`, { value }); }
   accept(id: string, key: string): Observable<Sheet> { return this.http.post<Sheet>(`${this.api}/demandes/${id}/fiche/champs/${key}/accepter`, {}); }
+  propose(id: string, key: string, current: string): Observable<{ text: string | null; engine: 'IA' | 'AUCUN' }> {
+    return this.http.post<{ text: string | null; engine: 'IA' | 'AUCUN' }>(`${this.api}/demandes/${id}/fiche/champs/${key}/proposer`, { value: current });
+  }
   reject(id: string, key: string): Observable<Sheet> { return this.http.post<Sheet>(`${this.api}/demandes/${id}/fiche/champs/${key}/ecarter`, {}); }
   upload(id: string, file: File): Observable<Sheet> {
     const fd = new FormData(); fd.append('file', file);

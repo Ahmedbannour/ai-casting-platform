@@ -174,3 +174,40 @@ dd { margin: 0; display: flex; flex-direction: column; gap: 8px; align-items: fl
   .seg b, .num { transition: none; }
   .sources li[data-st="LECTURE"], .skel, .dots i { animation: none; }
 }
+
+/* ── P-085 · Les aides à la saisie ── */
+.hero-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.st-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.tool { min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-secondary);
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; text-align: left; }
+.tool:hover:not(:disabled), .tool:focus-visible { color: var(--text-primary); border-color: var(--accent); }
+.tool:disabled { opacity: .55; cursor: default; }
+.tool.strong { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-dim); }
+.tool.ai { border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); color: var(--accent-ink); }
+.tool.hint { white-space: normal; padding: 6px 12px; line-height: 1.35; } .tool.hint b { color: var(--text-primary); }
+.meter { margin: -2px 0 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: 12px; color: var(--text-subtle); font-variant-numeric: tabular-nums; }
+.meter .over { color: var(--warning, var(--accent-ink)); font-weight: 700; }
+.kbd { color: var(--text-subtle); }
+@media (pointer: coarse) { .kbd { display: none; } .tool { min-height: 44px; } .qchip { min-height: 44px; } }
+.quick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.q-l { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-right: 2px; }
+.qchip { min-height: 32px; padding: 0 11px; border-radius: 999px; border: 1px dashed color-mix(in srgb, var(--text-subtle) 60%, transparent); background: none;
+  color: var(--text-secondary); font: inherit; font-size: 13px; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+.qchip:hover, .qchip:focus-visible { border-color: var(--accent); color: var(--text-primary); }
+.qchip[aria-pressed="true"] { border-style: solid; border-color: var(--accent); background: var(--accent-dim); color: var(--accent-ink); font-weight: 700; }
+.qchip[aria-pressed="true"]::before { content: '✓ '; }
+.quick.mini { margin-top: -2px; } .quick.mini .qchip { font-size: 12.5px; min-height: 30px; }
+.helpers { display: flex; flex-wrap: wrap; gap: 6px; }
+.ex { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; background: var(--bg-primary); border-left: 3px solid var(--accent); display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.ex p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-secondary); white-space: pre-wrap; }
+.ai-note { margin: 0; font-size: 13px; color: var(--accent-ink); }
+.f.editing { border-color: var(--accent); background: var(--glass); }
+
+/* Imprimer ou PDF : le dossier seul, lisible sur papier */
+@media print {
+  .rail-col, .feed, .hero-tools, .st-tools, .g-actions, .edit-btn, .r-actions, .add-role, .sugg-actions, .quick, .ok, .err, .ask { display: none !important; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+  .stage, .gate, .hero { break-inside: avoid; box-shadow: none !important; background: #fff !important; border-color: #bbb !important; }
+  .stages::before { display: none; }
+  .sheet { display: block; }
+}

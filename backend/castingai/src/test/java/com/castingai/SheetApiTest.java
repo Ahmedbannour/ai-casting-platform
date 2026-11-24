@@ -87,6 +87,10 @@ class SheetApiTest {
         assertThat(stage(read(send("GET", base, prod, null)), "concept").get("canEdit").asBoolean()).isTrue();   // le producer complète tout
         send("PUT", base + "/champs/objectif", brand, "{\"value\":\"Faire aimer la bouteille\"}").andExpect(status().isOk());
         send("PUT", base + "/champs/idee", brand, "{\"value\":\"Une idee\"}").andExpect(status().isForbidden());
+        // Aide à la rédaction : réservée à qui peut écrire le champ ; sans IA, rien n'est inventé
+        assertThat(read(send("POST", base + "/champs/cible/proposer", brand, "{\"value\":\"\"}").andExpect(status().isOk())).get("engine").asString()).isEqualTo("AUCUN");
+        send("POST", base + "/champs/cible/proposer", agency, null).andExpect(status().isForbidden());
+        send("POST", base + "/champs/diffusion/proposer", brand, null).andExpect(status().isBadRequest());
         send("GET", base, outsider, null).andExpect(status().isNotFound());
         send("POST", base + "/etapes/transmettre", brand, null).andExpect(status().isBadRequest());   // brief incomplet
         send("POST", base + "/etapes/transmettre", agency, null).andExpect(status().isForbidden());
