@@ -3,6 +3,8 @@
 # Arret : Stop-Process -Name cloudflared
 $exe = Join-Path $PSScriptRoot '..\outils\cloudflared.exe'
 if (-not (Test-Path $exe)) { Write-Host "cloudflared introuvable dans outils\"; exit 1 }
+# Au démarrage du PC, le site peut mettre une minute à ouvrir le port 4200 : on l'attend jusqu'à 3 minutes
+for ($w = 0; $w -lt 60 -and -not (Get-NetTCPConnection -LocalPort 4200 -State Listen -ErrorAction SilentlyContinue); $w++) { Start-Sleep 3 }
 if (-not (Get-NetTCPConnection -LocalPort 4200 -State Listen -ErrorAction SilentlyContinue)) { Write-Host "Le site ne tourne pas sur le port 4200."; exit 1 }
 Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force
 $log = Join-Path $env:TEMP 'cloudflared.log'
