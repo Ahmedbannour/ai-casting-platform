@@ -1458,6 +1458,32 @@
         "Affichage par rôle",
         "test-p87 20/20"
       ]
+    },
+    {
+      "id": "P-088",
+      "date": "2026-11-26",
+      "titre": "Six projets locaux pour viser 100 $ par jour",
+      "statut": "fait",
+      "original": "merci de me creer des projet on local qui peuvent me faire un revenir de 100 dolar par jour, tenant en compte ma localisation, l'environnement, les marchet existes… domaines : it, iot, ventes… capitale initiale ≤ 1000 dt, dans mon pc, chaque projet lié avec git, un fichier .md très simple (guide d'utilisation), à travers notre équipe des agents, en commençant par l'ingénieur IA",
+      "ameliore": "Reformulé par la Cellule IA : six activités lançables seul en Tunisie avec moins de 1 000 DT chacune, visant ≈ 305 DT de bénéfice par jour après quelques mois ; pour chacune un code qui marche sur le PC, un guide simple (coût, revenu, 5 étapes, premiers clients, risques), un dépôt git, des chiffres honnêtes (paiement à la livraison, WhatsApp, contrôle des changes, plafond auto-entrepreneur 75 000 DT).",
+      "departements": [
+        "ia",
+        "back",
+        "front",
+        "iot",
+        "marche",
+        "qa"
+      ],
+      "livrables": [
+        "C:\\Users\\AhmedBannour\\Projets-Revenus",
+        "01 Vitrine Express",
+        "02 RDV Facile",
+        "03 FroidSûr",
+        "04 Goutte Smart",
+        "05 Boutique COD",
+        "06 Automatisation export",
+        "6 dépôts git"
+      ]
     }
   ],
   "bibliotheques": [
@@ -4096,6 +4122,66 @@
       "prompt": "P-087",
       "jour": "J12",
       "detail": "test-p87 20/20, suite backend complète verte."
+    },
+    {
+      "id": "T-204",
+      "titre": "Reformulation du prompt et choix des 6 projets",
+      "dept": "ia",
+      "resp": "Yasmine Trabelsi",
+      "prio": "P2",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-088",
+      "jour": "J12",
+      "detail": "PROMPT-IA.md ; marché tunisien vérifié (cours BCT, paiement à la livraison, auto-entrepreneur)."
+    },
+    {
+      "id": "T-205",
+      "titre": "Projets IT : vitrines, rendez-vous, automatisation export",
+      "dept": "back",
+      "resp": "Marc Lefèvre",
+      "prio": "P2",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-088",
+      "jour": "J12",
+      "detail": "Générateur de sites, appli de rendez-vous, 3 démos (CSV, Excel, extraction)."
+    },
+    {
+      "id": "T-206",
+      "titre": "Projets IoT : FroidSûr et Goutte Smart",
+      "dept": "back",
+      "resp": "Marc Lefèvre",
+      "prio": "P2",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-088",
+      "jour": "J12",
+      "detail": "Programmes ESP32, serveur d'alertes Telegram, simulateur, calculateur de prix."
+    },
+    {
+      "id": "T-207",
+      "titre": "Projet ventes : Boutique COD",
+      "dept": "front",
+      "resp": "Sarra Mansouri",
+      "prio": "P2",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-088",
+      "jour": "J12",
+      "detail": "Boutique, commandes, confirmation WhatsApp, export livreur, bénéfice par jour."
+    },
+    {
+      "id": "T-208",
+      "titre": "Recette des 6 projets sur le PC",
+      "dept": "qa",
+      "resp": "Amel Kacem",
+      "prio": "P2",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-088",
+      "jour": "J12",
+      "detail": "npm install, chaque serveur lancé et testé, démos exécutées, 6 dépôts git créés."
     }
   ],
   "journal": [
@@ -4215,7 +4301,7 @@
     {
       "date": "2026-11-26",
       "jour": "J12",
-      "resume": "P-087 livré : l'agent lit vraiment les documents (Golden Coffee : 14 informations justes), planning aux dates cohérentes, équipe technique invitée par lien, documents partagés en tête de fiche, affichage selon le rôle. test-p87 20/20.",
+      "resume": "P-087 livré : l'agent lit vraiment les documents (Golden Coffee : 14 informations justes), planning aux dates cohérentes, équipe technique invitée par lien, documents partagés en tête de fiche, affichage selon le rôle. test-p87 20/20. P-088 : six projets de revenu créés dans Projets-Revenus (IT, IoT, ventes), chacun avec guide et dépôt git.",
       "decisions": [
         "D-036 : l'IA ne calcule plus de dates ; elle règle durées et étapes, le code pose les dates",
         "D-037 : toute valeur lue par l'IA est vérifiée contre le texte du document avant d'être proposée"
@@ -4755,6 +4841,12 @@
       "nom": "Amel Kacem",
       "t": "2026-11-26T13:30:00Z",
       "texte": "P-087 livré : test-p87 20/20, suite backend verte."
+    },
+    {
+      "h": "J12",
+      "nom": "Yasmine Trabelsi",
+      "t": "2026-11-26T16:30:00Z",
+      "texte": "P-088 livré : 6 projets de revenu testés sur le PC."
     }
   ],
   "plan": {
