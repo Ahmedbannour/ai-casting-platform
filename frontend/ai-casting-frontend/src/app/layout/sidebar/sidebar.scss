@@ -33,9 +33,11 @@
 .collapsed .label, .collapsed .logo-text { display: none; }
 
 /* ── Haut : logo et bouton replier ── */
-.top { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 12px 10px; min-height: 44px; }
-.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; }
-.logo-text { font-size: 17px; font-weight: 700; font-stretch: var(--narrow); color: var(--text-primary); white-space: nowrap; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 4px 12px 10px; min-height: 44px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; flex: 1 1 auto; }
+/* Le nom de l'organisation tient sur deux lignes au plus, sans pousser la cloche ni le bouton de pliage */
+.logo-text { font-size: 16px; line-height: 1.15; font-weight: 700; font-stretch: var(--narrow); color: var(--text-primary); min-width: 0;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
 .collapse {
   flex: none; width: 32px; height: 32px; display: grid; place-items: center; border: none; border-radius: var(--radius-s);
   background: transparent; color: var(--text-muted); cursor: pointer; transition: background .15s, color .15s;
@@ -216,7 +218,7 @@
 .actor-note .empty-history { line-height: 1.55; }
 
 /* T-096 · cloche de notifications à côté du bouton de repli */
-.top-tools { display: inline-flex; align-items: center; gap: 6px; }
+.top-tools { display: inline-flex; align-items: center; gap: 2px; flex: none; }
 .collapsed .top-tools { flex-direction: column; }
 
 /* Logo de la boîte de production (image de marque réglée par le producer) */

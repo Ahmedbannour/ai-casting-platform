@@ -107,14 +107,14 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
         <section class="feed reveal" data-rail data-rail-label="Documents et liens" id="documents" aria-labelledby="feed-h">
           <h2 id="feed-h">Documents et liens</h2>
           @if (s.canUpload) {
-            <p class="muted">Déposez le brief, la présentation, les moodboards ou collez un lien Canva : l’équipe les retrouve ici, et l’IA lit les documents pour remplir vos étapes et préparer des propositions pour les autres.</p>
-            <div class="feed-row">
-              <app-dropzone title="Déposer un document" [accept]="formats" [formats]="['PDF', 'Word', 'PowerPoint', 'Excel', 'images', 'vidéo']" [maxMb]="25" [busy]="uploading()" busyText="Envoi…" (file)="upload($event)" />
+            <p class="muted">Déposez le brief, la présentation, les moodboards ou collez un lien Canva : l’équipe les retrouve ici, et l’IA lit les documents pour remplir vos étapes.</p>
+            <div class="feed-in">
+              <app-dropzone class="feed-drop" title="Déposer un document" [accept]="formats" [formats]="['PDF', 'Word', 'PowerPoint', 'Excel', 'images', 'vidéo']" [maxMb]="25" [busy]="uploading()" busyText="Envoi…" (file)="upload($event)" />
               <form class="link" (ngSubmit)="sendLink()">
-                <label for="fiche-link">Ou un lien (Canva, page web)</label>
+                <label for="fiche-link"><span class="link-ic" aria-hidden="true">🔗</span>Ou collez un lien (Canva, page web)</label>
                 <div class="link-row">
                   <input id="fiche-link" name="link" type="url" inputmode="url" [(ngModel)]="linkUrl" placeholder="https://www.canva.com/design/…/view" [attr.aria-describedby]="linkErr() ? 'link-err' : null" />
-                  <button type="submit" class="go" [disabled]="uploading() || !linkUrl.trim()">Lire</button>
+                  <button type="submit" class="go" [disabled]="uploading() || !linkUrl.trim()">Ajouter</button>
                 </div>
                 @if (linkErr()) { <p class="field-msg" id="link-err" role="alert">{{ linkErr() }}</p> }
               </form>
@@ -123,37 +123,57 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
             <p class="muted">Les documents et liens partagés par l’équipe du film.</p>
           }
           @if (s.sources.length) {
-            <ul class="sources" aria-label="Documents et liens">
+            <ul class="docs" aria-label="Documents et liens">
               @for (src of s.sources; track src.id) {
-                <li [attr.data-st]="src.status">
-                  <span class="src-ic" aria-hidden="true">{{ icon(src) }}</span>
-                  <div class="src-txt">
-                    <b>{{ src.name }}</b>
-                    <span>@switch (src.status) {
-                      @case ('LECTURE') { {{ src.message || 'L’IA lit le document' }}<i class="dots" aria-hidden="true"><i></i><i></i><i></i></i> }
-                      @case ('FAIT') { {{ resultLine(src) }} }
-                      @default { Lecture impossible }
-                    } · {{ src.addedBy }}, {{ ago(src.createdAt) }}@if (src.size) { · {{ sizeFr(src.size) }} }</span>
-                    @if (src.message && src.status !== 'LECTURE') { <small>{{ src.message }}</small> }
-                    @if (shareFor() === src.id && shareUrl()) {
-                      <div class="share" role="group" [attr.aria-label]="'Partager ' + src.name">
-                        <a class="tool" [href]="'https://wa.me/?text=' + enc(src.name + ' : ' + shareUrl())" target="_blank" rel="noopener">WhatsApp</a>
-                        <a class="tool" [href]="'mailto:?subject=' + enc(src.name) + '&body=' + enc(src.name + ' : ' + shareUrl())">E-mail</a>
-                        <button type="button" class="tool" (click)="copyLink()">{{ copiedLink() ? 'Copié ✓' : 'Copier le lien' }}</button>
-                        @if (canNativeShare) { <button type="button" class="tool" (click)="nativeShare(src)">Partager…</button> }
-                        <span class="share-note">{{ src.kind === 'FICHIER' ? 'Lien valable 7 jours, sans compte.' : 'Lien d’origine.' }}</span>
-                      </div>
-                    }
+                <li class="doc" [attr.data-st]="src.status" [attr.data-t]="ftype(src)">
+                  <div class="d-top">
+                    <span class="d-badge" aria-hidden="true">{{ flabel(src) }}</span>
+                    <div class="d-id">
+                      <b [title]="src.name">{{ src.name }}</b>
+                      <span>{{ src.addedBy }} · {{ ago(src.createdAt) }}@if (src.size) { · {{ sizeFr(src.size) }} }</span>
+                    </div>
                   </div>
-                  <div class="src-act">
-                    @if (src.kind === 'LIEN' && src.url) { <a class="tool" [href]="src.url" target="_blank" rel="noopener">Ouvrir ↗</a> }
-                    @if (src.hasFile) {
-                      <button type="button" class="tool" (click)="viewFile(src)">Voir</button>
-                      <button type="button" class="tool" (click)="downloadFile(src)">Télécharger</button>
+                  <p class="d-ai">@switch (src.status) {
+                    @case ('LECTURE') { <span class="pill live">✦ {{ src.message || 'L’IA lit le document' }}<i class="dots" aria-hidden="true"><i></i><i></i><i></i></i></span> }
+                    @case ('FAIT') { <span class="pill" [class.ok]="src.filled || src.proposed">{{ (src.filled || src.proposed) ? '✦ ' : '' }}{{ resultLine(src) }}</span> }
+                    @default { <span class="pill ko">Lecture impossible</span> }
+                  }</p>
+                  @if (src.message && src.status === 'ECHEC') { <small class="d-msg">{{ src.message }}</small> }
+                  <div class="d-act">
+                    @if (src.hasFile || (src.kind === 'LIEN' && src.url)) {
+                      <button type="button" class="d-open" (click)="openSource(src)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>Ouvrir</button>
                     }
-                    @if (src.hasFile || (src.kind === 'LIEN' && src.url)) { <button type="button" class="tool" [attr.aria-expanded]="shareFor() === src.id" (click)="toggleShare(src)">Partager</button> }
-                    @if (src.canDelete) { <button type="button" class="tool" (click)="removeSource(src)" [attr.aria-label]="'Retirer ' + src.name">Retirer</button> }
+                    <span class="d-icons">
+                      @if (src.hasFile) {
+                        <button type="button" class="ic" (click)="downloadFile(src)" [attr.aria-label]="'Télécharger ' + src.name" title="Télécharger">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+                      }
+                      @if (src.hasFile || (src.kind === 'LIEN' && src.url)) {
+                        <button type="button" class="ic" [class.on]="shareFor() === src.id" [attr.aria-expanded]="shareFor() === src.id" (click)="toggleShare(src)" [attr.aria-label]="'Partager ' + src.name" title="Partager">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/></svg></button>
+                      }
+                      @if (src.canDelete) {
+                        <button type="button" class="ic del" (click)="removeSource(src)" [attr.aria-label]="'Retirer ' + src.name" title="Retirer">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+                      }
+                    </span>
                   </div>
+                  @if (shareFor() === src.id) {
+                    <div class="d-share" role="group" [attr.aria-label]="'Partager ' + src.name">
+                      @if (shareUrl()) {
+                        <a class="sh wa" [href]="'https://wa.me/?text=' + enc(src.name + ' : ' + shareUrl())" target="_blank" rel="noopener">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.4 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.8-1c.2-.3.4-.2.6-.1l2 .9c.3.2.5.2.6.4.1.1.1.7-.1 1.2Z"/></svg>WhatsApp</a>
+                        <a class="sh" [href]="'mailto:?subject=' + enc(src.name) + '&body=' + enc(src.name + ' : ' + shareUrl())">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>E-mail</a>
+                        <button type="button" class="sh" (click)="copyLink()">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>{{ copiedLink() ? 'Copié ✓' : 'Copier le lien' }}</button>
+                        @if (canNativeShare) { <button type="button" class="sh" (click)="nativeShare(src)">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Autre…</button> }
+                        <p class="sh-note">{{ src.kind === 'FICHIER' ? 'Lien valable 7 jours, ouvrable sans compte.' : 'Lien d’origine du document.' }}</p>
+                      } @else { <p class="sh-note">Création du lien…</p> }
+                    </div>
+                  }
                 </li>
               }
             </ul>
@@ -720,6 +740,41 @@ export class FicheComponent implements AfterViewChecked {
   readonly copiedLink = signal(false);
   readonly canNativeShare = typeof navigator !== 'undefined' && !!navigator.share;
 
+  /** Le type de document, pour la couleur et l'étiquette de la carte. */
+  ftype(src: SheetSource): string {
+    if (src.kind === 'LIEN') return /canva\./i.test(src.url ?? '') ? 'canva' : 'lien';
+    const t = (src.contentType ?? '') + ' ' + src.name.toLowerCase();
+    if (/pdf/.test(t)) return 'pdf';
+    if (/word|\.docx?\b|rtf/.test(t)) return 'word';
+    if (/presentation|powerpoint|\.pptx?\b/.test(t)) return 'ppt';
+    if (/sheet|excel|\.xlsx?\b|csv/.test(t)) return 'xls';
+    if (/^image\//.test(src.contentType ?? '')) return 'img';
+    if (/^video\//.test(src.contentType ?? '')) return 'vid';
+    return 'doc';
+  }
+  flabel(src: SheetSource): string {
+    return ({ canva: 'Canva', lien: 'Lien', pdf: 'PDF', word: 'DOC', ppt: 'PPT', xls: 'XLS', img: 'IMG', vid: 'VID', doc: 'DOC' } as Record<string, string>)[this.ftype(src)];
+  }
+  /**
+   * Ouvre le document dans un nouvel onglet : la fenêtre est ouverte tout de suite (sinon le navigateur la bloque),
+   * puis reçoit le fichier dès qu'il est chargé. Les formats que le navigateur n'affiche pas sont téléchargés.
+   */
+  openSource(src: SheetSource): void {
+    if (src.kind === 'LIEN' && src.url) { window.open(src.url, '_blank', 'noopener'); return; }
+    const s = this.sheet(); if (!s) return;
+    const t = src.contentType ?? '';
+    if (!(t.startsWith('image/') || t.startsWith('video/') || t.includes('pdf') || t.startsWith('text/'))) { this.downloadFile(src); return; }
+    const w = window.open('', '_blank');
+    if (w) { w.document.title = src.name; w.document.body.style.cssText = 'margin:0;background:#111;color:#ccc;font:16px system-ui;display:grid;place-items:center;height:100vh'; w.document.body.textContent = 'Ouverture de « ' + src.name + ' »…'; }
+    this.api.file(s.requestId, src.id).subscribe({
+      next: b => {
+        const url = URL.createObjectURL(b.type ? b : new Blob([b], { type: t }));
+        if (w && !w.closed) { w.location.href = url; setTimeout(() => URL.revokeObjectURL(url), 120000); }
+        else this.viewer.set({ name: src.name, type: t, url, safe: this.sanitizer.bypassSecurityTrustResourceUrl(url), src });
+      },
+      error: (e: HttpErrorResponse) => { w?.close(); this.error.set(e.status === 404 ? 'Ce document n’est plus disponible.' : 'Le document n’a pas pu être ouvert.'); }
+    });
+  }
   icon(src: SheetSource): string {
     if (src.kind === 'LIEN') return '↗';
     const t = src.contentType ?? '';

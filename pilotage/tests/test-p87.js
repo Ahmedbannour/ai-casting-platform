@@ -68,15 +68,16 @@ async function login(b, a, vp) {
   await docs.scrollIntoViewIfNeeded();
   ok(await docs.locator('app-dropzone').count() === 1, 'le producer peut déposer');
   if (gc) {
-    await docs.getByRole('button', { name: 'Partager' }).first().click();
-    await docs.locator('.share a', { hasText: 'WhatsApp' }).waitFor({ timeout: 8000 }).catch(() => {});
-    const wa = await docs.locator('.share a', { hasText: 'WhatsApp' }).getAttribute('href').catch(() => '');
+    await docs.locator('.doc .ic[title="Partager"]').first().click();
+    await docs.locator('.d-share a', { hasText: 'WhatsApp' }).waitFor({ timeout: 8000 }).catch(() => {});
+    const wa = await docs.locator('.d-share a', { hasText: 'WhatsApp' }).getAttribute('href').catch(() => '');
     ok(/wa\.me.*api%2Fpublic%2Ffichiers/.test(wa || ''), 'partage WhatsApp avec un lien public du fichier');
-    await docs.getByRole('button', { name: 'Voir' }).first().click();
-    await p.locator('.viewer iframe').waitFor({ timeout: 10000 }).catch(() => {});
-    ok(await p.locator('.viewer iframe').count() === 1, 'le PDF s’ouvre dans la visionneuse');
-    await p.screenshot({ path: path.join(OUT, 'p87-visionneuse.png') });
-    await p.locator('.viewer').getByRole('button', { name: 'Fermer' }).click();
+    await docs.screenshot({ path: path.join(OUT, 'p87-documents-partage.png') });
+    const [tab] = await Promise.all([p.context().waitForEvent('page', { timeout: 15000 }).catch(() => null), docs.locator('.d-open').first().click()]);
+    if (tab) await tab.waitForURL(/^blob:/, { timeout: 15000 }).catch(() => {});
+    ok(!!tab && tab.url().startsWith('blob:'), 'le PDF s’ouvre dans un nouvel onglet');
+    if (tab) await tab.close();
+    await docs.locator('.doc .ic[title="Partager"]').first().click();
     await docs.screenshot({ path: path.join(OUT, 'p87-documents.png') });
   }
 
@@ -85,10 +86,20 @@ async function login(b, a, vp) {
   await prod.scrollIntoViewIfNeeded();
   const t1 = Date.now();
   await prod.getByRole('button', { name: /Construire le planning/ }).click();
-  await prod.locator('app-planning .rows').waitFor({ timeout: 300000 });
-  res.planning = { duree: Math.round((Date.now() - t1) / 1000) + ' s', note: await prod.locator('app-planning .note').innerText().catch(() => ''), etapes: await prod.locator('app-planning .row').count() };
+  await prod.locator('app-planning .cards').waitFor({ timeout: 300000 });
+  res.planning = { duree: Math.round((Date.now() - t1) / 1000) + ' s', note: await prod.locator('app-planning .note').innerText().catch(() => ''), etapes: await prod.locator('app-planning .card').count() };
   ok(res.planning.etapes >= 6, `planning construit : ${res.planning.etapes} étapes en ${res.planning.duree}`);
-  await prod.locator('app-planning').screenshot({ path: path.join(OUT, 'p87-planning-edition.png') });
+  await prod.locator('app-planning .card').nth(1).scrollIntoViewIfNeeded(); await p.waitForTimeout(400);
+  await p.screenshot({ path: path.join(OUT, 'p87-planning-edition.png') });
+  { const c0 = prod.locator('app-planning .card').first(), d0 = await c0.locator('.c-dur').innerText();
+    await c0.getByRole('button', { name: 'Un jour de plus' }).click();
+    ok(parseInt(await c0.locator('.c-dur').innerText()) === parseInt(d0) + 1, 'la durée se règle en un clic (+1 jour)');
+    await c0.getByRole('button', { name: 'Un jour de moins' }).click(); }
+  await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(600);
+  await prod.locator('app-planning .card').first().scrollIntoViewIfNeeded();
+  await p.screenshot({ path: path.join(OUT, 'p87-planning-mobile.png') });
+  await docs.scrollIntoViewIfNeeded(); await p.screenshot({ path: path.join(OUT, 'p87-documents-mobile.png') });
+  await p.setViewportSize({ width: 1440, height: 950 }); await p.waitForTimeout(600); await prod.scrollIntoViewIfNeeded();
   await prod.getByRole('button', { name: 'Enregistrer le planning' }).click(); await p.waitForTimeout(1500);
   ok(await prod.locator('app-planning .bars li').count() >= 6, 'la frise du planning s’affiche');
   res.planning.lignes = await prod.locator('app-planning .list li').allInnerTexts();
@@ -127,7 +138,7 @@ async function login(b, a, vp) {
   await g.waitForSelector('app-fiche .hero', { timeout: 15000 }).catch(() => {});
   await g.waitForTimeout(1500);
   ok(await g.locator('#etape-brief').count() === 0, 'l’équipe technique ne voit pas le brief');
-  ok(await g.locator('#documents app-dropzone').count() === 0 && await g.locator('#documents .sources li').count() >= (gc ? 1 : 0), 'pas de dépôt pour l’équipe technique, mais les documents sont visibles');
+  ok(await g.locator('#documents app-dropzone').count() === 0 && await g.locator('#documents .doc').count() >= (gc ? 1 : 0), 'pas de dépôt pour l’équipe technique, mais les documents sont visibles');
   ok((await g.locator('app-crew').innerText()).includes('+216 22 333 444'), 'l’équipe confirmée voit les coordonnées des autres');
   await g.locator('#etape-production').scrollIntoViewIfNeeded(); await g.waitForTimeout(600);
   await g.screenshot({ path: path.join(OUT, 'p87-technicien-mobile.png') });
