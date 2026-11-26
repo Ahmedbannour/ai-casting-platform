@@ -62,7 +62,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   readonly role = computed(() => this.meService.me()?.role ?? this.authService.role());
   readonly isActor = computed(() => this.role() === 'ACTEUR');
   /** Marque et agence marketing : pas de recherche d'acteurs, leurs demandes seulement (cahier v2). */
-  readonly isClient = computed(() => this.role() === 'MARQUE' || this.role() === 'AGENCE_MARKETING'
+  readonly isClient = computed(() => this.role() === 'MARQUE' || this.role() === 'AGENCE_MARKETING' || this.role() === 'TECHNICIEN'
     || (this.role() === 'ASSISTANT_PROD' && !this.meService.can('CASTING')));
   /** Comptes sans recherche IA ni historique. */
   readonly noSearch = computed(() => this.isActor() || this.isClient());
@@ -92,6 +92,13 @@ export class SidebarComponent implements OnInit, AfterViewInit {
         { path: '/projects', label: 'Projets', key: 'Alt+5', icon: this.icon('projects') },
         { path: '/dashboard', label: 'Acteurs', key: 'Alt+6', icon: this.icon('actors') });
       return a;
+    }
+    if (this.role() === 'TECHNICIEN') {
+      return [
+        { path: '/mes-demandes', label: 'Mes tournages', key: 'Alt+1', icon: this.icon('projects') },
+        { path: '/rooms', label: 'Rooms', key: 'Alt+2', icon: this.icon('rooms') },
+        { path: '/agenda', label: 'Agenda', key: 'Alt+3', icon: this.icon('agenda') }
+      ];
     }
     if (this.role() === 'MARQUE' || this.role() === 'AGENCE_MARKETING') {
       return [

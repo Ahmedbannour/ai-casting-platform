@@ -96,6 +96,7 @@ public class RoomService {
         m.setCanDocs(prod);
         m.setCanTasks(prod);
         m.setRoomLead(prod);
+        if (role == Role.TECHNICIEN) m.setCanResults(false);   // P-087 : l'équipe technique suit la room, sans les votes
     }
 
     // ── Room ──

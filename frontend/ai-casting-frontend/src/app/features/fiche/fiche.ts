@@ -2,6 +2,7 @@ import { AfterViewChecked, Component, DestroyRef, ElementRef, computed, effect, 
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { LiveService } from '../../core/services/live.service';
 import { PageRailComponent } from '../../shared/components/page-rail/page-rail';
 import { DropzoneComponent } from '../../shared/components/dropzone/dropzone';
@@ -10,6 +11,8 @@ import { CalMark, CalendarComponent } from '../../shared/components/calendar/cal
 import { addDays, todayIso } from '../../shared/forms/dates';
 import { concat, last } from 'rxjs';
 import { FicheService, RoleInput, Sheet, SheetField, SheetRole, SheetSource, SheetStage } from './fiche.service';
+import { CrewComponent } from './crew';
+import { PlanningComponent } from './planning';
 import { AGE_RANGES, AIDES, Aide, ROLE_INTENTIONS, ROLE_TYPES, addLine, dayFr, daysBetween, derived, hasIn, isoRange, parseRange, toggleIn } from './fiche-aides';
 
 const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
@@ -22,7 +25,7 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
 @Component({
   selector: 'app-fiche',
   standalone: true,
-  imports: [FormsModule, RouterLink, PageRailComponent, DropzoneComponent, DateFieldComponent, CalendarComponent],
+  imports: [FormsModule, RouterLink, PageRailComponent, DropzoneComponent, DateFieldComponent, CalendarComponent, CrewComponent, PlanningComponent],
   template: `
   <div class="sheet">
   <article class="doc" #doc aria-label="Fiche du projet">
@@ -43,6 +46,7 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
                 @for (m of myStages(); track m.key) { <a class="chip" [class.todo]="m.state !== 'complete'" [href]="'#etape-' + m.key" (click)="jump($event, m.key)">{{ pad(m.num) }} {{ m.title }}@if (m.suggestions) { <i>{{ m.suggestions }} proposition{{ m.suggestions > 1 ? 's' : '' }}</i> }</a> }
               </p>
             } @else { <p class="mine-line">Vous lisez cette fiche ; chaque étape est remplie par son équipe.</p> }
+            @if (s.hiddenStages) { <p class="mine-line">{{ s.hiddenStages }} chapitre{{ s.hiddenStages > 1 ? 's' : '' }} apparaîtr{{ s.hiddenStages > 1 ? 'ont' : 'a' }} quand l’équipe concernée l’aura commencé.</p> }
             <div class="hero-tools">
               @if (nextTodo(); as n) { <button type="button" class="go" (click)="openField(n.st, n.f)">Continuer : {{ n.f.label }}</button> }
               <button type="button" class="ghost" (click)="copyAll()">Copier le résumé</button>
@@ -98,41 +102,74 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
         }
       </section>
 
-      <!-- Déposer un document : l'IA remplit -->
-      @if (s.canUpload) {
-        <section class="feed reveal" data-rail data-rail-label="Remplir avec l'IA" id="remplir-ia" aria-labelledby="feed-h">
-          <h2 id="feed-h">Remplir avec l'IA</h2>
-          <p class="muted">Déposez votre brief, votre présentation ou collez un lien Canva : l'IA lit le document, remplit vos étapes et prépare des propositions pour les autres. Chacun n'a plus qu'à vérifier.</p>
-          <div class="feed-row">
-            <app-dropzone title="Déposer un document" [accept]="formats" [formats]="['PDF', 'Word', 'PowerPoint', 'texte']" [maxMb]="25" [busy]="uploading()" busyText="Envoi…" (file)="upload($event)" />
-            <form class="link" (ngSubmit)="sendLink()">
-              <label for="fiche-link">Ou un lien (Canva, page web)</label>
-              <div class="link-row">
-                <input id="fiche-link" name="link" type="url" inputmode="url" [(ngModel)]="linkUrl" placeholder="https://www.canva.com/design/…/view" [attr.aria-describedby]="linkErr() ? 'link-err' : null" />
-                <button type="submit" class="go" [disabled]="uploading() || !linkUrl.trim()">Lire</button>
-              </div>
-              @if (linkErr()) { <p class="field-msg" id="link-err" role="alert">{{ linkErr() }}</p> }
-            </form>
-          </div>
+      <!-- P-087 · Documents et liens du projet : déposer (rôles autorisés), voir, télécharger, partager -->
+      @if (s.canUpload || s.sources.length) {
+        <section class="feed reveal" data-rail data-rail-label="Documents et liens" id="documents" aria-labelledby="feed-h">
+          <h2 id="feed-h">Documents et liens</h2>
+          @if (s.canUpload) {
+            <p class="muted">Déposez le brief, la présentation, les moodboards ou collez un lien Canva : l’équipe les retrouve ici, et l’IA lit les documents pour remplir vos étapes et préparer des propositions pour les autres.</p>
+            <div class="feed-row">
+              <app-dropzone title="Déposer un document" [accept]="formats" [formats]="['PDF', 'Word', 'PowerPoint', 'Excel', 'images', 'vidéo']" [maxMb]="25" [busy]="uploading()" busyText="Envoi…" (file)="upload($event)" />
+              <form class="link" (ngSubmit)="sendLink()">
+                <label for="fiche-link">Ou un lien (Canva, page web)</label>
+                <div class="link-row">
+                  <input id="fiche-link" name="link" type="url" inputmode="url" [(ngModel)]="linkUrl" placeholder="https://www.canva.com/design/…/view" [attr.aria-describedby]="linkErr() ? 'link-err' : null" />
+                  <button type="submit" class="go" [disabled]="uploading() || !linkUrl.trim()">Lire</button>
+                </div>
+                @if (linkErr()) { <p class="field-msg" id="link-err" role="alert">{{ linkErr() }}</p> }
+              </form>
+            </div>
+          } @else {
+            <p class="muted">Les documents et liens partagés par l’équipe du film.</p>
+          }
           @if (s.sources.length) {
-            <ul class="sources" aria-label="Documents lus">
-              @for (src of s.sources.slice(0, 4); track src.id) {
+            <ul class="sources" aria-label="Documents et liens">
+              @for (src of s.sources; track src.id) {
                 <li [attr.data-st]="src.status">
-                  <span class="src-ic" aria-hidden="true">{{ src.kind === 'LIEN' ? '↗' : '▤' }}</span>
+                  <span class="src-ic" aria-hidden="true">{{ icon(src) }}</span>
                   <div class="src-txt">
                     <b>{{ src.name }}</b>
                     <span>@switch (src.status) {
-                      @case ('LECTURE') { L'IA lit le document<i class="dots" aria-hidden="true"><i></i><i></i><i></i></i> }
+                      @case ('LECTURE') { {{ src.message || 'L’IA lit le document' }}<i class="dots" aria-hidden="true"><i></i><i></i><i></i></i> }
                       @case ('FAIT') { {{ resultLine(src) }} }
                       @default { Lecture impossible }
-                    } · {{ src.addedBy }}, {{ ago(src.createdAt) }}</span>
-                    @if (src.message) { <small>{{ src.message }}</small> }
+                    } · {{ src.addedBy }}, {{ ago(src.createdAt) }}@if (src.size) { · {{ sizeFr(src.size) }} }</span>
+                    @if (src.message && src.status !== 'LECTURE') { <small>{{ src.message }}</small> }
+                    @if (shareFor() === src.id && shareUrl()) {
+                      <div class="share" role="group" [attr.aria-label]="'Partager ' + src.name">
+                        <a class="tool" [href]="'https://wa.me/?text=' + enc(src.name + ' : ' + shareUrl())" target="_blank" rel="noopener">WhatsApp</a>
+                        <a class="tool" [href]="'mailto:?subject=' + enc(src.name) + '&body=' + enc(src.name + ' : ' + shareUrl())">E-mail</a>
+                        <button type="button" class="tool" (click)="copyLink()">{{ copiedLink() ? 'Copié ✓' : 'Copier le lien' }}</button>
+                        @if (canNativeShare) { <button type="button" class="tool" (click)="nativeShare(src)">Partager…</button> }
+                        <span class="share-note">{{ src.kind === 'FICHIER' ? 'Lien valable 7 jours, sans compte.' : 'Lien d’origine.' }}</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="src-act">
+                    @if (src.kind === 'LIEN' && src.url) { <a class="tool" [href]="src.url" target="_blank" rel="noopener">Ouvrir ↗</a> }
+                    @if (src.hasFile) {
+                      <button type="button" class="tool" (click)="viewFile(src)">Voir</button>
+                      <button type="button" class="tool" (click)="downloadFile(src)">Télécharger</button>
+                    }
+                    @if (src.hasFile || (src.kind === 'LIEN' && src.url)) { <button type="button" class="tool" [attr.aria-expanded]="shareFor() === src.id" (click)="toggleShare(src)">Partager</button> }
+                    @if (src.canDelete) { <button type="button" class="tool" (click)="removeSource(src)" [attr.aria-label]="'Retirer ' + src.name">Retirer</button> }
                   </div>
                 </li>
               }
             </ul>
           }
         </section>
+      }
+
+      @if (viewer(); as v) {
+        <div class="viewer" role="dialog" aria-modal="true" [attr.aria-label]="v.name" (click)="closeViewer()" (keydown.escape)="closeViewer()">
+          <div class="v-box" (click)="$event.stopPropagation()">
+            <header><b>{{ v.name }}</b><span><button type="button" class="tool" (click)="downloadFile(v.src)">Télécharger</button><button type="button" class="tool" (click)="closeViewer()" autofocus>Fermer</button></span></header>
+            @if (v.type.startsWith('image/')) { <img [src]="v.url" [alt]="v.name" /> }
+            @else if (v.type.startsWith('video/')) { <video [src]="v.url" controls></video> }
+            @else { <iframe [src]="v.safe" [title]="v.name"></iframe> }
+          </div>
+        </div>
       }
 
       @if (msg()) { <p class="ok" role="status">{{ msg() }}</p> }
@@ -166,10 +203,12 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
             @if (st.fields.length) {
               <dl class="fields">
                 @for (f of st.fields; track f.key) {
-                  <div class="f" [class.wide]="f.kind === 'LONG'" [class.empty]="!f.value" [class.editing]="editing() === f.key">
+                  <div class="f" [class.wide]="f.kind === 'LONG' || f.kind === 'PLANNING'" [class.empty]="!f.value" [class.editing]="editing() === f.key">
                     <dt>{{ f.label }}@if (!f.required) { <small> · facultatif</small> }</dt>
                     <dd>
-                      @if (editing() === f.key) {
+                      @if (f.kind === 'PLANNING') {
+                        <app-planning [requestId]="s.requestId" [value]="f.value" [canEdit]="f.canEdit" [shoot]="val('dates_tournage')" [air]="val('diffusion')" (saved)="apply($event)" />
+                      } @else if (editing() === f.key) {
                         <form class="edit" (ngSubmit)="save(f)" (keydown)="keys($event, f)">
                           @if (f.kind === 'DATE') {
                             <div class="when">
@@ -253,6 +292,9 @@ const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aoû
                   </div>
                 }
               </dl>
+              @if (st.key === 'production' && st.crew.length) {
+                <app-crew [requestId]="s.requestId" [crew]="st.crew" [canManage]="s.canManageCrew" (changed)="apply($event)" />
+              }
             } @else if (st.key === 'roles') {
               <ul class="roles">
                 @for (ro of st.roles; track ro.id) {
@@ -335,7 +377,7 @@ export class FicheComponent implements AfterViewChecked {
   readonly uploading = signal(false);
   readonly editing = signal<string | null>(null);
   readonly shown = signal(0);
-  readonly formats = '.pdf,.docx,.pptx,.txt,.rtf';
+  readonly formats = '.pdf,.docx,.pptx,.xlsx,.txt,.rtf,.csv,.jpg,.jpeg,.png,.webp,.mp4,.mov';
   draft = '';
   changes = '';
   readonly asking = signal(false);
@@ -386,7 +428,7 @@ export class FicheComponent implements AfterViewChecked {
     });
   }
 
-  private apply(s: Sheet): void {
+  apply(s: Sheet): void {
     const first = !this.sheet();
     const before = this.sheet()?.progress ?? 0;
     this.sheet.set(s); this.error.set('');
@@ -669,8 +711,65 @@ export class FicheComponent implements AfterViewChecked {
     (el?.querySelector('h2') as HTMLElement | null)?.focus({ preventScroll: true });
   }
 
+  // ── P-087 · Documents : voir, télécharger, partager, retirer ──
+
+  private readonly sanitizer = inject(DomSanitizer);
+  readonly viewer = signal<{ name: string; type: string; url: string; safe: SafeResourceUrl; src: SheetSource } | null>(null);
+  readonly shareFor = signal<string | null>(null);
+  readonly shareUrl = signal('');
+  readonly copiedLink = signal(false);
+  readonly canNativeShare = typeof navigator !== 'undefined' && !!navigator.share;
+
+  icon(src: SheetSource): string {
+    if (src.kind === 'LIEN') return '↗';
+    const t = src.contentType ?? '';
+    return t.startsWith('image/') ? '▣' : t.startsWith('video/') ? '▶' : t.includes('pdf') ? 'PDF' : '▤';
+  }
+  sizeFr(n: number): string { return n > 1048576 ? (n / 1048576).toFixed(1).replace('.', ',') + ' Mo' : Math.max(1, Math.round(n / 1024)) + ' Ko'; }
+  enc(t: string): string { return encodeURIComponent(t); }
+  val(key: string): string | null {
+    for (const st of this.sheet()?.stages ?? []) for (const f of st.fields) if (f.key === key) return f.value;
+    return null;
+  }
+  viewFile(src: SheetSource): void {
+    const s = this.sheet(); if (!s) return;
+    const t = src.contentType ?? '';
+    if (!(t.startsWith('image/') || t.startsWith('video/') || t.includes('pdf') || t.startsWith('text/'))) { this.downloadFile(src); return; }
+    this.api.file(s.requestId, src.id).subscribe({
+      next: b => {
+        const url = URL.createObjectURL(b);
+        this.viewer.set({ name: src.name, type: t, url, safe: this.sanitizer.bypassSecurityTrustResourceUrl(url), src });
+      },
+      error: (e: HttpErrorResponse) => this.error.set(e.status === 404 ? 'Ce document n’est plus disponible.' : 'Le document n’a pas pu être ouvert.')
+    });
+  }
+  closeViewer(): void { const v = this.viewer(); if (v) URL.revokeObjectURL(v.url); this.viewer.set(null); }
+  downloadFile(src: SheetSource): void {
+    const s = this.sheet(); if (!s) return;
+    this.api.file(s.requestId, src.id, true).subscribe({
+      next: b => { const url = URL.createObjectURL(b); const a = document.createElement('a'); a.href = url; a.download = src.name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 2000); },
+      error: () => this.error.set('Le téléchargement a échoué.')
+    });
+  }
+  toggleShare(src: SheetSource): void {
+    if (this.shareFor() === src.id) { this.shareFor.set(null); return; }
+    this.copiedLink.set(false); this.shareUrl.set(''); this.shareFor.set(src.id);
+    if (src.kind === 'LIEN' && src.url) { this.shareUrl.set(src.url); return; }
+    const s = this.sheet(); if (!s) return;
+    this.api.share(s.requestId, src.id).subscribe({
+      next: r => this.shareUrl.set(location.origin + r.path),
+      error: (e: HttpErrorResponse) => { this.shareFor.set(null); this.error.set(e.error?.message || 'Le lien de partage n’a pas pu être créé.'); }
+    });
+  }
+  copyLink(): void { navigator.clipboard?.writeText(this.shareUrl()).then(() => this.copiedLink.set(true), () => this.error.set('Copie refusée par le navigateur.')); }
+  nativeShare(src: SheetSource): void { navigator.share?.({ title: src.name, url: this.shareUrl() }).catch(() => {}); }
+  removeSource(src: SheetSource): void {
+    const s = this.sheet(); if (!s || !confirm(`Retirer « ${src.name} » des documents du projet ?`)) return;
+    this.run(this.api.deleteSource(s.requestId, src.id), `« ${src.name} » retiré.`);
+  }
+
   resultLine(src: SheetSource): string {
-    if (!src.filled && !src.proposed) return 'Rien à reprendre';
+    if (!src.filled && !src.proposed) return src.engine ? 'Rien à reprendre pour la fiche' : 'Partagé';
     const parts: string[] = [];
     if (src.filled) parts.push(`${src.filled} champ${src.filled > 1 ? 's' : ''} rempli${src.filled > 1 ? 's' : ''}`);
     if (src.proposed) parts.push(`${src.proposed} proposition${src.proposed > 1 ? 's' : ''} envoyée${src.proposed > 1 ? 's' : ''}`);

@@ -163,7 +163,7 @@ public class InvitationService {
         return new ResourceNotFoundException("Ce lien d'invitation n'est plus valable : il a déjà servi, a expiré ou a été remplacé. Demandez un nouveau lien à votre agence.");
     }
 
-    static String hash(String token) {
+    public static String hash(String token) {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception e) { throw new IllegalStateException(e); }

@@ -1,5 +1,5 @@
 /** Rôles de la plateforme (cahier des charges v2, 19/11/2026). */
-export type Role = 'ADMIN' | 'BOITE_PROD' | 'ASSISTANT_PROD' | 'ACTEUR' | 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR';
+export type Role = 'ADMIN' | 'BOITE_PROD' | 'ASSISTANT_PROD' | 'ACTEUR' | 'MARQUE' | 'AGENCE_MARKETING' | 'REALISATEUR' | 'TECHNICIEN';
 
 export const ROLE_LABELS: Record<Role, string> = {
   ADMIN: 'Administrateur',
@@ -8,7 +8,8 @@ export const ROLE_LABELS: Record<Role, string> = {
   REALISATEUR: 'Réalisateur',
   BOITE_PROD: 'Boîte de production',
   ASSISTANT_PROD: 'Assistante de production',
-  ACTEUR: 'Acteur'
+  ACTEUR: 'Acteur',
+  TECHNICIEN: 'Équipe technique'
 };
 
 export function roleLabel(r: string | null | undefined): string { return ROLE_LABELS[r as Role] ?? r ?? ''; }

@@ -83,7 +83,8 @@ class SheetApiTest {
         send("POST", "/api/demandes/" + id + "/invitations", prod, "{\"email\":\"fiche.agence@exemple.tn\",\"kind\":\"AGENCE_MARKETING\"}").andExpect(status().isOk());
         f = read(send("GET", base, brand, null));
         assertThat(stage(f, "brief").get("canEdit").asBoolean()).isTrue();
-        assertThat(stage(f, "concept").get("canEdit").asBoolean()).isFalse();
+        assertThat(f.get("stages").toString()).doesNotContain("\"key\":\"concept\"");   // P-087 : le chapitre de l'agence, vide, est masqué pour la marque
+        assertThat(f.get("hiddenStages").asInt()).isPositive();
         assertThat(stage(read(send("GET", base, prod, null)), "concept").get("canEdit").asBoolean()).isTrue();   // le producer complète tout
         send("PUT", base + "/champs/objectif", brand, "{\"value\":\"Faire aimer la bouteille\"}").andExpect(status().isOk());
         send("PUT", base + "/champs/idee", brand, "{\"value\":\"Une idee\"}").andExpect(status().isForbidden());
@@ -95,6 +96,35 @@ class SheetApiTest {
         send("PUT", base + "/champs/dates_tournage", prod, "{\"value\":\"2027-03-12/2027-03-14\"}").andExpect(status().isOk());
         send("PUT", base + "/champs/dates_tournage", prod, "{\"value\":\"2027-03-14/2027-03-12\"}").andExpect(status().isBadRequest());
         send("PUT", base + "/champs/dates_tournage", prod, "{\"value\":\"mi-mars\"}").andExpect(status().isBadRequest());
+
+        // P-087 · Planning : des étapes datées, construites à partir des dates du film (sans IA : le rétroplanning type)
+        JsonNode plan = read(send("POST", base + "/champs/planning/proposer", prod, "{\"value\":\"\"}").andExpect(status().isOk()));
+        String steps = plan.get("text").asString();
+        assertThat(steps).contains("Tournage").contains("2027-03-12").contains("PPM");
+        send("PUT", base + "/champs/planning", prod, json.writeValueAsString(java.util.Map.of("value", steps))).andExpect(status().isOk());
+        send("PUT", base + "/champs/planning", prod, json.writeValueAsString(java.util.Map.of("value", "[{\"etape\":\"PPM\",\"debut\":\"2027-03-10\",\"fin\":\"2027-03-09\"}]"))).andExpect(status().isBadRequest());
+        send("PUT", base + "/champs/planning", prod, "{\"value\":\"semaine prochaine\"}").andExpect(status().isBadRequest());
+
+        // P-087 · Équipe technique : postes fixes, coordonnées, invitation par lien et mot de passe
+        JsonNode withCrew = read(send("PUT", base + "/equipe/chef_operateur", prod, "{\"name\":\"Sami Ben Ali\",\"phone\":\"+216 20 000 000\",\"city\":\"Tunis\"}").andExpect(status().isOk()));
+        assertThat(stage(withCrew, "production").get("crew").size()).isEqualTo(14);
+        send("PUT", base + "/equipe/chef_operateur", brand, "{\"name\":\"X\"}").andExpect(status().isForbidden());
+        send("PUT", base + "/equipe/inconnu", prod, "{\"name\":\"X\"}").andExpect(status().isNotFound());
+        String path = read(send("POST", base + "/equipe/ingenieur_son/lien", prod, "{\"name\":\"Nour\",\"email\":\"fiche.son@exemple.tn\"}").andExpect(status().isOk())).get("path").asString();
+        String crewToken = path.substring(path.lastIndexOf('/') + 1);
+        assertThat(read(send("GET", "/api/public/equipe/" + crewToken, null, null).andExpect(status().isOk())).get("post").asString()).startsWith("Ingénieur");
+        send("POST", "/api/public/equipe/" + crewToken, null, "{\"mode\":\"connexion\",\"email\":\"fiche.autre@exemple.tn\",\"password\":\"mauvais-mot-de-passe\"}").andExpect(status().isUnauthorized());
+        send("POST", "/api/public/equipe/" + crewToken, null, "{\"mode\":\"creation\",\"email\":\"fiche.autre@exemple.tn\",\"password\":\"Motdepasse-123\",\"firstName\":\"A\",\"lastName\":\"B\",\"acceptTerms\":true}").andExpect(status().isConflict());
+        JsonNode joined = read(send("POST", "/api/public/equipe/" + crewToken, null, "{\"mode\":\"creation\",\"email\":\"fiche.son@exemple.tn\",\"password\":\"Motdepasse-123\",\"firstName\":\"Nour\",\"lastName\":\"Son\",\"phone\":\"+216 22 000 000\",\"acceptTerms\":true}").andExpect(status().isOk()));
+        String tech = "Bearer " + joined.get("accessToken").asString();
+        send("POST", "/api/public/equipe/" + crewToken, null, "{\"mode\":\"connexion\",\"email\":\"fiche.son@exemple.tn\",\"password\":\"Motdepasse-123\"}").andExpect(status().isNotFound());   // usage unique
+        JsonNode techView = read(send("GET", base, tech, null).andExpect(status().isOk()));
+        assertThat(techView.get("canUpload").asBoolean()).isFalse();
+        assertThat(techView.get("stages").toString()).doesNotContain("\"key\":\"brief\"");
+        assertThat(stage(techView, "production").get("crew").get(2).get("phone").asString()).isEqualTo("+216 20 000 000");   // l'équipe confirmée voit les coordonnées
+        assertThat(stage(read(send("GET", base, brand, null)), "production").get("crew").get(2).get("phone").isNull()).isTrue();   // la marque, non
+        send("PUT", base + "/equipe/ingenieur_son", tech, "{\"name\":\"Autre\",\"phone\":\"+216 23 000 000\",\"address\":\"Rue de Marseille, Tunis\"}").andExpect(status().isOk());
+        send("PUT", base + "/equipe/chef_operateur", tech, "{\"name\":\"X\"}").andExpect(status().isForbidden());
         send("GET", base, outsider, null).andExpect(status().isNotFound());
         send("POST", base + "/etapes/transmettre", brand, null).andExpect(status().isBadRequest());   // brief incomplet
         send("POST", base + "/etapes/transmettre", agency, null).andExpect(status().isForbidden());
@@ -110,12 +140,21 @@ class SheetApiTest {
             Thread.sleep(250);
         }
         assertThat(done.get("sources").get(0).get("status").asString()).isEqualTo("FAIT");
+        // P-087 · Le document est conservé : on le voit, on le télécharge, on le partage par lien
+        String sid = done.get("sources").get(0).get("id").asString();
+        assertThat(done.get("sources").get(0).get("hasFile").asBoolean()).isTrue();
+        assertThat(mvc.perform(get(base + "/sources/" + sid + "/fichier").header("Authorization", agency)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8)).contains("Zitouna");
+        send("GET", base + "/sources/" + sid + "/fichier", outsider, null).andExpect(status().isNotFound());
+        String shared = read(send("POST", base + "/sources/" + sid + "/partage", agency, null).andExpect(status().isOk())).get("path").asString();
+        mvc.perform(get(shared)).andExpect(status().isOk());
+        mvc.perform(multipart(base + "/sources").file(new org.springframework.mock.web.MockMultipartFile("file", "photo.exe", "application/octet-stream", new byte[]{1, 2})).header("Authorization", brand)).andExpect(status().isBadRequest());
         assertThat(field(stage(done, "brief"), "cible").get("value").asString()).startsWith("Familles tunisiennes");
         assertThat(field(stage(done, "brief"), "cible").get("source").asString()).isEqualTo("IA");
         assertThat(field(stage(done, "diffusion"), "supports").get("value").asString()).contains("Instagram");
         assertThat(field(stage(done, "brief"), "objectif").get("value").asString()).isEqualTo("Faire aimer la bouteille");   // jamais écrasé
         assertThat(field(stage(done, "brief"), "objectif").get("suggestion").asString()).startsWith("faire connaître");
-        assertThat(field(stage(done, "concept"), "idee").get("suggestion").asString()).contains("olivier");
+        assertThat(field(stage(read(send("GET", base, agency, null)), "concept"), "idee").get("suggestion").asString()).contains("olivier");
         assertThat(read(send("GET", "/api/me/notifications", agency, null)).get("items").toString()).contains("pré-rempli");
         send("POST", base + "/champs/objectif/accepter", agency, null).andExpect(status().isForbidden());
         assertThat(field(stage(read(send("POST", base + "/champs/objectif/ecarter", brand, null).andExpect(status().isOk())), "brief"), "objectif").get("suggestion").isNull()).isTrue();

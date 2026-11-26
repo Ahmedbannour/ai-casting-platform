@@ -222,3 +222,17 @@ dd { margin: 0; display: flex; flex-direction: column; gap: 8px; align-items: fl
 .type-row app-date-field { width: 180px; }
 .date-note { font-size: 12.5px; font-weight: 600; color: var(--accent-ink); margin-top: -4px; }
 .date-note.raw-note { color: var(--text-muted); font-weight: 500; }
+
+/* ── P-087 · Documents et liens ── */
+.sources li { align-items: center; }
+.src-act { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; justify-content: flex-end; }
+.src-ic { font-size: 10.5px; }
+.share { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+.share-note { font-size: 12px; color: var(--text-muted); }
+a.tool { text-decoration: none; }
+@container fiche (max-width: 640px) { .sources li { flex-wrap: wrap; } .src-act { margin-left: 44px; justify-content: flex-start; } }
+.viewer { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.72); display: grid; place-items: center; padding: 16px; }
+.v-box { width: min(1100px, 100%); height: min(88vh, 100%); background: var(--bg-primary); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.v-box header { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.v-box header b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .v-box header span { display: flex; gap: 6px; }
+.v-box iframe, .v-box img, .v-box video { flex: 1; width: 100%; min-height: 0; border: 0; object-fit: contain; background: #111; }

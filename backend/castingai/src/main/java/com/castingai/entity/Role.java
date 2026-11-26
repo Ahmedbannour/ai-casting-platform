@@ -19,7 +19,9 @@ public enum Role {
     ACTEUR,
     MARQUE,
     AGENCE_MARKETING,
-    REALISATEUR;
+    REALISATEUR,
+    /** P-087 · Membre de l'équipe technique d'un tournage, invité par lien sur un poste. */
+    TECHNICIEN;
 
     /** Rôles qui travaillent sur le casting (vivier, projets, rôles, shortlists, recherche IA). */
     public boolean casting() { return this == ADMIN || this == BOITE_PROD || this == ASSISTANT_PROD || this == REALISATEUR; }

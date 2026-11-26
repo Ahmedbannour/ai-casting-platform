@@ -32,6 +32,7 @@ public class SheetAi {
     public record Extraction(Map<String, String> values, String engine) {}
 
     private final ObjectMapper json;
+    private final SheetAgent agent;
 
     @Value("${casting.ai.model:llama3.2}")
     private String model;
@@ -112,30 +113,7 @@ public class SheetAi {
                 + (f.kind() == SheetSchema.Kind.LONG ? "450" : "120") + " caractères ; reste cohérent avec la fiche ; "
                 + "n'invente ni nom de personne, ni prix, ni budget, ni date précise.\n"
                 + "Réponds UNIQUEMENT par un objet JSON : {\"texte\": \"...\"}";
-        try {
-            Map<String, Object> body = new LinkedHashMap<>();
-            body.put("model", model);
-            body.put("prompt", prompt);
-            body.put("stream", false);
-            body.put("format", "json");
-            body.put("options", Map.of("temperature", 0.5, "num_predict", 400, "num_ctx", 4096));
-            HttpRequest req = HttpRequest.newBuilder(URI.create(ollamaUrl.replaceAll("/+$", "") + "/api/generate"))
-                    .timeout(Duration.ofSeconds(Math.min(timeoutSeconds, 90))).header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(body), StandardCharsets.UTF_8)).build();
-            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            if (resp.statusCode() != 200) return Optional.empty();
-            Map<?, ?> res = json.readValue(resp.body(), Map.class);
-            String raw = res == null ? null : (String) res.get("response");
-            if (raw == null || raw.indexOf('{') < 0) return Optional.empty();
-            Map<?, ?> n = json.readValue(raw.substring(raw.indexOf('{')), Map.class);
-            Object t = n.get("texte");
-            if (!(t instanceof String txt) || txt.isBlank()) return Optional.empty();
-            txt = txt.strip();
-            return Optional.of(txt.length() > 1200 ? txt.substring(0, 1200) : txt);
-        } catch (Exception e) {
-            log.warn("Aide à la rédaction indisponible : {} {}", e.getClass().getSimpleName(), e.getMessage());
-            return Optional.empty();
-        }
+        return agent.draft(prompt);   // P-087 : modèle rapide (qwen2.5:3b), repli sur le modèle de base
     }
 
     /** Étiquettes courantes des briefs : « Cible : … », « Message clé – … ». */

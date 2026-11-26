@@ -72,4 +72,45 @@ public class SheetReadingTest {
         org.assertj.core.api.Assertions.assertThat(SheetAi.range("fin mars, à confirmer")).isNull();
         org.assertj.core.api.Assertions.assertThat(SheetAi.normalize("dates_tournage", "fin mars, à confirmer")).isEqualTo("fin mars, à confirmer");
     }
+
+    @Test
+    void lAgentGardeCeQueLeDocumentDitEtEcarteLeReste() {
+        String doc = " " + SheetAgent.plain("Proposition de réalisation. Série digitale Golden Coffee : 4 capsules de 71 secondes. "
+                + "Décors : salle de réunion, villa. Ton : comique pur, sensible, absurde. Tournage de 2 jours en novembre 2026.") + " ";
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.clean("produit", "Golden Coffee", doc)).isEqualTo("Golden Coffee");
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.clean("cible", "Public général", doc)).isNull();
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.clean("contraintes", "Logo, mentions légales, produits à montrer, interdits", doc)).isNull();
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.clean("duree", "30 s", doc)).isNull();
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.clean("duree", "71 secondes", doc)).isEqualTo("71 secondes");
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.clean("lieux", "Salle de réunion, villa, plage", doc)).isEqualTo("Salle de réunion, villa");
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.clean("dates_tournage", "Jour 1 : salle de réunion", doc)).isNull();
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.clean("supports", "Salle de réunion, Villa, Série digitale", doc)).isEqualTo("Série digitale");
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.unloop("tache de café, tache de café, tache de café, villa")).isEqualTo("tache de café, villa");
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.keywords(doc)).containsEntry("supports", "Digital");
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.keywords(" " + SheetAgent.plain("Trois candidats ratés : Cinéma, Influenceur") + " ")).doesNotContainKey("supports");
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.keywords(" " + SheetAgent.plain("Diffusion prévue en télévision et au cinéma") + " ").get("supports")).isEqualTo("Télévision, Cinéma");
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.usefulNote("Facultatif, peut être négligé.", "villa")).isFalse();
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.usefulNote("Repérer la villa et la salle de réunion avec le chef opérateur.", "Lieux : salle de réunion, villa")).isTrue();
+        org.assertj.core.api.Assertions.assertThat(SheetAgent.clean("intention", "La tache qui parle", doc + " tache parle ")).isNull();
+    }
+
+    @Test
+    void lePlanningResteCoherentQuellesQueSoientLesDureesProposees() {
+        java.time.LocalDate s = java.time.LocalDate.of(2027, 1, 11), e = java.time.LocalDate.of(2027, 1, 12), diff = java.time.LocalDate.of(2027, 2, 1);
+        var plan = SheetAgent.schedule(s, e, diff, java.util.Map.of("Casting", 40, "Montage", 12), java.util.Set.of("Rappels de casting", "Déclinaisons réseaux sociaux"), java.util.Map.of());
+        for (var st : plan) {
+            var a = java.time.LocalDate.parse(st.debut());
+            org.assertj.core.api.Assertions.assertThat(java.time.LocalDate.parse(st.fin())).isAfterOrEqualTo(a);
+            if (!st.etape().equals("Tournage") && !st.etape().equals("Première diffusion"))
+                org.assertj.core.api.Assertions.assertThat(a.getDayOfWeek().getValue()).as(st.etape()).isLessThan(6);
+        }
+        var byName = new java.util.HashMap<String, SheetAgent.Step>();
+        plan.forEach(x -> byName.put(x.etape(), x));
+        org.assertj.core.api.Assertions.assertThat(byName.get("Tournage").debut()).isEqualTo("2027-01-11");
+        org.assertj.core.api.Assertions.assertThat(byName.get("Casting").fin()).isLessThan("2027-01-11");
+        org.assertj.core.api.Assertions.assertThat(byName.get("Montage").debut()).isGreaterThan("2027-01-12");
+        org.assertj.core.api.Assertions.assertThat(byName.get("Livraison des fichiers").fin()).isLessThan("2027-02-01");
+        org.assertj.core.api.Assertions.assertThat(byName).containsKeys("Rappels de casting", "Déclinaisons réseaux sociaux");
+        org.assertj.core.api.Assertions.assertThat(byName.get("Casting").debut()).isGreaterThanOrEqualTo("2026-11-01");   // durée bornée à 15 jours
+    }
 }

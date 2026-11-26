@@ -22,6 +22,10 @@ public interface AdRequestRepository extends JpaRepository<AdRequest, UUID> {
     @Query("select r from AdRequest r left join r.director d left join r.firstAd f where d.id = :userId or f.id = :userId order by r.updatedAt desc")
     List<AdRequest> forDirector(UUID userId);
 
+    /** P-087 · Projets où l'utilisateur fait partie de l'équipe technique confirmée. */
+    @Query(value = "select r.* from ad_requests r where r.id in (select c.request_id from project_crew c where c.user_id = :userId and c.status = 'CONFIRME') order by r.updated_at desc", nativeQuery = true)
+    List<AdRequest> forCrew(UUID userId);
+
     List<AdRequest> findAllByOrderByUpdatedAtDesc();
 
     /** P-083 · La demande dont est issue une room (la room porte l'identifiant du projet). */

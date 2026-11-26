@@ -395,6 +395,7 @@ public class ProTeamService {
             case REALISATEUR -> "Réalisateur";
             case ACTEUR -> "Acteur";
             case ADMIN -> "Administrateur";
+            case TECHNICIEN -> "Équipe technique";
         };
     }
 }

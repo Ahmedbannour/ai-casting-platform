@@ -14,7 +14,7 @@ public final class SheetSchema {
 
     private SheetSchema() {}
 
-    public enum Kind { TEXT, LONG, DATE, RANGE }
+    public enum Kind { TEXT, LONG, DATE, RANGE, PLANNING }
 
     public record Field(String key, String stage, String label, String hint, Kind kind, boolean required, String column) {}
 
@@ -59,8 +59,7 @@ public final class SheetSchema {
 
         new Field("lieux", "production", "Lieux de tournage", "Villes, décors, intérieur ou extérieur", Kind.LONG, true, null),
         new Field("dates_tournage", "production", "Dates de tournage", "Premier et dernier jour de tournage", Kind.RANGE, true, null),
-        new Field("planning", "production", "Planning", "Repérages, PPM, tournage, montage, livraison", Kind.LONG, false, null),
-        new Field("equipe_tech", "production", "Équipe technique", "Chef opérateur, décorateur, costumière…", Kind.LONG, false, null)
+        new Field("planning", "production", "Planning", "Repérages, casting, PPM, tournage, montage, livraison : étape par étape, avec les dates", Kind.PLANNING, false, null)
     );
 
     public static final Map<String, Field> BY_KEY = FIELDS.stream().collect(Collectors.toMap(Field::key, Function.identity()));

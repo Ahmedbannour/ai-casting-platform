@@ -60,6 +60,12 @@ export const routes: Routes = [
     title: 'Nouveau mot de passe · Cercle'
   },
   {
+    // P-087 · Lien d'invitation d'un poste de l'équipe technique (public, à usage unique)
+    path: 'equipe/rejoindre/:token',
+    loadComponent: () => import('./features/fiche/crew-join').then(m => m.CrewJoinComponent),
+    title: 'Cercle · Équipe technique'
+  },
+  {
     // Lien d'invitation du producer : marque, agence marketing ou assistante (public, à usage unique)
     path: 'invitation-pro/:token',
     loadComponent: () => import('./features/equipe/invitation-pro').then(m => m.InvitationProComponent),
@@ -137,7 +143,7 @@ export const routes: Routes = [
       // ── Marque et agence marketing : leurs demandes de publicité (cahier v2) ──
       {
         path: 'mes-demandes',
-        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN', 'TECHNICIEN')],
         loadComponent: () =>
           import('./features/demandes/mes-demandes')
             .then(m => m.MesDemandesComponent)
@@ -157,18 +163,18 @@ export const routes: Routes = [
       // P-084 · La page d'un projet, c'est son dossier unique
       {
         path: 'demandes/:id',
-        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN', 'TECHNICIEN')],
         loadComponent: () => import('./features/fiche/fiche-page').then(m => m.FichePageComponent)
       },
       // ── Rooms de casting : toute l'équipe d'un projet ──
       {
         path: 'rooms',
-        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN', 'TECHNICIEN')],
         loadComponent: () => import('./features/rooms/rooms').then(m => m.RoomsComponent)
       },
       {
         path: 'rooms/:id',
-        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN')],
+        canActivate: [roleGuard('MARQUE', 'AGENCE_MARKETING', 'BOITE_PROD', 'ASSISTANT_PROD', 'REALISATEUR', 'ADMIN', 'TECHNICIEN')],
         loadComponent: () => import('./features/rooms/room').then(m => m.RoomComponent)
       },
       // ── Le producer et ses assistantes de production ──

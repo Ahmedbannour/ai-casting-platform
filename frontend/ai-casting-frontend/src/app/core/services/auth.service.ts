@@ -87,7 +87,7 @@ export class AuthService {
   /** Page d'accueil selon le rôle : l'acteur freelance arrive sur son profil, l'agence sur la recherche. */
   homeFor(role: string | null = this.role()): string {
     if (role === 'ACTEUR') return '/mon-espace';
-    if (role === 'MARQUE' || role === 'AGENCE_MARKETING' || role === 'ASSISTANT_PROD') return '/mes-demandes';
+    if (role === 'MARQUE' || role === 'AGENCE_MARKETING' || role === 'ASSISTANT_PROD' || role === 'TECHNICIEN') return '/mes-demandes';
     return '/accueil';
   }
 

@@ -12,6 +12,9 @@ import com.castingai.service.AccessService;
 import com.castingai.service.DemandeService;
 import com.castingai.service.NotificationService;
 import com.castingai.service.V0Reader;
+import com.castingai.service.InvitationService;
+import com.castingai.storage.StorageService;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +50,10 @@ public class SheetService {
     private final V0Reader fileReader;
     private final LinkReader linkReader;
     private final SheetAi ai;
+    private final SheetAgent agent;
+    private final CrewService crew;
+    private final StorageService storage;
+    private final ObjectMapper json;
     private final org.springframework.transaction.support.TransactionTemplate tx;
 
     /** Une analyse à la fois : le modèle local occupe la machine. */
@@ -54,11 +61,18 @@ public class SheetService {
 
     @PreDestroy void stop() { worker.shutdownNow(); }
 
+    /** P-087 · Au démarrage : une lecture coupée par un redémarrage ne reste pas « en cours » pour toujours. */
+    @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
+    void unblock() {
+        int n = jdbc.update("update project_sheet_sources set status = 'ECHEC', message = 'Lecture interrompue par un redémarrage du serveur : le document reste partagé ; déposez-le à nouveau pour que l''IA le lise.' where status = 'LECTURE'");
+        if (n > 0) log.info("{} lecture(s) interrompue(s) marquée(s) en échec", n);
+    }
+
     public record FieldView(String key, String label, String hint, String kind, boolean required, String value, String source,
                             String updatedBy, LocalDateTime updatedAt, String suggestion, String suggestionFrom, boolean canEdit) {}
     public record StageView(String key, int num, String title, String owner, String intro, boolean mine, boolean canEdit, String state,
                             int filled, int total, List<FieldView> fields, List<Line> lines, List<RoleView> roles,
-                            String updatedBy, LocalDateTime updatedAt, int suggestions) {}
+                            String updatedBy, LocalDateTime updatedAt, int suggestions, List<CrewService.CrewView> crew) {}
     public record RoleView(UUID id, String name, String intention, String gender, Integer minAge, Integer maxAge) {}
     public record RoleInput(String name, String intention, String gender, Integer minAge, Integer maxAge) {}
     /** Où en est le dossier, qui a la main, ce qu'il manque, et le bouton de validation pour qui peut le donner. */
@@ -67,10 +81,13 @@ public class SheetService {
     public record Step(String comment) {}
     public record Line(String title, String detail) {}
     public record SourceView(UUID id, String kind, String name, String url, String addedBy, LocalDateTime createdAt, String status,
-                             String engine, int filled, int proposed, String message) {}
+                             String engine, int filled, int proposed, String message, boolean hasFile, String contentType, Long size, boolean canDelete) {}
+    public record FileData(byte[] bytes, String name, String type) {}
+    public record ShareLink(String path, long expiresAt) {}
     public record Sheet(UUID requestId, UUID projectId, String title, String brandName, String status, int progress,
                         int stagesDone, int stagesTotal, String handStage, String handOwner, boolean canUpload,
-                        List<StageView> stages, List<SourceView> sources, Gate gate, List<String> mySides) {}
+                        List<StageView> stages, List<SourceView> sources, Gate gate, List<String> mySides,
+                        boolean canManageCrew, int hiddenStages) {}
     public record Value(String value) {}
     public record Link(String url) {}
 
@@ -107,7 +124,8 @@ public class SheetService {
                 if (!m.matches() || LocalDate.parse(m.group(2)).isBefore(LocalDate.parse(m.group(1)))) throw new IllegalArgumentException();
             } catch (Exception e) { throw new IllegalArgumentException("Choisissez le premier puis le dernier jour dans le calendrier"); }
         }
-        if (v.length() > 4000) throw new IllegalArgumentException("4 000 caractères au plus");
+        if (f.kind() == SheetSchema.Kind.PLANNING && !v.isEmpty()) v = planningJson(v);
+        if (v.length() > 8000) throw new IllegalArgumentException("Texte trop long");
         if (f.key().equals("titre") && v.isEmpty()) throw new IllegalArgumentException("Le projet garde un titre");
         write(r.getId(), f, v, "MANUEL", me.getId());
         jdbc.update("update project_sheet_values set suggestion = null, suggestion_from = null, suggestion_at = null where request_id = ? and field_key = ?", r.getId(), f.key());
@@ -123,6 +141,11 @@ public class SheetService {
         SheetSchema.Field f = field(key);
         if (!editable(me, r, f.stage())) throw new ForbiddenException("Cette étape est remplie par : " + SheetSchema.STAGE_BY_KEY.get(f.stage()).owner());
         if (f.kind() == SheetSchema.Kind.DATE || f.kind() == SheetSchema.Kind.RANGE) throw new IllegalArgumentException("Choisissez la date dans le calendrier");
+        if (f.kind() == SheetSchema.Kind.PLANNING) {
+            Map<String, String> vals = values(r);
+            List<SheetAgent.Step> base = planningBase(vals);
+            return agent.planning(vals, base).map(x -> new Draft(agent.toJson(x), "IA")).orElse(new Draft(agent.toJson(base), "REGLES"));
+        }
         return ai.draft(f, values(r), current == null ? null : current.trim()).map(t -> new Draft(t, "IA")).orElse(new Draft(null, "AUCUN"));
     }
 
@@ -155,17 +178,23 @@ public class SheetService {
     public Sheet addFile(String email, UUID id, MultipartFile file) {
         User me = access.user(email);
         AdRequest r = readable(me, id);
-        if (sides(me, r).isEmpty()) throw new ForbiddenException("Seuls les membres qui remplissent la fiche y déposent des documents");
+        if (sides(me, r).isEmpty()) throw new ForbiddenException("Le dépôt de documents est réservé à la marque, l'agence, la production et la réalisation");
         if (file == null || file.isEmpty()) throw new IllegalArgumentException("Le fichier est vide");
         if (file.getSize() > 25L * 1024 * 1024) throw new IllegalArgumentException("25 Mo au plus");
-        String name = Optional.ofNullable(file.getOriginalFilename()).orElse("document");
+        String name = Optional.ofNullable(file.getOriginalFilename()).orElse("document").replaceAll("[\\/\\\\]", "_");
         String ext = name.contains(".") ? name.substring(name.lastIndexOf('.') + 1).toLowerCase() : "";
-        if (!Set.of("pdf", "docx", "pptx", "txt", "rtf").contains(ext)) throw new IllegalArgumentException("Formats lus par l'IA : PDF, Word (.docx), PowerPoint (.pptx), texte");
+        if (!SHARED.containsKey(ext)) throw new IllegalArgumentException("Formats acceptés : PDF, Word, PowerPoint, Excel, texte, images (JPG, PNG, WebP), vidéo (MP4, MOV)");
         byte[] bytes;
         try { bytes = file.getBytes(); } catch (Exception e) { throw new IllegalArgumentException("Le fichier n'a pas pu être lu"); }
         UUID sid = source(r.getId(), "FICHIER", name, null, me.getId());
+        String key = "fiches/" + r.getId() + "/" + sid + "." + ext;
+        try { storage.uploadBytes(bytes, key, SHARED.get(ext)); }
+        catch (Exception e) { log.warn("Stockage du document impossible : {}", e.toString()); throw new IllegalArgumentException("Le document n'a pas pu être enregistré. Réessayez dans un instant."); }
+        jdbc.update("update project_sheet_sources set storage_key = ?, content_type = ?, size_bytes = ? where id = ?", key, SHARED.get(ext), (long) bytes.length, sid);
         UUID rid = r.getId(), uid = me.getId();
-        afterCommit(() -> analyse(sid, rid, uid, () -> new LinkReader.Reading(fileReader.read(bytes, name), name, false, null)));
+        if (Set.of("pdf", "docx", "pptx", "txt", "rtf").contains(ext))
+            afterCommit(() -> analyse(sid, rid, uid, () -> new LinkReader.Reading(fileReader.readFull(bytes, name), name, false, null)));
+        else finish(sid, "FAIT", null, 0, 0, 0, "Partagé avec l'équipe (ce format n'est pas lu par l'IA).");
         return view(me, r);
     }
 
@@ -173,7 +202,7 @@ public class SheetService {
     public Sheet addLink(String email, UUID id, String url) {
         User me = access.user(email);
         AdRequest r = readable(me, id);
-        if (sides(me, r).isEmpty()) throw new ForbiddenException("Seuls les membres qui remplissent la fiche y déposent des liens");
+        if (sides(me, r).isEmpty()) throw new ForbiddenException("Le partage de liens est réservé à la marque, l'agence, la production et la réalisation");
         LinkReader.check(url);   // refus immédiat d'un lien non lisible
         String u = url.trim();
         String name = LinkReader.isCanva(java.net.URI.create(u)) ? "Présentation Canva" : java.net.URI.create(u).getHost();
@@ -199,8 +228,8 @@ public class SheetService {
         try {
             LinkReader.Reading reading = reader.read();
             String text = reading.text();
-            if (text == null || text.isBlank()) { finish(sourceId, "ECHEC", null, 0, 0, 0, "Aucun texte lisible dans ce document. Est-ce une image ? Déposez un PDF avec du texte."); return; }
-            SheetAi.Extraction ex = ai.extract(text);
+            if (text == null || text.isBlank()) { finish(sourceId, "ECHEC", null, 0, 0, 0, "Aucun texte lisible dans ce document (texte en image ?). Il reste partagé avec l'équipe ; pour l'IA, déposez un PDF avec du texte."); return; }
+            SheetAi.Extraction ex = agent.extract(text, msg -> jdbc.update("update project_sheet_sources set message = ? where id = ? and status = 'LECTURE'", msg, sourceId));
             tx.executeWithoutResult(st -> apply(sourceId, requestId, uploaderId, reading, text, ex));
         } catch (IllegalArgumentException e) {
             finish(sourceId, "ECHEC", null, 0, 0, 0, e.getMessage());
@@ -419,6 +448,144 @@ public class SheetService {
 
     private static String blank(String s) { return s == null || s.isBlank() ? null : s.trim(); }
 
+
+    // ── P-087 · Documents et liens : voir, télécharger, partager, retirer ──
+
+    static final Map<String, String> SHARED = Map.ofEntries(
+        Map.entry("pdf", "application/pdf"), Map.entry("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+        Map.entry("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
+        Map.entry("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"), Map.entry("txt", "text/plain"),
+        Map.entry("rtf", "application/rtf"), Map.entry("csv", "text/csv"), Map.entry("jpg", "image/jpeg"), Map.entry("jpeg", "image/jpeg"),
+        Map.entry("png", "image/png"), Map.entry("webp", "image/webp"), Map.entry("mp4", "video/mp4"), Map.entry("mov", "video/quicktime"));
+    static final int SHARE_DAYS = 7;
+
+    @Transactional(readOnly = true)
+    public FileData file(String email, UUID id, UUID sourceId) {
+        User me = access.user(email);
+        AdRequest r = readable(me, id);
+        return load(r.getId(), sourceId);
+    }
+
+    /** Un lien de partage du fichier, valable {@value #SHARE_DAYS} jours, que l'on peut envoyer par WhatsApp ou e-mail. */
+    @Transactional
+    public ShareLink share(String email, UUID id, UUID sourceId) {
+        User me = access.user(email);
+        AdRequest r = readable(me, id);
+        load(r.getId(), sourceId);   // le fichier existe et appartient au projet
+        byte[] raw = new byte[24];
+        new java.security.SecureRandom().nextBytes(raw);
+        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(raw);
+        Timestamp until = Timestamp.valueOf(LocalDateTime.now().plusDays(SHARE_DAYS));
+        jdbc.update("insert into sheet_shares (token_hash, source_id, created_by, expires_at) values (?, ?, ?, ?)", InvitationService.hash(token), sourceId, me.getId(), until);
+        return new ShareLink("/api/public/fichiers/" + token, until.getTime());
+    }
+
+    @Transactional(readOnly = true)
+    public FileData shared(String token) {
+        if (token == null || token.length() < 20 || token.length() > 100) throw new ResourceNotFoundException("Ce lien de partage n'est plus valable");
+        var rows = jdbc.queryForList("select s.source_id, p.request_id from sheet_shares s join project_sheet_sources p on p.id = s.source_id where s.token_hash = ? and s.expires_at > now()", InvitationService.hash(token));
+        if (rows.isEmpty()) throw new ResourceNotFoundException("Ce lien de partage a expiré : demandez un nouveau lien à l'équipe du projet");
+        return load((UUID) rows.get(0).get("request_id"), (UUID) rows.get(0).get("source_id"));
+    }
+
+    @Transactional
+    public Sheet deleteSource(String email, UUID id, UUID sourceId) {
+        User me = access.user(email);
+        AdRequest r = readable(me, id);
+        var rows = jdbc.queryForList("select added_by, storage_key from project_sheet_sources where id = ? and request_id = ?", sourceId, r.getId());
+        if (rows.isEmpty()) throw new ResourceNotFoundException("Document introuvable");
+        if (!sides(me, r).contains("PROD") && !me.getId().equals(rows.get(0).get("added_by"))) throw new ForbiddenException("Seuls la production et l'auteur du dépôt le retirent");
+        String key = (String) rows.get(0).get("storage_key");
+        jdbc.update("delete from project_sheet_sources where id = ?", sourceId);
+        if (key != null) try { storage.delete(key); } catch (Exception e) { log.warn("Fichier non retiré du stockage : {}", e.toString()); }
+        clock.tick(null);
+        return view(me, r);
+    }
+
+    private FileData load(UUID requestId, UUID sourceId) {
+        var rows = jdbc.queryForList("select name, storage_key, content_type from project_sheet_sources where id = ? and request_id = ?", sourceId, requestId);
+        if (rows.isEmpty() || rows.get(0).get("storage_key") == null) throw new ResourceNotFoundException("Ce document n'est pas conservé (déposé avant la mise à jour) : déposez-le à nouveau");
+        try { return new FileData(storage.download((String) rows.get(0).get("storage_key")), (String) rows.get(0).get("name"), (String) rows.get(0).get("content_type")); }
+        catch (Exception e) { throw new ResourceNotFoundException("Le document est momentanément indisponible"); }
+    }
+
+    // ── P-087 · Équipe technique ──
+
+    @Transactional
+    public Sheet saveCrew(String email, UUID id, String post, CrewService.Contact c) {
+        User me = access.user(email);
+        AdRequest r = readable(me, id);
+        crew.save(me, r, post, c, editable(me, r, "production"));
+        return view(me, r);
+    }
+
+    @Transactional
+    public Sheet clearCrew(String email, UUID id, String post) {
+        User me = access.user(email);
+        AdRequest r = readable(me, id);
+        if (!editable(me, r, "production")) throw new ForbiddenException("L'équipe technique est gérée par le producer et la réalisation");
+        crew.clear(me, r, post);
+        return view(me, r);
+    }
+
+    @Transactional
+    public CrewService.Invite inviteCrew(String email, UUID id, String post, CrewService.Contact c) {
+        User me = access.user(email);
+        AdRequest r = readable(me, id);
+        if (!editable(me, r, "production")) throw new ForbiddenException("L'équipe technique est gérée par le producer et la réalisation");
+        return crew.invite(me, r, post, c);
+    }
+
+    // ── P-087 · Planning ──
+
+    /** Le planning : une liste d'étapes datées, vérifiée et rangée dans l'ordre. Un ancien texte libre est refusé. */
+    String planningJson(String v) {
+        List<?> list;
+        try { list = json.readValue(v, List.class); } catch (Exception e) { throw new IllegalArgumentException("Planning illisible"); }
+        if (list.size() > 30) throw new IllegalArgumentException("30 étapes au plus");
+        List<SheetAgent.Step> out = new ArrayList<>();
+        for (Object o : list) {
+            if (!(o instanceof Map<?, ?> m)) throw new IllegalArgumentException("Planning illisible");
+            String et = m.get("etape") == null ? "" : String.valueOf(m.get("etape")).trim();
+            if (et.isEmpty()) throw new IllegalArgumentException("Chaque étape a un nom");
+            LocalDate a, b;
+            try { a = LocalDate.parse(String.valueOf(m.get("debut"))); b = m.get("fin") == null || String.valueOf(m.get("fin")).isBlank() ? a : LocalDate.parse(String.valueOf(m.get("fin"))); }
+            catch (Exception e) { throw new IllegalArgumentException("« " + et + " » : choisissez les dates dans le calendrier"); }
+            if (b.isBefore(a)) throw new IllegalArgumentException("« " + et + " » : la fin est avant le début");
+            String qui = m.get("qui") == null ? "" : String.valueOf(m.get("qui")).trim(), note = m.get("note") == null ? "" : String.valueOf(m.get("note")).trim();
+            out.add(new SheetAgent.Step(et.length() > 80 ? et.substring(0, 80) : et, a.toString(), b.toString(), qui.length() > 40 ? qui.substring(0, 40) : qui, note.length() > 200 ? note.substring(0, 200) : note));
+        }
+        out.sort(Comparator.comparing(SheetAgent.Step::debut).thenComparing(SheetAgent.Step::fin));
+        return agent.toJson(out);
+    }
+
+    private List<SheetAgent.Step> planningBase(Map<String, String> vals) {
+        LocalDate s = null, e = null, d = null;
+        String range = vals.get("dates_tournage");
+        if (range != null && range.matches("\\d{4}-\\d{2}-\\d{2}/\\d{4}-\\d{2}-\\d{2}")) { s = LocalDate.parse(range.substring(0, 10)); e = LocalDate.parse(range.substring(11)); }
+        try { if (vals.get("diffusion") != null) d = LocalDate.parse(vals.get("diffusion").substring(0, 10)); } catch (Exception ignored) { }
+        if (s == null && d == null) throw new IllegalArgumentException("Fixez d'abord les dates de tournage ou la date de diffusion : le planning se construit à partir d'elles");
+        if (s == null) { s = SheetAgent.until(d.minusDays(26)); e = s.plusDays(1); }
+        return SheetAgent.baseline(s, e, d);
+    }
+
+    // ── P-087 · Qui voit quel chapitre ──
+
+    /** Production, réalisation : tout. Marque et agence : tout le dossier. Équipe technique : la préparation et le tournage. */
+    private Set<String> stagesFor(User me, AdRequest r, Set<String> mySides) {
+        Set<String> all = new LinkedHashSet<>();
+        SheetSchema.STAGES.forEach(x -> all.add(x.key()));
+        if (!mySides.isEmpty() || me.getRole() == Role.ADMIN) return all;
+        if (crew.isCrew(me, r.getId())) return Set.of("concept", "realisation", "production", "roles", "casting");
+        return Set.of("brief", "concept", "realisation", "production", "roles", "casting");
+    }
+
+    /** Le chapitre a-t-il déjà du contenu ? */
+    private static boolean started(StageView x) {
+        return x.filled() > 0 || x.fields().stream().anyMatch(f -> f.value() != null && !f.value().isBlank())
+                || !x.roles().isEmpty() || !x.lines().isEmpty() || x.crew().stream().anyMatch(c -> !"A_POURVOIR".equals(c.status()));
+    }
+
     // ── Droits ──
 
     /** Les côtés de l'utilisateur sur ce projet : PROD, MARQUE, AGENCE, REAL. */
@@ -446,6 +613,7 @@ public class SheetService {
         catch (ResourceNotFoundException e) {
             AdRequest r = requests.findById(id).orElseThrow(() -> e);
             if (r.getProject() != null && members.existsByProjectIdAndUserId(r.getProject().getId(), me.getId())) return r;
+            if (crew.isCrew(me, r.getId())) return r;
             throw e;
         }
     }
@@ -545,18 +713,26 @@ public class SheetService {
             String state = total > 0 && filled >= total ? "complete" : filled > 0 ? "encours" : "vide";
             if (state.equals("complete")) done++;
             else if (hand == null) { hand = st.key(); handOwner = st.owner(); }
-            stages.add(new StageView(st.key(), st.num(), st.title(), st.owner(), st.intro(), mine, can, state, filled, total, fields, lines, roles, lastBy, lastAt, sugg));
+            List<CrewService.CrewView> team = st.key().equals("production") ? crew.list(me, r, mySides.contains("PROD") || mySides.contains("REAL")) : List.of();
+            stages.add(new StageView(st.key(), st.num(), st.title(), st.owner(), st.intro(), mine, can, state, filled, total, fields, lines, roles, lastBy, lastAt, sugg, team));
         }
         int req = 0, got = 0;
         for (StageView s : stages) { req += s.total(); got += Math.min(s.filled(), s.total()); }
         List<SourceView> sources = jdbc.query("""
-            select s.id, s.kind, s.name, s.url, coalesce(u.first_name || ' ' || u.last_name, null), s.created_at, s.status, s.engine, s.filled, s.proposed, s.message
-              from project_sheet_sources s left join users u on u.id = s.added_by where s.request_id = ? order by s.created_at desc limit 20""",
+            select s.id, s.kind, s.name, s.url, coalesce(u.first_name || ' ' || u.last_name, null), s.created_at, s.status, s.engine, s.filled, s.proposed, s.message,
+                   s.storage_key is not null, s.content_type, s.size_bytes, s.added_by
+              from project_sheet_sources s left join users u on u.id = s.added_by where s.request_id = ? order by s.created_at desc limit 50""",
             (rs, i) -> new SourceView((UUID) rs.getObject(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-                    rs.getTimestamp(6).toLocalDateTime(), rs.getString(7), rs.getString(8), rs.getInt(9), rs.getInt(10), rs.getString(11)), r.getId());
+                    rs.getTimestamp(6).toLocalDateTime(), rs.getString(7), rs.getString(8), rs.getInt(9), rs.getInt(10), rs.getString(11),
+                    rs.getBoolean(12), rs.getString(13), (Long) rs.getObject(14),
+                    mySides.contains("PROD") || me.getId().equals(rs.getObject(15))), r.getId());
+        // P-087 · Chacun voit ses chapitres à remplir et ceux des autres déjà commencés, selon son rôle
+        Set<String> allowed = stagesFor(me, r, mySides);
+        List<StageView> shown = stages.stream().filter(x -> allowed.contains(x.key()) && (x.canEdit() || started(x) || SheetSchema.STAGE_BY_KEY.get(x.key()).auto())).toList();
+        int hidden = stages.size() - shown.size();
         return new Sheet(r.getId(), r.getProject() == null ? null : r.getProject().getId(), r.getTitle(),
                 r.getBrand() == null ? null : r.getBrand().getName(), r.getStatus().name(),
-                req == 0 ? 0 : Math.round(got * 100f / req), done, stages.size(), hand, handOwner, !mySides.isEmpty(), stages, sources,
-                gate(r, mySides, vals, stages), List.copyOf(mySides));
+                req == 0 ? 0 : Math.round(got * 100f / req), done, stages.size(), hand, handOwner, !mySides.isEmpty(), shown, sources,
+                gate(r, mySides, vals, stages), List.copyOf(mySides), mySides.contains("PROD") || mySides.contains("REAL"), hidden);
     }
 }

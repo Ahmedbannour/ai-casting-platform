@@ -94,6 +94,7 @@ public class DemandeService {
     private final CastingRoleRepository castingRoles;
     private final V0Reader reader;
     private final V0Analyzer analyzer;
+    private final com.castingai.sheet.CrewService crew;
 
     // ── Lecture ──
 
@@ -106,6 +107,7 @@ public class DemandeService {
             case AGENCE_MARKETING -> me.getAgency() == null ? List.of() : requests.forAgency(me.getAgency().getId());
             case BOITE_PROD, ASSISTANT_PROD -> me.getAgency() == null ? List.of() : requests.forProduction(me.getAgency().getId());
             case REALISATEUR -> requests.forDirector(me.getId());
+            case TECHNICIEN -> requests.forCrew(me.getId());
             default -> List.of();
         };
         return list.stream().map(this::summary).toList();
@@ -753,6 +755,7 @@ public class DemandeService {
         notifyOrg(r.getProduction(), "Casting lancé : " + r.getTitle(), body, r);
         if (r.getFirstAd() != null && !r.getFirstAd().getId().equals(me.getId())) notifications.push(r.getFirstAd().getId(), "DEMANDE", "Casting lancé : " + r.getTitle(), body, "/demandes/" + r.getId());
         if (r.getDirector() != null && !r.getDirector().getId().equals(me.getId())) notifications.push(r.getDirector().getId(), "DEMANDE", "Casting lancé : " + r.getTitle(), body, "/demandes/" + r.getId());
+        crew.joinRoom(r.getId(), p.getId());   // P-087 : l'équipe technique confirmée entre dans la room
     }
 
     // ── Dossier unique (P-084) : les passages d'étape, appelés par la fiche après vérification des droits ──
@@ -980,6 +983,7 @@ public class DemandeService {
 
     private boolean canSee(User me, AdRequest r) {
         if (isBrandSide(me, r)) return true;
+        if (crew.isCrew(me, r.getId())) return true;   // P-087 : l'équipe technique confirmée suit le projet
         if (isProductionSide(me, r)) return true;
         if (isDirectorSide(me, r)) return true;
         // L'agence invitée par le producer suit le projet dès son arrivée (la V0 lui est montrée une fois envoyée).

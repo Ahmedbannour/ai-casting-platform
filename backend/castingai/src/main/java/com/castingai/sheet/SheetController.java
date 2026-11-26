@@ -15,6 +15,7 @@ import java.util.UUID;
 public class SheetController {
 
     private final SheetService sheets;
+    private final CrewService crew;
 
     @GetMapping("/api/demandes/{id}/fiche")
     public SheetService.Sheet get(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id) { return sheets.forRequest(me.getUsername(), id); }
@@ -57,4 +58,62 @@ public class SheetController {
 
     @PostMapping("/api/demandes/{id}/fiche/liens")
     public SheetService.Sheet link(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @RequestBody SheetService.Link l) { return sheets.addLink(me.getUsername(), id, l == null ? null : l.url()); }
+
+    // ── P-087 · Documents et liens ──
+
+    @GetMapping("/api/demandes/{id}/fiche/sources/{sourceId}/fichier")
+    public org.springframework.http.ResponseEntity<byte[]> file(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID sourceId,
+                                                                 @RequestParam(name = "telecharger", defaultValue = "false") boolean download) {
+        return send(sheets.file(me.getUsername(), id, sourceId), download);
+    }
+
+    @PostMapping("/api/demandes/{id}/fiche/sources/{sourceId}/partage")
+    public SheetService.ShareLink share(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID sourceId) { return sheets.share(me.getUsername(), id, sourceId); }
+
+    @DeleteMapping("/api/demandes/{id}/fiche/sources/{sourceId}")
+    public SheetService.Sheet deleteSource(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable UUID sourceId) { return sheets.deleteSource(me.getUsername(), id, sourceId); }
+
+    @GetMapping("/api/public/fichiers/{token}")
+    public org.springframework.http.ResponseEntity<byte[]> shared(@PathVariable String token,
+                                                                   @RequestParam(name = "telecharger", defaultValue = "false") boolean download) {
+        return send(sheets.shared(token), download);
+    }
+
+    static org.springframework.http.ResponseEntity<byte[]> send(SheetService.FileData f, boolean download) {
+        String name = f.name() == null ? "document" : f.name();
+        var cd = (download ? org.springframework.http.ContentDisposition.attachment() : org.springframework.http.ContentDisposition.inline())
+                .filename(name, java.nio.charset.StandardCharsets.UTF_8).build();
+        return org.springframework.http.ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, cd.toString())
+                .header("X-Content-Type-Options", "nosniff")
+                .header(org.springframework.http.HttpHeaders.CACHE_CONTROL, "private, max-age=300")
+                .contentType(MediaType.parseMediaType(f.type() == null ? "application/octet-stream" : f.type()))
+                .body(f.bytes());
+    }
+
+    // ── P-087 · Équipe technique ──
+
+    @PutMapping("/api/demandes/{id}/fiche/equipe/{post}")
+    public SheetService.Sheet saveCrew(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable String post, @RequestBody CrewService.Contact c) {
+        return sheets.saveCrew(me.getUsername(), id, post, c);
+    }
+
+    @DeleteMapping("/api/demandes/{id}/fiche/equipe/{post}")
+    public SheetService.Sheet clearCrew(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable String post) {
+        return sheets.clearCrew(me.getUsername(), id, post);
+    }
+
+    @PostMapping("/api/demandes/{id}/fiche/equipe/{post}/lien")
+    public CrewService.Invite inviteCrew(@AuthenticationPrincipal UserDetails me, @PathVariable UUID id, @PathVariable String post,
+                                         @RequestBody(required = false) CrewService.Contact c) {
+        return sheets.inviteCrew(me.getUsername(), id, post, c);
+    }
+
+    @GetMapping("/api/public/equipe/{token}")
+    public CrewService.Preview crewInvite(@PathVariable String token) { return crew.preview(token); }
+
+    @PostMapping("/api/public/equipe/{token}")
+    public com.castingai.dto.auth.AuthResponse crewJoin(@PathVariable String token, @RequestBody CrewService.Join j, jakarta.servlet.http.HttpServletRequest req) {
+        return crew.join(token, j, req.getRemoteAddr());
+    }
 }

@@ -100,6 +100,7 @@ public class AdminController {
             case MARQUE -> "Marque";
             case AGENCE_MARKETING -> "Agence marketing";
             case REALISATEUR -> "Réalisateur";
+            case TECHNICIEN -> "Équipe technique";
         };
     }
 
