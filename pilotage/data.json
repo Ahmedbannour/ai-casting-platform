@@ -5,8 +5,8 @@
     "projet": "AI Casting Platform",
     "client": "Vous, porteur du projet (donneur d’ordre)",
     "debut": "2026-11-15",
-    "maj": "2026-11-20",
-    "jour": "J8",
+    "maj": "2026-11-26",
+    "jour": "J12",
     "avancement": 82,
     "avancement_veille": 97,
     "phase_courante": "PH4"
@@ -1435,6 +1435,29 @@
       "date": "2026-11-24",
       "titre": "Les dates de la fiche au calendrier",
       "original": "dans la fiche de projet , il faut qu'on mis les inputs des dates d'une autre facon (calendrier) , ainsi que le rendre plus facile a utiliser"
+    },
+    {
+      "id": "P-087",
+      "date": "2026-11-25",
+      "titre": "Fiche : agent de lecture, planning IA, équipe technique, documents, rôles",
+      "statut": "fait",
+      "original": "mises a jours a faire tout de suite , tous les modifications liée au fiche de projet : l'agent qui sert a convertir et analyser le fichier a des infos a mettre dans la formulaire est trop mauvais […] planning ia plus précis […] equipe technique : postes fixes, invitation par lien, contacts, mot de passe […] fichiers et liens dans l'entête […] visibilité par rôle […] voir, télécharger, partager",
+      "ameliore": "Reformulé par la Cellule IA avec Hédi Ben Amor. L'agent lit chaque page deux fois (brief, création) et ne garde que ce que le document dit vraiment. Le planning : l'IA règle les durées et les étapes utiles, les dates sont calculées sur jours ouvrés. L'équipe technique a 14 postes fixes, invités par lien (WhatsApp, e-mail) : la personne saisit son mot de passe (compte existant ou création) et rejoint la room. Les documents et liens sont en tête de fiche (voir, télécharger, partager) ; seuls les rôles importants déposent ; chacun voit ses étapes et celles déjà remplies.",
+      "departements": [
+        "ia",
+        "back",
+        "front",
+        "prod",
+        "qa"
+      ],
+      "livrables": [
+        "Agent de lecture vérifié (Golden Coffee : 0 → 14 informations justes)",
+        "Planning aux dates calculées",
+        "Équipe technique par lien",
+        "Documents et liens partagés",
+        "Affichage par rôle",
+        "test-p87 20/20"
+      ]
     }
   ],
   "bibliotheques": [
@@ -4013,6 +4036,66 @@
       "prompt": "P-086",
       "jour": "J11",
       "detail": "test-dates 18/18 (Edge, ordinateur et téléphone), test-aides 19/19, SheetApiTest et SheetReadingTest verts."
+    },
+    {
+      "id": "T-199",
+      "titre": "Agent de lecture : deux lectures par page, vérification contre le document",
+      "dept": "ia",
+      "resp": "Yasmine Trabelsi",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-087",
+      "jour": "J12",
+      "detail": "Golden Coffee : 14 informations justes en ~50 s (avant : 3), consignes recopiées et inventions écartées."
+    },
+    {
+      "id": "T-200",
+      "titre": "Planning : durées par l'IA, dates calculées sur jours ouvrés",
+      "dept": "back",
+      "resp": "Marc Lefèvre",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-087",
+      "jour": "J12",
+      "detail": "Plus d'étape après le tournage ni de week-end ; livraison avant la diffusion."
+    },
+    {
+      "id": "T-201",
+      "titre": "Équipe technique : 14 postes, invitation par lien, coordonnées",
+      "dept": "back",
+      "resp": "Marc Lefèvre",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-087",
+      "jour": "J12",
+      "detail": "Mot de passe du compte ou création, room rejointe directement, rôle Équipe technique."
+    },
+    {
+      "id": "T-202",
+      "titre": "Documents et liens en tête de fiche, partage et visionneuse",
+      "dept": "front",
+      "resp": "Sarra Mansouri",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-087",
+      "jour": "J12",
+      "detail": "Voir, télécharger, partager (lien 7 jours, WhatsApp, e-mail) ; dépôt réservé aux rôles importants."
+    },
+    {
+      "id": "T-203",
+      "titre": "Recette P-087",
+      "dept": "qa",
+      "resp": "Amel Kacem",
+      "prio": "P1",
+      "phase": "PH4",
+      "statut": "fait",
+      "prompt": "P-087",
+      "jour": "J12",
+      "detail": "test-p87 20/20, suite backend complète verte."
     }
   ],
   "journal": [
@@ -4128,10 +4211,19 @@
       "decisions": [
         "D-035 : les dates de tournage sont une période structurée, plus du texte libre"
       ]
+    },
+    {
+      "date": "2026-11-26",
+      "jour": "J12",
+      "resume": "P-087 livré : l'agent lit vraiment les documents (Golden Coffee : 14 informations justes), planning aux dates cohérentes, équipe technique invitée par lien, documents partagés en tête de fiche, affichage selon le rôle. test-p87 20/20.",
+      "decisions": [
+        "D-036 : l'IA ne calcule plus de dates ; elle règle durées et étapes, le code pose les dates",
+        "D-037 : toute valeur lue par l'IA est vérifiée contre le texte du document avant d'être proposée"
+      ]
     }
   ],
   "maintenant": {
-    "titre": "P-084 · Dossier unique du film",
+    "titre": "P-087 · Fiche de projet",
     "etape": 60,
     "agents": [
       {
@@ -4161,8 +4253,8 @@
       ]
     },
     "derniere": {
-      "t": "2026-11-23T12:40:00Z",
-      "texte": "La page projet devient le dossier du film : 4 phases, un seul bouton d’action par phase."
+      "t": "2026-11-26T13:30:00Z",
+      "texte": "Agent de lecture fiable, planning cohérent, équipe technique par lien, documents partagés."
     }
   },
   "activite": [
@@ -4657,6 +4749,12 @@
       "nom": "Amel Kacem",
       "t": "2026-11-24T14:00:00Z",
       "texte": "Calendrier de la fiche livré : test-dates 18/18, ordinateur et téléphone."
+    },
+    {
+      "h": "J12",
+      "nom": "Amel Kacem",
+      "t": "2026-11-26T13:30:00Z",
+      "texte": "P-087 livré : test-p87 20/20, suite backend verte."
     }
   ],
   "plan": {
