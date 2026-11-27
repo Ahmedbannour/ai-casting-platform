@@ -1,0 +1,902 @@
+{
+ "meta": {
+  "entreprise": "Prisme Ingénierie",
+  "statut": "Entreprise fictive de sous-traitance, simulée par Claude",
+  "projet": "Pâtisserie FARES",
+  "client": "Vous, pour la Pâtisserie FARES (Ksar Hellal)",
+  "debut": "2026-11-27",
+  "maj": "2026-11-27",
+  "jour": "J1",
+  "avancement": 50,
+  "avancement_veille": 0,
+  "phase_courante": "PFS2",
+  "pause": false
+ },
+ "phases": [
+  {
+   "id": "PFS0",
+   "nom": "Sprint 0 · Cadrage",
+   "semaines": "J1",
+   "avancement": 100
+  },
+  {
+   "id": "PFS1",
+   "nom": "Sprint 1 · Socle API",
+   "semaines": "S1",
+   "avancement": 100
+  },
+  {
+   "id": "PFS2",
+   "nom": "Sprint 2 · Gestion des commandes",
+   "semaines": "S2",
+   "avancement": 0
+  },
+  {
+   "id": "PFS3",
+   "nom": "Sprint 3 · Kiosque",
+   "semaines": "S3",
+   "avancement": 0
+  },
+  {
+   "id": "PFS4",
+   "nom": "Sprint 4 · Site web",
+   "semaines": "S4",
+   "avancement": 0
+  },
+  {
+   "id": "PFS5",
+   "nom": "Sprint 5 · App mobile",
+   "semaines": "S5",
+   "avancement": 0
+  },
+  {
+   "id": "PFS6",
+   "nom": "Sprint 6 · Recette et lancement",
+   "semaines": "S6",
+   "avancement": 0
+  }
+ ],
+ "departements": [
+  {
+   "id": "dir",
+   "nom": "Direction générale",
+   "court": "Direction",
+   "couleur": "#3D4A7A",
+   "missions": [
+    "Arbitre les priorités et le périmètre",
+    "Valide chaque livraison avant envoi au client",
+    "Pilote le planning (PMO)"
+   ],
+   "membres": [
+    {
+     "nom": "Karim Haddad",
+     "role": "Directeur général",
+     "niveau": "Direction"
+    },
+    {
+     "nom": "Sonia Mercier",
+     "role": "Directrice de projet / PMO",
+     "niveau": "Senior"
+    }
+   ],
+   "partage": true
+  },
+  {
+   "id": "ia",
+   "nom": "Pâtisserie FARES · Cellule IA",
+   "court": "Cellule IA",
+   "couleur": "#7A3DB8",
+   "equipe": "Pâtisserie FARES",
+   "missions": [
+    "Reçoit chaque prompt du client pour FARES",
+    "Reformule en critères d’acceptation",
+    "Vérifie que tout reste gratuit (aucun service payant, même en crédit d’essai)"
+   ],
+   "membres": [
+    {
+     "nom": "Yasmine Trabelsi",
+     "role": "Lead AI Engineer · prompts",
+     "niveau": "Senior"
+    }
+   ]
+  },
+  {
+   "id": "prod",
+   "nom": "Pâtisserie FARES · Produit & UX",
+   "court": "Produit & UX",
+   "couleur": "#B8743D",
+   "equipe": "Pâtisserie FARES",
+   "missions": [
+    "Cahier des charges, besoins, étude de marché",
+    "Design inspiré de Dribbble et motionsites.ai, charte vert sapin et or",
+    "Guide d’utilisation"
+   ],
+   "membres": [
+    {
+     "nom": "Rania Gharbi",
+     "role": "Product Owner",
+     "niveau": "Senior"
+    },
+    {
+     "nom": "Mehdi Ayari",
+     "role": "UX/UI & motion designer",
+     "niveau": "Confirmé"
+    }
+   ]
+  },
+  {
+   "id": "back",
+   "nom": "Pâtisserie FARES · Backend",
+   "court": "Backend",
+   "couleur": "#2F6F4E",
+   "equipe": "Pâtisserie FARES",
+   "missions": [
+    "API Node.js + SQLite, temps réel",
+    "Commandes, gâteaux sur mesure, fidélité",
+    "Sécurité des comptes du personnel"
+   ],
+   "membres": [
+    {
+     "nom": "Ons Belhaj",
+     "role": "Lead Node.js",
+     "niveau": "Senior"
+    },
+    {
+     "nom": "Bilel Mansour",
+     "role": "Ingénieur Node.js",
+     "niveau": "Confirmé"
+    }
+   ]
+  },
+  {
+   "id": "front",
+   "nom": "Pâtisserie FARES · Web & Flutter",
+   "court": "Web & Flutter",
+   "couleur": "#3D7AB8",
+   "equipe": "Pâtisserie FARES",
+   "missions": [
+    "Site web animé (GSAP, View Transitions)",
+    "Gestion des commandes (caisse, labo)",
+    "Kiosque et app mobile Flutter"
+   ],
+   "membres": [
+    {
+     "nom": "Lina Chaabane",
+     "role": "Lead web & animation",
+     "niveau": "Senior"
+    },
+    {
+     "nom": "Aziz Trabelsi",
+     "role": "Ingénieur Flutter · kiosque",
+     "niveau": "Senior"
+    },
+    {
+     "nom": "Salma Riahi",
+     "role": "Ingénieure Flutter · mobile",
+     "niveau": "Confirmée"
+    }
+   ]
+  },
+  {
+   "id": "qa",
+   "nom": "Pâtisserie FARES · Tests & QA",
+   "court": "Tests & QA",
+   "couleur": "#8A3D3D",
+   "equipe": "Pâtisserie FARES",
+   "missions": [
+    "Tests API et parcours navigateur",
+    "Recette de chaque sprint"
+   ],
+   "membres": [
+    {
+     "nom": "Hamza Ferchichi",
+     "role": "QA Lead",
+     "niveau": "Senior"
+    }
+   ]
+  },
+  {
+   "id": "devops",
+   "nom": "Pâtisserie FARES · DevOps",
+   "court": "DevOps",
+   "couleur": "#4A4A4A",
+   "equipe": "Pâtisserie FARES",
+   "missions": [
+    "Serveur de boutique, sauvegardes",
+    "Hébergement gratuit sans carte bancaire"
+   ],
+   "membres": [
+    {
+     "nom": "Nour Jlassi",
+     "role": "Ingénieure DevOps",
+     "niveau": "Confirmée"
+    }
+   ]
+  },
+  {
+   "id": "rh",
+   "nom": "Ressources humaines",
+   "court": "RH",
+   "couleur": "#B33D6B",
+   "missions": [
+    "Affecte les ingénieurs aux phases (plan de charge)",
+    "Onboarding des nouveaux profils",
+    "Suivi des compétences",
+    "Recrute les renforts : UI/UX Angular, Java Spring senior, DevOps, QA (J6)",
+    "Répartit les ingénieurs en deux équipes, une par projet (J7)"
+   ],
+   "membres": [
+    {
+     "nom": "Fatma Zouari",
+     "role": "Responsable RH",
+     "niveau": "Senior"
+    }
+   ],
+   "partage": true
+  },
+  {
+   "id": "admin",
+   "nom": "Administratif",
+   "court": "Admin",
+   "couleur": "#8A7A3D",
+   "missions": [
+    "Compte rendu quotidien (ce journal)",
+    "Archivage des documents du projet",
+    "Organisation des points client"
+   ],
+   "membres": [
+    {
+     "nom": "Céline Robert",
+     "role": "Assistante de direction",
+     "niveau": "Confirmée"
+    }
+   ],
+   "partage": true
+  },
+  {
+   "id": "jur",
+   "nom": "Juridique",
+   "court": "Juridique",
+   "couleur": "#6B3D3D",
+   "missions": [
+    "Contrat de sous-traitance et propriété intellectuelle",
+    "Licences des bibliothèques open source",
+    "Conformité RGPD (données des acteurs)"
+   ],
+   "membres": [
+    {
+     "nom": "Mehdi Amrani",
+     "role": "Juriste contrats & PI",
+     "niveau": "Senior",
+     "objectif": "Sous objectif jusqu'au 26/11 : contrat de sous-traitance (T-032), ouvert depuis J3"
+    },
+    {
+     "nom": "Aurélie Fontaine",
+     "role": "DPO · RGPD",
+     "niveau": "Senior",
+     "objectif": "Sous objectif jusqu'au 26/11 : registre RGPD (T-033), ouvert depuis J5"
+    }
+   ],
+   "partage": true
+  },
+  {
+   "id": "fin",
+   "nom": "Finance",
+   "court": "Finance",
+   "couleur": "#2E7A6B",
+   "missions": [
+    "Budget en jours-homme par phase",
+    "Coûts d’infrastructure et d’IA",
+    "Facturation au client"
+   ],
+   "membres": [
+    {
+     "nom": "Khaled Mzoughi",
+     "role": "Contrôleur de gestion · CDI, recruté le 19/11 (remplace Philippe Garnier)",
+     "niveau": "Senior"
+    }
+   ],
+   "partage": true
+  },
+  {
+   "id": "client",
+   "nom": "Relation client",
+   "court": "Client",
+   "couleur": "#A3456B",
+   "missions": [
+    "Interlocuteur unique du client",
+    "Demande les validations (commit, périmètre, budget)",
+    "Présente le rapport de fin de cycle"
+   ],
+   "membres": [
+    {
+     "nom": "Leila Bouaziz",
+     "role": "Account manager",
+     "niveau": "Senior"
+    }
+   ],
+   "partage": true
+  }
+ ],
+ "cycle": [],
+ "prompts": [
+  {
+   "id": "PF-P-001",
+   "date": "2026-11-27",
+   "titre": "Plateforme Pâtisserie FARES : site, kiosques, gestion, app",
+   "original": "voici une page de pâtisserie : https://www.facebook.com/patisserie.Fares , je veux créer un site web, ainsi qu'un système de gestion des commandes à travers des kiosques (apps desktop sur tablette) installés dans la pâtisserie ; tout le projet avec cahier des charges, analyses, conception, besoins et outils, étude de marché de la zone, guide d'utilisation ; plateforme, app mobile et kiosque modernes et sympas (inspiration Dribbble et motionsites.ai, transitions et animations modernes) ; planning en sprints, commencer sprint par sprint ; passer ce prompt aux agents et à l'équipe de la salle de pilotage. Tous les APIs et outils doivent être gratuits, rien de payant même 0,1 $.",
+   "ameliore": "Construire pour la Pâtisserie FARES (Ksar Hellal, depuis 1982) une plateforme unique : API Node.js + SQLite temps réel ; gestion des commandes (caisse, laboratoire, calendrier des gâteaux sur mesure, ruptures, statistiques) ; kiosques Flutter plein écran sur tablette (Windows/Android, FR/AR, 4 touchers) ; site web animé (gâteau qui se monte, configurateur) ; app mobile Flutter (fidélité, notifications). Dossier complet (cahier des charges, besoins, analyse, étude de marché locale, conception, outils, planning, tests, guide). 7 sprints, démo + tests verts à chaque fin de sprint. Contrainte : 0 service payant, aucun crédit d'essai consommé ; illustrations originales tant que FARES n'a pas fourni ses photos ; mise en ligne publique avec l'accord de FARES.",
+   "departements": [
+    "ia",
+    "prod",
+    "back",
+    "front",
+    "qa",
+    "devops"
+   ],
+   "livrables": [
+    "Dossier Sprint 0 (PF-001 à PF-008)",
+    "Socle API (Sprint 1)",
+    "Gestion, kiosque, site, app (Sprints 2 à 5)",
+    "Guide et recette (Sprint 6)"
+   ],
+   "statut": "En cours",
+   "trace": []
+  }
+ ],
+ "bibliotheques": [
+  {
+   "nom": "Node.js",
+   "version": "22",
+   "cote": "Serveur",
+   "usage": "API, site, gestion",
+   "licence": "MIT"
+  },
+  {
+   "nom": "Express",
+   "version": "4",
+   "cote": "Serveur",
+   "usage": "Routes HTTP",
+   "licence": "MIT"
+  },
+  {
+   "nom": "node:sqlite",
+   "version": "intégré",
+   "cote": "Serveur",
+   "usage": "Base de données",
+   "licence": "Domaine public"
+  },
+  {
+   "nom": "GSAP",
+   "version": "3",
+   "cote": "Site",
+   "usage": "Animations au défilement",
+   "licence": "Standard « no charge » (gratuit, usage commercial)"
+  },
+  {
+   "nom": "Lenis",
+   "version": "1",
+   "cote": "Site",
+   "usage": "Défilement doux",
+   "licence": "MIT"
+  },
+  {
+   "nom": "Flutter",
+   "version": "3.44",
+   "cote": "Kiosque / app",
+   "usage": "Tablette Windows/Android, mobile",
+   "licence": "BSD-3-Clause"
+  },
+  {
+   "nom": "flutter_animate",
+   "version": "4.5",
+   "cote": "Kiosque / app",
+   "usage": "Animations",
+   "licence": "BSD-3-Clause"
+  }
+ ],
+ "taches": [
+  {
+   "id": "PF-001",
+   "titre": "Reformulation du prompt et critères d’acceptation",
+   "dept": "ia",
+   "resp": "Yasmine Trabelsi",
+   "prio": "P0",
+   "phase": "PFS0",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "Prompt reformulé ; règle « tout gratuit, aucun crédit consommé » ajoutée."
+  },
+  {
+   "id": "PF-002",
+   "titre": "Cahier des charges",
+   "dept": "prod",
+   "resp": "Rania Gharbi",
+   "prio": "P0",
+   "phase": "PFS0",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "Contexte, objectifs chiffrés, périmètre (site, kiosque, gestion, app, API), exigences, livrables, critères d’acceptation."
+  },
+  {
+   "id": "PF-003",
+   "titre": "Besoins : personas et user stories",
+   "dept": "prod",
+   "resp": "Rania Gharbi",
+   "prio": "P0",
+   "phase": "PFS0",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "7 personas, 26 user stories priorisées (MoSCoW)."
+  },
+  {
+   "id": "PF-004",
+   "titre": "Analyse : parcours, règles métier, données",
+   "dept": "prod",
+   "resp": "Rania Gharbi",
+   "prio": "P0",
+   "phase": "PFS0",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "États de commande et de gâteau sur mesure, numérotation par canal, fidélité, modèle de données."
+  },
+  {
+   "id": "PF-005",
+   "titre": "Étude de marché Ksar Hellal et environs",
+   "dept": "prod",
+   "resp": "Mehdi Ayari",
+   "prio": "P0",
+   "phase": "PFS0",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "56 commerces relevés ; FARES : 173 avis Google (1ʳᵉ de la ville) mais 3,3/5 ; aucun concurrent avec borne ni configurateur."
+  },
+  {
+   "id": "PF-006",
+   "titre": "Conception : architecture, écrans, identité, mouvement",
+   "dept": "prod",
+   "resp": "Mehdi Ayari",
+   "prio": "P0",
+   "phase": "PFS0",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "Charte vert sapin / or tirée de la page FARES, Fraunces + Outfit + Readex Pro, élément signature « le gâteau qui se monte »."
+  },
+  {
+   "id": "PF-007",
+   "titre": "Outils et API 100 % gratuits",
+   "dept": "ia",
+   "resp": "Yasmine Trabelsi",
+   "prio": "P0",
+   "phase": "PFS0",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "Node, SQLite, SSE, GSAP (gratuit depuis 2025), Lenis, Flutter, OSM, FCM ; Apify retiré."
+  },
+  {
+   "id": "PF-008",
+   "titre": "Planning en 7 sprints",
+   "dept": "prod",
+   "resp": "Rania Gharbi",
+   "prio": "P0",
+   "phase": "PFS0",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "S0 cadrage → S1 socle → S2 gestion → S3 kiosque → S4 site → S5 app → S6 recette."
+  },
+  {
+   "id": "PF-009",
+   "titre": "Base SQLite et catalogue FARES de démonstration",
+   "dept": "back",
+   "resp": "Ons Belhaj",
+   "prio": "P0",
+   "phase": "PFS1",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "Fait : 7 catégories, 30 produits de démonstration (pièce, kilo, taille), options, horaires, personnel, 2 kiosques."
+  },
+  {
+   "id": "PF-010",
+   "titre": "API commandes et gâteaux sur mesure",
+   "dept": "back",
+   "resp": "Bilel Mansour",
+   "prio": "P0",
+   "phase": "PFS1",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "Fait : prix recalculés (millimes), numéros K-/W-/A-/C-/S-, créneaux, produits « la veille », gâteau sur mesure 48 h + photo + acompte."
+  },
+  {
+   "id": "PF-011",
+   "titre": "Temps réel (Server-Sent Events)",
+   "dept": "back",
+   "resp": "Ons Belhaj",
+   "prio": "P0",
+   "phase": "PFS1",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "Fait : SSE caisse/labo/public/suivi client ; commande kiosque reçue en < 2 s (testé)."
+  },
+  {
+   "id": "PF-012",
+   "titre": "Comptes du personnel et kiosques enregistrés",
+   "dept": "back",
+   "resp": "Bilel Mansour",
+   "prio": "P1",
+   "phase": "PFS1",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "Fait : codes hachés par rôle, droits labo/caisse/gérant, blocage après 8 codes faux, clé par kiosque."
+  },
+  {
+   "id": "PF-013",
+   "titre": "Tests API du socle",
+   "dept": "qa",
+   "resp": "Hamza Ferchichi",
+   "prio": "P0",
+   "phase": "PFS1",
+   "statut": "fait",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "Fait : 9/9 tests API (node --test), relancés sur le PC."
+  },
+  {
+   "id": "PF-014",
+   "titre": "Caisse : file en direct avec son",
+   "dept": "front",
+   "resp": "Lina Chaabane",
+   "prio": "P1",
+   "phase": "PFS2",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-015",
+   "titre": "Écran laboratoire",
+   "dept": "front",
+   "resp": "Lina Chaabane",
+   "prio": "P1",
+   "phase": "PFS2",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-016",
+   "titre": "Calendrier des gâteaux sur mesure",
+   "dept": "front",
+   "resp": "Lina Chaabane",
+   "prio": "P1",
+   "phase": "PFS2",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-017",
+   "titre": "Produits, ruptures, statistiques",
+   "dept": "front",
+   "resp": "Lina Chaabane",
+   "prio": "P1",
+   "phase": "PFS2",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-018",
+   "titre": "Kiosque Flutter plein écran (Windows + Android)",
+   "dept": "front",
+   "resp": "Lina Chaabane",
+   "prio": "P1",
+   "phase": "PFS3",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-019",
+   "titre": "Écran « commandes prêtes »",
+   "dept": "front",
+   "resp": "Lina Chaabane",
+   "prio": "P1",
+   "phase": "PFS3",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-020",
+   "titre": "Site : accueil « le gâteau qui se monte »",
+   "dept": "front",
+   "resp": "Lina Chaabane",
+   "prio": "P1",
+   "phase": "PFS4",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-021",
+   "titre": "Site : carte, panier, configurateur, suivi",
+   "dept": "front",
+   "resp": "Lina Chaabane",
+   "prio": "P1",
+   "phase": "PFS4",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-022",
+   "titre": "App mobile Flutter : commande, fidélité, notifications",
+   "dept": "front",
+   "resp": "Lina Chaabane",
+   "prio": "P1",
+   "phase": "PFS5",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-023",
+   "titre": "Guide d’utilisation et formation",
+   "dept": "prod",
+   "resp": "Rania Gharbi",
+   "prio": "P1",
+   "phase": "PFS6",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-024",
+   "titre": "Hébergement gratuit et mise en service",
+   "dept": "devops",
+   "resp": "Nour Jlassi",
+   "prio": "P1",
+   "phase": "PFS6",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-025",
+   "titre": "Recette complète",
+   "dept": "qa",
+   "resp": "Hamza Ferchichi",
+   "prio": "P1",
+   "phase": "PFS6",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": ""
+  },
+  {
+   "id": "PF-026",
+   "titre": "Relire les avis Google de FARES (3,3/5) avec le gérant",
+   "dept": "prod",
+   "resp": "Rania Gharbi",
+   "prio": "P1",
+   "phase": "PFS2",
+   "statut": "a_faire",
+   "prompt": "PF-P-001",
+   "jour": "J1",
+   "detail": "Comprendre les causes (attente, erreurs…) pour prioriser la gestion des commandes."
+  }
+ ],
+ "journal": [
+  {
+   "date": "2026-11-27",
+   "jour": "J1",
+   "resume": "Sprint 0 et Sprint 1 terminés : dossier de cadrage complet, puis API (catalogue, commandes, gâteaux sur mesure, personnel, temps réel, fidélité) avec 9/9 tests. Dépôt GitHub privé projet-a-z-03-patisserie-fares.",
+   "decisions": [
+    "Stack unique et gratuite : Node.js + SQLite + SSE, Flutter pour kiosque et app, GSAP pour le site",
+    "Gestion des commandes avant kiosque et site",
+    "Charte vert sapin et or reprise de la page FARES ; illustrations originales en attendant les photos",
+    "Apify arrêté à la demande du client : plus aucun crédit consommé"
+   ],
+   "risques": [
+    "Note Google FARES 3,3/5 : à comprendre avec le gérant",
+    "Accord écrit de FARES nécessaire avant toute mise en ligne publique",
+    "Le domaine patisserie-fares.com ne répond plus"
+   ]
+  }
+ ],
+ "maintenant": {
+  "titre": "Sprint 1 livré · Sprint 2 (gestion des commandes) à lancer",
+  "etape": 7,
+  "agents": [],
+  "progres": {
+   "tache": "PF-013",
+   "titre": "Socle API",
+   "etapes": [
+    {
+     "t": "Base et catalogue",
+     "s": "fait"
+    },
+    {
+     "t": "Commandes",
+     "s": "fait"
+    },
+    {
+     "t": "Temps réel",
+     "s": "fait"
+    },
+    {
+     "t": "Personnel",
+     "s": "fait"
+    },
+    {
+     "t": "Tests",
+     "s": "fait"
+    }
+   ]
+  },
+  "derniere": {
+   "t": "2026-11-27T13:10:00Z",
+   "texte": "Sprint 1 livré : 9/9 tests, dépôt GitHub privé"
+  }
+ },
+ "activite": [
+  {
+   "h": "J1",
+   "nom": "Yasmine Trabelsi",
+   "t": "2026-11-27T10:00:00Z",
+   "texte": "Prompt PF-P-001 reformulé, règle « tout gratuit » ajoutée."
+  },
+  {
+   "h": "J1",
+   "nom": "Mehdi Ayari",
+   "t": "2026-11-27T11:10:00Z",
+   "texte": "Étude de marché : 56 commerces, FARES 173 avis / 3,3."
+  },
+  {
+   "h": "J1",
+   "nom": "Rania Gharbi",
+   "t": "2026-11-27T12:00:00Z",
+   "texte": "Cahier des charges et planning en 7 sprints livrés."
+  },
+  {
+   "h": "J1",
+   "nom": "Ons Belhaj",
+   "t": "2026-11-27T12:30:00Z",
+   "texte": "Sprint 1 démarré : base et catalogue."
+  },
+  {
+   "h": "J1",
+   "nom": "Bilel Mansour",
+   "t": "2026-11-27T12:50:00Z",
+   "texte": "Commandes et gâteaux sur mesure : prix recalculés, 48 h, acompte."
+  },
+  {
+   "h": "J1",
+   "nom": "Hamza Ferchichi",
+   "t": "2026-11-27T13:05:00Z",
+   "texte": "Socle : 9/9 tests API, commande kiosque reçue en < 2 s."
+  }
+ ],
+ "plan": {
+  "objectif": "Pâtisserie FARES : commander sans attendre (kiosque, site, app) et préparer sans papier (caisse, laboratoire).",
+  "version": "Plan v1 · 27/11/2026",
+  "lots": [
+   {
+    "id": "PFS0",
+    "titre": "Sprint 0 · Cadrage",
+    "but": "",
+    "taches": [
+     "PF-001",
+     "PF-002",
+     "PF-003",
+     "PF-004",
+     "PF-005",
+     "PF-006",
+     "PF-007",
+     "PF-008"
+    ]
+   },
+   {
+    "id": "PFS1",
+    "titre": "Sprint 1 · Socle API",
+    "but": "",
+    "taches": [
+     "PF-009",
+     "PF-010",
+     "PF-011",
+     "PF-012",
+     "PF-013"
+    ]
+   },
+   {
+    "id": "PFS2",
+    "titre": "Sprint 2 · Gestion des commandes",
+    "but": "",
+    "taches": [
+     "PF-014",
+     "PF-015",
+     "PF-016",
+     "PF-017",
+     "PF-026"
+    ]
+   },
+   {
+    "id": "PFS3",
+    "titre": "Sprint 3 · Kiosque",
+    "but": "",
+    "taches": [
+     "PF-018",
+     "PF-019"
+    ]
+   },
+   {
+    "id": "PFS4",
+    "titre": "Sprint 4 · Site web",
+    "but": "",
+    "taches": [
+     "PF-020",
+     "PF-021"
+    ]
+   },
+   {
+    "id": "PFS5",
+    "titre": "Sprint 5 · App mobile",
+    "but": "",
+    "taches": [
+     "PF-022"
+    ]
+   },
+   {
+    "id": "PFS6",
+    "titre": "Sprint 6 · Recette et lancement",
+    "but": "",
+    "taches": [
+     "PF-023",
+     "PF-024",
+     "PF-025"
+    ]
+   }
+  ]
+ },
+ "consignes": [
+  {
+   "id": "C-001",
+   "date": "2026-11-19",
+   "si": "aychou",
+   "reponse": "aychou",
+   "etat": true,
+   "texte": "« aychou » veut dire « t'es où, on en est où ? » : tu réponds d'abord « aychou », puis tu dis où tu en es (ce que tu fais, ta tâche en cours, la tâche en cours de l'équipe)"
+  },
+  {
+   "id": "C-002",
+   "date": "2026-11-27",
+   "si": "outil ou API",
+   "reponse": "0 DT",
+   "etat": true,
+   "texte": "Aucun service payant, même 0,1 $, même sur un crédit d'essai : tout outil ou API doit être gratuit sans carte bancaire."
+  }
+ ]
+}

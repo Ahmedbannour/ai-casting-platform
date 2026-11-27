@@ -9,7 +9,7 @@ for f in sorted((here / 'projets').glob('*.json')):
     # Chaque projet a son équipe d'ingénieurs ; les fonctions support (direction, RH…) sont communes
     d['departements'] = d.get('departements') or base['departements']
     d['cycle'] = d.get('cycle') or base['cycle']
-    meta = {'zanqa': ('Safi Jacob · street food', '🥙')}.get(f.stem, (d['meta']['projet'], '📁'))
+    meta = {'zanqa': ('Safi Jacob · street food', '🥙'), 'patisserie-fares': ('Pâtisserie FARES', '🎂')}.get(f.stem, (d['meta']['projet'], '📁'))
     projets.append({'id': f.stem, 'nom': meta[0], 'emoji': meta[1], 'data': d})
 blob = json.dumps({'projets': projets}, ensure_ascii=False).replace('</', '<\\/')
 html = (here / 'template.html').read_text(encoding='utf-8')
